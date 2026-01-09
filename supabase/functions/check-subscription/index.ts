@@ -67,8 +67,12 @@ serve(async (req) => {
 
     if (hasActiveSub) {
       const subscription = subscriptions.data[0];
-      subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
-      productId = subscription.items.data[0].price.product;
+      if (subscription.current_period_end) {
+        subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
+      }
+      if (subscription.items.data[0]?.price?.product) {
+        productId = subscription.items.data[0].price.product;
+      }
       logStep("Active subscription found", { subscriptionId: subscription.id, endDate: subscriptionEnd, productId });
 
       // Update profile subscription status
