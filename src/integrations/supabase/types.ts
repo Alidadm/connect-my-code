@@ -14,6 +14,56 @@ export type Database = {
   }
   public: {
     Tables: {
+      commissions: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string | null
+          id: string
+          paid_at: string | null
+          payment_provider: string | null
+          provider_transfer_id: string | null
+          referred_user_id: string
+          referrer_id: string
+          status: string
+          subscription_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string | null
+          id?: string
+          paid_at?: string | null
+          payment_provider?: string | null
+          provider_transfer_id?: string | null
+          referred_user_id: string
+          referrer_id: string
+          status?: string
+          subscription_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string | null
+          id?: string
+          paid_at?: string | null
+          payment_provider?: string | null
+          provider_transfer_id?: string | null
+          referred_user_id?: string
+          referrer_id?: string
+          status?: string
+          subscription_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commissions_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_rsvps: {
         Row: {
           created_at: string
@@ -163,6 +213,30 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_settings: {
+        Row: {
+          id: string
+          setting_key: string
+          setting_value: Json
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          id?: string
+          setting_key: string
+          setting_value: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          id?: string
+          setting_key?: string
+          setting_value?: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       post_comments: {
         Row: {
           content: string
@@ -277,8 +351,13 @@ export type Database = {
           id: string
           is_verified: boolean | null
           location: string | null
+          paypal_customer_id: string | null
           phone: string | null
           phone_verified: boolean | null
+          referral_code: string | null
+          referrer_id: string | null
+          stripe_customer_id: string | null
+          subscription_status: string | null
           updated_at: string
           user_id: string
           username: string | null
@@ -293,8 +372,13 @@ export type Database = {
           id?: string
           is_verified?: boolean | null
           location?: string | null
+          paypal_customer_id?: string | null
           phone?: string | null
           phone_verified?: boolean | null
+          referral_code?: string | null
+          referrer_id?: string | null
+          stripe_customer_id?: string | null
+          subscription_status?: string | null
           updated_at?: string
           user_id: string
           username?: string | null
@@ -309,13 +393,26 @@ export type Database = {
           id?: string
           is_verified?: boolean | null
           location?: string | null
+          paypal_customer_id?: string | null
           phone?: string | null
           phone_verified?: boolean | null
+          referral_code?: string | null
+          referrer_id?: string | null
+          stripe_customer_id?: string | null
+          subscription_status?: string | null
           updated_at?: string
           user_id?: string
           username?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       stories: {
         Row: {
@@ -375,6 +472,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      subscriptions: {
+        Row: {
+          amount: number
+          canceled_at: string | null
+          created_at: string
+          currency: string | null
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string
+          payment_provider: string | null
+          provider_subscription_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          canceled_at?: string | null
+          created_at?: string
+          currency?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          payment_provider?: string | null
+          provider_subscription_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          canceled_at?: string | null
+          created_at?: string
+          currency?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          payment_provider?: string | null
+          provider_subscription_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
     }
     Views: {
