@@ -14,27 +14,27 @@ const demoStories = [
 
 export const StoriesRow = () => {
   return (
-    <div className="mb-4 overflow-x-auto scrollbar-hide">
-      <div className="flex gap-4 pb-2">
+    <div className="mb-4 -mx-2 sm:mx-0 px-2 sm:px-0 overflow-x-auto scrollbar-hide">
+      <div className="flex gap-3 sm:gap-4 pb-2">
         {demoStories.map((story) => (
           <div
             key={story.id}
-            className="flex flex-col items-center gap-2 cursor-pointer group flex-shrink-0"
+            className="flex flex-col items-center gap-1.5 sm:gap-2 cursor-pointer group flex-shrink-0"
           >
-            <div className={`relative rounded-full ${!story.isAdd ? 'p-[3px] bg-gradient-to-br from-primary via-weshare-purple to-pink-500' : ''}`}>
+            <div className={`relative rounded-full ${!story.isAdd ? 'p-[2px] sm:p-[3px] bg-gradient-to-br from-primary via-weshare-purple to-pink-500' : ''}`}>
               <div className={`rounded-full ${!story.isAdd ? 'p-[2px] bg-card' : ''}`}>
-                <Avatar className="h-16 w-16">
+                <Avatar className="h-14 w-14 sm:h-16 sm:w-16">
                   {story.isAdd ? (
                     <div className="w-full h-full flex items-center justify-center bg-secondary relative">
                       <AvatarImage src={story.avatar} className="opacity-70" />
-                      <div className="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-primary flex items-center justify-center border-2 border-card">
+                      <div className="absolute bottom-0 right-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-primary flex items-center justify-center border-2 border-card">
                         <Plus className="h-3 w-3 text-primary-foreground" />
                       </div>
                     </div>
                   ) : (
                     <>
                       <AvatarImage src={story.avatar} />
-                      <AvatarFallback className="bg-gradient-to-br from-primary to-weshare-purple text-primary-foreground">
+                      <AvatarFallback className="bg-gradient-to-br from-primary to-weshare-purple text-primary-foreground text-sm">
                         {story.name.split(" ").map(n => n[0]).join("")}
                       </AvatarFallback>
                     </>
@@ -42,7 +42,7 @@ export const StoriesRow = () => {
                 </Avatar>
               </div>
             </div>
-            <span className="text-xs text-muted-foreground group-hover:text-foreground transition-colors max-w-[70px] truncate text-center">
+            <span className="text-[10px] sm:text-xs text-muted-foreground group-hover:text-foreground transition-colors max-w-[60px] sm:max-w-[70px] truncate text-center">
               {story.name}
             </span>
           </div>

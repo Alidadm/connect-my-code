@@ -20,23 +20,23 @@ interface DemoPostCardProps {
 
 export const DemoPostCard = ({ post }: DemoPostCardProps) => {
   return (
-    <div className="bg-card rounded-xl border border-border overflow-hidden mb-4">
+    <div className="bg-card rounded-xl border border-border overflow-hidden mb-3 sm:mb-4">
       {/* Header */}
-      <div className="flex items-center justify-between p-4">
-        <div className="flex items-center gap-3">
-          <Avatar className="h-10 w-10">
+      <div className="flex items-center justify-between p-3 sm:p-4">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <Avatar className="h-9 w-9 sm:h-10 sm:w-10 flex-shrink-0">
             <AvatarImage src={post.author.avatar} />
-            <AvatarFallback className="bg-gradient-to-br from-primary to-weshare-purple text-primary-foreground">
+            <AvatarFallback className="bg-gradient-to-br from-primary to-weshare-purple text-primary-foreground text-sm">
               {post.author.name.split(" ").map(n => n[0]).join("")}
             </AvatarFallback>
           </Avatar>
-          <div>
-            <div className="font-semibold text-foreground">{post.author.name}</div>
-            <div className="text-xs text-muted-foreground">{post.time}</div>
+          <div className="min-w-0">
+            <div className="font-semibold text-foreground text-sm sm:text-base truncate">{post.author.name}</div>
+            <div className="text-[10px] sm:text-xs text-muted-foreground">{post.time}</div>
           </div>
         </div>
-        <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
-          <MoreVertical className="h-5 w-5" />
+        <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0">
+          <MoreVertical className="h-4 w-4 sm:h-5 sm:w-5" />
         </Button>
       </div>
 
@@ -46,12 +46,13 @@ export const DemoPostCard = ({ post }: DemoPostCardProps) => {
           {post.images.slice(0, 4).map((url, index) => (
             <div 
               key={index} 
-              className={`relative bg-secondary ${post.images!.length === 1 ? 'aspect-[16/9]' : 'aspect-square'}`}
+              className={`relative bg-secondary ${post.images!.length === 1 ? 'aspect-[16/10] sm:aspect-[16/9]' : 'aspect-square'}`}
             >
               <img
                 src={url}
                 alt={`Post media ${index + 1}`}
                 className="w-full h-full object-cover"
+                loading="lazy"
               />
             </div>
           ))}
@@ -60,29 +61,32 @@ export const DemoPostCard = ({ post }: DemoPostCardProps) => {
 
       {/* Content */}
       {post.content && (
-        <div className="px-4 py-3">
-          <p className="text-foreground whitespace-pre-wrap">{post.content}</p>
+        <div className="px-3 sm:px-4 py-2 sm:py-3">
+          <p className="text-foreground whitespace-pre-wrap text-sm sm:text-base">{post.content}</p>
         </div>
       )}
 
       {/* Actions */}
-      <div className="flex items-center justify-between px-4 py-3 border-t border-border">
-        <div className="flex items-center gap-2 sm:gap-4">
-          <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-foreground px-2 sm:px-3">
-            <Heart className="h-5 w-5" />
-            <span className="text-sm">{post.likes} Like</span>
+      <div className="flex items-center justify-between px-2 sm:px-4 py-2 sm:py-3 border-t border-border">
+        <div className="flex items-center gap-1 sm:gap-2">
+          <Button variant="ghost" size="sm" className="gap-1 sm:gap-1.5 text-muted-foreground hover:text-foreground px-2 sm:px-3 h-8 sm:h-9">
+            <Heart className="h-4 w-4 sm:h-5 sm:w-5" />
+            <span className="text-xs sm:text-sm">{post.likes}</span>
+            <span className="hidden xs:inline text-xs sm:text-sm">Like</span>
           </Button>
-          <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-foreground px-2 sm:px-3">
-            <MessageCircle className="h-5 w-5" />
-            <span className="text-sm">{post.comments} Comment</span>
+          <Button variant="ghost" size="sm" className="gap-1 sm:gap-1.5 text-muted-foreground hover:text-foreground px-2 sm:px-3 h-8 sm:h-9">
+            <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5" />
+            <span className="text-xs sm:text-sm">{post.comments}</span>
+            <span className="hidden sm:inline text-xs sm:text-sm">Comment</span>
           </Button>
-          <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-foreground px-2 sm:px-3">
-            <Share2 className="h-5 w-5" />
-            <span className="text-sm">{post.shares} Share</span>
+          <Button variant="ghost" size="sm" className="gap-1 sm:gap-1.5 text-muted-foreground hover:text-foreground px-2 sm:px-3 h-8 sm:h-9">
+            <Share2 className="h-4 w-4 sm:h-5 sm:w-5" />
+            <span className="text-xs sm:text-sm">{post.shares}</span>
+            <span className="hidden sm:inline text-xs sm:text-sm">Share</span>
           </Button>
         </div>
-        <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
-          <Bookmark className="h-5 w-5" />
+        <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground h-8 w-8 sm:h-9 sm:w-9">
+          <Bookmark className="h-4 w-4 sm:h-5 sm:w-5" />
         </Button>
       </div>
     </div>
