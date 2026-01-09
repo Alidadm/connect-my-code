@@ -59,18 +59,18 @@ export const Login = () => {
       </div>
 
       {/* Right side - Form */}
-      <div className="flex-1 flex items-center justify-center p-8">
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-8">
         <div className="w-full max-w-md">
           {/* Logo */}
-          <div className="flex items-center gap-2 mb-8">
+          <div className="flex items-center gap-2 mb-6 sm:mb-8">
             <div className="w-10 h-10 rounded-xl weshare-gradient flex items-center justify-center">
               <span className="text-primary-foreground font-bold text-xl">W</span>
             </div>
             <span className="text-2xl font-bold text-foreground">WeShare</span>
           </div>
 
-          <h1 className="text-3xl font-bold text-foreground mb-2">Log in to your account</h1>
-          <p className="text-muted-foreground mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Log in to your account</h1>
+          <p className="text-muted-foreground mb-6 sm:mb-8">
             Enter your credentials to access your account
           </p>
 
@@ -119,7 +119,7 @@ export const Login = () => {
               </div>
             </div>
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button type="submit" className="w-full weshare-gradient hover:opacity-90 transition-opacity" disabled={isLoading}>
               {isLoading ? "Logging in..." : "Log In"}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
