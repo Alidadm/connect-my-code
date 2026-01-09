@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Mail, User, Phone, ArrowRight, Calendar } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Mail, User, Phone, ArrowRight, Calendar, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,24 +18,70 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export const Signup = () => {
+  const navigate = useNavigate();
   const [showVerificationDialog, setShowVerificationDialog] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
+    password: "",
     mobile: "",
     dobDay: "",
     dobMonth: "",
     dobYear: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Show verification prompt - no actual signup function yet
-    setShowVerificationDialog(true);
+    setIsLoading(true);
+
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          emailRedirectTo: window.location.origin,
+          data: {
+            display_name: `${formData.firstName} ${formData.lastName}`,
+            phone: formData.mobile,
+          }
+        }
+      });
+
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+
+      if (data.user) {
+        // Update profile with additional info
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({
+            display_name: `${formData.firstName} ${formData.lastName}`,
+            phone: formData.mobile,
+          })
+          .eq('user_id', data.user.id);
+
+        if (profileError) {
+          console.error('Profile update error:', profileError);
+        }
+
+        toast.success("Account created successfully!");
+        navigate("/pricing");
+      }
+    } catch (err) {
+      toast.error("An unexpected error occurred");
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Generate days 1-31
@@ -120,6 +166,24 @@ export const Signup = () => {
               </div>
             </div>
 
+            {/* Password */}
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Create a password (min 6 characters)"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  className="pl-10"
+                  minLength={6}
+                  required
+                />
+              </div>
+            </div>
+
             {/* Mobile Number */}
             <div className="space-y-2">
               <Label htmlFor="mobile">Mobile Number</Label>
@@ -132,7 +196,6 @@ export const Signup = () => {
                   value={formData.mobile}
                   onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
                   className="pl-10"
-                  required
                 />
               </div>
             </div>
@@ -194,8 +257,12 @@ export const Signup = () => {
               </div>
             </div>
 
-            <Button type="submit" className="w-full weshare-gradient hover:opacity-90 transition-opacity">
-              Submit
+            <Button 
+              type="submit" 
+              className="w-full weshare-gradient hover:opacity-90 transition-opacity"
+              disabled={isLoading}
+            >
+              {isLoading ? "Creating account..." : "Create Account"}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </form>
