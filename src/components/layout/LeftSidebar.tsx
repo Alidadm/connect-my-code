@@ -6,7 +6,8 @@ import {
   Image, 
   Store, 
   FileText,
-  BadgeCheck
+  BadgeCheck,
+  X
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -25,10 +26,12 @@ const navItems = [
 ];
 
 const pagesYouLike = [
-  { name: "UI/UX Community...", avatar: "https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=50&h=50&fit=crop", verified: false, color: "bg-orange-500" },
+  { name: "UI/UX Community", avatar: "https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=50&h=50&fit=crop", verified: false, color: "bg-orange-500" },
   { name: "Web Designer", avatar: "https://images.unsplash.com/photo-1618477388954-7852f32655ec?w=50&h=50&fit=crop", verified: false, color: "bg-cyan-500" },
   { name: "Dribbble Community", avatar: "https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?w=50&h=50&fit=crop", verified: false, color: "bg-pink-500" },
   { name: "Behance", avatar: "https://images.unsplash.com/photo-1611162618071-b39a2ec055fb?w=50&h=50&fit=crop", verified: true, color: "bg-blue-600" },
+  { name: "Figma Community", avatar: "https://images.unsplash.com/photo-1626785774573-4b799315345d?w=50&h=50&fit=crop", verified: true, color: "bg-purple-500" },
+  { name: "Adobe Creative", avatar: "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=50&h=50&fit=crop", verified: true, color: "bg-red-500" },
 ];
 
 // Demo profile for non-logged in users
@@ -65,7 +68,7 @@ export const LeftSidebar = () => {
                 {displayName?.[0]?.toUpperCase() || "U"}
               </AvatarFallback>
             </Avatar>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1">
                 <span className="font-semibold text-foreground truncate">
                   {displayName}
@@ -132,14 +135,14 @@ export const LeftSidebar = () => {
           <div className="space-y-2">
             {pagesYouLike.map((page, index) => (
               <div key={index} className="flex items-center gap-3 cursor-pointer hover:bg-secondary/50 -mx-2 px-2 py-1.5 rounded-lg transition-colors">
-                <Avatar className="h-8 w-8">
+                <Avatar className="h-8 w-8 flex-shrink-0">
                   <AvatarImage src={page.avatar} />
                   <AvatarFallback className={cn(page.color, "text-white text-xs font-bold")}>
                     {page.name.slice(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <span className="text-sm font-medium text-foreground flex items-center gap-1 truncate">
-                  {page.name}
+                <span className="text-sm font-medium text-foreground flex items-center gap-1 truncate min-w-0">
+                  <span className="truncate">{page.name}</span>
                   {page.verified && (
                     <BadgeCheck className="h-4 w-4 text-primary flex-shrink-0" />
                   )}
