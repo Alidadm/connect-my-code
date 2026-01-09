@@ -206,6 +206,12 @@ export const Signup = () => {
               Log in
             </Link>
           </p>
+
+          <p className="text-center text-sm text-muted-foreground mt-2">
+            <Link to="/" className="text-primary hover:underline font-medium">
+              Go to Home Page →
+            </Link>
+          </p>
         </div>
       </div>
 
