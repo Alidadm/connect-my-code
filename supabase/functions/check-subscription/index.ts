@@ -62,18 +62,41 @@ serve(async (req) => {
     });
 
     const hasActiveSub = subscriptions.data.length > 0;
-    let productId = null;
-    let subscriptionEnd = null;
+    let productId: string | null = null;
+    let subscriptionEnd: string | null = null;
 
     if (hasActiveSub) {
       const subscription = subscriptions.data[0];
-      if (subscription.current_period_end) {
-        subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
+
+      // Be defensive: Stripe fields can be absent or typed differently depending on API version/expansions
+      const rawPeriodEnd = (subscription as any).current_period_end;
+      try {
+        let endDate: Date | null = null;
+
+        if (typeof rawPeriodEnd === "number") {
+          endDate = new Date(rawPeriodEnd * 1000);
+        } else if (typeof rawPeriodEnd === "string") {
+          const asNum = Number(rawPeriodEnd);
+          endDate = Number.isFinite(asNum) ? new Date(asNum * 1000) : new Date(rawPeriodEnd);
+        }
+
+        if (endDate && !Number.isNaN(endDate.getTime())) {
+          subscriptionEnd = endDate.toISOString();
+        } else if (rawPeriodEnd != null) {
+          logStep("Invalid current_period_end from Stripe", { rawPeriodEnd, type: typeof rawPeriodEnd });
+        }
+      } catch (e) {
+        logStep("Failed to parse current_period_end", { rawPeriodEnd, type: typeof rawPeriodEnd, error: String(e) });
       }
-      if (subscription.items.data[0]?.price?.product) {
-        productId = subscription.items.data[0].price.product;
-      }
-      logStep("Active subscription found", { subscriptionId: subscription.id, endDate: subscriptionEnd, productId });
+
+      const product = subscription.items.data[0]?.price?.product as any;
+      productId = typeof product === "string" ? product : (product?.id ?? null);
+
+      logStep("Active subscription found", {
+        subscriptionId: subscription.id,
+        endDate: subscriptionEnd,
+        productId,
+      });
 
       // Update profile subscription status
       await supabaseClient
