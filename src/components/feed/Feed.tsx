@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react";
 import { StoriesRow } from "./StoriesRow";
 import { PostCreator } from "./PostCreator";
+import { DemoPostCreator } from "./DemoPostCreator";
 import { PostCard } from "./PostCard";
+import { DemoPostCard } from "./DemoPostCard";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2 } from "lucide-react";
+import { Loader2, ChevronDown } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Post {
   id: string;
@@ -23,7 +26,57 @@ interface Post {
   };
 }
 
+// Demo posts matching the screenshot
+const demoPosts = [
+  {
+    id: "demo-1",
+    author: {
+      name: "Cameron Williamson",
+      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop",
+    },
+    time: "23 Aug at 4:21 PM",
+    images: [
+      "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&h=400&fit=crop",
+      "https://images.unsplash.com/photo-1633186223077-d13c97f9f0b5?w=400&h=400&fit=crop",
+    ],
+    likes: 30,
+    comments: 12,
+    shares: 5,
+  },
+  {
+    id: "demo-2",
+    author: {
+      name: "Terry Lipshutz",
+      avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop",
+    },
+    time: "22 Aug at 7:15 PM",
+    images: [
+      "https://images.unsplash.com/photo-1614850715649-1d0106293bd1?w=800&h=400&fit=crop",
+    ],
+    likes: 45,
+    comments: 8,
+    shares: 3,
+  },
+  {
+    id: "demo-3",
+    author: {
+      name: "Sarah Chen",
+      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop",
+    },
+    time: "21 Aug at 2:30 PM",
+    content: "Just finished my latest design project! What do you think? 🎨✨",
+    images: [
+      "https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?w=400&h=400&fit=crop",
+      "https://images.unsplash.com/photo-1557672172-298e090bd0f1?w=400&h=400&fit=crop",
+    ],
+    likes: 128,
+    comments: 24,
+    shares: 12,
+  },
+];
+
 export const Feed = () => {
+  const { user } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"following" | "trending" | "recent">("following");
@@ -41,19 +94,24 @@ export const Feed = () => {
 
       // Fetch profiles for each post
       const userIds = [...new Set(postsData?.map(p => p.user_id) || [])];
-      const { data: profilesData } = await supabase
-        .from("profiles")
-        .select("user_id, display_name, avatar_url, username, is_verified")
-        .in("user_id", userIds);
-
-      const profilesMap = new Map(profilesData?.map(p => [p.user_id, p]) || []);
       
-      const postsWithProfiles = postsData?.map(post => ({
-        ...post,
-        profiles: profilesMap.get(post.user_id) || undefined
-      })) || [];
+      if (userIds.length > 0) {
+        const { data: profilesData } = await supabase
+          .from("profiles")
+          .select("user_id, display_name, avatar_url, username, is_verified")
+          .in("user_id", userIds);
 
-      setPosts(postsWithProfiles);
+        const profilesMap = new Map(profilesData?.map(p => [p.user_id, p]) || []);
+        
+        const postsWithProfiles = postsData?.map(post => ({
+          ...post,
+          profiles: profilesMap.get(post.user_id) || undefined
+        })) || [];
+
+        setPosts(postsWithProfiles);
+      } else {
+        setPosts([]);
+      }
     } catch (error) {
       console.error("Error fetching posts:", error);
     } finally {
@@ -84,24 +142,15 @@ export const Feed = () => {
   return (
     <div className="max-w-2xl mx-auto">
       <StoriesRow />
-      <PostCreator onPostCreated={fetchPosts} />
+      {user ? <PostCreator onPostCreated={fetchPosts} /> : <DemoPostCreator />}
 
       {/* Filter tabs */}
       <div className="flex items-center justify-end mb-4 gap-2">
         <span className="text-sm text-muted-foreground">Sort by:</span>
-        <div className="flex bg-card rounded-lg border border-border p-1">
-          {(["following", "trending", "recent"] as const).map((f) => (
-            <Button
-              key={f}
-              variant={filter === f ? "default" : "ghost"}
-              size="sm"
-              className="capitalize"
-              onClick={() => setFilter(f)}
-            >
-              {f}
-            </Button>
-          ))}
-        </div>
+        <Button variant="ghost" size="sm" className="gap-1 text-foreground font-medium">
+          {filter.charAt(0).toUpperCase() + filter.slice(1)}
+          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+        </Button>
       </div>
 
       {/* Posts */}
@@ -109,15 +158,18 @@ export const Feed = () => {
         <div className="flex justify-center py-8">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
-      ) : posts.length === 0 ? (
-        <div className="text-center py-12 bg-card rounded-xl border border-border">
-          <p className="text-muted-foreground mb-2">No posts yet</p>
-          <p className="text-sm text-muted-foreground">Be the first to share something!</p>
-        </div>
       ) : (
-        posts.map((post) => (
-          <PostCard key={post.id} post={post} onLikeChange={fetchPosts} />
-        ))
+        <>
+          {/* Show real posts if any */}
+          {posts.map((post) => (
+            <PostCard key={post.id} post={post} onLikeChange={fetchPosts} />
+          ))}
+          
+          {/* Always show demo posts */}
+          {demoPosts.map((post) => (
+            <DemoPostCard key={post.id} post={post} />
+          ))}
+        </>
       )}
     </div>
   );
