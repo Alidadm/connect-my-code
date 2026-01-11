@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Mail, User, Phone, ArrowRight, Calendar, Lock } from "lucide-react";
+import { SlideAlert } from "@/components/ui/slide-alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,6 +26,8 @@ export const Signup = () => {
   const navigate = useNavigate();
   const [showVerificationDialog, setShowVerificationDialog] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
+  const [showAlert, setShowAlert] = useState(false);
   
   const [formData, setFormData] = useState({
     firstName: "",
@@ -37,11 +40,62 @@ export const Signup = () => {
     dobYear: "",
   });
 
+  const checkDuplicates = useCallback(async (): Promise<boolean> => {
+    // Check if email already exists in profiles
+    if (formData.email) {
+      const { data: existingEmail } = await supabase
+        .from('profiles')
+        .select('id')
+        .ilike('user_id', formData.email)
+        .limit(1);
+      
+      // Also check auth users via a different approach - check profiles by querying with the email
+      const { data: authCheck, error: authError } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: 'dummy-check-password-12345',
+      });
+      
+      // If we get "Invalid login credentials" it means the email exists
+      // If we get "Email not confirmed" it also means email exists
+      if (authError && (authError.message.includes('Invalid login credentials') || 
+          authError.message.includes('Email not confirmed'))) {
+        setAlertMessage("This email address is already registered. Please use a different email or log in to your existing account.");
+        setShowAlert(true);
+        return false;
+      }
+    }
+
+    // Check if phone already exists in profiles
+    if (formData.mobile) {
+      const { data: existingPhone } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('phone', formData.mobile)
+        .limit(1);
+
+      if (existingPhone && existingPhone.length > 0) {
+        setAlertMessage("This phone number is already registered. Please use a different phone number or log in to your existing account.");
+        setShowAlert(true);
+        return false;
+      }
+    }
+
+    return true;
+  }, [formData.email, formData.mobile]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setShowAlert(false);
 
     try {
+      // Check for duplicates first
+      const isValid = await checkDuplicates();
+      if (!isValid) {
+        setIsLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -55,7 +109,14 @@ export const Signup = () => {
       });
 
       if (error) {
-        toast.error(error.message);
+        // Check for duplicate email error from Supabase Auth
+        if (error.message.includes('already registered') || 
+            error.message.includes('already been registered')) {
+          setAlertMessage("This email address is already registered. Please use a different email or log in to your existing account.");
+          setShowAlert(true);
+        } else {
+          toast.error(error.message);
+        }
         return;
       }
 
@@ -114,6 +175,14 @@ export const Signup = () => {
           <p className="text-muted-foreground mb-6 sm:mb-8">
             Join our community and start sharing your moments
           </p>
+
+          {/* Slide-down Alert for Duplicate Detection */}
+          <SlideAlert
+            message={alertMessage}
+            type="error"
+            isVisible={showAlert}
+            onClose={() => setShowAlert(false)}
+          />
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Name Row */}
