@@ -104,10 +104,10 @@ export const Signup = () => {
         return;
       }
 
-      // Validate password requirements
-      const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{6,}$/;
+      // Validate password requirements (min 8 chars, 1 uppercase, 1 symbol)
+      const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
       if (!passwordRegex.test(formData.password)) {
-        setAlertMessage("Password must be at least 6 characters with one uppercase letter and one symbol.");
+        setAlertMessage("Password must be at least 8 characters with one uppercase letter and one symbol.");
         setShowAlert(true);
         setIsLoading(false);
         return;
@@ -319,12 +319,12 @@ export const Signup = () => {
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   className="pl-10"
-                  minLength={6}
+                  minLength={8}
                   required
                 />
               </div>
-              {formData.password && !/^(?=.*[A-Z])(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{6,}$/.test(formData.password) && (
-                <p className="text-xs text-destructive">Password must have at least 6 characters, one uppercase letter, and one symbol</p>
+              {formData.password && !/^(?=.*[A-Z])(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/.test(formData.password) && (
+                <p className="text-xs text-destructive">Password must have at least 8 characters, one uppercase letter, and one symbol</p>
               )}
             </div>
 
