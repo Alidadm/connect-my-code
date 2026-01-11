@@ -11,10 +11,14 @@ interface Profile {
   cover_url: string | null;
   bio: string | null;
   location: string | null;
-  phone: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  country: string | null;
   phone_verified: boolean;
   email_verified: boolean;
   is_verified: boolean;
+  referral_code: string | null;
+  subscription_status: string | null;
   created_at: string;
   updated_at: string;
 }

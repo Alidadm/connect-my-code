@@ -344,19 +344,16 @@ export type Database = {
         Row: {
           avatar_url: string | null
           bio: string | null
-          birthday: string | null
           country: string | null
           cover_url: string | null
           created_at: string
           display_name: string | null
-          email: string | null
           email_verified: boolean | null
           first_name: string | null
           id: string
           is_verified: boolean | null
           last_name: string | null
           location: string | null
-          phone: string | null
           phone_verified: boolean | null
           referral_code: string | null
           referrer_id: string | null
@@ -368,19 +365,16 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           bio?: string | null
-          birthday?: string | null
           country?: string | null
           cover_url?: string | null
           created_at?: string
           display_name?: string | null
-          email?: string | null
           email_verified?: boolean | null
           first_name?: string | null
           id?: string
           is_verified?: boolean | null
           last_name?: string | null
           location?: string | null
-          phone?: string | null
           phone_verified?: boolean | null
           referral_code?: string | null
           referrer_id?: string | null
@@ -392,19 +386,16 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           bio?: string | null
-          birthday?: string | null
           country?: string | null
           cover_url?: string | null
           created_at?: string
           display_name?: string | null
-          email?: string | null
           email_verified?: boolean | null
           first_name?: string | null
           id?: string
           is_verified?: boolean | null
           last_name?: string | null
           location?: string | null
-          phone?: string | null
           phone_verified?: boolean | null
           referral_code?: string | null
           referrer_id?: string | null
@@ -425,27 +416,36 @@ export type Database = {
       }
       profiles_private: {
         Row: {
+          birthday: string | null
           created_at: string
+          email: string | null
           id: string
           paypal_customer_id: string | null
+          phone: string | null
           signup_ip_address: string | null
           stripe_customer_id: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          birthday?: string | null
           created_at?: string
+          email?: string | null
           id?: string
           paypal_customer_id?: string | null
+          phone?: string | null
           signup_ip_address?: string | null
           stripe_customer_id?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          birthday?: string | null
           created_at?: string
+          email?: string | null
           id?: string
           paypal_customer_id?: string | null
+          phone?: string | null
           signup_ip_address?: string | null
           stripe_customer_id?: string | null
           updated_at?: string
