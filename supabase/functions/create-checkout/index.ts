@@ -41,12 +41,38 @@ serve(async (req) => {
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
 
-    // Check if customer already exists
+    // Check if customer already exists in Stripe
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     let customerId;
     if (customers.data.length > 0) {
       customerId = customers.data[0].id;
       logStep("Existing customer found", { customerId });
+      
+      // Store/update Stripe customer ID in profiles_private (service role bypasses RLS)
+      const supabaseAdmin = createClient(
+        Deno.env.get("SUPABASE_URL") ?? "",
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+        { auth: { persistSession: false } }
+      );
+      
+      // Upsert to profiles_private
+      const { data: existingPrivate } = await supabaseAdmin
+        .from("profiles_private")
+        .select("id")
+        .eq("user_id", user.id)
+        .single();
+      
+      if (existingPrivate) {
+        await supabaseAdmin
+          .from("profiles_private")
+          .update({ stripe_customer_id: customerId })
+          .eq("user_id", user.id);
+      } else {
+        await supabaseAdmin
+          .from("profiles_private")
+          .insert({ user_id: user.id, stripe_customer_id: customerId });
+      }
+      logStep("Stored Stripe customer ID in profiles_private");
     } else {
       logStep("No existing customer, will create new");
     }
