@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { 
   Search, Star, Settings, Users, MessageCircle, Bell, Plus, 
-  MoreHorizontal, Filter, LayoutGrid, Table, List, ChevronRight,
+  MoreHorizontal, Filter, LayoutGrid, Table, List, ChevronRight, ChevronDown,
   Folder, Home, Calendar, FileText, Send, Mic, Phone, Video, X,
-  Play, Clock, Link2, PanelLeftClose, PanelLeft
+  Play, Clock, Link2, PanelLeftClose, PanelLeft, LayoutDashboard, ListOrdered, AlertTriangle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,10 +16,15 @@ import { useNavigate } from "react-router-dom";
 // Demo data
 const favoriteProjects = [
   { name: "Member Home", starred: true, path: "/" },
-  { name: "Mirage", starred: true },
   { name: "Mashroom", starred: true },
   { name: "Weedo", starred: true },
   { name: "Lonely Walls", starred: true },
+];
+
+const userManagementMenu = [
+  { name: "User Dashboard", icon: LayoutDashboard, path: "/admin/users/dashboard" },
+  { name: "User List", icon: ListOrdered, path: "/admin/users/list" },
+  { name: "User Alert", icon: AlertTriangle, path: "/admin/users/alerts" },
 ];
 
 const allProjects = [
@@ -126,6 +131,7 @@ const AdminIndex = () => {
   const navigate = useNavigate();
   const [isChatOpen, setIsChatOpen] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [activeProject, setActiveProject] = useState("Unique");
   const [activeTab, setActiveTab] = useState("Tasks");
 
@@ -222,6 +228,38 @@ const AdminIndex = () => {
                 {project.name}
               </button>
             ))}
+            
+            {/* User Management with submenu */}
+            <div>
+              <button
+                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                className="w-full flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-slate-50 transition-colors text-sm text-slate-700"
+              >
+                <div className="flex items-center gap-2">
+                  <Users className="w-4 h-4 text-purple-500" />
+                  User Management
+                </div>
+                {isUserMenuOpen ? (
+                  <ChevronDown className="w-4 h-4 text-slate-400" />
+                ) : (
+                  <ChevronRight className="w-4 h-4 text-slate-400" />
+                )}
+              </button>
+              {isUserMenuOpen && (
+                <div className="ml-4 mt-1 space-y-0.5 border-l-2 border-slate-200 pl-2">
+                  {userManagementMenu.map((item) => (
+                    <button
+                      key={item.name}
+                      onClick={() => navigate(item.path)}
+                      className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-purple-50 transition-colors text-sm text-slate-600 hover:text-purple-700"
+                    >
+                      <item.icon className="w-4 h-4 text-slate-400" />
+                      {item.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
