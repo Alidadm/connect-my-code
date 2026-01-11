@@ -26,7 +26,7 @@ const Pricing = () => {
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [testLoading, setTestLoading] = useState(false);
 
-  // Test function to create a sample commission
+  // Test function to create a sample commission via edge function
   const handleTestCommission = async () => {
     if (!user) {
       toast.error("Please log in first");
@@ -35,17 +35,11 @@ const Pricing = () => {
 
     setTestLoading(true);
     try {
-      // Create a test commission where current user is the referrer
-      const { error } = await supabase.from("commissions").insert({
-        referrer_id: user.id,
-        referred_user_id: user.id, // Using same user for testing
-        amount: 5.00,
-        currency: "usd",
-        status: "pending",
-        payment_provider: "stripe",
-      });
+      const { data, error } = await supabase.functions.invoke("test-commission");
 
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      
       toast.success("Test commission created! Check your commissions dashboard.");
     } catch (error: any) {
       toast.error("Failed to create test commission: " + error.message);
