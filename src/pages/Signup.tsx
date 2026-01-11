@@ -134,17 +134,19 @@ export const Signup = () => {
       }
 
       if (data.user) {
-        // Get user's IP address and country using ip-api (free geolocation)
+        // Get user's IP address and country using ipapi.co (HTTPS, free tier)
         let ipAddress = null;
         let country = null;
         try {
-          // ip-api.com provides both IP and geolocation data in one call
-          const geoResponse = await fetch('http://ip-api.com/json/?fields=status,country,query');
+          // ipapi.co provides both IP and geolocation data via HTTPS
+          const geoResponse = await fetch('https://ipapi.co/json/');
           const geoData = await geoResponse.json();
           
-          if (geoData.status === 'success') {
-            ipAddress = geoData.query;
-            country = geoData.country;
+          if (geoData.ip && geoData.country_name) {
+            ipAddress = geoData.ip;
+            country = geoData.country_name;
+          } else if (geoData.ip) {
+            ipAddress = geoData.ip;
           } else {
             // Fallback to just getting IP if geolocation fails
             const ipResponse = await fetch('https://api.ipify.org?format=json');
