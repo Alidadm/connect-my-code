@@ -4,8 +4,37 @@ import Swal from "sweetalert2";
 import {
   Search, Filter, Download, Upload, Plus, MoreHorizontal,
   ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight,
-  Edit, Trash2, Eye, Mail, Phone, ArrowUpDown, ArrowLeft, Loader2, Globe
+  Edit, Trash2, Eye, Mail, Phone, ArrowUpDown, ArrowLeft, Loader2
 } from "lucide-react";
+
+// Country name to ISO 2-letter code mapping for flag emojis
+const countryToCode: Record<string, string> = {
+  "Afghanistan": "AF", "Albania": "AL", "Algeria": "DZ", "Argentina": "AR", "Australia": "AU",
+  "Austria": "AT", "Bangladesh": "BD", "Belgium": "BE", "Brazil": "BR", "Canada": "CA",
+  "Chile": "CL", "China": "CN", "Colombia": "CO", "Croatia": "HR", "Czech Republic": "CZ",
+  "Denmark": "DK", "Egypt": "EG", "Finland": "FI", "France": "FR", "Germany": "DE",
+  "Ghana": "GH", "Greece": "GR", "Hong Kong": "HK", "Hungary": "HU", "India": "IN",
+  "Indonesia": "ID", "Iran": "IR", "Iraq": "IQ", "Ireland": "IE", "Israel": "IL",
+  "Italy": "IT", "Japan": "JP", "Jordan": "JO", "Kazakhstan": "KZ", "Kenya": "KE",
+  "Kuwait": "KW", "Lebanon": "LB", "Malaysia": "MY", "Mexico": "MX", "Morocco": "MA",
+  "Netherlands": "NL", "New Zealand": "NZ", "Nigeria": "NG", "Norway": "NO", "Pakistan": "PK",
+  "Peru": "PE", "Philippines": "PH", "Poland": "PL", "Portugal": "PT", "Qatar": "QA",
+  "Romania": "RO", "Russia": "RU", "Saudi Arabia": "SA", "Serbia": "RS", "Singapore": "SG",
+  "Slovakia": "SK", "South Africa": "ZA", "South Korea": "KR", "Spain": "ES", "Sri Lanka": "LK",
+  "Sweden": "SE", "Switzerland": "CH", "Taiwan": "TW", "Thailand": "TH", "Turkey": "TR",
+  "Ukraine": "UA", "United Arab Emirates": "AE", "United Kingdom": "GB", "United States": "US",
+  "Venezuela": "VE", "Vietnam": "VN", "Czechia": "CZ", "Korea": "KR"
+};
+
+// Convert ISO country code to flag emoji
+const getFlagEmoji = (countryName: string): string => {
+  if (!countryName || countryName === 'Unknown') return '🌍';
+  const code = countryToCode[countryName];
+  if (!code) return '🌍';
+  // Convert country code to regional indicator symbols (flag emoji)
+  const codePoints = [...code.toUpperCase()].map(char => 127397 + char.charCodeAt(0));
+  return String.fromCodePoint(...codePoints);
+};
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -485,7 +514,7 @@ const UserList = () => {
                     <TableCell className="text-slate-600">{user.birthday}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <Globe className="w-4 h-4 text-slate-400" />
+                        <span className="text-lg">{getFlagEmoji(user.country)}</span>
                         <span className="text-slate-600">{user.country}</span>
                       </div>
                     </TableCell>
