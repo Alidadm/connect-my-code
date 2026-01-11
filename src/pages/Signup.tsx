@@ -41,31 +41,7 @@ export const Signup = () => {
   });
 
   const checkDuplicates = useCallback(async (): Promise<boolean> => {
-    // Check if email already exists in profiles
-    if (formData.email) {
-      const { data: existingEmail } = await supabase
-        .from('profiles')
-        .select('id')
-        .ilike('user_id', formData.email)
-        .limit(1);
-      
-      // Also check auth users via a different approach - check profiles by querying with the email
-      const { data: authCheck, error: authError } = await supabase.auth.signInWithPassword({
-        email: formData.email,
-        password: 'dummy-check-password-12345',
-      });
-      
-      // If we get "Invalid login credentials" it means the email exists
-      // If we get "Email not confirmed" it also means email exists
-      if (authError && (authError.message.includes('Invalid login credentials') || 
-          authError.message.includes('Email not confirmed'))) {
-        setAlertMessage("This email address is already registered. Please use a different email or log in to your existing account.");
-        setShowAlert(true);
-        return false;
-      }
-    }
-
-    // Check if phone already exists in profiles
+    // Check if phone already exists in profiles FIRST (before email check)
     if (formData.mobile) {
       const { data: existingPhone } = await supabase
         .from('profiles')
@@ -74,7 +50,25 @@ export const Signup = () => {
         .limit(1);
 
       if (existingPhone && existingPhone.length > 0) {
-        setAlertMessage("This phone number is already registered. Please use a different phone number or log in to your existing account.");
+        setAlertMessage("This mobile number is already registered. Please use a different mobile number or log in to your existing account.");
+        setShowAlert(true);
+        return false;
+      }
+    }
+
+    // Check if email already exists in auth system
+    if (formData.email) {
+      // Use signInWithPassword with a dummy password to check if email exists
+      // "Invalid login credentials" means email exists but password is wrong
+      // "Email not confirmed" also means email exists
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: 'dummy-check-password-12345-that-will-never-match',
+      });
+      
+      if (authError && (authError.message.includes('Invalid login credentials') || 
+          authError.message.includes('Email not confirmed'))) {
+        setAlertMessage("This email address is already registered. Please use a different email or log in to your existing account.");
         setShowAlert(true);
         return false;
       }
