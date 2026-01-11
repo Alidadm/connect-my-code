@@ -67,7 +67,42 @@ export const Signup = () => {
     setShowAlert(false);
 
     try {
-      // Check for duplicates first
+      // Validate date of birth
+      if (!formData.dobDay || !formData.dobMonth || !formData.dobYear) {
+        setAlertMessage("Please select your complete date of birth (day, month, and year).");
+        setShowAlert(true);
+        setIsLoading(false);
+        return;
+      }
+
+      // Validate the date is valid (e.g., not Feb 31)
+      const day = parseInt(formData.dobDay);
+      const month = parseInt(formData.dobMonth);
+      const year = parseInt(formData.dobYear);
+      const dob = new Date(year, month - 1, day);
+      
+      if (dob.getDate() !== day || dob.getMonth() !== month - 1 || dob.getFullYear() !== year) {
+        setAlertMessage("Please enter a valid date of birth.");
+        setShowAlert(true);
+        setIsLoading(false);
+        return;
+      }
+
+      // Check minimum age (13 years)
+      const today = new Date();
+      const age = today.getFullYear() - dob.getFullYear();
+      const monthDiff = today.getMonth() - dob.getMonth();
+      const dayDiff = today.getDate() - dob.getDate();
+      const actualAge = monthDiff < 0 || (monthDiff === 0 && dayDiff < 0) ? age - 1 : age;
+
+      if (actualAge < 13) {
+        setAlertMessage("You must be at least 13 years old to create an account.");
+        setShowAlert(true);
+        setIsLoading(false);
+        return;
+      }
+
+      // Check for duplicates
       const isValid = await checkDuplicates();
       if (!isValid) {
         setIsLoading(false);
