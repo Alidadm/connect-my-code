@@ -344,12 +344,16 @@ export type Database = {
         Row: {
           avatar_url: string | null
           bio: string | null
+          birthday: string | null
           cover_url: string | null
           created_at: string
           display_name: string | null
+          email: string | null
           email_verified: boolean | null
+          first_name: string | null
           id: string
           is_verified: boolean | null
+          last_name: string | null
           location: string | null
           paypal_customer_id: string | null
           phone: string | null
@@ -366,12 +370,16 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           bio?: string | null
+          birthday?: string | null
           cover_url?: string | null
           created_at?: string
           display_name?: string | null
+          email?: string | null
           email_verified?: boolean | null
+          first_name?: string | null
           id?: string
           is_verified?: boolean | null
+          last_name?: string | null
           location?: string | null
           paypal_customer_id?: string | null
           phone?: string | null
@@ -388,12 +396,16 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           bio?: string | null
+          birthday?: string | null
           cover_url?: string | null
           created_at?: string
           display_name?: string | null
+          email?: string | null
           email_verified?: boolean | null
+          first_name?: string | null
           id?: string
           is_verified?: boolean | null
+          last_name?: string | null
           location?: string | null
           paypal_customer_id?: string | null
           phone?: string | null
