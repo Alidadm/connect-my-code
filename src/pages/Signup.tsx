@@ -1,10 +1,12 @@
 import { useState, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Mail, User, Phone, ArrowRight, Calendar, Lock, Home, CreditCard } from "lucide-react";
+import { Mail, User, ArrowRight, Calendar, Lock, Home, CreditCard } from "lucide-react";
+import { isValidPhoneNumber } from 'react-phone-number-input';
 import { SlideAlert } from "@/components/ui/slide-alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PhoneInputField } from "@/components/ui/phone-input";
 import {
   Select,
   SelectContent,
@@ -97,6 +99,14 @@ export const Signup = () => {
 
       if (actualAge < 13) {
         setAlertMessage("You must be at least 13 years old to create an account.");
+        setShowAlert(true);
+        setIsLoading(false);
+        return;
+      }
+
+      // Validate phone number format
+      if (formData.mobile && !isValidPhoneNumber(formData.mobile)) {
+        setAlertMessage("Please enter a valid phone number.");
         setShowAlert(true);
         setIsLoading(false);
         return;
@@ -309,17 +319,14 @@ export const Signup = () => {
             {/* Mobile Number */}
             <div className="space-y-2">
               <Label htmlFor="mobile">Mobile Number</Label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="mobile"
-                  type="tel"
-                  placeholder="+1 (555) 000-0000"
-                  value={formData.mobile}
-                  onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
-                  className="pl-10"
-                />
-              </div>
+              <PhoneInputField
+                value={formData.mobile}
+                onChange={(value) => setFormData({ ...formData, mobile: value || '' })}
+                placeholder="Enter your phone number"
+              />
+              {formData.mobile && !isValidPhoneNumber(formData.mobile) && (
+                <p className="text-xs text-destructive">Please enter a valid phone number</p>
+              )}
             </div>
 
             {/* Date of Birth */}
@@ -455,7 +462,7 @@ export const Signup = () => {
                   <span>Check your email at <strong className="text-foreground">{formData.email || "your email"}</strong></span>
                 </p>
                 <p className="flex items-center gap-2">
-                  <Phone className="h-4 w-4 text-primary" />
+                  <span className="text-primary">📱</span>
                   <span>Check your mobile at <strong className="text-foreground">{formData.mobile || "your phone"}</strong></span>
                 </p>
               </div>
