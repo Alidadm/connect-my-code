@@ -134,20 +134,39 @@ export const Signup = () => {
       }
 
       if (data.user) {
-        // Get user's IP address
+        // Get user's IP address and country using ip-api (free geolocation)
         let ipAddress = null;
+        let country = null;
         try {
-          const ipResponse = await fetch('https://api.ipify.org?format=json');
-          const ipData = await ipResponse.json();
-          ipAddress = ipData.ip;
+          // ip-api.com provides both IP and geolocation data in one call
+          const geoResponse = await fetch('http://ip-api.com/json/?fields=status,country,query');
+          const geoData = await geoResponse.json();
+          
+          if (geoData.status === 'success') {
+            ipAddress = geoData.query;
+            country = geoData.country;
+          } else {
+            // Fallback to just getting IP if geolocation fails
+            const ipResponse = await fetch('https://api.ipify.org?format=json');
+            const ipData = await ipResponse.json();
+            ipAddress = ipData.ip;
+          }
         } catch (ipError) {
-          console.error('Failed to fetch IP address:', ipError);
+          console.error('Failed to fetch IP/country:', ipError);
+          // Try fallback for IP only
+          try {
+            const ipResponse = await fetch('https://api.ipify.org?format=json');
+            const ipData = await ipResponse.json();
+            ipAddress = ipData.ip;
+          } catch (fallbackError) {
+            console.error('Fallback IP fetch also failed:', fallbackError);
+          }
         }
 
         // Format birthday as ISO date string
         const birthdayDate = `${formData.dobYear}-${formData.dobMonth.padStart(2, '0')}-${formData.dobDay.padStart(2, '0')}`;
 
-        // Update profile with additional info including IP, email, names, and birthday
+        // Update profile with additional info including IP, country, email, names, and birthday
         const { error: profileError } = await supabase
           .from('profiles')
           .update({
@@ -158,6 +177,7 @@ export const Signup = () => {
             phone: formData.mobile,
             birthday: birthdayDate,
             signup_ip_address: ipAddress,
+            country: country,
           })
           .eq('user_id', data.user.id);
 
