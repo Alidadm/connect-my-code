@@ -430,13 +430,6 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["user_id"]
           },
-          {
-            foreignKeyName: "profiles_referrer_id_fkey"
-            columns: ["referrer_id"]
-            isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["user_id"]
-          },
         ]
       }
       stories: {
@@ -545,47 +538,40 @@ export type Database = {
       }
     }
     Views: {
-      public_profiles: {
-        Row: {
-          avatar_url: string | null
-          bio: string | null
-          cover_url: string | null
-          created_at: string | null
-          display_name: string | null
-          is_verified: boolean | null
-          location: string | null
-          user_id: string | null
-          username: string | null
-        }
-        Insert: {
-          avatar_url?: string | null
-          bio?: string | null
-          cover_url?: string | null
-          created_at?: string | null
-          display_name?: string | null
-          is_verified?: boolean | null
-          location?: string | null
-          user_id?: string | null
-          username?: string | null
-        }
-        Update: {
-          avatar_url?: string | null
-          bio?: string | null
-          cover_url?: string | null
-          created_at?: string | null
-          display_name?: string | null
-          is_verified?: boolean | null
-          location?: string | null
-          user_id?: string | null
-          username?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       are_friends: {
         Args: { user_a: string; user_b: string }
         Returns: boolean
+      }
+      get_friend_profile: {
+        Args: { friend_user_id: string }
+        Returns: {
+          avatar_url: string
+          bio: string
+          cover_url: string
+          created_at: string
+          display_name: string
+          is_verified: boolean
+          location: string
+          user_id: string
+          username: string
+        }[]
+      }
+      get_friend_profiles: {
+        Args: { friend_user_ids: string[] }
+        Returns: {
+          avatar_url: string
+          bio: string
+          cover_url: string
+          created_at: string
+          display_name: string
+          is_verified: boolean
+          location: string
+          user_id: string
+          username: string
+        }[]
       }
     }
     Enums: {
