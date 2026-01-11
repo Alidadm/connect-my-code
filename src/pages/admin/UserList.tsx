@@ -4,7 +4,7 @@ import Swal from "sweetalert2";
 import {
   Search, Filter, Download, Upload, Plus, MoreHorizontal,
   ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight,
-  Edit, Trash2, Eye, Mail, Phone, ArrowUpDown, ArrowLeft, Loader2
+  Edit, Trash2, Eye, Mail, Phone, ArrowUpDown, ArrowLeft, Loader2, Globe
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,6 +44,7 @@ type User = {
   email: string;
   phone: string;
   birthday: string;
+  country: string;
   avatar: string;
   status: string;
 };
@@ -83,6 +84,7 @@ const UserList = () => {
         : sortColumn === 'lastName' ? 'last_name' 
         : sortColumn === 'email' ? 'email'
         : sortColumn === 'birthday' ? 'birthday'
+        : sortColumn === 'country' ? 'country'
         : 'created_at';
       
       query = query.order(dbSortColumn, { ascending: sortDirection === 'asc' });
@@ -107,6 +109,7 @@ const UserList = () => {
         birthday: profile.birthday 
           ? new Date(profile.birthday).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
           : 'Not set',
+        country: profile.country || 'Unknown',
         avatar: profile.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.user_id}`,
         status: profile.subscription_status === 'active' ? 'active' : 'inactive'
       }));
@@ -423,13 +426,22 @@ const UserList = () => {
                     <ArrowUpDown className="w-4 h-4 text-slate-400" />
                   </div>
                 </TableHead>
+                <TableHead 
+                  className="cursor-pointer hover:bg-slate-100 transition-colors"
+                  onClick={() => handleSort('country')}
+                >
+                  <div className="flex items-center gap-2">
+                    Country
+                    <ArrowUpDown className="w-4 h-4 text-slate-400" />
+                  </div>
+                </TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="h-32">
+                  <TableCell colSpan={8} className="h-32">
                     <div className="flex items-center justify-center gap-2">
                       <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
                       <span className="text-slate-500">Loading users...</span>
@@ -438,7 +450,7 @@ const UserList = () => {
                 </TableRow>
               ) : users.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="h-32 text-center text-slate-500">
+                  <TableCell colSpan={8} className="h-32 text-center text-slate-500">
                     No users found
                   </TableCell>
                 </TableRow>
@@ -471,6 +483,12 @@ const UserList = () => {
                       </div>
                     </TableCell>
                     <TableCell className="text-slate-600">{user.birthday}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Globe className="w-4 h-4 text-slate-400" />
+                        <span className="text-slate-600">{user.country}</span>
+                      </div>
+                    </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
                         <Button 
