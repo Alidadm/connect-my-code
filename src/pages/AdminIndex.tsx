@@ -11,9 +11,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
 
 // Demo data
 const favoriteProjects = [
+  { name: "Member Home", starred: true, path: "/" },
   { name: "Mirage", starred: true },
   { name: "Mashroom", starred: true },
   { name: "Weedo", starred: true },
@@ -121,6 +123,7 @@ const chatMessages = [
 ];
 
 const AdminIndex = () => {
+  const navigate = useNavigate();
   const [isChatOpen, setIsChatOpen] = useState(true);
   const [activeProject, setActiveProject] = useState("Unique");
   const [activeTab, setActiveTab] = useState("Tasks");
@@ -154,9 +157,13 @@ const AdminIndex = () => {
             {favoriteProjects.map((project) => (
               <button
                 key={project.name}
-                className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-slate-50 transition-colors text-sm text-slate-700"
+                onClick={() => project.path && navigate(project.path)}
+                className={cn(
+                  "w-full flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-slate-50 transition-colors text-sm text-slate-700",
+                  project.path && "text-blue-600 hover:bg-blue-50 font-medium"
+                )}
               >
-                <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+                <Star className={cn("w-4 h-4", project.path ? "text-blue-500 fill-blue-500" : "text-amber-400 fill-amber-400")} />
                 {project.name}
               </button>
             ))}
