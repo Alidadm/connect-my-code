@@ -356,6 +356,7 @@ export type Database = {
           phone_verified: boolean | null
           referral_code: string | null
           referrer_id: string | null
+          signup_ip_address: string | null
           stripe_customer_id: string | null
           subscription_status: string | null
           updated_at: string
@@ -377,6 +378,7 @@ export type Database = {
           phone_verified?: boolean | null
           referral_code?: string | null
           referrer_id?: string | null
+          signup_ip_address?: string | null
           stripe_customer_id?: string | null
           subscription_status?: string | null
           updated_at?: string
@@ -398,6 +400,7 @@ export type Database = {
           phone_verified?: boolean | null
           referral_code?: string | null
           referrer_id?: string | null
+          signup_ip_address?: string | null
           stripe_customer_id?: string | null
           subscription_status?: string | null
           updated_at?: string

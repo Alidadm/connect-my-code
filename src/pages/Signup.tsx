@@ -134,12 +134,23 @@ export const Signup = () => {
       }
 
       if (data.user) {
-        // Update profile with additional info
+        // Get user's IP address
+        let ipAddress = null;
+        try {
+          const ipResponse = await fetch('https://api.ipify.org?format=json');
+          const ipData = await ipResponse.json();
+          ipAddress = ipData.ip;
+        } catch (ipError) {
+          console.error('Failed to fetch IP address:', ipError);
+        }
+
+        // Update profile with additional info including IP
         const { error: profileError } = await supabase
           .from('profiles')
           .update({
             display_name: `${formData.firstName} ${formData.lastName}`,
             phone: formData.mobile,
+            signup_ip_address: ipAddress,
           })
           .eq('user_id', data.user.id);
 
