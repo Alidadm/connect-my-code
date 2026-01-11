@@ -91,59 +91,28 @@ const UserList = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch users from database
+  // Fetch users from database via admin edge function
   const fetchUsers = useCallback(async () => {
     setIsLoading(true);
     try {
-      // Build the query
-      let query = supabase
-        .from('profiles')
-        .select('*', { count: 'exact' });
-
-      // Apply search filter
-      if (searchQuery) {
-        query = query.or(
-          `first_name.ilike.%${searchQuery}%,last_name.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%,phone.ilike.%${searchQuery}%,display_name.ilike.%${searchQuery}%`
-        );
-      }
-
-      // Apply sorting
-      const dbSortColumn = sortColumn === 'firstName' ? 'first_name' 
-        : sortColumn === 'lastName' ? 'last_name' 
-        : sortColumn === 'email' ? 'email'
-        : sortColumn === 'birthday' ? 'birthday'
-        : sortColumn === 'country' ? 'country'
-        : 'created_at';
-      
-      query = query.order(dbSortColumn, { ascending: sortDirection === 'asc' });
-
-      // Apply pagination
-      const from = (currentPage - 1) * itemsPerPage;
-      const to = from + itemsPerPage - 1;
-      query = query.range(from, to);
-
-      const { data, error, count } = await query;
+      // Use admin edge function to get users with private data
+      const { data, error } = await supabase.functions.invoke('admin-get-users', {
+        body: {
+          searchQuery,
+          page: currentPage,
+          limit: itemsPerPage,
+          sortColumn: sortColumn === 'firstName' ? 'first_name' 
+            : sortColumn === 'lastName' ? 'last_name' 
+            : sortColumn === 'country' ? 'country'
+            : 'created_at',
+          sortDirection,
+        }
+      });
 
       if (error) throw error;
 
-      // Transform data to match User type
-      const transformedUsers: User[] = (data || []).map((profile) => ({
-        id: profile.id,
-        user_id: profile.user_id,
-        firstName: profile.first_name || profile.display_name?.split(' ')[0] || 'N/A',
-        lastName: profile.last_name || profile.display_name?.split(' ').slice(1).join(' ') || '',
-        email: profile.email || 'No email',
-        phone: profile.phone || 'No phone',
-        birthday: profile.birthday 
-          ? new Date(profile.birthday).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-          : 'Not set',
-        country: profile.country || 'Unknown',
-        avatar: profile.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.user_id}`,
-        status: profile.subscription_status === 'active' ? 'active' : 'inactive'
-      }));
-
-      setUsers(transformedUsers);
-      setTotalCount(count || 0);
+      setUsers(data.users || []);
+      setTotalCount(data.totalCount || 0);
     } catch (error: any) {
       console.error('Error fetching users:', error);
       toast({

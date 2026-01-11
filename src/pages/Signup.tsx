@@ -43,23 +43,25 @@ export const Signup = () => {
   });
 
   const checkDuplicates = useCallback(async (): Promise<boolean> => {
-    // Check if phone already exists in profiles
+    // Check if phone already exists via backend function (phone is in profiles_private)
     if (formData.mobile) {
-      const { data: existingPhone } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('phone', formData.mobile)
-        .limit(1);
+      try {
+        const { data, error } = await supabase.functions.invoke('check-phone-exists', {
+          body: { phone: formData.mobile }
+        });
 
-      if (existingPhone && existingPhone.length > 0) {
-        setAlertMessage("This mobile number is already registered. Please use a different mobile number or log in to your existing account.");
-        setShowAlert(true);
-        return false;
+        if (!error && data?.exists) {
+          setAlertMessage("This mobile number is already registered. Please use a different mobile number or log in to your existing account.");
+          setShowAlert(true);
+          return false;
+        }
+      } catch (err) {
+        console.error('Error checking phone:', err);
+        // Continue with signup if check fails
       }
     }
 
     // Email duplicate check is handled by Supabase Auth during signup
-    // We can't reliably pre-check emails without security issues
     return true;
   }, [formData.mobile]);
 
@@ -187,16 +189,13 @@ export const Signup = () => {
         // Format birthday as ISO date string
         const birthdayDate = `${formData.dobYear}-${formData.dobMonth.padStart(2, '0')}-${formData.dobDay.padStart(2, '0')}`;
 
-        // Update profile with additional info (excluding sensitive data like IP)
+        // Update public profile with non-sensitive info
         const { error: profileError } = await supabase
           .from('profiles')
           .update({
             display_name: `${formData.firstName} ${formData.lastName}`,
             first_name: formData.firstName,
             last_name: formData.lastName,
-            email: formData.email,
-            phone: formData.mobile,
-            birthday: birthdayDate,
             country: country,
           })
           .eq('user_id', data.user.id);
@@ -205,16 +204,18 @@ export const Signup = () => {
           console.error('Profile update error:', profileError);
         }
 
-        // Store sensitive data (IP address) in profiles_private via edge function
-        // This is done via a backend function since profiles_private has no user policies
-        if (ipAddress) {
-          try {
-            await supabase.functions.invoke('store-private-profile', {
-              body: { signup_ip_address: ipAddress }
-            });
-          } catch (privateError) {
-            console.error('Failed to store private profile data:', privateError);
-          }
+        // Store ALL sensitive data (email, phone, birthday, IP) in profiles_private via edge function
+        try {
+          await supabase.functions.invoke('store-private-profile', {
+            body: { 
+              signup_ip_address: ipAddress,
+              email: formData.email,
+              phone: formData.mobile,
+              birthday: birthdayDate,
+            }
+          });
+        } catch (privateError) {
+          console.error('Failed to store private profile data:', privateError);
         }
 
         toast.success("Account created successfully!");
