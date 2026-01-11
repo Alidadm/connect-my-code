@@ -315,7 +315,7 @@ export const Signup = () => {
                 <Input
                   id="password"
                   type="password"
-                  placeholder="Min 6 chars, 1 uppercase, 1 symbol"
+                  placeholder="Password"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   className="pl-10"
