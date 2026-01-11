@@ -41,7 +41,7 @@ export const Signup = () => {
   });
 
   const checkDuplicates = useCallback(async (): Promise<boolean> => {
-    // Check if phone already exists in profiles FIRST (before email check)
+    // Check if phone already exists in profiles
     if (formData.mobile) {
       const { data: existingPhone } = await supabase
         .from('profiles')
@@ -56,26 +56,10 @@ export const Signup = () => {
       }
     }
 
-    // Check if email already exists in auth system
-    if (formData.email) {
-      // Use signInWithPassword with a dummy password to check if email exists
-      // "Invalid login credentials" means email exists but password is wrong
-      // "Email not confirmed" also means email exists
-      const { error: authError } = await supabase.auth.signInWithPassword({
-        email: formData.email,
-        password: 'dummy-check-password-12345-that-will-never-match',
-      });
-      
-      if (authError && (authError.message.includes('Invalid login credentials') || 
-          authError.message.includes('Email not confirmed'))) {
-        setAlertMessage("This email address is already registered. Please use a different email or log in to your existing account.");
-        setShowAlert(true);
-        return false;
-      }
-    }
-
+    // Email duplicate check is handled by Supabase Auth during signup
+    // We can't reliably pre-check emails without security issues
     return true;
-  }, [formData.email, formData.mobile]);
+  }, [formData.mobile]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
