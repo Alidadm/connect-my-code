@@ -1,4 +1,4 @@
-import { Search, Bell, Bookmark, ChevronDown, LogOut, Settings, User, ExternalLink, Menu, X } from "lucide-react";
+import { Search, Bell, Bookmark, ChevronDown, LogOut, Settings, User, ExternalLink, Menu, X, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -68,6 +68,17 @@ export const Header = () => {
 
         {/* Right side actions */}
         <div className="flex items-center gap-0.5 sm:gap-1">
+          {/* Temporary Dev Link to Admin */}
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="text-amber-500 hover:text-amber-600 hover:bg-amber-50 h-9 w-9 sm:h-10 sm:w-10"
+            onClick={() => navigate("/adminindex")}
+            title="Admin Dashboard (Dev)"
+          >
+            <Shield className="h-5 w-5" />
+          </Button>
+          
           <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground hover:bg-secondary h-9 w-9 sm:h-10 sm:w-10 hidden sm:flex">
             <ExternalLink className="h-5 w-5" />
           </Button>
