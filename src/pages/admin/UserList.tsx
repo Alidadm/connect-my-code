@@ -283,13 +283,13 @@ const UserList = () => {
                   <TableCell className="text-slate-600">{user.birthday}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">
-                      <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-blue-50 hover:text-blue-600">
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-500 hover:bg-blue-50 hover:text-blue-600">
                         <Eye className="w-4 h-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-amber-50 hover:text-amber-600">
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-amber-500 hover:bg-amber-50 hover:text-amber-600">
                         <Edit className="w-4 h-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-red-50 hover:text-red-600">
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:bg-red-50 hover:text-red-600">
                         <Trash2 className="w-4 h-4" />
                       </Button>
                       <DropdownMenu>
