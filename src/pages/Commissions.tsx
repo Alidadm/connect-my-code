@@ -25,6 +25,7 @@ interface Commission {
   created_at: string;
   paid_at: string | null;
   referred_user_id: string;
+  payment_provider: string | null;
 }
 
 const Commissions = () => {
@@ -229,6 +230,11 @@ const Commissions = () => {
                         <p className="font-medium">Referral Commission</p>
                         <p className="text-sm text-muted-foreground">
                           {formatDate(commission.created_at)}
+                          {commission.payment_provider && (
+                            <span className="text-xs text-muted-foreground/80 ml-1">
+                              ({commission.payment_provider === 'paypal' ? 'PayPal' : 'Credit Card'})
+                            </span>
+                          )}
                           {commission.paid_at && ` • Paid ${formatDate(commission.paid_at)}`}
                         </p>
                       </div>
