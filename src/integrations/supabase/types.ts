@@ -356,13 +356,10 @@ export type Database = {
           is_verified: boolean | null
           last_name: string | null
           location: string | null
-          paypal_customer_id: string | null
           phone: string | null
           phone_verified: boolean | null
           referral_code: string | null
           referrer_id: string | null
-          signup_ip_address: string | null
-          stripe_customer_id: string | null
           subscription_status: string | null
           updated_at: string
           user_id: string
@@ -383,13 +380,10 @@ export type Database = {
           is_verified?: boolean | null
           last_name?: string | null
           location?: string | null
-          paypal_customer_id?: string | null
           phone?: string | null
           phone_verified?: boolean | null
           referral_code?: string | null
           referrer_id?: string | null
-          signup_ip_address?: string | null
-          stripe_customer_id?: string | null
           subscription_status?: string | null
           updated_at?: string
           user_id: string
@@ -410,13 +404,10 @@ export type Database = {
           is_verified?: boolean | null
           last_name?: string | null
           location?: string | null
-          paypal_customer_id?: string | null
           phone?: string | null
           phone_verified?: boolean | null
           referral_code?: string | null
           referrer_id?: string | null
-          signup_ip_address?: string | null
-          stripe_customer_id?: string | null
           subscription_status?: string | null
           updated_at?: string
           user_id?: string
@@ -431,6 +422,36 @@ export type Database = {
             referencedColumns: ["user_id"]
           },
         ]
+      }
+      profiles_private: {
+        Row: {
+          created_at: string
+          id: string
+          paypal_customer_id: string | null
+          signup_ip_address: string | null
+          stripe_customer_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          paypal_customer_id?: string | null
+          signup_ip_address?: string | null
+          stripe_customer_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          paypal_customer_id?: string | null
+          signup_ip_address?: string | null
+          stripe_customer_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       stories: {
         Row: {

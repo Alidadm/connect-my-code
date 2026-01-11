@@ -187,7 +187,7 @@ export const Signup = () => {
         // Format birthday as ISO date string
         const birthdayDate = `${formData.dobYear}-${formData.dobMonth.padStart(2, '0')}-${formData.dobDay.padStart(2, '0')}`;
 
-        // Update profile with additional info including IP, country, email, names, and birthday
+        // Update profile with additional info (excluding sensitive data like IP)
         const { error: profileError } = await supabase
           .from('profiles')
           .update({
@@ -197,13 +197,24 @@ export const Signup = () => {
             email: formData.email,
             phone: formData.mobile,
             birthday: birthdayDate,
-            signup_ip_address: ipAddress,
             country: country,
           })
           .eq('user_id', data.user.id);
 
         if (profileError) {
           console.error('Profile update error:', profileError);
+        }
+
+        // Store sensitive data (IP address) in profiles_private via edge function
+        // This is done via a backend function since profiles_private has no user policies
+        if (ipAddress) {
+          try {
+            await supabase.functions.invoke('store-private-profile', {
+              body: { signup_ip_address: ipAddress }
+            });
+          } catch (privateError) {
+            console.error('Failed to store private profile data:', privateError);
+          }
         }
 
         toast.success("Account created successfully!");
