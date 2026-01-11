@@ -132,6 +132,45 @@ const AdminIndex = () => {
 
   return (
     <div className="flex h-screen bg-slate-50 overflow-hidden">
+      {/* Mini Icon Column */}
+      <div className="w-16 bg-slate-900 flex flex-col items-center py-4 gap-4">
+        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/30">
+          <span className="text-white font-bold text-lg">W</span>
+        </div>
+        
+        <div className="flex-1 flex flex-col items-center gap-2 mt-4">
+          <button className="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 flex items-center justify-center transition-colors group">
+            <Home className="w-5 h-5 text-slate-400 group-hover:text-white" />
+          </button>
+          <button className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
+            <LayoutGrid className="w-5 h-5 text-white" />
+          </button>
+          <button className="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 flex items-center justify-center transition-colors group">
+            <Calendar className="w-5 h-5 text-slate-400 group-hover:text-white" />
+          </button>
+          <button className="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 flex items-center justify-center transition-colors group">
+            <MessageCircle className="w-5 h-5 text-slate-400 group-hover:text-white" />
+          </button>
+          <button className="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 flex items-center justify-center transition-colors group relative">
+            <Bell className="w-5 h-5 text-slate-400 group-hover:text-white" />
+            <span className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-rose-500 to-pink-500 rounded-full text-[10px] text-white flex items-center justify-center font-medium">3</span>
+          </button>
+          <button className="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 flex items-center justify-center transition-colors group">
+            <Users className="w-5 h-5 text-slate-400 group-hover:text-white" />
+          </button>
+        </div>
+
+        <div className="flex flex-col items-center gap-2">
+          <button className="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 flex items-center justify-center transition-colors group">
+            <Settings className="w-5 h-5 text-slate-400 group-hover:text-white" />
+          </button>
+          <Avatar className="w-10 h-10 border-2 border-slate-700">
+            <AvatarImage src="https://i.pravatar.cc/40?img=12" />
+            <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-sm">AD</AvatarFallback>
+          </Avatar>
+        </div>
+      </div>
+
       {/* Column 1: Left Sidebar - Navigation */}
       <div className="w-64 bg-white border-r border-slate-200 flex flex-col">
         {/* Logo & Search */}
