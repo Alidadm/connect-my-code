@@ -26,14 +26,13 @@ const countryToCode: Record<string, string> = {
   "Venezuela": "VE", "Vietnam": "VN", "Czechia": "CZ", "Korea": "KR"
 };
 
-// Convert ISO country code to flag emoji
-const getFlagEmoji = (countryName: string): string => {
-  if (!countryName || countryName === 'Unknown') return '🌍';
+// Get flag image URL from country name
+const getFlagUrl = (countryName: string): string | null => {
+  if (!countryName || countryName === 'Unknown') return null;
   const code = countryToCode[countryName];
-  if (!code) return '🌍';
-  // Convert country code to regional indicator symbols (flag emoji)
-  const codePoints = [...code.toUpperCase()].map(char => 127397 + char.charCodeAt(0));
-  return String.fromCodePoint(...codePoints);
+  if (!code) return null;
+  // Use flagcdn.com for flag images (reliable CDN)
+  return `https://flagcdn.com/24x18/${code.toLowerCase()}.png`;
 };
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -514,7 +513,15 @@ const UserList = () => {
                     <TableCell className="text-slate-600">{user.birthday}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <span className="text-lg">{getFlagEmoji(user.country)}</span>
+                        {getFlagUrl(user.country) ? (
+                          <img 
+                            src={getFlagUrl(user.country)!} 
+                            alt={`${user.country} flag`}
+                            className="w-6 h-4 object-cover rounded-sm shadow-sm"
+                          />
+                        ) : (
+                          <span className="w-6 h-4 bg-slate-200 rounded-sm flex items-center justify-center text-xs text-slate-500">🌍</span>
+                        )}
                         <span className="text-slate-600">{user.country}</span>
                       </div>
                     </TableCell>
