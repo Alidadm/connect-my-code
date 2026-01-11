@@ -104,6 +104,15 @@ export const Signup = () => {
         return;
       }
 
+      // Validate password requirements
+      const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{6,}$/;
+      if (!passwordRegex.test(formData.password)) {
+        setAlertMessage("Password must be at least 6 characters with one uppercase letter and one symbol.");
+        setShowAlert(true);
+        setIsLoading(false);
+        return;
+      }
+
       // Validate phone number format
       if (formData.mobile && !isValidPhoneNumber(formData.mobile)) {
         setAlertMessage("Please enter a valid phone number.");
@@ -306,7 +315,7 @@ export const Signup = () => {
                 <Input
                   id="password"
                   type="password"
-                  placeholder="Create a password (min 6 characters)"
+                  placeholder="Min 6 chars, 1 uppercase, 1 symbol"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   className="pl-10"
@@ -314,6 +323,9 @@ export const Signup = () => {
                   required
                 />
               </div>
+              {formData.password && !/^(?=.*[A-Z])(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{6,}$/.test(formData.password) && (
+                <p className="text-xs text-destructive">Password must have at least 6 characters, one uppercase letter, and one symbol</p>
+              )}
             </div>
 
             {/* Mobile Number */}
