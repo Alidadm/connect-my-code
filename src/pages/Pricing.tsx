@@ -1,4 +1,5 @@
-import { Check, Crown, Loader2, FlaskConical } from "lucide-react";
+import { Check, Crown, Loader2, FlaskConical, Home, UserPlus } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -214,6 +215,27 @@ const Pricing = () => {
             </div>
           </div>
         )}
+
+        {/* Temporary Navigation Links - For Development */}
+        <div className="mt-8 text-center">
+          <div className="inline-block p-4 border border-dashed border-blue-500/50 rounded-lg bg-blue-500/5">
+            <p className="text-xs text-blue-600 mb-3 font-medium">🔗 Quick Navigation (Dev)</p>
+            <div className="flex gap-3">
+              <Link to="/signup">
+                <Button variant="outline" size="sm" className="border-blue-500/50 text-blue-600 hover:bg-blue-500/10">
+                  <UserPlus className="h-3 w-3 mr-2" />
+                  Registration Page
+                </Button>
+              </Link>
+              <Link to="/">
+                <Button variant="outline" size="sm" className="border-blue-500/50 text-blue-600 hover:bg-blue-500/10">
+                  <Home className="h-3 w-3 mr-2" />
+                  Member Home Page
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
