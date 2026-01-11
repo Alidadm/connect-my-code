@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import {
   Search, Filter, Download, Upload, Plus, MoreHorizontal,
   ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight,
@@ -31,6 +32,18 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+
+// User type definition
+type User = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  birthday: string;
+  avatar: string;
+  status: string;
+};
 
 // Demo user data
 const generateUsers = (count: number) => {
@@ -97,6 +110,125 @@ const UserList = () => {
 
   const goToPage = (page: number) => {
     setCurrentPage(Math.max(1, Math.min(page, totalPages)));
+  };
+
+  // SweetAlert2 View User Modal
+  const handleViewUser = (user: User) => {
+    Swal.fire({
+      title: `<strong class="text-blue-600">User Details</strong>`,
+      html: `
+        <div class="text-left space-y-3 p-2">
+          <div class="flex items-center gap-3 mb-4">
+            <img src="${user.avatar}" class="w-16 h-16 rounded-full border-2 border-blue-200" alt="Avatar" />
+            <div>
+              <h3 class="font-bold text-lg text-slate-800">${user.firstName} ${user.lastName}</h3>
+              <span class="text-sm px-2 py-0.5 rounded-full ${user.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}">${user.status}</span>
+            </div>
+          </div>
+          <div class="border-t pt-3 space-y-2">
+            <p class="flex items-center gap-2"><span class="font-medium text-slate-600 w-20">Email:</span> <span class="text-slate-800">${user.email}</span></p>
+            <p class="flex items-center gap-2"><span class="font-medium text-slate-600 w-20">Phone:</span> <span class="text-slate-800">${user.phone}</span></p>
+            <p class="flex items-center gap-2"><span class="font-medium text-slate-600 w-20">Birthday:</span> <span class="text-slate-800">${user.birthday}</span></p>
+          </div>
+        </div>
+      `,
+      showCloseButton: true,
+      showConfirmButton: false,
+      width: 420,
+      customClass: {
+        popup: 'rounded-xl',
+      }
+    });
+  };
+
+  // SweetAlert2 Edit User Modal
+  const handleEditUser = (user: User) => {
+    Swal.fire({
+      title: '<span class="text-amber-600">Edit User</span>',
+      html: `
+        <div class="text-left space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">First Name</label>
+            <input id="swal-firstName" class="swal2-input w-full !m-0" value="${user.firstName}" placeholder="First Name">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Last Name</label>
+            <input id="swal-lastName" class="swal2-input w-full !m-0" value="${user.lastName}" placeholder="Last Name">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Email</label>
+            <input id="swal-email" type="email" class="swal2-input w-full !m-0" value="${user.email}" placeholder="Email">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Phone</label>
+            <input id="swal-phone" class="swal2-input w-full !m-0" value="${user.phone}" placeholder="Phone">
+          </div>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Save Changes',
+      cancelButtonText: 'Cancel',
+      confirmButtonColor: '#f59e0b',
+      cancelButtonColor: '#64748b',
+      width: 420,
+      customClass: {
+        popup: 'rounded-xl',
+      },
+      preConfirm: () => {
+        return {
+          firstName: (document.getElementById('swal-firstName') as HTMLInputElement).value,
+          lastName: (document.getElementById('swal-lastName') as HTMLInputElement).value,
+          email: (document.getElementById('swal-email') as HTMLInputElement).value,
+          phone: (document.getElementById('swal-phone') as HTMLInputElement).value,
+        };
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Updated!',
+          text: `User ${result.value.firstName} ${result.value.lastName} has been updated.`,
+          confirmButtonColor: '#22c55e',
+          timer: 2000,
+          timerProgressBar: true
+        });
+      }
+    });
+  };
+
+  // SweetAlert2 Delete User Modal
+  const handleDeleteUser = (user: User) => {
+    Swal.fire({
+      title: '<span class="text-red-600">Delete User?</span>',
+      html: `
+        <div class="text-center">
+          <img src="${user.avatar}" class="w-20 h-20 rounded-full mx-auto mb-3 border-4 border-red-100" alt="Avatar" />
+          <p class="text-slate-700">Are you sure you want to delete</p>
+          <p class="font-bold text-slate-900">${user.firstName} ${user.lastName}?</p>
+          <p class="text-sm text-red-500 mt-2">This action cannot be undone.</p>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Yes, Delete',
+      cancelButtonText: 'Cancel',
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#64748b',
+      width: 380,
+      customClass: {
+        popup: 'rounded-xl',
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Deleted!',
+          text: `${user.firstName} ${user.lastName} has been deleted.`,
+          confirmButtonColor: '#22c55e',
+          timer: 2000,
+          timerProgressBar: true
+        });
+      }
+    });
   };
 
   // Generate page numbers for pagination
@@ -283,13 +415,28 @@ const UserList = () => {
                   <TableCell className="text-slate-600">{user.birthday}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-500 hover:bg-blue-50 hover:text-blue-600">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 text-blue-500 hover:bg-blue-50 hover:text-blue-600"
+                        onClick={() => handleViewUser(user)}
+                      >
                         <Eye className="w-4 h-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-amber-500 hover:bg-amber-50 hover:text-amber-600">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 text-amber-500 hover:bg-amber-50 hover:text-amber-600"
+                        onClick={() => handleEditUser(user)}
+                      >
                         <Edit className="w-4 h-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:bg-red-50 hover:text-red-600">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 text-red-500 hover:bg-red-50 hover:text-red-600"
+                        onClick={() => handleDeleteUser(user)}
+                      >
                         <Trash2 className="w-4 h-4" />
                       </Button>
                       <DropdownMenu>
