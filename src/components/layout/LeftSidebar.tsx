@@ -7,6 +7,7 @@ import {
   Store, 
   FileText,
   BadgeCheck,
+  Wallet,
   X
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -19,6 +20,7 @@ const navItems = [
   { icon: Newspaper, label: "Feed", path: "/", badge: null },
   { icon: Users, label: "Friends", path: "/friends", badge: null },
   { icon: Calendar, label: "Event", path: "/events", badge: 4 },
+  { icon: Wallet, label: "Commissions", path: "/commissions", badge: null },
   { icon: Video, label: "Watch Videos", path: "/videos", badge: null },
   { icon: Image, label: "Photos", path: "/photos", badge: null },
   { icon: Store, label: "Marketplace", path: "/marketplace", badge: null },
