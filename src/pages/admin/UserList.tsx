@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import {
   Search, Filter, Download, Upload, Plus, MoreHorizontal,
   ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight,
-  Edit, Trash2, Eye, Mail, Phone, ArrowUpDown, ArrowLeft
+  Edit, Trash2, Eye, Mail, Phone, ArrowUpDown, ArrowLeft, Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,10 +32,13 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
-// User type definition
+// User type definition matching database schema
 type User = {
   id: string;
+  user_id: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -45,59 +48,98 @@ type User = {
   status: string;
 };
 
-// Demo user data
-const generateUsers = (count: number) => {
-  const firstNames = ["James", "Mary", "John", "Patricia", "Robert", "Jennifer", "Michael", "Linda", "William", "Elizabeth", "David", "Barbara", "Richard", "Susan", "Joseph", "Jessica", "Thomas", "Sarah", "Charles", "Karen"];
-  const lastNames = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez", "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson", "Thomas", "Taylor", "Moore", "Jackson", "Martin"];
-  
-  return Array.from({ length: count }, (_, i) => ({
-    id: `user-${i + 1}`,
-    firstName: firstNames[Math.floor(Math.random() * firstNames.length)],
-    lastName: lastNames[Math.floor(Math.random() * lastNames.length)],
-    email: `user${i + 1}@example.com`,
-    phone: `+1 (${Math.floor(Math.random() * 900) + 100}) ${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 9000) + 1000}`,
-    birthday: new Date(1970 + Math.floor(Math.random() * 40), Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-    avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${i}`,
-    status: Math.random() > 0.3 ? 'active' : 'inactive'
-  }));
-};
-
-const allUsers = generateUsers(87);
-
 const UserList = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [sortColumn, setSortColumn] = useState<string | null>(null);
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [sortColumn, setSortColumn] = useState<string>("created_at");
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  
+  // Data state
+  const [users, setUsers] = useState<User[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Filter users based on search
-  const filteredUsers = allUsers.filter(user => 
-    user.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.phone.includes(searchQuery)
-  );
+  // Fetch users from database
+  const fetchUsers = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      // Build the query
+      let query = supabase
+        .from('profiles')
+        .select('*', { count: 'exact' });
 
-  // Sort users
-  const sortedUsers = [...filteredUsers].sort((a, b) => {
-    if (!sortColumn) return 0;
-    const aValue = a[sortColumn as keyof typeof a];
-    const bValue = b[sortColumn as keyof typeof b];
-    if (typeof aValue === 'string' && typeof bValue === 'string') {
-      return sortDirection === 'asc' 
-        ? aValue.localeCompare(bValue)
-        : bValue.localeCompare(aValue);
+      // Apply search filter
+      if (searchQuery) {
+        query = query.or(
+          `first_name.ilike.%${searchQuery}%,last_name.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%,phone.ilike.%${searchQuery}%,display_name.ilike.%${searchQuery}%`
+        );
+      }
+
+      // Apply sorting
+      const dbSortColumn = sortColumn === 'firstName' ? 'first_name' 
+        : sortColumn === 'lastName' ? 'last_name' 
+        : sortColumn === 'email' ? 'email'
+        : sortColumn === 'birthday' ? 'birthday'
+        : 'created_at';
+      
+      query = query.order(dbSortColumn, { ascending: sortDirection === 'asc' });
+
+      // Apply pagination
+      const from = (currentPage - 1) * itemsPerPage;
+      const to = from + itemsPerPage - 1;
+      query = query.range(from, to);
+
+      const { data, error, count } = await query;
+
+      if (error) throw error;
+
+      // Transform data to match User type
+      const transformedUsers: User[] = (data || []).map((profile) => ({
+        id: profile.id,
+        user_id: profile.user_id,
+        firstName: profile.first_name || profile.display_name?.split(' ')[0] || 'N/A',
+        lastName: profile.last_name || profile.display_name?.split(' ').slice(1).join(' ') || '',
+        email: profile.email || 'No email',
+        phone: profile.phone || 'No phone',
+        birthday: profile.birthday 
+          ? new Date(profile.birthday).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+          : 'Not set',
+        avatar: profile.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.user_id}`,
+        status: profile.subscription_status === 'active' ? 'active' : 'inactive'
+      }));
+
+      setUsers(transformedUsers);
+      setTotalCount(count || 0);
+    } catch (error: any) {
+      console.error('Error fetching users:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load users. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
     }
-    return 0;
-  });
+  }, [searchQuery, currentPage, itemsPerPage, sortColumn, sortDirection, toast]);
+
+  // Fetch users when dependencies change
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setCurrentPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   // Pagination calculations
-  const totalPages = Math.ceil(sortedUsers.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentUsers = sortedUsers.slice(startIndex, endIndex);
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
 
   const handleSort = (column: string) => {
     if (sortColumn === column) {
@@ -385,86 +427,103 @@ const UserList = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {currentUsers.map((user) => (
-                <TableRow key={user.id} className="hover:bg-slate-50">
-                  <TableCell>
-                    <input type="checkbox" className="rounded border-slate-300" />
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Avatar className="w-8 h-8">
-                        <AvatarImage src={user.avatar} />
-                        <AvatarFallback>{user.firstName[0]}{user.lastName[0]}</AvatarFallback>
-                      </Avatar>
-                      <span className="font-medium text-slate-900">{user.firstName}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-slate-700">{user.lastName}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Mail className="w-4 h-4 text-slate-400" />
-                      <span className="text-slate-600">{user.email}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Phone className="w-4 h-4 text-slate-400" />
-                      <span className="text-slate-600">{user.phone}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-slate-600">{user.birthday}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-8 w-8 text-blue-500 hover:bg-blue-50 hover:text-blue-600"
-                        onClick={() => handleViewUser(user)}
-                      >
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-8 w-8 text-amber-500 hover:bg-amber-50 hover:text-amber-600"
-                        onClick={() => handleEditUser(user)}
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-8 w-8 text-red-500 hover:bg-red-50 hover:text-red-600"
-                        onClick={() => handleDeleteUser(user)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreHorizontal className="w-4 h-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem>Send Email</DropdownMenuItem>
-                          <DropdownMenuItem>Reset Password</DropdownMenuItem>
-                          <DropdownMenuItem>View Activity</DropdownMenuItem>
-                          <DropdownMenuItem className="text-red-600">Suspend User</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="h-32">
+                    <div className="flex items-center justify-center gap-2">
+                      <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
+                      <span className="text-slate-500">Loading users...</span>
                     </div>
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : users.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="h-32 text-center text-slate-500">
+                    No users found
+                  </TableCell>
+                </TableRow>
+              ) : (
+                users.map((user) => (
+                  <TableRow key={user.id} className="hover:bg-slate-50">
+                    <TableCell>
+                      <input type="checkbox" className="rounded border-slate-300" />
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Avatar className="w-8 h-8">
+                          <AvatarImage src={user.avatar} />
+                          <AvatarFallback>{user.firstName?.[0] || 'U'}{user.lastName?.[0] || ''}</AvatarFallback>
+                        </Avatar>
+                        <span className="font-medium text-slate-900">{user.firstName}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-slate-700">{user.lastName}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Mail className="w-4 h-4 text-slate-400" />
+                        <span className="text-slate-600">{user.email}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Phone className="w-4 h-4 text-slate-400" />
+                        <span className="text-slate-600">{user.phone}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-slate-600">{user.birthday}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-blue-500 hover:bg-blue-50 hover:text-blue-600"
+                          onClick={() => handleViewUser(user)}
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-amber-500 hover:bg-amber-50 hover:text-amber-600"
+                          onClick={() => handleEditUser(user)}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-red-500 hover:bg-red-50 hover:text-red-600"
+                          onClick={() => handleDeleteUser(user)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreHorizontal className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem>Send Email</DropdownMenuItem>
+                            <DropdownMenuItem>Reset Password</DropdownMenuItem>
+                            <DropdownMenuItem>View Activity</DropdownMenuItem>
+                            <DropdownMenuItem className="text-red-600">Suspend User</DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
 
           {/* Pagination Footer */}
           <div className="p-4 border-t border-slate-200 flex items-center justify-between">
             <div className="text-sm text-slate-500">
-              Showing <span className="font-medium text-slate-700">{startIndex + 1}</span> to{" "}
-              <span className="font-medium text-slate-700">{Math.min(endIndex, sortedUsers.length)}</span> of{" "}
-              <span className="font-medium text-slate-700">{sortedUsers.length}</span> users
+              Showing <span className="font-medium text-slate-700">{((currentPage - 1) * itemsPerPage) + 1}</span> to{" "}
+              <span className="font-medium text-slate-700">{Math.min(currentPage * itemsPerPage, totalCount)}</span> of{" "}
+              <span className="font-medium text-slate-700">{totalCount}</span> users
             </div>
             
             <div className="flex items-center gap-2">
