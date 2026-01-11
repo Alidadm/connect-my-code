@@ -3,7 +3,7 @@ import {
   Search, Star, Settings, Users, MessageCircle, Bell, Plus, 
   MoreHorizontal, Filter, LayoutGrid, Table, List, ChevronRight,
   Folder, Home, Calendar, FileText, Send, Mic, Phone, Video, X,
-  Play, Clock, Link2
+  Play, Clock, Link2, PanelLeftClose, PanelLeft
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -125,6 +125,7 @@ const chatMessages = [
 const AdminIndex = () => {
   const navigate = useNavigate();
   const [isChatOpen, setIsChatOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [activeProject, setActiveProject] = useState("Unique");
   const [activeTab, setActiveTab] = useState("Tasks");
 
@@ -172,7 +173,22 @@ const AdminIndex = () => {
       </div>
 
       {/* Column 1: Left Sidebar - Navigation */}
-      <div className="w-64 bg-white border-r border-slate-200 flex flex-col">
+      <div className={cn(
+        "bg-white border-r border-slate-200 flex flex-col transition-all duration-300 ease-in-out overflow-hidden",
+        isSidebarOpen ? "w-64" : "w-0"
+      )}>
+        {/* Toggle Button */}
+        <button
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          className="absolute left-[4.5rem] top-4 z-10 w-8 h-8 rounded-lg bg-white border border-slate-200 shadow-sm hover:bg-slate-50 flex items-center justify-center transition-all"
+          style={{ left: isSidebarOpen ? 'calc(4rem + 15.5rem)' : '4.5rem' }}
+        >
+          {isSidebarOpen ? (
+            <PanelLeftClose className="w-4 h-4 text-slate-500" />
+          ) : (
+            <PanelLeft className="w-4 h-4 text-slate-500" />
+          )}
+        </button>
         {/* Logo & Search */}
         <div className="p-4 border-b border-slate-100">
           <div className="flex items-center gap-3 mb-4">
