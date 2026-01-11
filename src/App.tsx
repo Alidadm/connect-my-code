@@ -11,6 +11,7 @@ import Pricing from "./pages/Pricing";
 import Commissions from "./pages/Commissions";
 import AdminIndex from "./pages/AdminIndex";
 import UserList from "./pages/admin/UserList";
+import MemberDashboard from "./pages/MemberDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/signup" element={<Signup />} />
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/commissions" element={<Commissions />} />
+            <Route path="/dashboard" element={<MemberDashboard />} />
             <Route path="/adminindex" element={<AdminIndex />} />
             <Route path="/admin/users/list" element={<UserList />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
