@@ -144,12 +144,19 @@ export const Signup = () => {
           console.error('Failed to fetch IP address:', ipError);
         }
 
-        // Update profile with additional info including IP
+        // Format birthday as ISO date string
+        const birthdayDate = `${formData.dobYear}-${formData.dobMonth.padStart(2, '0')}-${formData.dobDay.padStart(2, '0')}`;
+
+        // Update profile with additional info including IP, email, names, and birthday
         const { error: profileError } = await supabase
           .from('profiles')
           .update({
             display_name: `${formData.firstName} ${formData.lastName}`,
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+            email: formData.email,
             phone: formData.mobile,
+            birthday: birthdayDate,
             signup_ip_address: ipAddress,
           })
           .eq('user_id', data.user.id);
