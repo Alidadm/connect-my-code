@@ -6,6 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { 
   ArrowLeft, 
   DollarSign, 
@@ -13,7 +16,10 @@ import {
   CheckCircle2, 
   TrendingUp,
   Users,
-  Wallet
+  Wallet,
+  Mail,
+  Copy,
+  Send
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -29,10 +35,50 @@ interface Commission {
 }
 
 const Commissions = () => {
-  const { user, loading: authLoading } = useAuth();
+  const { user, profile, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [commissions, setCommissions] = useState<Commission[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Email form state
+  const [emailTo, setEmailTo] = useState("");
+  const [emailSubject, setEmailSubject] = useState("Join me on WeShare!");
+  const [emailMessage, setEmailMessage] = useState("Hey! I've been using WeShare and thought you might enjoy it too. Sign up using my referral link below and we can connect!");
+  const [sendingEmail, setSendingEmail] = useState(false);
+
+  // Get the referral URL
+  const baseUrl = window.location.origin;
+  const referralUrl = profile?.username ? `${baseUrl}/${profile.username}` : "";
+
+  const handleCopyUrl = () => {
+    if (referralUrl) {
+      navigator.clipboard.writeText(referralUrl);
+      toast.success("Referral link copied to clipboard!");
+    }
+  };
+
+  const handleSendEmail = () => {
+    if (!emailTo.trim()) {
+      toast.error("Please enter an email address");
+      return;
+    }
+    
+    // Create mailto link with pre-filled content
+    const body = `${emailMessage}\n\nJoin here: ${referralUrl}`;
+    const mailtoLink = `mailto:${emailTo}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = mailtoLink;
+    
+    toast.success("Opening your email client...");
+    
+    // Clear the form
+    setEmailTo("");
+  };
+
+  const handleCancelEmail = () => {
+    setEmailTo("");
+    setEmailSubject("Join me on WeShare!");
+    setEmailMessage("Hey! I've been using WeShare and thought you might enjoy it too. Sign up using my referral link below and we can connect!");
+  };
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -231,6 +277,86 @@ const Commissions = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Referral Email Form */}
+        <Card className="mb-8">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <Mail className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <CardTitle className="text-lg">Referral</CardTitle>
+                <CardDescription>Invite friends via email and earn $5 per referral</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="emailTo">Email Address</Label>
+              <Input
+                id="emailTo"
+                type="email"
+                placeholder="friend@example.com"
+                value={emailTo}
+                onChange={(e) => setEmailTo(e.target.value)}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="emailSubject">Subject</Label>
+              <Input
+                id="emailSubject"
+                type="text"
+                placeholder="Email subject"
+                value={emailSubject}
+                onChange={(e) => setEmailSubject(e.target.value)}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="emailMessage">Message</Label>
+              <Textarea
+                id="emailMessage"
+                placeholder="Write your message..."
+                value={emailMessage}
+                onChange={(e) => setEmailMessage(e.target.value)}
+                rows={4}
+              />
+            </div>
+            
+            <div className="flex gap-3 pt-2">
+              <Button onClick={handleSendEmail} className="flex-1">
+                <Send className="h-4 w-4 mr-2" />
+                Send
+              </Button>
+              <Button variant="outline" onClick={handleCancelEmail} className="flex-1">
+                Cancel
+              </Button>
+            </div>
+
+            {/* Referral URL Section */}
+            <div className="pt-4 border-t">
+              <Label className="text-sm text-muted-foreground mb-2 block">Your Referral Link</Label>
+              <div className="flex items-center gap-2">
+                <div className="flex-1 bg-muted rounded-md px-3 py-2 text-sm font-mono truncate">
+                  {referralUrl || "Loading..."}
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="icon"
+                  onClick={handleCopyUrl}
+                  disabled={!referralUrl}
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Copy this link to share via text message or social media
+              </p>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Commissions List */}
         <Card>
