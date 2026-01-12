@@ -5,6 +5,7 @@ import {
   Home, CreditCard, Users, Heart, MessageCircle, LogOut, Clock,
   CheckCircle2, XCircle, Loader2, ExternalLink
 } from "lucide-react";
+import Swal from "sweetalert2";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -461,6 +462,116 @@ const MemberDashboard = () => {
       }
     };
 
+    const handleChangePassword = async () => {
+      const { value: formValues } = await Swal.fire({
+        title: 'Change Password',
+        html: `
+          <div style="text-align: left; margin-bottom: 8px;">
+            <label style="display: block; font-size: 14px; color: #64748b; margin-bottom: 4px;">Current Password</label>
+            <input type="password" id="swal-current-password" class="swal2-input" placeholder="Enter current password" style="margin: 0; width: 100%;">
+          </div>
+          <div style="text-align: left; margin-bottom: 8px;">
+            <label style="display: block; font-size: 14px; color: #64748b; margin-bottom: 4px;">New Password</label>
+            <input type="password" id="swal-new-password" class="swal2-input" placeholder="Enter new password" style="margin: 0; width: 100%;">
+          </div>
+          <div style="text-align: left;">
+            <label style="display: block; font-size: 14px; color: #64748b; margin-bottom: 4px;">Confirm Password</label>
+            <input type="password" id="swal-confirm-password" class="swal2-input" placeholder="Confirm new password" style="margin: 0; width: 100%;">
+          </div>
+        `,
+        focusConfirm: false,
+        showCancelButton: true,
+        confirmButtonText: 'Update',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#3b82f6',
+        cancelButtonColor: '#94a3b8',
+        preConfirm: () => {
+          const currentPassword = (document.getElementById('swal-current-password') as HTMLInputElement).value;
+          const newPassword = (document.getElementById('swal-new-password') as HTMLInputElement).value;
+          const confirmPassword = (document.getElementById('swal-confirm-password') as HTMLInputElement).value;
+          
+          if (!currentPassword || !newPassword || !confirmPassword) {
+            Swal.showValidationMessage('Please fill in all fields');
+            return false;
+          }
+          
+          if (newPassword.length < 8) {
+            Swal.showValidationMessage('New password must be at least 8 characters');
+            return false;
+          }
+          
+          if (!/[A-Z]/.test(newPassword)) {
+            Swal.showValidationMessage('New password must contain at least one uppercase letter');
+            return false;
+          }
+          
+          if (!/[!@#$%^&*(),.?":{}|<>]/.test(newPassword)) {
+            Swal.showValidationMessage('New password must contain at least one symbol');
+            return false;
+          }
+          
+          if (newPassword !== confirmPassword) {
+            Swal.showValidationMessage('Passwords do not match');
+            return false;
+          }
+          
+          return { currentPassword, newPassword };
+        }
+      });
+
+      if (formValues) {
+        // Show loading state
+        Swal.fire({
+          title: 'Updating Password...',
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
+
+        try {
+          // First, verify current password by re-authenticating
+          const { error: signInError } = await supabase.auth.signInWithPassword({
+            email: user?.email || '',
+            password: formValues.currentPassword
+          });
+
+          if (signInError) {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'Current password is incorrect',
+              confirmButtonColor: '#3b82f6'
+            });
+            return;
+          }
+
+          // Update password
+          const { error: updateError } = await supabase.auth.updateUser({
+            password: formValues.newPassword
+          });
+
+          if (updateError) {
+            throw updateError;
+          }
+
+          Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: 'Your password has been updated successfully.',
+            confirmButtonColor: '#3b82f6'
+          });
+        } catch (error: any) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.message || 'Failed to update password',
+            confirmButtonColor: '#3b82f6'
+          });
+        }
+      }
+    };
+
     return (
       <div className="space-y-6">
         <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
@@ -570,7 +681,7 @@ const MemberDashboard = () => {
               <h4 className="font-medium text-slate-800">Password</h4>
               <p className="text-sm text-slate-500">Last changed 30 days ago</p>
             </div>
-            <Button variant="outline" size="sm">Change Password</Button>
+            <Button variant="outline" size="sm" onClick={handleChangePassword}>Change Password</Button>
           </div>
         </div>
 
