@@ -98,6 +98,7 @@ serve(async (req) => {
         user_id: profile.user_id,
         firstName: profile.first_name || profile.display_name?.split(' ')[0] || 'N/A',
         lastName: profile.last_name || profile.display_name?.split(' ').slice(1).join(' ') || '',
+        username: profile.username || '',
         email: privateInfo.email || 'No email',
         phone: privateInfo.phone || 'No phone',
         birthday: privateInfo.birthday 
