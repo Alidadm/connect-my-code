@@ -95,6 +95,14 @@ const MemberDashboard = () => {
     compactMode: false,
   });
 
+  // Account tab editing state (moved to top level for hooks rules)
+  const [editingEmail, setEditingEmail] = useState(false);
+  const [editingPhone, setEditingPhone] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [newPhone, setNewPhone] = useState("");
+  const [updatingEmail, setUpdatingEmail] = useState(false);
+  const [updatingPhone, setUpdatingPhone] = useState(false);
+
   // Fetch private profile data
   React.useEffect(() => {
     const fetchPrivateProfile = async () => {
@@ -403,13 +411,6 @@ const MemberDashboard = () => {
   );
 
   const renderAccountTab = () => {
-    const [editingEmail, setEditingEmail] = useState(false);
-    const [editingPhone, setEditingPhone] = useState(false);
-    const [newEmail, setNewEmail] = useState(privateProfile?.email || user?.email || "");
-    const [newPhone, setNewPhone] = useState(privateProfile?.phone || "");
-    const [updatingEmail, setUpdatingEmail] = useState(false);
-    const [updatingPhone, setUpdatingPhone] = useState(false);
-
     const handleUpdateEmail = async () => {
       if (!newEmail || newEmail === (privateProfile?.email || user?.email)) {
         setEditingEmail(false);
@@ -417,13 +418,11 @@ const MemberDashboard = () => {
       }
       setUpdatingEmail(true);
       try {
-        // Update in profiles_private via edge function
         const { error } = await supabase.functions.invoke('store-private-profile', {
           body: { email: newEmail }
         });
         if (error) throw error;
         
-        // Refresh private profile data
         const { data } = await supabase.functions.invoke('get-my-private-profile');
         if (data?.data) setPrivateProfile(data.data);
         
@@ -444,13 +443,11 @@ const MemberDashboard = () => {
       }
       setUpdatingPhone(true);
       try {
-        // Update in profiles_private via edge function
         const { error } = await supabase.functions.invoke('store-private-profile', {
           body: { phone: newPhone }
         });
         if (error) throw error;
         
-        // Refresh private profile data
         const { data } = await supabase.functions.invoke('get-my-private-profile');
         if (data?.data) setPrivateProfile(data.data);
         
