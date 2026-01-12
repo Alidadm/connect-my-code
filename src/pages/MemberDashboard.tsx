@@ -687,7 +687,8 @@ const MemberDashboard = () => {
 
         <div className="p-4 bg-red-50 rounded-xl border border-red-200">
           <h4 className="font-medium text-red-800 mb-2">Danger Zone</h4>
-          <p className="text-sm text-red-600 mb-4">Once you delete your account, there is no going back. Please be certain.</p>
+          <p className="text-sm text-red-600 mb-2">Once you delete your account, there is no going back. Please be certain.</p>
+          <p className="text-sm text-red-600 mb-4 font-medium">⚠️ You will also lose all funds from your subscription and any pending commissions.</p>
           <Button variant="destructive" size="sm">Delete Account</Button>
         </div>
       </div>
