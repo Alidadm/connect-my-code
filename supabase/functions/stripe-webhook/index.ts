@@ -104,6 +104,61 @@ serve(async (req) => {
 
       logStep("Found user", { userId: user.id });
 
+      // Update profile subscription status
+      await supabaseClient
+        .from("profiles")
+        .update({ subscription_status: "active" })
+        .eq("user_id", user.id);
+      
+      logStep("Updated profile subscription status to active");
+
+      // Create or update subscription record
+      const stripeSubscriptionId = invoice.subscription as string;
+      if (stripeSubscriptionId) {
+        const stripeSubscription = await stripe.subscriptions.retrieve(stripeSubscriptionId);
+        
+        const { data: existingSub } = await supabaseClient
+          .from("subscriptions")
+          .select("id")
+          .eq("provider_subscription_id", stripeSubscriptionId)
+          .single();
+
+        if (existingSub) {
+          // Update existing subscription
+          await supabaseClient
+            .from("subscriptions")
+            .update({
+              status: "active",
+              current_period_start: new Date(stripeSubscription.current_period_start * 1000).toISOString(),
+              current_period_end: new Date(stripeSubscription.current_period_end * 1000).toISOString(),
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", existingSub.id);
+          
+          logStep("Updated existing subscription record", { id: existingSub.id });
+        } else {
+          // Create new subscription record
+          const { error: subError } = await supabaseClient
+            .from("subscriptions")
+            .insert({
+              user_id: user.id,
+              status: "active",
+              payment_provider: "stripe",
+              provider_subscription_id: stripeSubscriptionId,
+              amount: invoice.amount_paid / 100, // Convert cents to dollars
+              currency: invoice.currency?.toUpperCase() || "USD",
+              current_period_start: new Date(stripeSubscription.current_period_start * 1000).toISOString(),
+              current_period_end: new Date(stripeSubscription.current_period_end * 1000).toISOString(),
+            });
+
+          if (subError) {
+            logStep("Failed to create subscription record", { error: subError.message });
+          } else {
+            logStep("Created subscription record");
+          }
+        }
+      }
+
       // Get user's profile to check for referrer
       const { data: profile, error: profileError } = await supabaseClient
         .from("profiles")
@@ -177,10 +232,45 @@ serve(async (req) => {
       // For now, commissions are tracked and can be paid out manually
     }
 
-    // Handle other events as needed
+    // Handle subscription deleted/canceled
     if (event.type === "customer.subscription.deleted") {
-      logStep("Subscription canceled", { subscription: (event.data.object as Stripe.Subscription).id });
-      // Could update profile subscription_status here
+      const subscription = event.data.object as Stripe.Subscription;
+      logStep("Subscription canceled", { subscriptionId: subscription.id });
+      
+      // Update subscription record
+      const { error: subError } = await supabaseClient
+        .from("subscriptions")
+        .update({
+          status: "canceled",
+          canceled_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("provider_subscription_id", subscription.id);
+
+      if (subError) {
+        logStep("Failed to update subscription record", { error: subError.message });
+      } else {
+        logStep("Updated subscription record to canceled");
+      }
+
+      // Get user ID from subscription metadata or customer
+      const customerId = typeof subscription.customer === "string" ? subscription.customer : subscription.customer?.id;
+      if (customerId) {
+        const customer = await stripe.customers.retrieve(customerId);
+        if (!customer.deleted && customer.email) {
+          const { data: authUsers } = await supabaseClient.auth.admin.listUsers();
+          const user = authUsers?.users.find(u => u.email?.toLowerCase() === customer.email?.toLowerCase());
+          
+          if (user) {
+            await supabaseClient
+              .from("profiles")
+              .update({ subscription_status: "inactive" })
+              .eq("user_id", user.id);
+            
+            logStep("Updated profile subscription status to inactive", { userId: user.id });
+          }
+        }
+      }
     }
 
     return new Response(JSON.stringify({ received: true }), {
