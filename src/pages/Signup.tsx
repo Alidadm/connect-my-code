@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { generateUsername, generateAlternativeUsernames } from "@/lib/username";
 
 export const Signup = () => {
   const navigate = useNavigate();
@@ -189,6 +190,28 @@ export const Signup = () => {
         // Format birthday as ISO date string
         const birthdayDate = `${formData.dobYear}-${formData.dobMonth.padStart(2, '0')}-${formData.dobDay.padStart(2, '0')}`;
 
+        // Generate a unique username
+        let username = generateUsername(formData.firstName, formData.lastName);
+        const alternatives = generateAlternativeUsernames(formData.firstName, formData.lastName);
+        
+        // Check if username is available, try alternatives if not
+        for (const candidate of [username, ...alternatives]) {
+          try {
+            const { data: checkData } = await supabase.functions.invoke('check-username-exists', {
+              body: { username: candidate }
+            });
+            
+            if (checkData?.available) {
+              username = candidate;
+              break;
+            }
+          } catch (err) {
+            console.error('Error checking username:', err);
+            // Continue with generated username
+            break;
+          }
+        }
+
         // Update public profile with non-sensitive info
         const { error: profileError } = await supabase
           .from('profiles')
@@ -197,6 +220,7 @@ export const Signup = () => {
             first_name: formData.firstName,
             last_name: formData.lastName,
             country: country,
+            username: username,
           })
           .eq('user_id', data.user.id);
 
