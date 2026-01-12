@@ -91,6 +91,10 @@ const UserList = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Selection state
+  const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Fetch users from database via admin edge function
   const fetchUsers = useCallback(async () => {
@@ -239,7 +243,57 @@ const UserList = () => {
     });
   };
 
-  // SweetAlert2 Delete User Modal
+  // Toggle select all users on current page
+  const toggleSelectAll = () => {
+    if (selectedUsers.size === users.length) {
+      setSelectedUsers(new Set());
+    } else {
+      setSelectedUsers(new Set(users.map(u => u.user_id)));
+    }
+  };
+
+  // Toggle single user selection
+  const toggleUserSelection = (userId: string) => {
+    const newSelected = new Set(selectedUsers);
+    if (newSelected.has(userId)) {
+      newSelected.delete(userId);
+    } else {
+      newSelected.add(userId);
+    }
+    setSelectedUsers(newSelected);
+  };
+
+  // Actual delete function that calls the edge function
+  const performDelete = async (userIds: string[]) => {
+    setIsDeleting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-delete-user', {
+        body: { userIds }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: data.message,
+      });
+
+      // Clear selection and refresh list
+      setSelectedUsers(new Set());
+      fetchUsers();
+    } catch (error: any) {
+      console.error('Error deleting users:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete users",
+        variant: "destructive"
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  // SweetAlert2 Delete User Modal (single user)
   const handleDeleteUser = (user: User) => {
     Swal.fire({
       title: '<span class="text-red-600">Delete User?</span>',
@@ -262,14 +316,39 @@ const UserList = () => {
       }
     }).then((result) => {
       if (result.isConfirmed) {
-        Swal.fire({
-          icon: 'success',
-          title: 'Deleted!',
-          text: `${user.firstName} ${user.lastName} has been deleted.`,
-          confirmButtonColor: '#22c55e',
-          timer: 2000,
-          timerProgressBar: true
-        });
+        performDelete([user.user_id]);
+      }
+    });
+  };
+
+  // SweetAlert2 Batch Delete Modal
+  const handleBatchDelete = () => {
+    if (selectedUsers.size === 0) return;
+
+    const selectedUsersList = users.filter(u => selectedUsers.has(u.user_id));
+    const names = selectedUsersList.map(u => `${u.firstName} ${u.lastName}`).join(', ');
+
+    Swal.fire({
+      title: '<span class="text-red-600">Delete Selected Users?</span>',
+      html: `
+        <div class="text-center">
+          <p class="text-slate-700 mb-2">You are about to delete <strong>${selectedUsers.size}</strong> user(s):</p>
+          <p class="text-sm text-slate-600 max-h-24 overflow-y-auto">${names}</p>
+          <p class="text-sm text-red-500 mt-3">This action cannot be undone.</p>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: `Delete ${selectedUsers.size} User(s)`,
+      cancelButtonText: 'Cancel',
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#64748b',
+      width: 420,
+      customClass: {
+        popup: 'rounded-xl',
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        performDelete(Array.from(selectedUsers));
       }
     });
   };
@@ -322,6 +401,21 @@ const UserList = () => {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              {selectedUsers.size > 0 && (
+                <Button 
+                  variant="destructive" 
+                  className="gap-2"
+                  onClick={handleBatchDelete}
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="w-4 h-4" />
+                  )}
+                  Delete {selectedUsers.size} Selected
+                </Button>
+              )}
               <Button variant="outline" className="gap-2">
                 <Download className="w-4 h-4" />
                 Export
@@ -385,7 +479,12 @@ const UserList = () => {
             <TableHeader>
               <TableRow className="bg-slate-50 hover:bg-slate-50">
                 <TableHead className="w-12">
-                  <input type="checkbox" className="rounded border-slate-300" />
+                  <input 
+                    type="checkbox" 
+                    className="rounded border-slate-300 cursor-pointer"
+                    checked={users.length > 0 && selectedUsers.size === users.length}
+                    onChange={toggleSelectAll}
+                  />
                 </TableHead>
                 <TableHead 
                   className="cursor-pointer hover:bg-slate-100 transition-colors"
@@ -454,9 +553,14 @@ const UserList = () => {
                 </TableRow>
               ) : (
                 users.map((user) => (
-                  <TableRow key={user.id} className="hover:bg-slate-50">
+                  <TableRow key={user.id} className={cn("hover:bg-slate-50", selectedUsers.has(user.user_id) && "bg-blue-50")}>
                     <TableCell>
-                      <input type="checkbox" className="rounded border-slate-300" />
+                      <input 
+                        type="checkbox" 
+                        className="rounded border-slate-300 cursor-pointer"
+                        checked={selectedUsers.has(user.user_id)}
+                        onChange={() => toggleUserSelection(user.user_id)}
+                      />
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-3">
