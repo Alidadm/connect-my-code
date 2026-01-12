@@ -402,58 +402,189 @@ const MemberDashboard = () => {
     </div>
   );
 
-  const renderAccountTab = () => (
-    <div className="space-y-6">
-      <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
-            <Mail className="w-5 h-5 text-white" />
+  const renderAccountTab = () => {
+    const [editingEmail, setEditingEmail] = useState(false);
+    const [editingPhone, setEditingPhone] = useState(false);
+    const [newEmail, setNewEmail] = useState(privateProfile?.email || user?.email || "");
+    const [newPhone, setNewPhone] = useState(privateProfile?.phone || "");
+    const [updatingEmail, setUpdatingEmail] = useState(false);
+    const [updatingPhone, setUpdatingPhone] = useState(false);
+
+    const handleUpdateEmail = async () => {
+      if (!newEmail || newEmail === (privateProfile?.email || user?.email)) {
+        setEditingEmail(false);
+        return;
+      }
+      setUpdatingEmail(true);
+      try {
+        // Update in profiles_private via edge function
+        const { error } = await supabase.functions.invoke('store-private-profile', {
+          body: { email: newEmail }
+        });
+        if (error) throw error;
+        
+        // Refresh private profile data
+        const { data } = await supabase.functions.invoke('get-my-private-profile');
+        if (data?.data) setPrivateProfile(data.data);
+        
+        toast.success("Email updated successfully!");
+        setEditingEmail(false);
+      } catch (error) {
+        console.error("Error updating email:", error);
+        toast.error("Failed to update email");
+      } finally {
+        setUpdatingEmail(false);
+      }
+    };
+
+    const handleUpdatePhone = async () => {
+      if (!newPhone || newPhone === privateProfile?.phone) {
+        setEditingPhone(false);
+        return;
+      }
+      setUpdatingPhone(true);
+      try {
+        // Update in profiles_private via edge function
+        const { error } = await supabase.functions.invoke('store-private-profile', {
+          body: { phone: newPhone }
+        });
+        if (error) throw error;
+        
+        // Refresh private profile data
+        const { data } = await supabase.functions.invoke('get-my-private-profile');
+        if (data?.data) setPrivateProfile(data.data);
+        
+        toast.success("Phone number updated successfully!");
+        setEditingPhone(false);
+      } catch (error) {
+        console.error("Error updating phone:", error);
+        toast.error("Failed to update phone number");
+      } finally {
+        setUpdatingPhone(false);
+      }
+    };
+
+    return (
+      <div className="space-y-6">
+        <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
+              <Mail className="w-5 h-5 text-white" />
+            </div>
+            <div className="flex-1">
+              <h4 className="font-medium text-slate-800">Email Address</h4>
+              {editingEmail ? (
+                <Input
+                  type="email"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                  className="mt-1 max-w-xs"
+                  placeholder="Enter new email"
+                />
+              ) : (
+                <p className="text-sm text-slate-500">{privateProfile?.email || user?.email || "Not set"}</p>
+              )}
+            </div>
+            {profile?.email_verified && !editingEmail && (
+              <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full font-medium">Verified</span>
+            )}
+            {editingEmail ? (
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setEditingEmail(false)}
+                  disabled={updatingEmail}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  size="sm" 
+                  onClick={handleUpdateEmail}
+                  disabled={updatingEmail}
+                  className="bg-gradient-to-r from-blue-500 to-cyan-500"
+                >
+                  {updatingEmail ? "Saving..." : "Save"}
+                </Button>
+              </div>
+            ) : (
+              <Button variant="outline" size="sm" onClick={() => { setNewEmail(privateProfile?.email || user?.email || ""); setEditingEmail(true); }}>
+                Update
+              </Button>
+            )}
           </div>
-          <div>
-            <h4 className="font-medium text-slate-800">Email Address</h4>
-            <p className="text-sm text-slate-500">{privateProfile?.email || user?.email || "Not set"}</p>
+        </div>
+
+        <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+              <Phone className="w-5 h-5 text-white" />
+            </div>
+            <div className="flex-1">
+              <h4 className="font-medium text-slate-800">Phone Number</h4>
+              {editingPhone ? (
+                <Input
+                  type="tel"
+                  value={newPhone}
+                  onChange={(e) => setNewPhone(e.target.value)}
+                  className="mt-1 max-w-xs"
+                  placeholder="Enter new phone number"
+                />
+              ) : (
+                <p className="text-sm text-slate-500">{privateProfile?.phone || "Not set"}</p>
+              )}
+            </div>
+            {profile?.phone_verified && !editingPhone && (
+              <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full font-medium">Verified</span>
+            )}
+            {editingPhone ? (
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setEditingPhone(false)}
+                  disabled={updatingPhone}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  size="sm" 
+                  onClick={handleUpdatePhone}
+                  disabled={updatingPhone}
+                  className="bg-gradient-to-r from-purple-500 to-pink-500"
+                >
+                  {updatingPhone ? "Saving..." : "Save"}
+                </Button>
+              </div>
+            ) : (
+              <Button variant="outline" size="sm" onClick={() => { setNewPhone(privateProfile?.phone || ""); setEditingPhone(true); }}>
+                Update
+              </Button>
+            )}
           </div>
-          {profile?.email_verified && (
-            <span className="ml-auto px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full font-medium">Verified</span>
-          )}
+        </div>
+
+        <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
+              <Lock className="w-5 h-5 text-white" />
+            </div>
+            <div className="flex-1">
+              <h4 className="font-medium text-slate-800">Password</h4>
+              <p className="text-sm text-slate-500">Last changed 30 days ago</p>
+            </div>
+            <Button variant="outline" size="sm">Change Password</Button>
+          </div>
+        </div>
+
+        <div className="p-4 bg-red-50 rounded-xl border border-red-200">
+          <h4 className="font-medium text-red-800 mb-2">Danger Zone</h4>
+          <p className="text-sm text-red-600 mb-4">Once you delete your account, there is no going back. Please be certain.</p>
+          <Button variant="destructive" size="sm">Delete Account</Button>
         </div>
       </div>
-
-      <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-            <Phone className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <h4 className="font-medium text-slate-800">Phone Number</h4>
-            <p className="text-sm text-slate-500">{privateProfile?.phone || "Not set"}</p>
-          </div>
-          {profile?.phone_verified && (
-            <span className="ml-auto px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full font-medium">Verified</span>
-          )}
-        </div>
-      </div>
-
-      <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
-            <Lock className="w-5 h-5 text-white" />
-          </div>
-          <div className="flex-1">
-            <h4 className="font-medium text-slate-800">Password</h4>
-            <p className="text-sm text-slate-500">Last changed 30 days ago</p>
-          </div>
-          <Button variant="outline" size="sm">Change Password</Button>
-        </div>
-      </div>
-
-      <div className="p-4 bg-red-50 rounded-xl border border-red-200">
-        <h4 className="font-medium text-red-800 mb-2">Danger Zone</h4>
-        <p className="text-sm text-red-600 mb-4">Once you delete your account, there is no going back. Please be certain.</p>
-        <Button variant="destructive" size="sm">Delete Account</Button>
-      </div>
-    </div>
-  );
+    );
+  }
 
   const renderPrivacyTab = () => (
     <div className="space-y-4">
