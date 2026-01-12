@@ -661,31 +661,11 @@ const MemberDashboard = () => {
         });
 
         try {
-          const userId = user?.id;
-          if (!userId) throw new Error('User not found');
-
-          // Cancel any pending commissions where this user was the referred member
-          // (referrer should not receive payment for a deleted member)
-          await supabase
-            .from('commissions')
-            .update({ status: 'cancelled' })
-            .eq('referred_user_id', userId)
-            .eq('status', 'pending');
-
-          // Delete user data from all tables
-          await Promise.all([
-            supabase.from('posts').delete().eq('user_id', userId),
-            supabase.from('post_likes').delete().eq('user_id', userId),
-            supabase.from('post_comments').delete().eq('user_id', userId),
-            supabase.from('stories').delete().eq('user_id', userId),
-            supabase.from('story_views').delete().eq('viewer_id', userId),
-            supabase.from('messages').delete().or(`sender_id.eq.${userId},receiver_id.eq.${userId}`),
-            supabase.from('friendships').delete().or(`requester_id.eq.${userId},addressee_id.eq.${userId}`),
-            supabase.from('event_rsvps').delete().eq('user_id', userId),
-            supabase.from('commissions').delete().eq('referrer_id', userId),
-            supabase.from('subscriptions').delete().eq('user_id', userId),
-            supabase.from('profiles').delete().eq('user_id', userId),
-          ]);
+          // Call secure edge function to handle deletion
+          // This cancels Stripe subscriptions, pending commissions, and deletes all user data
+          const { error } = await supabase.functions.invoke('delete-account');
+          
+          if (error) throw error;
 
           // Sign out the user
           await supabase.auth.signOut();
@@ -693,7 +673,7 @@ const MemberDashboard = () => {
           Swal.fire({
             icon: 'success',
             title: 'Account Deleted',
-            text: 'Your account and all associated data have been permanently removed.',
+            text: 'Your account, subscription, and all associated data have been permanently removed.',
             confirmButtonColor: '#3b82f6',
           }).then(() => {
             navigate('/');
