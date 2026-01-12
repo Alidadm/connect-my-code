@@ -21,6 +21,23 @@ import { validateUsername } from "@/lib/username";
 
 type TabType = "profile" | "account" | "privacy" | "notifications" | "appearance";
 
+// Country code to name mapping
+const countryNames: Record<string, string> = {
+  US: "United States", GB: "United Kingdom", CA: "Canada", AU: "Australia",
+  DE: "Germany", FR: "France", ES: "Spain", IT: "Italy", JP: "Japan",
+  CN: "China", IN: "India", BR: "Brazil", MX: "Mexico", NL: "Netherlands",
+  SE: "Sweden", NO: "Norway", DK: "Denmark", FI: "Finland", PL: "Poland",
+  RU: "Russia", KR: "South Korea", SG: "Singapore", HK: "Hong Kong",
+  NZ: "New Zealand", IE: "Ireland", CH: "Switzerland", AT: "Austria",
+  BE: "Belgium", PT: "Portugal", GR: "Greece", CZ: "Czech Republic",
+  HU: "Hungary", RO: "Romania", UA: "Ukraine", ZA: "South Africa",
+  AR: "Argentina", CL: "Chile", CO: "Colombia", PE: "Peru", VE: "Venezuela",
+  PH: "Philippines", TH: "Thailand", MY: "Malaysia", ID: "Indonesia",
+  VN: "Vietnam", PK: "Pakistan", BD: "Bangladesh", EG: "Egypt", NG: "Nigeria",
+  KE: "Kenya", GH: "Ghana", MA: "Morocco", SA: "Saudi Arabia", AE: "UAE",
+  IL: "Israel", TR: "Turkey", TW: "Taiwan",
+};
+
 const menuItems = [
   { id: "profile" as TabType, label: "Profile", icon: User, description: "Manage your public profile" },
   { id: "account" as TabType, label: "Account", icon: Settings, description: "Account settings & security" },
@@ -307,16 +324,33 @@ const MemberDashboard = () => {
 
       <div className="space-y-2">
         <Label htmlFor="location">Location</Label>
-        <div className="relative">
-          <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <Input
-            id="location"
-            value={formData.location}
-            onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-            placeholder="City, Country"
-            className="pl-10 border-slate-200"
-          />
+        <div className="flex items-center gap-2">
+          {/* Country display (read-only, from signup) */}
+          {profile?.country && (
+            <div className="flex items-center gap-2 px-3 py-2 bg-slate-100 rounded-lg border border-slate-200">
+              <img 
+                src={`https://flagcdn.com/w20/${profile.country.toLowerCase()}.png`}
+                alt={countryNames[profile.country] || profile.country}
+                className="w-5 h-auto rounded-sm"
+              />
+              <span className="text-sm text-slate-600 font-medium">
+                {countryNames[profile.country] || profile.country}
+              </span>
+            </div>
+          )}
+          {/* City input (editable) */}
+          <div className="relative flex-1">
+            <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Input
+              id="location"
+              value={formData.location}
+              onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+              placeholder="City"
+              className="pl-10 border-slate-200"
+            />
+          </div>
         </div>
+        <p className="text-xs text-slate-400">Your country is detected automatically. Enter your city above.</p>
       </div>
 
       <Button 

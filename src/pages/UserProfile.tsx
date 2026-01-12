@@ -20,9 +20,27 @@ interface PublicProfile {
   cover_url: string | null;
   bio: string | null;
   location: string | null;
+  country: string | null;
   is_verified: boolean | null;
   created_at: string;
 }
+
+// Country code to name mapping
+const countryNames: Record<string, string> = {
+  US: "United States", GB: "United Kingdom", CA: "Canada", AU: "Australia",
+  DE: "Germany", FR: "France", ES: "Spain", IT: "Italy", JP: "Japan",
+  CN: "China", IN: "India", BR: "Brazil", MX: "Mexico", NL: "Netherlands",
+  SE: "Sweden", NO: "Norway", DK: "Denmark", FI: "Finland", PL: "Poland",
+  RU: "Russia", KR: "South Korea", SG: "Singapore", HK: "Hong Kong",
+  NZ: "New Zealand", IE: "Ireland", CH: "Switzerland", AT: "Austria",
+  BE: "Belgium", PT: "Portugal", GR: "Greece", CZ: "Czech Republic",
+  HU: "Hungary", RO: "Romania", UA: "Ukraine", ZA: "South Africa",
+  AR: "Argentina", CL: "Chile", CO: "Colombia", PE: "Peru", VE: "Venezuela",
+  PH: "Philippines", TH: "Thailand", MY: "Malaysia", ID: "Indonesia",
+  VN: "Vietnam", PK: "Pakistan", BD: "Bangladesh", EG: "Egypt", NG: "Nigeria",
+  KE: "Kenya", GH: "Ghana", MA: "Morocco", SA: "Saudi Arabia", AE: "UAE",
+  IL: "Israel", TR: "Turkey", TW: "Taiwan",
+};
 
 const UserProfile = () => {
   const { username } = useParams<{ username: string }>();
@@ -42,7 +60,7 @@ const UserProfile = () => {
       try {
         const { data, error } = await supabase
           .from("profiles")
-          .select("user_id, username, display_name, avatar_url, cover_url, bio, location, is_verified, created_at")
+          .select("user_id, username, display_name, avatar_url, cover_url, bio, location, country, is_verified, created_at")
           .eq("username", username.toLowerCase())
           .maybeSingle();
 
@@ -184,10 +202,18 @@ const UserProfile = () => {
             )}
             
             <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-              {profile?.location && (
-                <span className="flex items-center gap-1">
+              {(profile?.location || profile?.country) && (
+                <span className="flex items-center gap-1.5">
+                  {profile?.country && (
+                    <img 
+                      src={`https://flagcdn.com/w20/${profile.country.toLowerCase()}.png`}
+                      alt={countryNames[profile.country] || profile.country}
+                      className="w-5 h-auto rounded-sm"
+                    />
+                  )}
                   <MapPin className="w-4 h-4" />
-                  {profile.location}
+                  {profile?.location ? `${profile.location}, ` : "City, "}
+                  {profile?.country ? (countryNames[profile.country] || profile.country) : ""}
                 </span>
               )}
               <span className="flex items-center gap-1">
