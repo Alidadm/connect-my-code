@@ -572,6 +572,135 @@ const MemberDashboard = () => {
       }
     };
 
+    const handleDeleteAccount = async () => {
+      const fullName = `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim();
+      const userPhone = privateProfile?.phone || '';
+
+      // First warning
+      const { isConfirmed: firstConfirm } = await Swal.fire({
+        icon: 'warning',
+        title: 'Delete Your Account?',
+        html: `
+          <p style="color: #dc2626; margin-bottom: 12px;">This action is <strong>permanent</strong> and cannot be undone.</p>
+          <p style="color: #64748b;">You will lose:</p>
+          <ul style="text-align: left; color: #64748b; margin: 12px 0;">
+            <li>• All your profile data</li>
+            <li>• Your posts and comments</li>
+            <li>• All subscription funds</li>
+            <li>• Pending commissions</li>
+            <li>• Friend connections</li>
+          </ul>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Continue',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#94a3b8',
+      });
+
+      if (!firstConfirm) return;
+
+      // Final verification with full name and phone
+      const { value: formValues } = await Swal.fire({
+        title: 'Final Verification',
+        html: `
+          <p style="color: #dc2626; margin-bottom: 16px; font-weight: 500;">To confirm deletion, enter your details exactly as registered:</p>
+          <div style="text-align: left; margin-bottom: 12px;">
+            <label style="display: block; font-size: 14px; color: #64748b; margin-bottom: 4px;">Full Name</label>
+            <input type="text" id="swal-full-name" class="swal2-input" placeholder="Enter your full name" style="margin: 0; width: 100%;">
+          </div>
+          <div style="text-align: left;">
+            <label style="display: block; font-size: 14px; color: #64748b; margin-bottom: 4px;">Phone Number</label>
+            <input type="tel" id="swal-phone" class="swal2-input" placeholder="Enter your phone number" style="margin: 0; width: 100%;">
+          </div>
+        `,
+        focusConfirm: false,
+        showCancelButton: true,
+        confirmButtonText: 'Delete My Account',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#94a3b8',
+        preConfirm: () => {
+          const enteredName = (document.getElementById('swal-full-name') as HTMLInputElement).value.trim();
+          const enteredPhone = (document.getElementById('swal-phone') as HTMLInputElement).value.trim();
+          
+          if (!enteredName || !enteredPhone) {
+            Swal.showValidationMessage('Please fill in all fields');
+            return false;
+          }
+          
+          // Normalize for comparison
+          const normalizedEnteredName = enteredName.toLowerCase();
+          const normalizedFullName = fullName.toLowerCase();
+          const normalizedEnteredPhone = enteredPhone.replace(/\D/g, '');
+          const normalizedUserPhone = userPhone.replace(/\D/g, '');
+          
+          if (normalizedEnteredName !== normalizedFullName) {
+            Swal.showValidationMessage('Full name does not match our records');
+            return false;
+          }
+          
+          if (normalizedEnteredPhone !== normalizedUserPhone) {
+            Swal.showValidationMessage('Phone number does not match our records');
+            return false;
+          }
+          
+          return { name: enteredName, phone: enteredPhone };
+        }
+      });
+
+      if (formValues) {
+        // Show loading
+        Swal.fire({
+          title: 'Deleting Account...',
+          html: 'Please wait while we remove your data.',
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
+
+        try {
+          const userId = user?.id;
+          if (!userId) throw new Error('User not found');
+
+          // Delete user data from all tables
+          await Promise.all([
+            supabase.from('posts').delete().eq('user_id', userId),
+            supabase.from('post_likes').delete().eq('user_id', userId),
+            supabase.from('post_comments').delete().eq('user_id', userId),
+            supabase.from('stories').delete().eq('user_id', userId),
+            supabase.from('story_views').delete().eq('viewer_id', userId),
+            supabase.from('messages').delete().or(`sender_id.eq.${userId},receiver_id.eq.${userId}`),
+            supabase.from('friendships').delete().or(`requester_id.eq.${userId},addressee_id.eq.${userId}`),
+            supabase.from('event_rsvps').delete().eq('user_id', userId),
+            supabase.from('commissions').delete().eq('referrer_id', userId),
+            supabase.from('subscriptions').delete().eq('user_id', userId),
+            supabase.from('profiles').delete().eq('user_id', userId),
+          ]);
+
+          // Sign out the user
+          await supabase.auth.signOut();
+
+          Swal.fire({
+            icon: 'success',
+            title: 'Account Deleted',
+            text: 'Your account and all associated data have been permanently removed.',
+            confirmButtonColor: '#3b82f6',
+          }).then(() => {
+            navigate('/');
+          });
+        } catch (error: any) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.message || 'Failed to delete account. Please contact support.',
+            confirmButtonColor: '#3b82f6'
+          });
+        }
+      }
+    };
+
     return (
       <div className="space-y-6">
         <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
@@ -689,7 +818,7 @@ const MemberDashboard = () => {
           <h4 className="font-medium text-red-800 mb-2">Danger Zone</h4>
           <p className="text-sm text-red-600 mb-2">Once you delete your account, there is no going back. Please be certain.</p>
           <p className="text-sm text-red-600 mb-4 font-medium">⚠️ You will also lose all funds from your subscription and any pending commissions.</p>
-          <Button variant="destructive" size="sm">Delete Account</Button>
+          <Button variant="destructive" size="sm" onClick={handleDeleteAccount}>Delete Account</Button>
         </div>
       </div>
     );
