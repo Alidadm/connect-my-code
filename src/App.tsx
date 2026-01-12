@@ -12,6 +12,7 @@ import Commissions from "./pages/Commissions";
 import AdminIndex from "./pages/AdminIndex";
 import UserList from "./pages/admin/UserList";
 import MemberDashboard from "./pages/MemberDashboard";
+import UserProfile from "./pages/UserProfile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,8 @@ const App = () => (
             <Route path="/dashboard" element={<MemberDashboard />} />
             <Route path="/adminindex" element={<AdminIndex />} />
             <Route path="/admin/users/list" element={<UserList />} />
+            {/* Public profile route - must be BEFORE the catch-all */}
+            <Route path="/:username" element={<UserProfile />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

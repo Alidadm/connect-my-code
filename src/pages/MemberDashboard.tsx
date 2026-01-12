@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { 
   User, Settings, Bell, Shield, Palette, Layout, Camera, Save,
   ChevronRight, Eye, EyeOff, Lock, Mail, Phone, Globe, Calendar,
-  Home, CreditCard, Users, Heart, MessageCircle, LogOut, Clock
+  Home, CreditCard, Users, Heart, MessageCircle, LogOut, Clock,
+  CheckCircle2, XCircle, Loader2, ExternalLink
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,10 +13,11 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { validateUsername } from "@/lib/username";
 
 type TabType = "profile" | "account" | "privacy" | "notifications" | "appearance";
 
@@ -38,6 +40,13 @@ const MemberDashboard = () => {
   const { user, profile, refreshProfile } = useAuth();
   const [activeTab, setActiveTab] = useState<TabType>("profile");
   const [saving, setSaving] = useState(false);
+  
+  // Username validation state
+  const [usernameStatus, setUsernameStatus] = useState<{
+    checking: boolean;
+    available: boolean | null;
+    error: string | null;
+  }>({ checking: false, available: null, error: null });
   
   // Profile form state
   const [formData, setFormData] = useState({
@@ -76,8 +85,78 @@ const MemberDashboard = () => {
     }
   }, [profile]);
 
+  // Check username availability with debounce
+  const checkUsernameAvailability = useCallback(async (username: string) => {
+    // Don't check if it's the same as current username
+    if (username.toLowerCase() === profile?.username?.toLowerCase()) {
+      setUsernameStatus({ checking: false, available: true, error: null });
+      return;
+    }
+
+    // Validate format first
+    const validation = validateUsername(username);
+    if (!validation.valid) {
+      setUsernameStatus({ checking: false, available: false, error: validation.error || null });
+      return;
+    }
+
+    setUsernameStatus({ checking: true, available: null, error: null });
+
+    try {
+      const { data, error } = await supabase.functions.invoke('check-username-exists', {
+        body: { username: username.toLowerCase(), exclude_user_id: user?.id }
+      });
+
+      if (error) {
+        setUsernameStatus({ checking: false, available: null, error: "Failed to check availability" });
+        return;
+      }
+
+      setUsernameStatus({ 
+        checking: false, 
+        available: data?.available ?? false, 
+        error: data?.available ? null : "Username is already taken" 
+      });
+    } catch (err) {
+      setUsernameStatus({ checking: false, available: null, error: "Failed to check availability" });
+    }
+  }, [profile?.username, user?.id]);
+
+  // Debounced username change handler
+  const handleUsernameChange = useCallback((value: string) => {
+    const lowercaseValue = value.toLowerCase().replace(/[^a-z0-9.]/g, '');
+    setFormData(prev => ({ ...prev, username: lowercaseValue }));
+    
+    // Clear status if empty
+    if (!lowercaseValue) {
+      setUsernameStatus({ checking: false, available: null, error: null });
+      return;
+    }
+
+    // Debounce the check
+    const timeoutId = setTimeout(() => {
+      checkUsernameAvailability(lowercaseValue);
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [checkUsernameAvailability]);
+
   const handleSaveProfile = async () => {
     if (!user) return;
+    
+    // Validate username before saving
+    if (formData.username && formData.username !== profile?.username) {
+      const validation = validateUsername(formData.username);
+      if (!validation.valid) {
+        toast.error(validation.error || "Invalid username");
+        return;
+      }
+      
+      if (usernameStatus.available === false) {
+        toast.error("Username is not available");
+        return;
+      }
+    }
     
     setSaving(true);
     try {
@@ -85,7 +164,7 @@ const MemberDashboard = () => {
         .from("profiles")
         .update({
           display_name: formData.display_name,
-          username: formData.username,
+          username: formData.username.toLowerCase(),
           bio: formData.bio,
           location: formData.location,
           first_name: formData.first_name,
@@ -167,17 +246,52 @@ const MemberDashboard = () => {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="username">Username</Label>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="username">Username</Label>
+          {formData.username && (
+            <Link 
+              to={`/${formData.username}`} 
+              className="text-xs text-primary hover:underline flex items-center gap-1"
+              target="_blank"
+            >
+              View Profile <ExternalLink className="w-3 h-3" />
+            </Link>
+          )}
+        </div>
         <div className="relative">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">@</span>
           <Input
             id="username"
             value={formData.username}
-            onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+            onChange={(e) => handleUsernameChange(e.target.value)}
             placeholder="username"
-            className="pl-8 border-slate-200"
+            className={cn(
+              "pl-8 pr-10 border-slate-200",
+              usernameStatus.available === true && "border-emerald-500 focus-visible:ring-emerald-500",
+              usernameStatus.available === false && "border-red-500 focus-visible:ring-red-500"
+            )}
           />
+          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+            {usernameStatus.checking && (
+              <Loader2 className="w-4 h-4 text-slate-400 animate-spin" />
+            )}
+            {!usernameStatus.checking && usernameStatus.available === true && (
+              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+            )}
+            {!usernameStatus.checking && usernameStatus.available === false && (
+              <XCircle className="w-4 h-4 text-red-500" />
+            )}
+          </div>
         </div>
+        {usernameStatus.error && (
+          <p className="text-xs text-red-500">{usernameStatus.error}</p>
+        )}
+        {usernameStatus.available === true && formData.username !== profile?.username && (
+          <p className="text-xs text-emerald-600">Username is available!</p>
+        )}
+        <p className="text-xs text-slate-400">
+          Your profile URL: weshare.com/{formData.username || "username"}
+        </p>
       </div>
 
       <div className="space-y-2">
