@@ -62,10 +62,20 @@ const Commissions = () => {
     }
   };
 
+  // Calculate stats
   const totalEarnings = commissions.reduce((sum, c) => sum + c.amount, 0);
   const pendingEarnings = commissions.filter(c => c.status === "pending").reduce((sum, c) => sum + c.amount, 0);
   const paidEarnings = commissions.filter(c => c.status === "paid").reduce((sum, c) => sum + c.amount, 0);
   const totalReferrals = commissions.length;
+  
+  // This month's signups (commissions created this month)
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const thisMonthSignups = commissions.filter(c => new Date(c.created_at) >= startOfMonth).length;
+  
+  // Total subscription value (each referral = $9.99/month subscription)
+  const subscriptionRate = 9.99;
+  const totalSubscriptionValue = totalReferrals * subscriptionRate;
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -115,17 +125,65 @@ const Commissions = () => {
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <Card className="border-primary/20">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <TrendingUp className="h-5 w-5 text-primary" />
+        {/* Primary Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="h-14 w-14 rounded-full bg-primary/20 flex items-center justify-center">
+                  <Users className="h-7 w-7 text-primary" />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Total Earned</p>
-                  <p className="text-xl font-bold">{formatCurrency(totalEarnings)}</p>
+                  <p className="text-sm text-muted-foreground font-medium">Total Subscriptions</p>
+                  <p className="text-3xl font-bold">{totalReferrals}</p>
+                  <p className="text-xs text-muted-foreground">Active referrals</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-green-500/20 bg-gradient-to-br from-green-500/5 to-green-500/10">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="h-14 w-14 rounded-full bg-green-500/20 flex items-center justify-center">
+                  <DollarSign className="h-7 w-7 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground font-medium">Total Amount Earned</p>
+                  <p className="text-3xl font-bold text-green-600">{formatCurrency(totalEarnings)}</p>
+                  <p className="text-xs text-muted-foreground">Lifetime earnings</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-blue-500/20 bg-gradient-to-br from-blue-500/5 to-blue-500/10">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="h-14 w-14 rounded-full bg-blue-500/20 flex items-center justify-center">
+                  <TrendingUp className="h-7 w-7 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground font-medium">This Month's Signups</p>
+                  <p className="text-3xl font-bold text-blue-600">{thisMonthSignups}</p>
+                  <p className="text-xs text-muted-foreground">{now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Secondary Stats Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-purple-500/10 flex items-center justify-center">
+                  <Wallet className="h-5 w-5 text-purple-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Subscription Value</p>
+                  <p className="text-xl font-bold">{formatCurrency(totalSubscriptionValue)}</p>
                 </div>
               </div>
             </CardContent>
@@ -149,7 +207,7 @@ const Commissions = () => {
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-full bg-green-500/10 flex items-center justify-center">
-                  <Wallet className="h-5 w-5 text-green-600" />
+                  <CheckCircle2 className="h-5 w-5 text-green-600" />
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Paid Out</p>
@@ -162,12 +220,12 @@ const Commissions = () => {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-blue-500/10 flex items-center justify-center">
-                  <Users className="h-5 w-5 text-blue-600" />
+                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <DollarSign className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Referrals</p>
-                  <p className="text-xl font-bold">{totalReferrals}</p>
+                  <p className="text-xs text-muted-foreground">Per Referral</p>
+                  <p className="text-xl font-bold">$5.00</p>
                 </div>
               </div>
             </CardContent>
