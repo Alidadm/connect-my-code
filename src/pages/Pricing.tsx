@@ -94,12 +94,13 @@ const Pricing = () => {
     setPaypalLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("paypal-create-subscription");
-      
+
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      
+
       if (data?.url) {
-        window.location.href = data.url;
+        const opened = window.open(data.url, "_blank", "noopener,noreferrer");
+        if (!opened) window.location.href = data.url;
       } else {
         throw new Error("No PayPal approval URL received");
       }
