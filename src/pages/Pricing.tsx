@@ -1,4 +1,4 @@
-import { Check, Crown, Loader2, FlaskConical, Home, UserPlus } from "lucide-react";
+import { Check, Crown, Loader2, FlaskConical, Home, UserPlus, CreditCard } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +8,13 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+
+// PayPal SVG icon
+const PayPalIcon = () => (
+  <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
+    <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944 3.72a.77.77 0 0 1 .76-.648h6.567c2.963 0 5.033.947 5.9 2.7.388.783.537 1.637.458 2.58-.016.188-.038.378-.067.573-.484 3.155-2.584 4.912-6.273 4.912h-2.39a.77.77 0 0 0-.76.648l-.935 5.852zm7.167-17.267h-4.94l-1.89 11.886h2.39c2.95 0 4.57-1.3 4.95-3.766.02-.138.037-.274.05-.408.1-.93-.07-1.64-.51-2.15-.59-.68-1.57-1.03-2.91-1.03h-1.14l.61-3.83h4.94c1.61 0 2.22.45 2.22 1.43 0 .16-.02.33-.05.51z"/>
+  </svg>
+);
 
 const features = [
   "Unlimited posts and stories",
@@ -25,6 +32,7 @@ const Pricing = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [paypalLoading, setPaypalLoading] = useState(false);
   const [testLoading, setTestLoading] = useState(false);
 
   // Test function to create a sample commission via edge function
@@ -74,6 +82,32 @@ const Pricing = () => {
       console.error(error);
     } finally {
       setCheckoutLoading(false);
+    }
+  };
+
+  const handlePayPalSubscribe = async () => {
+    if (!user) {
+      navigate("/signup");
+      return;
+    }
+
+    setPaypalLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("paypal-create-subscription");
+      
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error("No PayPal approval URL received");
+      }
+    } catch (error: any) {
+      toast.error("Failed to start PayPal checkout: " + error.message);
+      console.error(error);
+    } finally {
+      setPaypalLoading(false);
     }
   };
 
@@ -157,23 +191,54 @@ const Pricing = () => {
                 )}
               </>
             ) : (
-              <Button 
-                className="w-full" 
-                size="lg"
-                onClick={handleSubscribe}
-                disabled={checkoutLoading}
-              >
-                {checkoutLoading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    Starting checkout...
-                  </>
-                ) : user ? (
-                  "Subscribe Now"
-                ) : (
-                  "Sign Up to Subscribe"
+              <div className="w-full space-y-3">
+                <p className="text-xs text-muted-foreground text-center mb-2">Choose your payment method</p>
+                
+                {/* Stripe/Card Button */}
+                <Button 
+                  className="w-full" 
+                  size="lg"
+                  onClick={handleSubscribe}
+                  disabled={checkoutLoading || paypalLoading}
+                >
+                  {checkoutLoading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Starting checkout...
+                    </>
+                  ) : user ? (
+                    <>
+                      <CreditCard className="h-4 w-4 mr-2" />
+                      Pay with Card
+                    </>
+                  ) : (
+                    "Sign Up to Subscribe"
+                  )}
+                </Button>
+
+                {/* PayPal Button */}
+                {user && (
+                  <Button 
+                    variant="outline"
+                    className="w-full bg-[#0070ba] hover:bg-[#005c96] text-white border-[#0070ba] hover:border-[#005c96]" 
+                    size="lg"
+                    onClick={handlePayPalSubscribe}
+                    disabled={checkoutLoading || paypalLoading}
+                  >
+                    {paypalLoading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        Connecting to PayPal...
+                      </>
+                    ) : (
+                      <>
+                        <PayPalIcon />
+                        <span className="ml-2">Pay with PayPal</span>
+                      </>
+                    )}
+                  </Button>
                 )}
-              </Button>
+              </div>
             )}
           </CardFooter>
         </Card>
