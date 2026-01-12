@@ -664,6 +664,14 @@ const MemberDashboard = () => {
           const userId = user?.id;
           if (!userId) throw new Error('User not found');
 
+          // Cancel any pending commissions where this user was the referred member
+          // (referrer should not receive payment for a deleted member)
+          await supabase
+            .from('commissions')
+            .update({ status: 'cancelled' })
+            .eq('referred_user_id', userId)
+            .eq('status', 'pending');
+
           // Delete user data from all tables
           await Promise.all([
             supabase.from('posts').delete().eq('user_id', userId),
