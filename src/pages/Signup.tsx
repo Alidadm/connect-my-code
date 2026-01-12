@@ -268,12 +268,15 @@ export const Signup = () => {
     setPaymentLoading('stripe');
     try {
       const { data, error } = await supabase.functions.invoke("create-checkout");
-      
+
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      
+
       if (data?.url) {
-        window.location.href = data.url;
+        // Stripe Checkout cannot reliably render inside the Lovable preview iframe.
+        // Open in a new tab, fallback to same-tab if popups are blocked.
+        const opened = window.open(data.url, "_blank", "noopener,noreferrer");
+        if (!opened) window.location.href = data.url;
       } else {
         throw new Error("No checkout URL received");
       }
@@ -289,12 +292,13 @@ export const Signup = () => {
     setPaymentLoading('paypal');
     try {
       const { data, error } = await supabase.functions.invoke("paypal-create-subscription");
-      
+
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      
+
       if (data?.url) {
-        window.location.href = data.url;
+        const opened = window.open(data.url, "_blank", "noopener,noreferrer");
+        if (!opened) window.location.href = data.url;
       } else {
         throw new Error("No PayPal approval URL received");
       }
