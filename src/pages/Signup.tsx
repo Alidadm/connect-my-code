@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Mail, User, ArrowRight, Calendar, Lock, Home, CreditCard } from "lucide-react";
+import { Mail, User, ArrowRight, Calendar, Lock, Home, CreditCard, Loader2 } from "lucide-react";
 import { isValidPhoneNumber } from 'react-phone-number-input';
 import { SlideAlert } from "@/components/ui/slide-alert";
 import { Button } from "@/components/ui/button";
@@ -25,12 +25,22 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { generateUsername, generateAlternativeUsernames } from "@/lib/username";
 
+// PayPal SVG icon
+const PayPalIcon = () => (
+  <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
+    <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944 3.72a.77.77 0 0 1 .76-.648h6.567c2.963 0 5.033.947 5.9 2.7.388.783.537 1.637.458 2.58-.016.188-.038.378-.067.573-.484 3.155-2.584 4.912-6.273 4.912h-2.39a.77.77 0 0 0-.76.648l-.935 5.852zm7.167-17.267h-4.94l-1.89 11.886h2.39c2.95 0 4.57-1.3 4.95-3.766.02-.138.037-.274.05-.408.1-.93-.07-1.64-.51-2.15-.59-.68-1.57-1.03-2.91-1.03h-1.14l.61-3.83h4.94c1.61 0 2.22.45 2.22 1.43 0 .16-.02.33-.05.51z"/>
+  </svg>
+);
+
 export const Signup = () => {
   const navigate = useNavigate();
   const [showVerificationDialog, setShowVerificationDialog] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [paymentLoading, setPaymentLoading] = useState<'stripe' | 'paypal' | null>(null);
   const [alertMessage, setAlertMessage] = useState("");
   const [showAlert, setShowAlert] = useState(false);
+  const [step, setStep] = useState<'form' | 'payment'>('form');
+  const [createdUserId, setCreatedUserId] = useState<string | null>(null);
   
   const [formData, setFormData] = useState({
     firstName: "",
@@ -242,14 +252,57 @@ export const Signup = () => {
           console.error('Failed to store private profile data:', privateError);
         }
 
-        toast.success("Account created successfully!");
-        navigate("/pricing");
+        toast.success("Account created! Now choose your payment method.");
+        setCreatedUserId(data.user.id);
+        setStep('payment');
       }
     } catch (err) {
       toast.error("An unexpected error occurred");
       console.error(err);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleStripePayment = async () => {
+    setPaymentLoading('stripe');
+    try {
+      const { data, error } = await supabase.functions.invoke("create-checkout");
+      
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error("No checkout URL received");
+      }
+    } catch (error: any) {
+      toast.error("Failed to start checkout: " + error.message);
+      console.error(error);
+    } finally {
+      setPaymentLoading(null);
+    }
+  };
+
+  const handlePayPalPayment = async () => {
+    setPaymentLoading('paypal');
+    try {
+      const { data, error } = await supabase.functions.invoke("paypal-create-subscription");
+      
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error("No PayPal approval URL received");
+      }
+    } catch (error: any) {
+      toast.error("Failed to start PayPal checkout: " + error.message);
+      console.error(error);
+    } finally {
+      setPaymentLoading(null);
     }
   };
 
@@ -279,20 +332,22 @@ export const Signup = () => {
             <span className="text-2xl font-bold text-foreground">WeShare</span>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Create an account</h1>
-          <p className="text-muted-foreground mb-6 sm:mb-8">
-            Join our community and start sharing your moments
-          </p>
+          {step === 'form' ? (
+            <>
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Create an account</h1>
+              <p className="text-muted-foreground mb-6 sm:mb-8">
+                Join our community and start sharing your moments
+              </p>
 
-          {/* Slide-down Alert for Duplicate Detection */}
-          <SlideAlert
-            message={alertMessage}
-            type="error"
-            isVisible={showAlert}
-            onClose={() => setShowAlert(false)}
-          />
+              {/* Slide-down Alert for Duplicate Detection */}
+              <SlideAlert
+                message={alertMessage}
+                type="error"
+                isVisible={showAlert}
+                onClose={() => setShowAlert(false)}
+              />
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-4">
             {/* Name Row */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -444,39 +499,101 @@ export const Signup = () => {
             </Button>
           </form>
 
-          <p className="text-center text-sm text-muted-foreground mt-6">
-            Already have an account?{" "}
-            <Link to="/login" className="text-primary hover:underline font-medium">
-              Log in
-            </Link>
-          </p>
-
-          <p className="text-center text-sm text-muted-foreground mt-2">
-            <Link to="/" className="text-primary hover:underline font-medium">
-              Go to Home Page →
-            </Link>
-          </p>
-
-          {/* Temporary Navigation Links - For Development */}
-          <div className="mt-8 text-center">
-            <div className="inline-block p-4 border border-dashed border-blue-500/50 rounded-lg bg-blue-500/5">
-              <p className="text-xs text-blue-600 mb-3 font-medium">🔗 Quick Navigation (Dev)</p>
-              <div className="flex gap-3 flex-wrap justify-center">
-                <Link to="/">
-                  <Button variant="outline" size="sm" className="border-blue-500/50 text-blue-600 hover:bg-blue-500/10">
-                    <Home className="h-3 w-3 mr-2" />
-                    Member Home
-                  </Button>
+              <p className="text-center text-sm text-muted-foreground mt-6">
+                Already have an account?{" "}
+                <Link to="/login" className="text-primary hover:underline font-medium">
+                  Log in
                 </Link>
-                <Link to="/pricing">
-                  <Button variant="outline" size="sm" className="border-blue-500/50 text-blue-600 hover:bg-blue-500/10">
-                    <CreditCard className="h-3 w-3 mr-2" />
-                    Pricing Page
-                  </Button>
+              </p>
+
+              <p className="text-center text-sm text-muted-foreground mt-2">
+                <Link to="/" className="text-primary hover:underline font-medium">
+                  Go to Home Page →
                 </Link>
+              </p>
+
+              {/* Temporary Navigation Links - For Development */}
+              <div className="mt-8 text-center">
+                <div className="inline-block p-4 border border-dashed border-blue-500/50 rounded-lg bg-blue-500/5">
+                  <p className="text-xs text-blue-600 mb-3 font-medium">🔗 Quick Navigation (Dev)</p>
+                  <div className="flex gap-3 flex-wrap justify-center">
+                    <Link to="/">
+                      <Button variant="outline" size="sm" className="border-blue-500/50 text-blue-600 hover:bg-blue-500/10">
+                        <Home className="h-3 w-3 mr-2" />
+                        Member Home
+                      </Button>
+                    </Link>
+                    <Link to="/pricing">
+                      <Button variant="outline" size="sm" className="border-blue-500/50 text-blue-600 hover:bg-blue-500/10">
+                        <CreditCard className="h-3 w-3 mr-2" />
+                        Pricing Page
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
+            </>
+          ) : (
+            /* Payment Step */
+            <>
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Choose Payment Method</h1>
+              <p className="text-muted-foreground mb-6 sm:mb-8">
+                Complete your subscription to access WeShare Premium
+              </p>
+
+              <div className="bg-muted/50 rounded-lg p-4 mb-6">
+                <div className="text-center">
+                  <p className="text-3xl font-bold text-foreground">$9.99</p>
+                  <p className="text-sm text-muted-foreground">/month</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {/* Credit Card / Stripe */}
+                <Button 
+                  className="w-full h-14 text-base" 
+                  onClick={handleStripePayment}
+                  disabled={paymentLoading !== null}
+                >
+                  {paymentLoading === 'stripe' ? (
+                    <>
+                      <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                      Connecting...
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="h-5 w-5 mr-2" />
+                      Pay with Credit Card
+                    </>
+                  )}
+                </Button>
+
+                {/* PayPal */}
+                <Button 
+                  variant="outline"
+                  className="w-full h-14 text-base bg-[#0070ba] hover:bg-[#005c96] text-white border-[#0070ba] hover:border-[#005c96]" 
+                  onClick={handlePayPalPayment}
+                  disabled={paymentLoading !== null}
+                >
+                  {paymentLoading === 'paypal' ? (
+                    <>
+                      <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                      Connecting to PayPal...
+                    </>
+                  ) : (
+                    <>
+                      <PayPalIcon />
+                      <span className="ml-2">Pay with PayPal</span>
+                    </>
+                  )}
+                </Button>
+              </div>
+
+              <p className="text-center text-xs text-muted-foreground mt-6">
+                Secure payment processing. Cancel anytime.
+              </p>
+            </>
+          )}
         </div>
       </div>
 
