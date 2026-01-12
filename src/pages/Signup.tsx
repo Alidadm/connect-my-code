@@ -156,9 +156,47 @@ export const Signup = () => {
       if (error) {
         // Check for duplicate email error from Supabase Auth
         if (error.message.includes('already registered') || 
-            error.message.includes('already been registered')) {
-          setAlertMessage("This email address is already registered. Please use a different email or log in to your existing account.");
-          setShowAlert(true);
+            error.message.includes('already been registered') ||
+            error.message.includes('User already registered')) {
+          
+          // Try to sign in the existing user to check their subscription status
+          const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+            email: formData.email,
+            password: formData.password,
+          });
+
+          if (signInError) {
+            // Wrong password or other error - show appropriate message
+            if (signInError.message.includes('Invalid login credentials')) {
+              setAlertMessage("This email is already registered. If this is your account, please log in with your correct password, or use a different email.");
+            } else {
+              setAlertMessage("This email address is already registered. Please log in to your existing account or use a different email.");
+            }
+            setShowAlert(true);
+            return;
+          }
+
+          if (signInData.user) {
+            // Check if user has active subscription
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('subscription_status')
+              .eq('user_id', signInData.user.id)
+              .single();
+
+            if (profile?.subscription_status === 'active') {
+              // Already subscribed - redirect to home
+              toast.success("You're already subscribed! Redirecting to home...");
+              navigate('/');
+              return;
+            } else {
+              // No subscription - let them complete payment
+              toast.info("Welcome back! Complete your subscription to access all features.");
+              setCreatedUserId(signInData.user.id);
+              setStep('payment');
+              return;
+            }
+          }
         } else {
           toast.error(error.message);
         }
