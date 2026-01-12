@@ -58,6 +58,13 @@ const MemberDashboard = () => {
   const [activeTab, setActiveTab] = useState<TabType>("profile");
   const [saving, setSaving] = useState(false);
   
+  // Private profile data (email, phone, birthday)
+  const [privateProfile, setPrivateProfile] = useState<{
+    email: string | null;
+    phone: string | null;
+    birthday: string | null;
+  } | null>(null);
+  
   // Username validation state
   const [usernameStatus, setUsernameStatus] = useState<{
     checking: boolean;
@@ -87,6 +94,22 @@ const MemberDashboard = () => {
     darkMode: false,
     compactMode: false,
   });
+
+  // Fetch private profile data
+  React.useEffect(() => {
+    const fetchPrivateProfile = async () => {
+      if (!user) return;
+      try {
+        const { data, error } = await supabase.functions.invoke('get-my-private-profile');
+        if (!error && data?.data) {
+          setPrivateProfile(data.data);
+        }
+      } catch (err) {
+        console.error("Error fetching private profile:", err);
+      }
+    };
+    fetchPrivateProfile();
+  }, [user]);
 
   // Update form when profile loads
   React.useEffect(() => {
@@ -388,7 +411,7 @@ const MemberDashboard = () => {
           </div>
           <div>
             <h4 className="font-medium text-slate-800">Email Address</h4>
-            <p className="text-sm text-slate-500">{user?.email || "Not set"}</p>
+            <p className="text-sm text-slate-500">{privateProfile?.email || user?.email || "Not set"}</p>
           </div>
           {profile?.email_verified && (
             <span className="ml-auto px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full font-medium">Verified</span>
@@ -403,7 +426,7 @@ const MemberDashboard = () => {
           </div>
           <div>
             <h4 className="font-medium text-slate-800">Phone Number</h4>
-            <p className="text-sm text-slate-500">{user?.phone || "Not set"}</p>
+            <p className="text-sm text-slate-500">{privateProfile?.phone || "Not set"}</p>
           </div>
           {profile?.phone_verified && (
             <span className="ml-auto px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full font-medium">Verified</span>
