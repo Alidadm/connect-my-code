@@ -587,6 +587,10 @@ export type Database = {
         Args: { user_a: string; user_b: string }
         Returns: boolean
       }
+      generate_unique_username: {
+        Args: { p_first_name: string; p_last_name: string; p_user_id: string }
+        Returns: string
+      }
       get_friend_profile: {
         Args: { friend_user_id: string }
         Returns: {
