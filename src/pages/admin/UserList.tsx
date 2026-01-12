@@ -4,7 +4,7 @@ import Swal from "sweetalert2";
 import {
   Search, Filter, Download, Upload, Plus, MoreHorizontal,
   ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight,
-  Edit, Trash2, Eye, Mail, Phone, ArrowUpDown, ArrowLeft, Loader2
+  Edit, Trash2, Eye, Mail, Phone, ArrowUpDown, ArrowLeft, Loader2, AtSign
 } from "lucide-react";
 
 // Country name to ISO 2-letter code mapping for flag emojis
@@ -69,6 +69,7 @@ type User = {
   user_id: string;
   firstName: string;
   lastName: string;
+  username: string;
   email: string;
   phone: string;
   birthday: string;
@@ -413,7 +414,7 @@ const UserList = () => {
                     <ArrowUpDown className="w-4 h-4 text-slate-400" />
                   </div>
                 </TableHead>
-                <TableHead>Phone</TableHead>
+                <TableHead>Username</TableHead>
                 <TableHead 
                   className="cursor-pointer hover:bg-slate-100 transition-colors"
                   onClick={() => handleSort('birthday')}
@@ -475,8 +476,8 @@ const UserList = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <Phone className="w-4 h-4 text-slate-400" />
-                        <span className="text-slate-600">{user.phone}</span>
+                        <AtSign className="w-4 h-4 text-slate-400" />
+                        <span className="text-slate-600">{user.username || '—'}</span>
                       </div>
                     </TableCell>
                     <TableCell className="text-slate-600">{user.birthday}</TableCell>
