@@ -132,6 +132,58 @@ serve(async (req) => {
             .eq("user_id", userId);
           
           logStep("Updated subscription status to active");
+
+          // Create or update subscription record
+          const billingInfo = subscription.billing_info;
+          const currentPeriodStart = billingInfo?.last_payment?.time 
+            ? new Date(billingInfo.last_payment.time).toISOString()
+            : new Date().toISOString();
+          
+          // Calculate period end (1 month from start)
+          const periodEnd = new Date(currentPeriodStart);
+          periodEnd.setMonth(periodEnd.getMonth() + 1);
+
+          // Check if subscription record already exists
+          const { data: existingSub } = await supabaseClient
+            .from("subscriptions")
+            .select("id")
+            .eq("provider_subscription_id", subscription.id)
+            .single();
+
+          if (existingSub) {
+            // Update existing subscription
+            await supabaseClient
+              .from("subscriptions")
+              .update({
+                status: "active",
+                current_period_start: currentPeriodStart,
+                current_period_end: periodEnd.toISOString(),
+                updated_at: new Date().toISOString(),
+              })
+              .eq("id", existingSub.id);
+            
+            logStep("Updated existing subscription record", { id: existingSub.id });
+          } else {
+            // Create new subscription record
+            const { error: subError } = await supabaseClient
+              .from("subscriptions")
+              .insert({
+                user_id: userId,
+                status: "active",
+                payment_provider: "paypal",
+                provider_subscription_id: subscription.id,
+                amount: 9.99,
+                currency: "USD",
+                current_period_start: currentPeriodStart,
+                current_period_end: periodEnd.toISOString(),
+              });
+
+            if (subError) {
+              logStep("Failed to create subscription record", { error: subError.message });
+            } else {
+              logStep("Created subscription record");
+            }
+          }
         }
         break;
       }
@@ -222,12 +274,35 @@ serve(async (req) => {
         });
 
         if (userId) {
+          // Update profile status
           await supabaseClient
             .from("profiles")
             .update({ subscription_status: "inactive" })
             .eq("user_id", userId);
           
-          logStep("Updated subscription status to inactive");
+          logStep("Updated profile subscription status to inactive");
+
+          // Update subscription record
+          const canceledStatus = event.event_type === "BILLING.SUBSCRIPTION.CANCELLED" 
+            ? "canceled" 
+            : event.event_type === "BILLING.SUBSCRIPTION.EXPIRED" 
+              ? "expired" 
+              : "suspended";
+
+          const { error: subError } = await supabaseClient
+            .from("subscriptions")
+            .update({
+              status: canceledStatus,
+              canceled_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            })
+            .eq("provider_subscription_id", subscription.id);
+
+          if (subError) {
+            logStep("Failed to update subscription record", { error: subError.message });
+          } else {
+            logStep("Updated subscription record to " + canceledStatus);
+          }
         }
         break;
       }
