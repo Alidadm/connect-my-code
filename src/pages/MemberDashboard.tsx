@@ -324,33 +324,28 @@ const MemberDashboard = () => {
 
       <div className="space-y-2">
         <Label htmlFor="location">Location</Label>
-        <div className="flex items-center gap-2">
-          {/* Country display (read-only, from signup) */}
+        <div className="relative">
           {profile?.country && (
-            <div className="flex items-center gap-2 px-3 py-2 bg-slate-100 rounded-lg border border-slate-200">
-              <img 
-                src={`https://flagcdn.com/w20/${profile.country.toLowerCase()}.png`}
-                alt={countryNames[profile.country] || profile.country}
-                className="w-5 h-auto rounded-sm"
-              />
-              <span className="text-sm text-slate-600 font-medium">
-                {countryNames[profile.country] || profile.country}
-              </span>
-            </div>
-          )}
-          {/* City input (editable) */}
-          <div className="relative flex-1">
-            <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <Input
-              id="location"
-              value={formData.location}
-              onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-              placeholder="City"
-              className="pl-10 border-slate-200"
+            <img 
+              src={`https://flagcdn.com/w20/${profile.country.toLowerCase()}.png`}
+              alt={countryNames[profile.country] || profile.country}
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-auto rounded-sm"
             />
-          </div>
+          )}
+          <Input
+            id="location"
+            value={formData.location}
+            onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+            placeholder="City"
+            className={profile?.country ? "pl-10 pr-32 border-slate-200" : "border-slate-200"}
+          />
+          {profile?.country && (
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">
+              {countryNames[profile.country] || profile.country}
+            </span>
+          )}
         </div>
-        <p className="text-xs text-slate-400">Your country is detected automatically. Enter your city above.</p>
+        <p className="text-xs text-slate-400">Enter your city. Country is detected automatically.</p>
       </div>
 
       <Button 
