@@ -19,6 +19,7 @@ interface Profile {
   is_verified: boolean;
   referral_code: string | null;
   subscription_status: string | null;
+  username_changed: boolean | null;
   created_at: string;
   updated_at: string;
 }

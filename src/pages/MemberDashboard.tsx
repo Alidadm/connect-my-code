@@ -177,6 +177,9 @@ const MemberDashboard = () => {
     
     setSaving(true);
     try {
+      // Check if username is being changed
+      const isUsernameChanging = formData.username.toLowerCase() !== profile?.username?.toLowerCase();
+      
       const { error } = await supabase
         .from("profiles")
         .update({
@@ -187,6 +190,8 @@ const MemberDashboard = () => {
           first_name: formData.first_name,
           last_name: formData.last_name,
           updated_at: new Date().toISOString(),
+          // Mark username as changed if it's being updated
+          ...(isUsernameChanging && { username_changed: true }),
         })
         .eq("user_id", user.id);
 
@@ -282,29 +287,44 @@ const MemberDashboard = () => {
             value={formData.username}
             onChange={(e) => handleUsernameChange(e.target.value)}
             placeholder="username"
+            disabled={profile?.username_changed === true}
             className={cn(
               "pl-8 pr-10 border-slate-200",
               usernameStatus.available === true && "border-emerald-500 focus-visible:ring-emerald-500",
-              usernameStatus.available === false && "border-red-500 focus-visible:ring-red-500"
+              usernameStatus.available === false && "border-red-500 focus-visible:ring-red-500",
+              profile?.username_changed === true && "bg-slate-100 cursor-not-allowed"
             )}
           />
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
             {usernameStatus.checking && (
               <Loader2 className="w-4 h-4 text-slate-400 animate-spin" />
             )}
-            {!usernameStatus.checking && usernameStatus.available === true && (
+            {!usernameStatus.checking && usernameStatus.available === true && !profile?.username_changed && (
               <CheckCircle2 className="w-4 h-4 text-emerald-500" />
             )}
             {!usernameStatus.checking && usernameStatus.available === false && (
               <XCircle className="w-4 h-4 text-red-500" />
+            )}
+            {profile?.username_changed === true && (
+              <Lock className="w-4 h-4 text-slate-400" />
             )}
           </div>
         </div>
         {usernameStatus.error && (
           <p className="text-xs text-red-500">{usernameStatus.error}</p>
         )}
-        {usernameStatus.available === true && formData.username !== profile?.username && (
+        {usernameStatus.available === true && formData.username !== profile?.username && !profile?.username_changed && (
           <p className="text-xs text-emerald-600">Username is available!</p>
+        )}
+        {profile?.username_changed === true ? (
+          <p className="text-xs text-amber-600 flex items-center gap-1">
+            <Lock className="w-3 h-3" />
+            You have already used your one-time username change.
+          </p>
+        ) : (
+          <p className="text-xs text-amber-600">
+            ⚠️ You can only change your username once. Choose wisely!
+          </p>
         )}
         <p className="text-xs text-slate-400">
           Your profile URL: weshare.com/{formData.username || "username"}
