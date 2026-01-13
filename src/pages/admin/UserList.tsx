@@ -122,6 +122,18 @@ const UserList = () => {
       console.error('Error fetching users:', error);
 
       const msg = String(error?.message || '');
+      const isAdminError = /Admin access required/i.test(msg);
+
+      if (isAdminError) {
+        toast({
+          title: "Admin access required",
+          description: "Please log in with an admin account to view the user list.",
+          variant: "destructive",
+        });
+        navigate('/login');
+        return;
+      }
+
       const isAuthError =
         /Unauthorized/i.test(msg) ||
         /missing sub claim/i.test(msg) ||
@@ -302,6 +314,20 @@ const UserList = () => {
       fetchUsers();
     } catch (error: any) {
       console.error('Error deleting users:', error);
+
+      const msg = String(error?.message || '');
+      const isAdminError = /Admin access required/i.test(msg);
+
+      if (isAdminError) {
+        toast({
+          title: "Admin access required",
+          description: "Please log in with an admin account to delete users.",
+          variant: "destructive",
+        });
+        navigate('/login');
+        return;
+      }
+
       toast({
         title: "Error",
         description: error.message || "Failed to delete users",

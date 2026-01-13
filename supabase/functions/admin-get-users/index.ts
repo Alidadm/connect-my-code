@@ -64,7 +64,23 @@ serve(async (req) => {
 
     const userId = claimsData.claims.sub;
 
-    // TODO: Add admin role check here
+    // Enforce admin-only access
+    const { data: roleRows, error: roleError } = await supabaseAdmin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .eq("role", "admin")
+      .limit(1);
+
+    if (roleError) throw roleError;
+
+    if (!roleRows || roleRows.length === 0) {
+      return new Response(JSON.stringify({ error: "Unauthorized: Admin access required" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 403,
+      });
+    }
+
     logStep("Admin request from user", { userId });
 
     const { searchQuery, page = 1, limit = 10, sortColumn = 'created_at', sortDirection = 'desc' } = await req.json();

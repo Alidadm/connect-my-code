@@ -140,12 +140,16 @@ serve(async (req) => {
 
   } catch (error: any) {
     console.error("Error in admin-delete-user:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { 
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 400 
-      }
-    );
+
+    const message = error?.message ?? "Unknown error";
+    const isUnauthorized = /Unauthorized/i.test(message);
+    const isAuthMissing = /No authorization header|Invalid token/i.test(message);
+
+    const status = isAuthMissing ? 401 : isUnauthorized ? 403 : 400;
+
+    return new Response(JSON.stringify({ error: message }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status,
+    });
   }
 });
