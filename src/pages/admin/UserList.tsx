@@ -120,6 +120,25 @@ const UserList = () => {
       setTotalCount(data.totalCount || 0);
     } catch (error: any) {
       console.error('Error fetching users:', error);
+
+      const msg = String(error?.message || '');
+      const isAuthError =
+        /Unauthorized/i.test(msg) ||
+        /missing sub claim/i.test(msg) ||
+        /No authorization header/i.test(msg) ||
+        /User not authenticated/i.test(msg) ||
+        /Authentication error/i.test(msg);
+
+      if (isAuthError) {
+        toast({
+          title: "Session expired",
+          description: "Please log in again to access the admin user list.",
+          variant: "destructive",
+        });
+        navigate('/login');
+        return;
+      }
+
       toast({
         title: "Error",
         description: "Failed to load users. Please try again.",
@@ -128,7 +147,7 @@ const UserList = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [searchQuery, currentPage, itemsPerPage, sortColumn, sortDirection, toast]);
+  }, [searchQuery, currentPage, itemsPerPage, sortColumn, sortDirection, toast, navigate]);
 
   // Fetch users when dependencies change
   useEffect(() => {
