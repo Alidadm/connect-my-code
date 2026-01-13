@@ -1,4 +1,4 @@
-import { Image, Paperclip, Radio, Hash, AtSign, Globe, Smile, X, FileAudio, FileText, Film, Upload } from "lucide-react";
+import { Image, Paperclip, Radio, Hash, AtSign, Globe, Smile, X, FileAudio, FileText, Film, Upload, Users, FileImage, Sparkles } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,21 +26,84 @@ interface MediaFile {
   type: 'image' | 'video' | 'gif' | 'audio' | 'document';
 }
 
+interface TaggedItem {
+  id: string;
+  type: 'user' | 'group' | 'page';
+  name: string;
+  avatar?: string;
+}
+
+interface SelectedTopic {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+}
+
 export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) => {
   const { user, profile } = useAuth();
   const { t } = useTranslation();
 
-  const searchUsers = async (query: string): Promise<Array<{username: string, display_name: string, avatar_url: string}>> => {
+  const searchUsers = async (query: string): Promise<Array<{id: string, username: string, display_name: string, avatar_url: string}>> => {
     if (!query || query.length < 2) return [];
     
     const { data, error } = await supabase
       .from('profiles')
-      .select('username, display_name, avatar_url')
+      .select('user_id, username, display_name, avatar_url')
       .or(`username.ilike.%${query}%,display_name.ilike.%${query}%`)
       .limit(5);
     
     if (error) {
       console.error('Error searching users:', error);
+      return [];
+    }
+    
+    return data?.map(d => ({ id: d.user_id, username: d.username || '', display_name: d.display_name || '', avatar_url: d.avatar_url || '' })) || [];
+  };
+
+  const searchGroups = async (query: string): Promise<Array<{id: string, name: string, avatar_url: string, member_count: number}>> => {
+    if (!query || query.length < 2) return [];
+    
+    const { data, error } = await supabase
+      .from('groups')
+      .select('id, name, avatar_url, member_count')
+      .ilike('name', `%${query}%`)
+      .limit(5);
+    
+    if (error) {
+      console.error('Error searching groups:', error);
+      return [];
+    }
+    
+    return data || [];
+  };
+
+  const searchPages = async (query: string): Promise<Array<{id: string, name: string, avatar_url: string, category: string}>> => {
+    if (!query || query.length < 2) return [];
+    
+    const { data, error } = await supabase
+      .from('pages')
+      .select('id, name, avatar_url, category')
+      .ilike('name', `%${query}%`)
+      .limit(5);
+    
+    if (error) {
+      console.error('Error searching pages:', error);
+      return [];
+    }
+    
+    return data || [];
+  };
+
+  const fetchTopics = async (): Promise<Array<{id: string, name: string, slug: string, icon: string, color: string, is_trending: boolean}>> => {
+    const { data, error } = await supabase
+      .from('topics')
+      .select('id, name, slug, icon, color, is_trending')
+      .order('is_trending', { ascending: false })
+      .limit(15);
+    
+    if (error) {
+      console.error('Error fetching topics:', error);
       return [];
     }
     
@@ -104,8 +167,20 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
       `<button type="button" class="hashtag-btn" style="font-size: 13px; padding: 6px 12px; border: 1px solid #e5e7eb; background: #f8fafc; cursor: pointer; border-radius: 16px; color: #1c76e6; transition: all 0.2s;" data-hashtag="${tag}">${tag}</button>`
     ).join('');
 
-    // Track uploaded files
+    // Track uploaded files and tags
     let mediaFiles: MediaFile[] = [];
+    let taggedItems: TaggedItem[] = [];
+    let selectedTopics: SelectedTopic[] = [];
+
+    // Fetch topics for display
+    const topics = await fetchTopics();
+    const topicsHtml = topics.map(topic => 
+      `<button type="button" class="topic-btn" data-topic-id="${topic.id}" data-topic-name="${topic.name}" data-topic-icon="${topic.icon}" data-topic-color="${topic.color}" style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; padding: 6px 12px; border: 1px solid #e5e7eb; background: #f8fafc; cursor: pointer; border-radius: 16px; transition: all 0.2s;">
+        <span>${topic.icon}</span>
+        <span style="color: ${topic.color};">${topic.name}</span>
+        ${topic.is_trending ? '<span style="font-size: 10px; color: #ef4444;">🔥</span>' : ''}
+      </button>`
+    ).join('');
 
     const { value: formValues } = await Swal.fire({
       html: `
@@ -150,6 +225,22 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
             "
           ></textarea>
 
+          <!-- Tagged Items Preview -->
+          <div id="tagged-preview" style="display: none; margin: 12px 0; padding: 8px 12px; background: #f0f9ff; border-radius: 8px; border: 1px solid #bae6fd;">
+            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+              <span style="font-size: 12px; color: #0369a1; font-weight: 600;">👥 ${t('feed.taggedWith', 'Tagged with')}:</span>
+            </div>
+            <div id="tagged-items-list" style="display: flex; flex-wrap: wrap; gap: 6px;"></div>
+          </div>
+
+          <!-- Selected Topics Preview -->
+          <div id="topics-preview" style="display: none; margin: 12px 0; padding: 8px 12px; background: #f5f3ff; border-radius: 8px; border: 1px solid #c4b5fd;">
+            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+              <span style="font-size: 12px; color: #6d28d9; font-weight: 600;">🏷️ ${t('feed.topics', 'Topics')}:</span>
+            </div>
+            <div id="topics-list" style="display: flex; flex-wrap: wrap; gap: 6px;"></div>
+          </div>
+
           <!-- Media Preview Area -->
           <div id="media-preview" style="display: none; margin: 16px 0; padding: 12px; background: #f8fafc; border-radius: 12px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
@@ -192,6 +283,46 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
             </div>
             <div style="margin-top: 12px;">
               <input type="text" id="custom-hashtag" placeholder="${t('feed.addCustomHashtag', 'Add custom hashtag...')}" style="width: 100%; padding: 10px 14px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; outline: none;" />
+            </div>
+          </div>
+
+          <!-- Tag Panel (Friends, Groups, Pages) -->
+          <div id="tag-panel" style="display: none; padding: 12px; background: #f8fafc; border-radius: 12px; margin-bottom: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <span style="font-weight: 600; font-size: 14px; color: #374151;">🏷️ ${t('feed.tagPeople', 'Tag People & Pages')}</span>
+              <button type="button" id="close-tag" style="background: none; border: none; cursor: pointer; padding: 4px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </button>
+            </div>
+            
+            <!-- Tag Type Tabs -->
+            <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+              <button type="button" id="tab-friends" class="tag-tab active-tab" style="flex: 1; padding: 8px; border: none; background: #1c76e6; color: white; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500;">
+                👤 ${t('feed.friends', 'Friends')}
+              </button>
+              <button type="button" id="tab-groups" class="tag-tab" style="flex: 1; padding: 8px; border: 1px solid #e5e7eb; background: white; color: #374151; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500;">
+                👥 ${t('feed.groups', 'Groups')}
+              </button>
+              <button type="button" id="tab-pages" class="tag-tab" style="flex: 1; padding: 8px; border: 1px solid #e5e7eb; background: white; color: #374151; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500;">
+                📄 ${t('feed.pages', 'Pages')}
+              </button>
+            </div>
+            
+            <input type="text" id="tag-search" placeholder="${t('feed.searchToTag', 'Search to tag...')}" style="width: 100%; padding: 10px 14px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; outline: none; margin-bottom: 8px;" />
+            <div id="tag-results" style="max-height: 200px; overflow-y: auto;"></div>
+          </div>
+
+          <!-- Topics Panel -->
+          <div id="topics-panel" style="display: none; padding: 12px; background: #f8fafc; border-radius: 12px; margin-bottom: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span style="font-weight: 600; font-size: 14px; color: #374151;">✨ ${t('feed.addTopics', 'Add Topics/Interests')}</span>
+              <button type="button" id="close-topics" style="background: none; border: none; cursor: pointer; padding: 4px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </button>
+            </div>
+            <p style="font-size: 12px; color: #666; margin-bottom: 12px;">${t('feed.selectTopicsHelp', 'Select topics that best describe your post')}</p>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+              ${topicsHtml}
             </div>
           </div>
 
@@ -255,6 +386,14 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
             <button type="button" id="btn-hashtag" class="swal-action-btn" style="display: flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 8px; border: none; background: transparent; cursor: pointer; color: #666; font-size: 13px; transition: background 0.2s;">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1c76e6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="9" y2="9"/><line x1="4" x2="20" y1="15" y2="15"/><line x1="10" x2="8" y1="3" y2="21"/><line x1="16" x2="14" y1="3" y2="21"/></svg>
               <span style="color: #1c76e6;">${t('feed.hashtag', 'Hashtag')}</span>
+            </button>
+            <button type="button" id="btn-tag" class="swal-action-btn" style="display: flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 8px; border: none; background: transparent; cursor: pointer; color: #666; font-size: 13px; transition: background 0.2s;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              <span style="color: #0ea5e9;">${t('feed.tag', 'Tag')}</span>
+            </button>
+            <button type="button" id="btn-topics" class="swal-action-btn" style="display: flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 8px; border: none; background: transparent; cursor: pointer; color: #666; font-size: 13px; transition: background 0.2s;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <span style="color: #a855f7;">${t('feed.topics', 'Topics')}</span>
             </button>
             <button type="button" id="btn-mention" class="swal-action-btn" style="display: flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 8px; border: none; background: transparent; cursor: pointer; color: #666; font-size: 13px; transition: background 0.2s;">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"/></svg>
@@ -434,11 +573,89 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
         };
 
         // Panel toggle helpers
+        const tagPanel = document.getElementById('tag-panel') as HTMLDivElement;
+        const topicsPanel = document.getElementById('topics-panel') as HTMLDivElement;
+        const tagSearch = document.getElementById('tag-search') as HTMLInputElement;
+        const tagResults = document.getElementById('tag-results') as HTMLDivElement;
+        const taggedPreview = document.getElementById('tagged-preview') as HTMLDivElement;
+        const taggedItemsList = document.getElementById('tagged-items-list') as HTMLDivElement;
+        const topicsPreview = document.getElementById('topics-preview') as HTMLDivElement;
+        const topicsList = document.getElementById('topics-list') as HTMLDivElement;
+        
+        let currentTagType: 'user' | 'group' | 'page' = 'user';
+        
         const closeAllPanels = () => {
           emojiPanel.style.display = 'none';
           hashtagPanel.style.display = 'none';
           mentionPanel.style.display = 'none';
           mediaPanel.style.display = 'none';
+          tagPanel.style.display = 'none';
+          topicsPanel.style.display = 'none';
+        };
+
+        // Update tagged items preview
+        const updateTaggedPreview = () => {
+          if (taggedItems.length === 0) {
+            taggedPreview.style.display = 'none';
+            return;
+          }
+          
+          taggedPreview.style.display = 'block';
+          taggedItemsList.innerHTML = taggedItems.map((item, index) => {
+            const typeIcons = { user: '👤', group: '👥', page: '📄' };
+            return `
+              <span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; background: white; border: 1px solid #bae6fd; border-radius: 16px; font-size: 12px;">
+                <span>${typeIcons[item.type]}</span>
+                <span style="color: #0369a1; font-weight: 500;">${item.name}</span>
+                <button type="button" class="remove-tag-btn" data-index="${index}" style="background: none; border: none; cursor: pointer; padding: 0; margin-left: 2px;">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0369a1" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </button>
+              </span>
+            `;
+          }).join('');
+          
+          document.querySelectorAll('.remove-tag-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+              const index = parseInt((e.currentTarget as HTMLButtonElement).dataset.index || '0');
+              taggedItems.splice(index, 1);
+              updateTaggedPreview();
+            });
+          });
+        };
+
+        // Update topics preview
+        const updateTopicsPreview = () => {
+          if (selectedTopics.length === 0) {
+            topicsPreview.style.display = 'none';
+            return;
+          }
+          
+          topicsPreview.style.display = 'block';
+          topicsList.innerHTML = selectedTopics.map((topic, index) => `
+            <span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; background: white; border: 1px solid #c4b5fd; border-radius: 16px; font-size: 12px;">
+              <span>${topic.icon}</span>
+              <span style="color: ${topic.color}; font-weight: 500;">${topic.name}</span>
+              <button type="button" class="remove-topic-btn" data-index="${index}" style="background: none; border: none; cursor: pointer; padding: 0; margin-left: 2px;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6d28d9" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </button>
+            </span>
+          `).join('');
+          
+          document.querySelectorAll('.remove-topic-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+              const index = parseInt((e.currentTarget as HTMLButtonElement).dataset.index || '0');
+              selectedTopics.splice(index, 1);
+              updateTopicsPreview();
+              // Update topic button state
+              document.querySelectorAll('.topic-btn').forEach(topicBtn => {
+                const btnElement = topicBtn as HTMLButtonElement;
+                const isSelected = selectedTopics.some(t => t.id === btnElement.dataset.topicId);
+                btnElement.style.background = isSelected ? '#8b5cf6' : '#f8fafc';
+                btnElement.style.color = isSelected ? 'white' : '';
+                btnElement.style.borderColor = isSelected ? '#8b5cf6' : '#e5e7eb';
+              });
+            });
+          });
         };
 
         // Media panel toggle
@@ -583,7 +800,114 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
           }, 300);
         });
 
-        // Add hover effects to action buttons
+        // Tag panel functionality (Friends, Groups, Pages)
+        document.getElementById('btn-tag')?.addEventListener('click', () => {
+          const isVisible = tagPanel.style.display === 'block';
+          closeAllPanels();
+          tagPanel.style.display = isVisible ? 'none' : 'block';
+          if (!isVisible) tagSearch?.focus();
+        });
+
+        document.getElementById('close-tag')?.addEventListener('click', () => {
+          tagPanel.style.display = 'none';
+        });
+
+        // Tag type tabs
+        document.querySelectorAll('.tag-tab').forEach(tab => {
+          tab.addEventListener('click', (e) => {
+            const tabId = (e.currentTarget as HTMLButtonElement).id;
+            currentTagType = tabId === 'tab-groups' ? 'group' : tabId === 'tab-pages' ? 'page' : 'user';
+            
+            document.querySelectorAll('.tag-tab').forEach(t => {
+              const el = t as HTMLButtonElement;
+              el.style.background = el.id === tabId ? '#1c76e6' : 'white';
+              el.style.color = el.id === tabId ? 'white' : '#374151';
+              el.style.border = el.id === tabId ? 'none' : '1px solid #e5e7eb';
+            });
+            
+            tagSearch.value = '';
+            tagResults.innerHTML = '';
+          });
+        });
+
+        // Tag search
+        let tagSearchTimeout: number;
+        tagSearch?.addEventListener('input', () => {
+          clearTimeout(tagSearchTimeout);
+          const query = tagSearch.value.trim();
+          
+          if (query.length < 2) {
+            tagResults.innerHTML = '<div style="color: #666; font-size: 13px; padding: 8px;">Type at least 2 characters...</div>';
+            return;
+          }
+
+          tagResults.innerHTML = '<div style="color: #666; font-size: 13px; padding: 8px;">Searching...</div>';
+          
+          tagSearchTimeout = window.setTimeout(async () => {
+            let results: any[] = [];
+            if (currentTagType === 'user') results = await searchUsers(query);
+            else if (currentTagType === 'group') results = await searchGroups(query);
+            else results = await searchPages(query);
+            
+            if (results.length === 0) {
+              tagResults.innerHTML = '<div style="color: #666; font-size: 13px; padding: 8px;">No results found</div>';
+              return;
+            }
+
+            tagResults.innerHTML = results.map(r => `
+              <button type="button" class="tag-result-btn" data-id="${r.id || r.user_id}" data-name="${r.display_name || r.name}" data-avatar="${r.avatar_url || ''}" style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px; border: none; background: transparent; cursor: pointer; border-radius: 8px; text-align: left;">
+                <div style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #1c76e6, #8b5cf6); display: flex; align-items: center; justify-content: center;">
+                  ${r.avatar_url ? `<img src="${r.avatar_url}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />` : `<span style="color: white; font-weight: 600;">${(r.display_name || r.name || 'U')[0].toUpperCase()}</span>`}
+                </div>
+                <div style="font-weight: 600; font-size: 14px; color: #1a1a2e;">${r.display_name || r.name}</div>
+              </button>
+            `).join('');
+
+            document.querySelectorAll('.tag-result-btn').forEach(btn => {
+              btn.addEventListener('click', (e) => {
+                const el = e.currentTarget as HTMLButtonElement;
+                const newTag = { id: el.dataset.id!, type: currentTagType, name: el.dataset.name!, avatar: el.dataset.avatar };
+                if (!taggedItems.some(t => t.id === newTag.id)) {
+                  taggedItems.push(newTag);
+                  updateTaggedPreview();
+                }
+                tagPanel.style.display = 'none';
+                tagSearch.value = '';
+              });
+            });
+          }, 300);
+        });
+
+        // Topics panel functionality
+        document.getElementById('btn-topics')?.addEventListener('click', () => {
+          const isVisible = topicsPanel.style.display === 'block';
+          closeAllPanels();
+          topicsPanel.style.display = isVisible ? 'none' : 'block';
+        });
+
+        document.getElementById('close-topics')?.addEventListener('click', () => {
+          topicsPanel.style.display = 'none';
+        });
+
+        document.querySelectorAll('.topic-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const el = e.currentTarget as HTMLButtonElement;
+            const topicId = el.dataset.topicId!;
+            const existingIndex = selectedTopics.findIndex(t => t.id === topicId);
+            
+            if (existingIndex >= 0) {
+              selectedTopics.splice(existingIndex, 1);
+              el.style.background = '#f8fafc';
+              el.style.borderColor = '#e5e7eb';
+            } else {
+              selectedTopics.push({ id: topicId, name: el.dataset.topicName!, icon: el.dataset.topicIcon!, color: el.dataset.topicColor! });
+              el.style.background = '#8b5cf6';
+              el.style.color = 'white';
+              el.style.borderColor = '#8b5cf6';
+            }
+            updateTopicsPreview();
+          });
+        });
         document.querySelectorAll('.swal-action-btn').forEach(btn => {
           btn.addEventListener('mouseenter', () => {
             (btn as HTMLElement).style.background = '#f1f5f9';

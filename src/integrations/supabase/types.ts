@@ -163,6 +163,77 @@ export type Database = {
         }
         Relationships: []
       }
+      group_members: {
+        Row: {
+          group_id: string
+          id: string
+          joined_at: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          group_id: string
+          id?: string
+          joined_at?: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          group_id?: string
+          id?: string
+          joined_at?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_members_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      groups: {
+        Row: {
+          avatar_url: string | null
+          cover_url: string | null
+          created_at: string
+          creator_id: string
+          description: string | null
+          id: string
+          member_count: number | null
+          name: string
+          privacy: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          cover_url?: string | null
+          created_at?: string
+          creator_id: string
+          description?: string | null
+          id?: string
+          member_count?: number | null
+          name: string
+          privacy?: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          cover_url?: string | null
+          created_at?: string
+          creator_id?: string
+          description?: string | null
+          id?: string
+          member_count?: number | null
+          name?: string
+          privacy?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           content: string
@@ -187,6 +258,80 @@ export type Database = {
           read_at?: string | null
           receiver_id?: string
           sender_id?: string
+        }
+        Relationships: []
+      }
+      page_followers: {
+        Row: {
+          followed_at: string
+          id: string
+          page_id: string
+          user_id: string
+        }
+        Insert: {
+          followed_at?: string
+          id?: string
+          page_id: string
+          user_id: string
+        }
+        Update: {
+          followed_at?: string
+          id?: string
+          page_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "page_followers_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pages: {
+        Row: {
+          avatar_url: string | null
+          category: string | null
+          cover_url: string | null
+          created_at: string
+          description: string | null
+          follower_count: number | null
+          id: string
+          is_verified: boolean | null
+          name: string
+          owner_id: string
+          updated_at: string
+          username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          category?: string | null
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          follower_count?: number | null
+          id?: string
+          is_verified?: boolean | null
+          name: string
+          owner_id: string
+          updated_at?: string
+          username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          category?: string | null
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          follower_count?: number | null
+          id?: string
+          is_verified?: boolean | null
+          name?: string
+          owner_id?: string
+          updated_at?: string
+          username?: string | null
         }
         Relationships: []
       }
@@ -337,6 +482,91 @@ export type Database = {
             columns: ["post_id"]
             isOneToOne: false
             referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      post_tags: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          tagged_group_id: string | null
+          tagged_page_id: string | null
+          tagged_user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          tagged_group_id?: string | null
+          tagged_page_id?: string | null
+          tagged_user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          tagged_group_id?: string | null
+          tagged_page_id?: string | null
+          tagged_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_tags_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_tags_tagged_group_id_fkey"
+            columns: ["tagged_group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_tags_tagged_page_id_fkey"
+            columns: ["tagged_page_id"]
+            isOneToOne: false
+            referencedRelation: "pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      post_topics: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          topic_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          topic_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          topic_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_topics_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_topics_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topics"
             referencedColumns: ["id"]
           },
         ]
@@ -606,6 +836,74 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      topics: {
+        Row: {
+          color: string | null
+          created_at: string
+          description: string | null
+          follower_count: number | null
+          icon: string | null
+          id: string
+          is_trending: boolean | null
+          name: string
+          post_count: number | null
+          slug: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          follower_count?: number | null
+          icon?: string | null
+          id?: string
+          is_trending?: boolean | null
+          name: string
+          post_count?: number | null
+          slug: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          follower_count?: number | null
+          icon?: string | null
+          id?: string
+          is_trending?: boolean | null
+          name?: string
+          post_count?: number | null
+          slug?: string
+        }
+        Relationships: []
+      }
+      user_interests: {
+        Row: {
+          followed_at: string
+          id: string
+          topic_id: string
+          user_id: string
+        }
+        Insert: {
+          followed_at?: string
+          id?: string
+          topic_id: string
+          user_id: string
+        }
+        Update: {
+          followed_at?: string
+          id?: string
+          topic_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_interests_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topics"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
