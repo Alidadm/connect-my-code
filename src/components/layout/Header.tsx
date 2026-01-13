@@ -39,10 +39,10 @@ export const Header = () => {
       <div className="flex items-center justify-between h-full px-2 sm:px-4 max-w-[1920px] mx-auto">
         {/* Logo */}
         <div className="flex items-center gap-2 cursor-pointer flex-shrink-0" onClick={() => navigate("/")}>
-          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl weshare-gradient flex items-center justify-center shadow-md">
-            <span className="text-primary-foreground font-bold text-lg sm:text-xl">W</span>
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl dolphy-gradient flex items-center justify-center shadow-md">
+            <span className="text-primary-foreground font-bold text-lg sm:text-xl">D</span>
           </div>
-          <span className="text-lg sm:text-xl font-bold text-foreground hidden xs:block">WeShare</span>
+          <span className="text-lg sm:text-xl font-bold text-foreground hidden xs:block">DolphySN</span>
         </div>
 
         {/* Search - Desktop */}
@@ -91,7 +91,7 @@ export const Header = () => {
               <Button variant="ghost" className="flex items-center gap-1 sm:gap-2 px-1.5 sm:px-2 hover:bg-secondary h-9 sm:h-10">
                 <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
                   <AvatarImage src={avatarUrl} />
-                  <AvatarFallback className="bg-gradient-to-br from-primary to-weshare-purple text-primary-foreground text-xs sm:text-sm">
+                  <AvatarFallback className="bg-gradient-to-br from-primary to-dolphy-purple text-primary-foreground text-xs sm:text-sm">
                     {displayName?.[0]?.toUpperCase() || "U"}
                   </AvatarFallback>
                 </Avatar>

@@ -49,9 +49,9 @@ export const Login = () => {
   return (
     <div className="min-h-screen bg-background flex">
       {/* Left side - Visual */}
-      <div className="hidden lg:flex flex-1 weshare-gradient items-center justify-center p-12">
+      <div className="hidden lg:flex flex-1 dolphy-gradient items-center justify-center p-12">
         <div className="text-center text-primary-foreground max-w-md">
-          <h2 className="text-4xl font-bold mb-4">Welcome back to WeShare</h2>
+          <h2 className="text-4xl font-bold mb-4">Welcome back to DolphySN</h2>
           <p className="text-lg opacity-90">
             Your friends are waiting. Catch up on what you've missed and share your latest moments.
           </p>
@@ -63,10 +63,10 @@ export const Login = () => {
         <div className="w-full max-w-md">
           {/* Logo */}
           <div className="flex items-center gap-2 mb-6 sm:mb-8">
-            <div className="w-10 h-10 rounded-xl weshare-gradient flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-xl">W</span>
+            <div className="w-10 h-10 rounded-xl dolphy-gradient flex items-center justify-center">
+              <span className="text-primary-foreground font-bold text-xl">D</span>
             </div>
-            <span className="text-2xl font-bold text-foreground">WeShare</span>
+            <span className="text-2xl font-bold text-foreground">DolphySN</span>
           </div>
 
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Log in to your account</h1>
@@ -119,7 +119,7 @@ export const Login = () => {
               </div>
             </div>
 
-            <Button type="submit" className="w-full weshare-gradient hover:opacity-90 transition-opacity" disabled={isLoading}>
+            <Button type="submit" className="w-full dolphy-gradient hover:opacity-90 transition-opacity" disabled={isLoading}>
               {isLoading ? "Logging in..." : "Log In"}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>

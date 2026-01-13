@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* WeShare Design System - Matching the screenshot exactly */
+/* DolphySN Design System */
 
 @layer base {
   :root {
@@ -36,15 +36,15 @@
 
     --radius: 0.75rem;
 
-    /* WeShare specific colors */
-    --weshare-blue: 211 79% 51%;
-    --weshare-blue-light: 211 79% 96%;
-    --weshare-purple: 211 79% 51%;
-    --weshare-gradient-start: 211 79% 51%;
-    --weshare-gradient-end: 211 79% 51%;
-    --weshare-success: 142 76% 36%;
-    --weshare-warning: 38 92% 50%;
-    --weshare-online: 142 76% 36%;
+    /* DolphySN specific colors */
+    --dolphy-blue: 211 79% 51%;
+    --dolphy-blue-light: 211 79% 96%;
+    --dolphy-purple: 211 79% 51%;
+    --dolphy-gradient-start: 211 79% 51%;
+    --dolphy-gradient-end: 211 79% 51%;
+    --dolphy-success: 142 76% 36%;
+    --dolphy-warning: 38 92% 50%;
+    --dolphy-online: 142 76% 36%;
 
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 222 47% 11%;
@@ -85,14 +85,14 @@
     --input: 217 33% 17%;
     --ring: 211 79% 51%;
 
-    --weshare-blue: 211 79% 51%;
-    --weshare-blue-light: 211 79% 15%;
-    --weshare-purple: 211 79% 51%;
-    --weshare-gradient-start: 211 79% 51%;
-    --weshare-gradient-end: 211 79% 51%;
-    --weshare-success: 142 76% 36%;
-    --weshare-warning: 38 92% 50%;
-    --weshare-online: 142 76% 36%;
+    --dolphy-blue: 211 79% 51%;
+    --dolphy-blue-light: 211 79% 15%;
+    --dolphy-purple: 211 79% 51%;
+    --dolphy-gradient-start: 211 79% 51%;
+    --dolphy-gradient-end: 211 79% 51%;
+    --dolphy-success: 142 76% 36%;
+    --dolphy-warning: 38 92% 50%;
+    --dolphy-online: 142 76% 36%;
 
     --sidebar-background: 222 47% 8%;
     --sidebar-foreground: 210 40% 98%;
@@ -116,12 +116,17 @@
 }
 
 @layer utilities {
+  .dolphy-gradient {
+    background: linear-gradient(135deg, hsl(var(--dolphy-gradient-start)), hsl(var(--dolphy-gradient-end)));
+  }
+
+  /* Keep weshare-gradient as alias for backwards compatibility during transition */
   .weshare-gradient {
-    background: linear-gradient(135deg, hsl(var(--weshare-gradient-start)), hsl(var(--weshare-gradient-end)));
+    background: linear-gradient(135deg, hsl(var(--dolphy-gradient-start)), hsl(var(--dolphy-gradient-end)));
   }
 
   .story-ring {
-    background: linear-gradient(135deg, hsl(var(--weshare-blue)), hsl(var(--weshare-purple)));
+    background: linear-gradient(135deg, hsl(var(--dolphy-blue)), hsl(var(--dolphy-purple)));
   }
 
   .scrollbar-hide {
