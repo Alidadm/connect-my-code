@@ -455,6 +455,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["user_id"]
           },
+          {
+            foreignKeyName: "profiles_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "safe_profiles"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       profiles_private: {
@@ -623,6 +630,75 @@ export type Database = {
       }
     }
     Views: {
+      safe_profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          country: string | null
+          cover_url: string | null
+          created_at: string | null
+          display_name: string | null
+          email_verified: boolean | null
+          first_name: string | null
+          id: string | null
+          is_verified: boolean | null
+          last_name: string | null
+          location: string | null
+          phone_verified: boolean | null
+          referral_code: string | null
+          referrer_id: string | null
+          subscription_status: string | null
+          updated_at: string | null
+          user_id: string | null
+          username: string | null
+          username_changed: boolean | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          country?: string | null
+          cover_url?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          email_verified?: never
+          first_name?: string | null
+          id?: string | null
+          is_verified?: boolean | null
+          last_name?: string | null
+          location?: string | null
+          phone_verified?: never
+          referral_code?: never
+          referrer_id?: never
+          subscription_status?: never
+          updated_at?: string | null
+          user_id?: string | null
+          username?: string | null
+          username_changed?: never
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          country?: string | null
+          cover_url?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          email_verified?: never
+          first_name?: string | null
+          id?: string | null
+          is_verified?: boolean | null
+          last_name?: string | null
+          location?: string | null
+          phone_verified?: never
+          referral_code?: never
+          referrer_id?: never
+          subscription_status?: never
+          updated_at?: string | null
+          user_id?: string | null
+          username?: string | null
+          username_changed?: never
+        }
+        Relationships: []
+      }
       user_subscriptions: {
         Row: {
           amount: number | null
