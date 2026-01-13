@@ -33,6 +33,16 @@
     "signInWith": "{{provider}} से साइन इन करें",
     "orContinueWith": "या इससे जारी रखें"
   },
+  "login": {
+    "title": "अपने खाते में लॉग इन करें",
+    "subtitle": "अपने खाते तक पहुंचने के लिए अपनी जानकारी दर्ज करें",
+    "welcomeTitle": "DolphySN में वापस स्वागत है",
+    "welcomeSubtitle": "आपके दोस्त इंतजार कर रहे हैं। जो आपने मिस किया उसे देखें और अपने नवीनतम पल साझा करें।",
+    "welcomeBack": "वापस स्वागत है!",
+    "successMessage": "आपने सफलतापूर्वक लॉग इन किया है।",
+    "failed": "लॉगिन विफल",
+    "loggingIn": "लॉग इन हो रहा है..."
+  },
   "dashboard": {
     "title": "मेरा डैशबोर्ड",
     "subtitle": "सेटिंग्स और प्राथमिकताएं",
@@ -119,7 +129,11 @@
     "share": "साझा करें",
     "comments": "टिप्पणियां",
     "likes": "पसंद",
-    "shares": "साझाकरण"
+    "shares": "साझाकरण",
+    "sortBy": "इसके अनुसार क्रमबद्ध करें",
+    "following": "फॉलो कर रहे हैं",
+    "trending": "ट्रेंडिंग",
+    "recent": "हाल का"
   },
   "friends": {
     "addFriend": "मित्र जोड़ें",
@@ -127,5 +141,36 @@
     "friends": "मित्र",
     "followers": "अनुयायी",
     "following": "फॉलो कर रहे हैं"
+  },
+  "nav": {
+    "feed": "फ़ीड",
+    "friends": "मित्र",
+    "events": "इवेंट्स",
+    "commissions": "कमीशन",
+    "videos": "वीडियो देखें",
+    "photos": "फ़ोटो",
+    "marketplace": "मार्केटप्लेस",
+    "files": "फ़ाइलें",
+    "messages": "संदेश",
+    "notifications": "सूचनाएं"
+  },
+  "sidebar": {
+    "posts": "पोस्ट",
+    "pagesYouLike": "आपको पसंद आने वाले पेज",
+    "viewAll": "सभी देखें"
+  },
+  "messages": {
+    "title": "संदेश",
+    "primary": "प्राथमिक",
+    "general": "सामान्य",
+    "requests": "अनुरोध"
+  },
+  "events": {
+    "title": "इवेंट्स"
+  },
+  "footer": {
+    "privacyTerms": "गोपनीयता शर्तें",
+    "advertising": "विज्ञापन",
+    "cookies": "कुकीज़"
   }
 }

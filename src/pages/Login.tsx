@@ -6,8 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useTranslation } from "react-i18next";
 
 export const Login = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -30,14 +32,14 @@ export const Login = () => {
       if (error) throw error;
 
       toast({
-        title: "Welcome back!",
-        description: "You've successfully logged in.",
+        title: t("login.welcomeBack"),
+        description: t("login.successMessage"),
       });
 
       navigate("/");
     } catch (error: any) {
       toast({
-        title: "Login failed",
+        title: t("login.failed"),
         description: error.message,
         variant: "destructive",
       });
@@ -51,9 +53,9 @@ export const Login = () => {
       {/* Left side - Visual */}
       <div className="hidden lg:flex flex-1 dolphy-gradient items-center justify-center p-12">
         <div className="text-center text-primary-foreground max-w-md">
-          <h2 className="text-4xl font-bold mb-4">Welcome back to DolphySN</h2>
+          <h2 className="text-4xl font-bold mb-4">{t("login.welcomeTitle")}</h2>
           <p className="text-lg opacity-90">
-            Your friends are waiting. Catch up on what you've missed and share your latest moments.
+            {t("login.welcomeSubtitle")}
           </p>
         </div>
       </div>
@@ -69,14 +71,14 @@ export const Login = () => {
             <span className="text-2xl font-bold text-foreground">DolphySN</span>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Log in to your account</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">{t("login.title")}</h1>
           <p className="text-muted-foreground mb-6 sm:mb-8">
-            Enter your credentials to access your account
+            {t("login.subtitle")}
           </p>
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t("auth.email")}</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -93,9 +95,9 @@ export const Login = () => {
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">{t("auth.password")}</Label>
                 <Link to="/forgot-password" className="text-sm text-primary hover:underline">
-                  Forgot password?
+                  {t("auth.forgotPassword")}
                 </Link>
               </div>
               <div className="relative">
@@ -120,15 +122,15 @@ export const Login = () => {
             </div>
 
             <Button type="submit" className="w-full dolphy-gradient hover:opacity-90 transition-opacity" disabled={isLoading}>
-              {isLoading ? "Logging in..." : "Log In"}
+              {isLoading ? t("login.loggingIn") : t("common.logIn")}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </form>
 
           <p className="text-center text-sm text-muted-foreground mt-6">
-            Don't have an account?{" "}
+            {t("auth.dontHaveAccount")}{" "}
             <Link to="/signup" className="text-primary hover:underline font-medium">
-              Sign up
+              {t("common.signUp")}
             </Link>
           </p>
         </div>

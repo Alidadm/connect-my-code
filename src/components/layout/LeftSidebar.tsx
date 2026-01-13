@@ -15,16 +15,17 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
-const navItems = [
-  { icon: Newspaper, label: "Feed", path: "/", badge: null },
-  { icon: Users, label: "Friends", path: "/friends", badge: null },
-  { icon: Calendar, label: "Event", path: "/events", badge: 4 },
-  { icon: Wallet, label: "Commissions", path: "/commissions", badge: null },
-  { icon: Video, label: "Watch Videos", path: "/videos", badge: null },
-  { icon: Image, label: "Photos", path: "/photos", badge: null },
-  { icon: Store, label: "Marketplace", path: "/marketplace", badge: null },
-  { icon: FileText, label: "Files", path: "/files", badge: 7 },
+const getNavItems = (t: (key: string) => string) => [
+  { icon: Newspaper, label: t("nav.feed"), path: "/", badge: null },
+  { icon: Users, label: t("nav.friends"), path: "/friends", badge: null },
+  { icon: Calendar, label: t("nav.events"), path: "/events", badge: 4 },
+  { icon: Wallet, label: t("nav.commissions"), path: "/commissions", badge: null },
+  { icon: Video, label: t("nav.videos"), path: "/videos", badge: null },
+  { icon: Image, label: t("nav.photos"), path: "/photos", badge: null },
+  { icon: Store, label: t("nav.marketplace"), path: "/marketplace", badge: null },
+  { icon: FileText, label: t("nav.files"), path: "/files", badge: 7 },
 ];
 
 const pagesYouLike = [
@@ -48,6 +49,7 @@ const demoProfile = {
 };
 
 export const LeftSidebar = () => {
+  const { t } = useTranslation();
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -57,6 +59,8 @@ export const LeftSidebar = () => {
   const username = profile?.username || user?.email?.split("@")[0] || demoProfile.username;
   const avatarUrl = profile?.avatar_url || demoProfile.avatar_url;
   const isVerified = profile?.is_verified ?? demoProfile.is_verified;
+
+  const navItems = getNavItems(t);
 
   return (
     <aside className="w-[280px] flex-shrink-0 hidden lg:block">
@@ -87,15 +91,15 @@ export const LeftSidebar = () => {
           <div className="flex justify-between text-center border-t border-border pt-3">
             <div className="flex-1">
               <div className="font-bold text-foreground">{demoProfile.followers}</div>
-              <div className="text-xs text-muted-foreground">Follower</div>
+              <div className="text-xs text-muted-foreground">{t("friends.followers")}</div>
             </div>
             <div className="flex-1 border-x border-border">
               <div className="font-bold text-foreground">{demoProfile.following}</div>
-              <div className="text-xs text-muted-foreground">Following</div>
+              <div className="text-xs text-muted-foreground">{t("friends.following")}</div>
             </div>
             <div className="flex-1">
               <div className="font-bold text-foreground">{demoProfile.posts}</div>
-              <div className="text-xs text-muted-foreground">Post</div>
+              <div className="text-xs text-muted-foreground">{t("sidebar.posts")}</div>
             </div>
           </div>
         </div>
@@ -132,7 +136,7 @@ export const LeftSidebar = () => {
         {/* Pages You Like */}
         <div className="bg-card rounded-xl p-4 border border-border">
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-            Pages You Like
+            {t("sidebar.pagesYouLike")}
           </h3>
           <div className="space-y-2">
             {pagesYouLike.map((page, index) => (
@@ -152,7 +156,7 @@ export const LeftSidebar = () => {
               </div>
             ))}
             <Button variant="link" className="text-muted-foreground p-0 h-auto text-sm hover:text-foreground">
-              View All
+              {t("sidebar.viewAll")}
             </Button>
           </div>
         </div>
@@ -160,9 +164,9 @@ export const LeftSidebar = () => {
         {/* Footer */}
         <div className="mt-4 px-2 text-xs text-muted-foreground">
           <div className="flex flex-wrap gap-x-2 gap-y-1">
-            <a href="#" className="hover:underline">Privacy terms</a>
-            <a href="#" className="hover:underline">Advertising</a>
-            <a href="#" className="hover:underline">Cookies</a>
+            <a href="#" className="hover:underline">{t("footer.privacyTerms")}</a>
+            <a href="#" className="hover:underline">{t("footer.advertising")}</a>
+            <a href="#" className="hover:underline">{t("footer.cookies")}</a>
           </div>
           <div className="mt-2">Platform © 2024</div>
         </div>

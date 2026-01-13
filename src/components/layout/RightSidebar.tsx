@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 const messages = [
   { name: "Roger Korsgaard", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50&h=50&fit=crop", online: true },
@@ -41,6 +42,7 @@ const events = [
 ];
 
 export const RightSidebar = () => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<"primary" | "general" | "requests">("primary");
 
   return (
@@ -49,7 +51,7 @@ export const RightSidebar = () => {
         {/* Messages */}
         <div className="bg-card rounded-xl p-4 mb-4 border border-border">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-foreground">Messages</h3>
+            <h3 className="font-semibold text-foreground">{t("messages.title")}</h3>
             <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
               <Edit className="h-4 w-4" />
             </Button>
@@ -58,7 +60,7 @@ export const RightSidebar = () => {
           <div className="relative mb-3">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search"
+              placeholder={t("common.search")}
               className="pl-9 h-9 bg-secondary border-0 text-sm focus-visible:ring-1 focus-visible:ring-primary"
             />
           </div>
@@ -76,7 +78,7 @@ export const RightSidebar = () => {
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
-                {tab}
+                {t(`messages.${tab}`)}
                 {tab === "requests" && (
                   <Badge className="absolute -top-1 -right-1 h-4 min-w-4 text-[10px] p-0 flex items-center justify-center bg-primary border-0">
                     4
@@ -108,7 +110,7 @@ export const RightSidebar = () => {
               </div>
             ))}
             <Button variant="link" className="text-muted-foreground p-0 h-auto text-sm hover:text-foreground">
-              View All
+              {t("sidebar.viewAll")}
             </Button>
           </div>
         </div>
@@ -116,7 +118,7 @@ export const RightSidebar = () => {
         {/* Events */}
         <div className="bg-card rounded-xl p-4 border border-border">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-foreground">Events</h3>
+            <h3 className="font-semibold text-foreground">{t("events.title")}</h3>
             <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
               <MoreVertical className="h-4 w-4" />
             </Button>

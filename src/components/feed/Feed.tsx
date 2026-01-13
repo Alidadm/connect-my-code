@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, ChevronDown } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useTranslation } from "react-i18next";
 
 interface Post {
   id: string;
@@ -76,6 +77,7 @@ const demoPosts = [
 ];
 
 export const Feed = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
@@ -139,6 +141,15 @@ export const Feed = () => {
     };
   }, []);
 
+  const getFilterLabel = () => {
+    switch (filter) {
+      case "following": return t("feed.following");
+      case "trending": return t("feed.trending");
+      case "recent": return t("feed.recent");
+      default: return filter;
+    }
+  };
+
   return (
     <div className="max-w-2xl mx-auto">
       <StoriesRow />
@@ -146,9 +157,9 @@ export const Feed = () => {
 
       {/* Filter tabs */}
       <div className="flex items-center justify-end mb-4 gap-2">
-        <span className="text-sm text-muted-foreground">Sort by:</span>
+        <span className="text-sm text-muted-foreground">{t("feed.sortBy")}:</span>
         <Button variant="ghost" size="sm" className="gap-1 text-foreground font-medium">
-          {filter.charAt(0).toUpperCase() + filter.slice(1)}
+          {getFilterLabel()}
           <ChevronDown className="h-4 w-4 text-muted-foreground" />
         </Button>
       </div>
