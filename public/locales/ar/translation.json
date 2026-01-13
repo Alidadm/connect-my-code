@@ -33,6 +33,16 @@
     "signInWith": "تسجيل الدخول بـ {{provider}}",
     "orContinueWith": "أو المتابعة بـ"
   },
+  "login": {
+    "title": "تسجيل الدخول إلى حسابك",
+    "subtitle": "أدخل بياناتك للوصول إلى حسابك",
+    "welcomeTitle": "مرحباً بعودتك إلى DolphySN",
+    "welcomeSubtitle": "أصدقاؤك في انتظارك. اطلع على ما فاتك وشارك لحظاتك الأخيرة.",
+    "welcomeBack": "مرحباً بعودتك!",
+    "successMessage": "لقد سجلت الدخول بنجاح.",
+    "failed": "فشل تسجيل الدخول",
+    "loggingIn": "جاري تسجيل الدخول..."
+  },
   "dashboard": {
     "title": "لوحة التحكم",
     "subtitle": "الإعدادات والتفضيلات",
@@ -119,7 +129,11 @@
     "share": "مشاركة",
     "comments": "تعليقات",
     "likes": "إعجابات",
-    "shares": "مشاركات"
+    "shares": "مشاركات",
+    "sortBy": "ترتيب حسب",
+    "following": "المتابعون",
+    "trending": "رائج",
+    "recent": "الأحدث"
   },
   "friends": {
     "addFriend": "إضافة صديق",
@@ -127,5 +141,36 @@
     "friends": "الأصدقاء",
     "followers": "المتابعون",
     "following": "المتابَعون"
+  },
+  "nav": {
+    "feed": "الخلاصة",
+    "friends": "الأصدقاء",
+    "events": "الفعاليات",
+    "commissions": "العمولات",
+    "videos": "مشاهدة الفيديو",
+    "photos": "الصور",
+    "marketplace": "السوق",
+    "files": "الملفات",
+    "messages": "الرسائل",
+    "notifications": "الإشعارات"
+  },
+  "sidebar": {
+    "posts": "المنشورات",
+    "pagesYouLike": "صفحات تعجبك",
+    "viewAll": "عرض الكل"
+  },
+  "messages": {
+    "title": "الرسائل",
+    "primary": "الرئيسية",
+    "general": "عام",
+    "requests": "الطلبات"
+  },
+  "events": {
+    "title": "الفعاليات"
+  },
+  "footer": {
+    "privacyTerms": "شروط الخصوصية",
+    "advertising": "الإعلان",
+    "cookies": "ملفات تعريف الارتباط"
   }
 }

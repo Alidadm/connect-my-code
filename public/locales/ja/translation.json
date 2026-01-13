@@ -33,6 +33,16 @@
     "signInWith": "{{provider}}でサインイン",
     "orContinueWith": "または次で続行"
   },
+  "login": {
+    "title": "アカウントにログイン",
+    "subtitle": "アカウントにアクセスするための情報を入力してください",
+    "welcomeTitle": "DolphySNへようこそ",
+    "welcomeSubtitle": "友達があなたを待っています。見逃したものをチェックして、最新の瞬間を共有しましょう。",
+    "welcomeBack": "おかえりなさい！",
+    "successMessage": "正常にログインしました。",
+    "failed": "ログインに失敗しました",
+    "loggingIn": "ログイン中..."
+  },
   "dashboard": {
     "title": "マイダッシュボード",
     "subtitle": "設定と環境設定",
@@ -119,7 +129,11 @@
     "share": "シェア",
     "comments": "コメント",
     "likes": "いいね",
-    "shares": "シェア"
+    "shares": "シェア",
+    "sortBy": "並び替え",
+    "following": "フォロー中",
+    "trending": "トレンド",
+    "recent": "最新"
   },
   "friends": {
     "addFriend": "友達追加",
@@ -127,5 +141,36 @@
     "friends": "友達",
     "followers": "フォロワー",
     "following": "フォロー中"
+  },
+  "nav": {
+    "feed": "フィード",
+    "friends": "友達",
+    "events": "イベント",
+    "commissions": "コミッション",
+    "videos": "動画を見る",
+    "photos": "写真",
+    "marketplace": "マーケットプレイス",
+    "files": "ファイル",
+    "messages": "メッセージ",
+    "notifications": "通知"
+  },
+  "sidebar": {
+    "posts": "投稿",
+    "pagesYouLike": "いいねしたページ",
+    "viewAll": "すべて見る"
+  },
+  "messages": {
+    "title": "メッセージ",
+    "primary": "メイン",
+    "general": "一般",
+    "requests": "リクエスト"
+  },
+  "events": {
+    "title": "イベント"
+  },
+  "footer": {
+    "privacyTerms": "プライバシー規約",
+    "advertising": "広告",
+    "cookies": "Cookie"
   }
 }

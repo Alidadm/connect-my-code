@@ -33,6 +33,16 @@
     "signInWith": "{{provider}}로 로그인",
     "orContinueWith": "또는 다음으로 계속"
   },
+  "login": {
+    "title": "계정에 로그인",
+    "subtitle": "계정에 액세스하려면 자격 증명을 입력하세요",
+    "welcomeTitle": "DolphySN에 다시 오신 것을 환영합니다",
+    "welcomeSubtitle": "친구들이 기다리고 있습니다. 놓친 것을 확인하고 최신 순간을 공유하세요.",
+    "welcomeBack": "다시 오신 것을 환영합니다!",
+    "successMessage": "성공적으로 로그인했습니다.",
+    "failed": "로그인 실패",
+    "loggingIn": "로그인 중..."
+  },
   "dashboard": {
     "title": "내 대시보드",
     "subtitle": "설정 및 환경설정",
@@ -119,7 +129,11 @@
     "share": "공유",
     "comments": "댓글",
     "likes": "좋아요",
-    "shares": "공유"
+    "shares": "공유",
+    "sortBy": "정렬",
+    "following": "팔로잉",
+    "trending": "트렌드",
+    "recent": "최신"
   },
   "friends": {
     "addFriend": "친구 추가",
@@ -127,5 +141,36 @@
     "friends": "친구",
     "followers": "팔로워",
     "following": "팔로잉"
+  },
+  "nav": {
+    "feed": "피드",
+    "friends": "친구",
+    "events": "이벤트",
+    "commissions": "커미션",
+    "videos": "동영상 보기",
+    "photos": "사진",
+    "marketplace": "마켓플레이스",
+    "files": "파일",
+    "messages": "메시지",
+    "notifications": "알림"
+  },
+  "sidebar": {
+    "posts": "게시물",
+    "pagesYouLike": "좋아하는 페이지",
+    "viewAll": "모두 보기"
+  },
+  "messages": {
+    "title": "메시지",
+    "primary": "기본",
+    "general": "일반",
+    "requests": "요청"
+  },
+  "events": {
+    "title": "이벤트"
+  },
+  "footer": {
+    "privacyTerms": "개인정보 약관",
+    "advertising": "광고",
+    "cookies": "쿠키"
   }
 }
