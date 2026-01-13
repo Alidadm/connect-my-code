@@ -1,29 +1,40 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Phone, ArrowRight, ArrowLeft } from "lucide-react";
+import { Mail, ArrowRight, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PhoneInputField } from "@/components/ui/phone-input";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
-type Step = "phone" | "verify";
+type Step = "email" | "verify";
 
 export const ForgotPassword = () => {
   const navigate = useNavigate();
-  const [step, setStep] = useState<Step>("phone");
+  const [step, setStep] = useState<Step>("email");
   const [isLoading, setIsLoading] = useState(false);
-  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
 
   const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!phone) {
+    if (!email) {
       toast({
-        title: "Phone required",
-        description: "Please enter your phone number.",
+        title: "Email required",
+        description: "Please enter your email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast({
+        title: "Invalid email",
+        description: "Please enter a valid email address.",
         variant: "destructive",
       });
       return;
@@ -33,14 +44,14 @@ export const ForgotPassword = () => {
 
     try {
       const { data, error } = await supabase.functions.invoke("forgot-password-send-code", {
-        body: { phone },
+        body: { email: email.toLowerCase().trim() },
       });
 
       if (error) throw error;
 
       toast({
         title: "Code sent!",
-        description: "Check your phone for the verification code.",
+        description: "Check your email for the verification code.",
       });
 
       setStep("verify");
@@ -69,7 +80,7 @@ export const ForgotPassword = () => {
 
     try {
       const { data, error } = await supabase.functions.invoke("forgot-password-verify-code", {
-        body: { phone, code },
+        body: { email: email.toLowerCase().trim(), code },
       });
 
       if (error) throw error;
@@ -105,14 +116,14 @@ export const ForgotPassword = () => {
     setIsLoading(true);
     try {
       const { error } = await supabase.functions.invoke("forgot-password-send-code", {
-        body: { phone },
+        body: { email: email.toLowerCase().trim() },
       });
 
       if (error) throw error;
 
       toast({
         title: "Code resent!",
-        description: "Check your phone for the new verification code.",
+        description: "Check your email for the new verification code.",
       });
       setCode("");
     } catch (error: any) {
@@ -149,21 +160,27 @@ export const ForgotPassword = () => {
             <span className="text-2xl font-bold text-foreground">WeShare</span>
           </div>
 
-          {step === "phone" && (
+          {step === "email" && (
             <>
               <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Forgot Password</h1>
               <p className="text-muted-foreground mb-6 sm:mb-8">
-                Enter your phone number and we'll send you a verification code.
+                Enter your email address and we'll send you a verification code.
               </p>
 
               <form onSubmit={handleSendCode} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number</Label>
-                  <PhoneInputField
-                    value={phone}
-                    onChange={(value) => setPhone(value || "")}
-                    placeholder="Enter your phone number"
-                  />
+                  <Label htmlFor="email">Email Address</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <Input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="Enter your email address"
+                      className="pl-10"
+                    />
+                  </div>
                 </div>
 
                 <Button 
@@ -181,7 +198,7 @@ export const ForgotPassword = () => {
           {step === "verify" && (
             <>
               <button
-                onClick={() => setStep("phone")}
+                onClick={() => setStep("email")}
                 className="flex items-center gap-1 text-muted-foreground hover:text-foreground mb-4"
               >
                 <ArrowLeft className="h-4 w-4" />
@@ -190,7 +207,7 @@ export const ForgotPassword = () => {
 
               <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Enter Verification Code</h1>
               <p className="text-muted-foreground mb-6 sm:mb-8">
-                We've sent a 6-digit code to {phone}
+                We've sent a 6-digit code to {email}
               </p>
 
               <div className="space-y-6">
