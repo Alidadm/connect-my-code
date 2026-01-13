@@ -41,6 +41,8 @@
     "pricing": "التسعير"
   },
   "profile": {
+    "title": "الملف الشخصي",
+    "description": "إدارة ملفك الشخصي العام",
     "firstName": "الاسم الأول",
     "lastName": "اسم العائلة",
     "displayName": "الاسم المعروض",

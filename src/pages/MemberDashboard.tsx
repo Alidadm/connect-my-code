@@ -41,23 +41,25 @@ const countryNames: Record<string, string> = {
   IL: "Israel", TR: "Turkey", TW: "Taiwan",
 };
 
-const menuItems = [
-  { id: "profile" as TabType, label: "Profile", icon: User, description: "Manage your public profile" },
-  { id: "account" as TabType, label: "Account", icon: Settings, description: "Account settings & security" },
-  { id: "privacy" as TabType, label: "Privacy", icon: Shield, description: "Control your privacy settings" },
-  { id: "notifications" as TabType, label: "Notifications", icon: Bell, description: "Notification preferences" },
-  { id: "appearance" as TabType, label: "Appearance", icon: Palette, description: "Customize your experience" },
+// Menu items with translation keys
+const getMenuItems = (t: (key: string) => string) => [
+  { id: "profile" as TabType, label: t("profile.title"), icon: User, description: t("profile.description") },
+  { id: "account" as TabType, label: t("account.title"), icon: Settings, description: t("account.description") },
+  { id: "privacy" as TabType, label: t("privacy.title"), icon: Shield, description: t("privacy.description") },
+  { id: "notifications" as TabType, label: t("notifications.title"), icon: Bell, description: t("notifications.description") },
+  { id: "appearance" as TabType, label: t("appearance.title"), icon: Palette, description: t("appearance.description") },
 ];
 
-const quickLinks = [
-  { label: "Home", icon: Home, path: "/" },
-  { label: "Commissions", icon: CreditCard, path: "/commissions" },
-  { label: "Pricing", icon: Heart, path: "/pricing" },
+const getQuickLinks = (t: (key: string) => string) => [
+  { label: t("common.home"), icon: Home, path: "/" },
+  { label: t("dashboard.commissions"), icon: CreditCard, path: "/commissions" },
+  { label: t("dashboard.pricing"), icon: Heart, path: "/pricing" },
 ];
 
 const MemberDashboard = () => {
   const navigate = useNavigate();
   const { user, profile, refreshProfile } = useAuth();
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<TabType>("profile");
   const [saving, setSaving] = useState(false);
   
@@ -991,17 +993,17 @@ const MemberDashboard = () => {
               <span className="text-white font-bold text-lg">W</span>
             </div>
             <div>
-              <h1 className="font-bold text-slate-800">My Dashboard</h1>
-              <p className="text-xs text-slate-500">Settings & Preferences</p>
+              <h1 className="font-bold text-slate-800">{t("dashboard.title")}</h1>
+              <p className="text-xs text-slate-500">{t("dashboard.subtitle")}</p>
             </div>
           </div>
         </div>
 
         {/* Quick Links */}
         <div className="p-4 border-b border-slate-100">
-          <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Quick Links</h3>
+          <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">{t("dashboard.quickLinks")}</h3>
           <div className="space-y-1">
-            {quickLinks.map((link) => (
+            {getQuickLinks(t).map((link) => (
               <button
                 key={link.label}
                 onClick={() => navigate(link.path)}
@@ -1016,9 +1018,9 @@ const MemberDashboard = () => {
 
         {/* Menu Items */}
         <ScrollArea className="flex-1 p-4">
-          <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Settings</h3>
+          <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">{t("common.settings")}</h3>
           <div className="space-y-1">
-            {menuItems.map((item) => (
+            {getMenuItems(t).map((item) => (
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
@@ -1065,7 +1067,7 @@ const MemberDashboard = () => {
             className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-red-50 transition-colors text-sm text-red-600"
           >
             <LogOut className="w-4 h-4" />
-            Sign Out
+            {t("common.logOut")}
           </button>
         </div>
       </div>
@@ -1077,10 +1079,10 @@ const MemberDashboard = () => {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold text-slate-800">
-                {menuItems.find(item => item.id === activeTab)?.label}
+                {getMenuItems(t).find(item => item.id === activeTab)?.label}
               </h2>
               <p className="text-slate-500 mt-1">
-                {menuItems.find(item => item.id === activeTab)?.description}
+                {getMenuItems(t).find(item => item.id === activeTab)?.description}
               </p>
             </div>
             <Avatar className="w-10 h-10 border-2 border-slate-200">

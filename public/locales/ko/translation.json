@@ -41,6 +41,8 @@
     "pricing": "가격"
   },
   "profile": {
+    "title": "프로필",
+    "description": "공개 프로필 관리",
     "firstName": "이름",
     "lastName": "성",
     "displayName": "표시 이름",

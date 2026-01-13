@@ -41,6 +41,8 @@
     "pricing": "Pricing"
   },
   "profile": {
+    "title": "Profile",
+    "description": "Manage your public profile",
     "firstName": "First Name",
     "lastName": "Last Name",
     "displayName": "Display Name",

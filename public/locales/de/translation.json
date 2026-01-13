@@ -41,6 +41,8 @@
     "pricing": "Preise"
   },
   "profile": {
+    "title": "Profil",
+    "description": "Verwalten Sie Ihr öffentliches Profil",
     "firstName": "Vorname",
     "lastName": "Nachname",
     "displayName": "Anzeigename",
