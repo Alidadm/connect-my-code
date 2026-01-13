@@ -1,0 +1,129 @@
+{
+  "common": {
+    "search": "搜索",
+    "signUp": "注册",
+    "logIn": "登录",
+    "logOut": "退出",
+    "save": "保存",
+    "cancel": "取消",
+    "edit": "编辑",
+    "delete": "删除",
+    "loading": "加载中...",
+    "error": "错误",
+    "success": "成功",
+    "settings": "设置",
+    "profile": "个人资料",
+    "home": "首页",
+    "language": "语言"
+  },
+  "header": {
+    "myProfile": "我的资料",
+    "settings": "设置",
+    "logOut": "退出"
+  },
+  "auth": {
+    "email": "电子邮件",
+    "password": "密码",
+    "confirmPassword": "确认密码",
+    "forgotPassword": "忘记密码？",
+    "resetPassword": "重置密码",
+    "createAccount": "创建账户",
+    "alreadyHaveAccount": "已有账户？",
+    "dontHaveAccount": "没有账户？",
+    "signInWith": "使用{{provider}}登录",
+    "orContinueWith": "或继续使用"
+  },
+  "dashboard": {
+    "title": "我的控制面板",
+    "subtitle": "设置和偏好",
+    "quickLinks": "快速链接",
+    "commissions": "佣金",
+    "pricing": "定价"
+  },
+  "profile": {
+    "firstName": "名",
+    "lastName": "姓",
+    "displayName": "显示名称",
+    "username": "用户名",
+    "bio": "个人简介",
+    "location": "位置",
+    "viewProfile": "查看资料",
+    "memberSince": "加入时间",
+    "usernameWarning": "您只能更改一次用户名。请谨慎选择！",
+    "usernameChanged": "您已经使用了一次性用户名更改。",
+    "usernameAvailable": "用户名可用！",
+    "usernameTaken": "用户名已被使用",
+    "profileUrl": "您的个人资料网址",
+    "saveChanges": "保存更改",
+    "saving": "保存中...",
+    "profileUpdated": "个人资料更新成功！",
+    "updateFailed": "更新个人资料失败",
+    "enterCity": "输入您的城市。国家会自动检测。"
+  },
+  "account": {
+    "title": "账户",
+    "description": "账户设置和安全",
+    "email": "电子邮件地址",
+    "phone": "电话号码",
+    "password": "密码",
+    "changePassword": "更改密码",
+    "currentPassword": "当前密码",
+    "newPassword": "新密码",
+    "confirmNewPassword": "确认新密码",
+    "notSet": "未设置",
+    "update": "更新",
+    "dangerZone": "危险区域",
+    "deleteAccount": "删除账户",
+    "deleteWarning": "一旦删除账户，将无法恢复。请确认。",
+    "deleteWarning2": "您还将失去所有订阅资金和待处理的佣金。"
+  },
+  "privacy": {
+    "title": "隐私",
+    "description": "控制您的隐私设置",
+    "showOnlineStatus": "显示在线状态",
+    "showOnlineStatusDesc": "让其他人看到您何时在线",
+    "showLastSeen": "显示最后在线时间",
+    "showLastSeenDesc": "显示您的最后活动时间",
+    "allowMessages": "允许私信",
+    "allowMessagesDesc": "允许任何人向您发送消息"
+  },
+  "notifications": {
+    "title": "通知",
+    "description": "通知偏好设置",
+    "emailNotifications": "电子邮件通知",
+    "emailNotificationsDesc": "通过电子邮件接收通知",
+    "pushNotifications": "推送通知",
+    "pushNotificationsDesc": "接收推送通知",
+    "messageNotifications": "消息通知",
+    "messageNotificationsDesc": "收到新消息时通知",
+    "friendRequests": "好友请求",
+    "friendRequestsDesc": "收到好友请求时通知"
+  },
+  "appearance": {
+    "title": "外观",
+    "description": "自定义您的体验",
+    "darkMode": "深色模式",
+    "darkModeDesc": "切换到深色主题",
+    "compactMode": "紧凑模式",
+    "compactModeDesc": "使用更紧凑的布局",
+    "language": "语言",
+    "languageDesc": "选择您的首选语言"
+  },
+  "feed": {
+    "whatsOnYourMind": "在想什么？",
+    "post": "发布",
+    "like": "喜欢",
+    "comment": "评论",
+    "share": "分享",
+    "comments": "评论",
+    "likes": "喜欢",
+    "shares": "分享"
+  },
+  "friends": {
+    "addFriend": "添加好友",
+    "message": "消息",
+    "friends": "好友",
+    "followers": "粉丝",
+    "following": "关注"
+  }
+}

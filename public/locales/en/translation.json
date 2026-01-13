@@ -1,0 +1,129 @@
+{
+  "common": {
+    "search": "Search",
+    "signUp": "Sign Up",
+    "logIn": "Log In",
+    "logOut": "Log Out",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "settings": "Settings",
+    "profile": "Profile",
+    "home": "Home",
+    "language": "Language"
+  },
+  "header": {
+    "myProfile": "My Profile",
+    "settings": "Settings",
+    "logOut": "Log Out"
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "forgotPassword": "Forgot Password?",
+    "resetPassword": "Reset Password",
+    "createAccount": "Create Account",
+    "alreadyHaveAccount": "Already have an account?",
+    "dontHaveAccount": "Don't have an account?",
+    "signInWith": "Sign in with {{provider}}",
+    "orContinueWith": "Or continue with"
+  },
+  "dashboard": {
+    "title": "My Dashboard",
+    "subtitle": "Settings & Preferences",
+    "quickLinks": "Quick Links",
+    "commissions": "Commissions",
+    "pricing": "Pricing"
+  },
+  "profile": {
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "displayName": "Display Name",
+    "username": "Username",
+    "bio": "Bio",
+    "location": "Location",
+    "viewProfile": "View Profile",
+    "memberSince": "Member since",
+    "usernameWarning": "You can only change your username once. Choose wisely!",
+    "usernameChanged": "You have already used your one-time username change.",
+    "usernameAvailable": "Username is available!",
+    "usernameTaken": "Username is already taken",
+    "profileUrl": "Your profile URL",
+    "saveChanges": "Save Changes",
+    "saving": "Saving...",
+    "profileUpdated": "Profile updated successfully!",
+    "updateFailed": "Failed to update profile",
+    "enterCity": "Enter your city. Country is detected automatically."
+  },
+  "account": {
+    "title": "Account",
+    "description": "Account settings & security",
+    "email": "Email Address",
+    "phone": "Phone Number",
+    "password": "Password",
+    "changePassword": "Change Password",
+    "currentPassword": "Current Password",
+    "newPassword": "New Password",
+    "confirmNewPassword": "Confirm New Password",
+    "notSet": "Not set",
+    "update": "Update",
+    "dangerZone": "Danger Zone",
+    "deleteAccount": "Delete Account",
+    "deleteWarning": "Once you delete your account, there is no going back. Please be certain.",
+    "deleteWarning2": "You will also lose all funds from your subscription and any pending commissions."
+  },
+  "privacy": {
+    "title": "Privacy",
+    "description": "Control your privacy settings",
+    "showOnlineStatus": "Show Online Status",
+    "showOnlineStatusDesc": "Let others see when you're online",
+    "showLastSeen": "Show Last Seen",
+    "showLastSeenDesc": "Display your last active time",
+    "allowMessages": "Allow Direct Messages",
+    "allowMessagesDesc": "Let anyone send you messages"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "description": "Notification preferences",
+    "emailNotifications": "Email Notifications",
+    "emailNotificationsDesc": "Receive notifications via email",
+    "pushNotifications": "Push Notifications",
+    "pushNotificationsDesc": "Receive push notifications",
+    "messageNotifications": "Message Notifications",
+    "messageNotificationsDesc": "Get notified for new messages",
+    "friendRequests": "Friend Requests",
+    "friendRequestsDesc": "Get notified for friend requests"
+  },
+  "appearance": {
+    "title": "Appearance",
+    "description": "Customize your experience",
+    "darkMode": "Dark Mode",
+    "darkModeDesc": "Switch to dark theme",
+    "compactMode": "Compact Mode",
+    "compactModeDesc": "Use a more compact layout",
+    "language": "Language",
+    "languageDesc": "Choose your preferred language"
+  },
+  "feed": {
+    "whatsOnYourMind": "What's on your mind?",
+    "post": "Post",
+    "like": "Like",
+    "comment": "Comment",
+    "share": "Share",
+    "comments": "comments",
+    "likes": "likes",
+    "shares": "shares"
+  },
+  "friends": {
+    "addFriend": "Add Friend",
+    "message": "Message",
+    "friends": "Friends",
+    "followers": "Followers",
+    "following": "Following"
+  }
+}

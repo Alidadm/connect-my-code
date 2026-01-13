@@ -1,0 +1,129 @@
+{
+  "common": {
+    "search": "Rechercher",
+    "signUp": "S'inscrire",
+    "logIn": "Se Connecter",
+    "logOut": "Se Déconnecter",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "settings": "Paramètres",
+    "profile": "Profil",
+    "home": "Accueil",
+    "language": "Langue"
+  },
+  "header": {
+    "myProfile": "Mon Profil",
+    "settings": "Paramètres",
+    "logOut": "Se Déconnecter"
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Mot de Passe",
+    "confirmPassword": "Confirmer le Mot de Passe",
+    "forgotPassword": "Mot de passe oublié ?",
+    "resetPassword": "Réinitialiser le Mot de Passe",
+    "createAccount": "Créer un Compte",
+    "alreadyHaveAccount": "Vous avez déjà un compte ?",
+    "dontHaveAccount": "Vous n'avez pas de compte ?",
+    "signInWith": "Se connecter avec {{provider}}",
+    "orContinueWith": "Ou continuer avec"
+  },
+  "dashboard": {
+    "title": "Mon Tableau de Bord",
+    "subtitle": "Paramètres et Préférences",
+    "quickLinks": "Liens Rapides",
+    "commissions": "Commissions",
+    "pricing": "Tarification"
+  },
+  "profile": {
+    "firstName": "Prénom",
+    "lastName": "Nom",
+    "displayName": "Nom d'Affichage",
+    "username": "Nom d'Utilisateur",
+    "bio": "Biographie",
+    "location": "Localisation",
+    "viewProfile": "Voir le Profil",
+    "memberSince": "Membre depuis",
+    "usernameWarning": "Vous ne pouvez changer votre nom d'utilisateur qu'une seule fois. Choisissez bien !",
+    "usernameChanged": "Vous avez déjà utilisé votre changement de nom d'utilisateur unique.",
+    "usernameAvailable": "Nom d'utilisateur disponible !",
+    "usernameTaken": "Le nom d'utilisateur est déjà pris",
+    "profileUrl": "URL de votre profil",
+    "saveChanges": "Enregistrer les Modifications",
+    "saving": "Enregistrement...",
+    "profileUpdated": "Profil mis à jour avec succès !",
+    "updateFailed": "Échec de la mise à jour du profil",
+    "enterCity": "Entrez votre ville. Le pays est détecté automatiquement."
+  },
+  "account": {
+    "title": "Compte",
+    "description": "Paramètres du compte et sécurité",
+    "email": "Adresse Email",
+    "phone": "Numéro de Téléphone",
+    "password": "Mot de Passe",
+    "changePassword": "Changer le Mot de Passe",
+    "currentPassword": "Mot de Passe Actuel",
+    "newPassword": "Nouveau Mot de Passe",
+    "confirmNewPassword": "Confirmer le Nouveau Mot de Passe",
+    "notSet": "Non défini",
+    "update": "Mettre à Jour",
+    "dangerZone": "Zone de Danger",
+    "deleteAccount": "Supprimer le Compte",
+    "deleteWarning": "Une fois que vous supprimez votre compte, il n'y a pas de retour en arrière. Soyez certain.",
+    "deleteWarning2": "Vous perdrez également tous les fonds de votre abonnement et les commissions en attente."
+  },
+  "privacy": {
+    "title": "Confidentialité",
+    "description": "Contrôlez vos paramètres de confidentialité",
+    "showOnlineStatus": "Afficher le Statut En Ligne",
+    "showOnlineStatusDesc": "Permettre aux autres de voir quand vous êtes en ligne",
+    "showLastSeen": "Afficher Dernière Connexion",
+    "showLastSeenDesc": "Afficher votre dernière activité",
+    "allowMessages": "Autoriser les Messages Directs",
+    "allowMessagesDesc": "Permettre à n'importe qui de vous envoyer des messages"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "description": "Préférences de notification",
+    "emailNotifications": "Notifications par Email",
+    "emailNotificationsDesc": "Recevoir des notifications par email",
+    "pushNotifications": "Notifications Push",
+    "pushNotificationsDesc": "Recevoir des notifications push",
+    "messageNotifications": "Notifications de Messages",
+    "messageNotificationsDesc": "Être notifié pour les nouveaux messages",
+    "friendRequests": "Demandes d'Amitié",
+    "friendRequestsDesc": "Être notifié pour les demandes d'amitié"
+  },
+  "appearance": {
+    "title": "Apparence",
+    "description": "Personnalisez votre expérience",
+    "darkMode": "Mode Sombre",
+    "darkModeDesc": "Passer au thème sombre",
+    "compactMode": "Mode Compact",
+    "compactModeDesc": "Utiliser une mise en page plus compacte",
+    "language": "Langue",
+    "languageDesc": "Choisissez votre langue préférée"
+  },
+  "feed": {
+    "whatsOnYourMind": "Quoi de neuf ?",
+    "post": "Publier",
+    "like": "J'aime",
+    "comment": "Commenter",
+    "share": "Partager",
+    "comments": "commentaires",
+    "likes": "j'aime",
+    "shares": "partages"
+  },
+  "friends": {
+    "addFriend": "Ajouter un Ami",
+    "message": "Message",
+    "friends": "Amis",
+    "followers": "Abonnés",
+    "following": "Abonnements"
+  }
+}
