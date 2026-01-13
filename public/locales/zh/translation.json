@@ -14,12 +14,22 @@
     "settings": "设置",
     "profile": "个人资料",
     "home": "首页",
-    "language": "语言"
+    "language": "语言",
+    "send": "发送",
+    "copy": "复制",
+    "viewAll": "查看全部",
+    "back": "返回",
+    "sortBy": "排序方式",
+    "following": "关注中",
+    "trending": "热门",
+    "recent": "最新"
   },
   "header": {
     "myProfile": "我的资料",
     "settings": "设置",
-    "logOut": "退出"
+    "logOut": "退出",
+    "welcomeBack": "欢迎回来！",
+    "loginSuccess": "您已成功登录。"
   },
   "auth": {
     "email": "电子邮件",
@@ -31,7 +41,31 @@
     "alreadyHaveAccount": "已有账户？",
     "dontHaveAccount": "没有账户？",
     "signInWith": "使用{{provider}}登录",
-    "orContinueWith": "或继续使用"
+    "orContinueWith": "或继续使用",
+    "loginTitle": "登录您的账户",
+    "loginSubtitle": "输入您的凭据以访问您的账户",
+    "loginButton": "登录",
+    "loggingIn": "登录中...",
+    "loginFailed": "登录失败",
+    "signupTitle": "创建账户",
+    "signupSubtitle": "加入我们的社区，开始分享您的时刻",
+    "firstName": "名",
+    "lastName": "姓",
+    "mobile": "手机号码",
+    "birthday": "生日",
+    "day": "日",
+    "month": "月",
+    "year": "年",
+    "passwordRequirements": "密码必须至少8个字符，包含一个大写字母和一个符号",
+    "accountCreated": "账户已创建！现在选择您的支付方式。",
+    "welcomeMessage": "欢迎回到DolphySN",
+    "welcomeSubtitle": "您的朋友在等您。看看您错过了什么，分享您的最新时刻。",
+    "choosePayment": "选择您的支付方式",
+    "payWithCard": "银行卡支付",
+    "payWithPaypal": "PayPal支付",
+    "startingCheckout": "正在启动结账...",
+    "connectingPaypal": "正在连接PayPal...",
+    "signUpToSubscribe": "注册以订阅"
   },
   "dashboard": {
     "title": "我的控制面板",
@@ -127,5 +161,96 @@
     "friends": "好友",
     "followers": "粉丝",
     "following": "关注"
+  },
+  "nav": {
+    "feed": "动态",
+    "friends": "好友",
+    "events": "活动",
+    "commissions": "佣金",
+    "watchVideos": "观看视频",
+    "photos": "照片",
+    "marketplace": "市场",
+    "files": "文件",
+    "messages": "消息",
+    "notifications": "通知",
+    "profile": "个人资料"
+  },
+  "sidebar": {
+    "pagesYouLike": "您喜欢的页面",
+    "follower": "粉丝",
+    "post": "帖子"
+  },
+  "messages": {
+    "title": "消息",
+    "search": "搜索",
+    "primary": "主要",
+    "general": "一般",
+    "requests": "请求"
+  },
+  "events": {
+    "title": "活动",
+    "eventInvites": "活动邀请"
+  },
+  "pricing": {
+    "title": "加入DolphySN Premium",
+    "subtitle": "与朋友联系，分享时刻，通过推荐赚钱。一个简单的订阅解锁一切。",
+    "monthlySubscription": "月度订阅",
+    "fullAccess": "完全访问所有功能",
+    "perMonth": "/月",
+    "features": {
+      "unlimitedPosts": "无限帖子和故事",
+      "realTimeMessaging": "实时消息",
+      "createEvents": "创建和加入活动",
+      "exclusiveCommunity": "独家社区访问",
+      "adFree": "无广告体验",
+      "prioritySupport": "优先支持",
+      "earnReferrals": "赚取推荐佣金"
+    },
+    "active": "活跃",
+    "manageSubscription": "管理订阅",
+    "renewsOn": "您的订阅将于{{date}}续订",
+    "referralCallout": "每推荐一位朋友赚取5美元！",
+    "checkoutSuccess": "订阅成功！欢迎加入DolphySN Premium。",
+    "checkoutCanceled": "结账已取消。"
+  },
+  "commissions": {
+    "title": "推荐佣金",
+    "subtitle": "跟踪您的推荐收益",
+    "totalSubscriptions": "总订阅数",
+    "activeReferrals": "活跃推荐",
+    "totalAmountEarned": "总收入",
+    "lifetimeEarnings": "终身收益",
+    "thisMonthSignups": "本月注册",
+    "subscriptionValue": "订阅价值",
+    "pending": "待处理",
+    "paidOut": "已支付",
+    "perReferral": "每次推荐",
+    "referralTitle": "推荐",
+    "referralSubtitle": "通过电子邮件邀请朋友，每次推荐赚取5美元",
+    "emailAddress": "电子邮件地址",
+    "subject": "主题",
+    "message": "消息",
+    "yourReferralLink": "您的推荐链接",
+    "copyLinkHint": "复制此链接通过短信或社交媒体分享",
+    "commissionHistory": "佣金历史",
+    "allEarnings": "您的所有推荐收益",
+    "referralCommission": "推荐佣金",
+    "noCommissionsYet": "暂无佣金",
+    "shareToStart": "分享您的推荐链接开始赚钱！",
+    "getYourLink": "获取您的推荐链接",
+    "paid": "已支付",
+    "paypal": "PayPal",
+    "creditCard": "信用卡",
+    "linkCopied": "推荐链接已复制到剪贴板！",
+    "openingEmail": "正在打开您的电子邮件客户端...",
+    "enterEmail": "请输入电子邮件地址",
+    "defaultSubject": "加入我在DolphySN！",
+    "defaultMessage": "嘿！我一直在使用DolphySN，觉得你也会喜欢。使用下面的推荐链接注册，我们可以联系！"
+  },
+  "footer": {
+    "privacyTerms": "隐私条款",
+    "advertising": "广告",
+    "cookies": "Cookies",
+    "copyright": "平台 © 2024"
   }
 }

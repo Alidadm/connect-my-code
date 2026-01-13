@@ -112,27 +112,27 @@ export const Header = () => {
                 <>
                   <DropdownMenuItem onClick={() => navigate("/profile")}>
                     <User className="mr-2 h-4 w-4" />
-                    My Profile
+                    {t('header.myProfile')}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate("/settings")}>
                     <Settings className="mr-2 h-4 w-4" />
-                    Settings
+                    {t('header.settings')}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
                     <LogOut className="mr-2 h-4 w-4" />
-                    Log Out
+                    {t('header.logOut')}
                   </DropdownMenuItem>
                 </>
               ) : (
                 <>
                   <DropdownMenuItem onClick={() => navigate("/login")}>
                     <User className="mr-2 h-4 w-4" />
-                    Log In
+                    {t('common.logIn')}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate("/signup")} className="text-primary focus:text-primary">
                     <User className="mr-2 h-4 w-4" />
-                    Sign Up
+                    {t('common.signUp')}
                   </DropdownMenuItem>
                 </>
               )}
@@ -141,7 +141,7 @@ export const Header = () => {
 
           {!user && (
             <Button onClick={() => navigate("/signup")} className="bg-primary hover:bg-primary/90 ml-1 sm:ml-2 hidden sm:flex h-9 text-sm px-3">
-              Sign Up
+              {t('common.signUp')}
             </Button>
           )}
         </div>
