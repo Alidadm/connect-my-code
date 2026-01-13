@@ -19,41 +19,46 @@ export const supportedLanguages = [
 
 export type LanguageCode = typeof supportedLanguages[number]['code'];
 
-i18n
-  // Load translations from /public/locales
-  .use(Backend)
-  // Detect user language
-  .use(LanguageDetector)
-  // Pass the i18n instance to react-i18next
-  .use(initReactI18next)
-  // Initialize i18n
-  .init({
-    fallbackLng: 'en',
-    debug: false,
-    
-    // Lazy load only the active language
-    load: 'languageOnly',
-    
-    // Detection options
-    detection: {
-      order: ['localStorage', 'navigator', 'htmlTag'],
-      lookupLocalStorage: 'i18nextLng',
-      caches: ['localStorage'],
-    },
-    
-    // Backend options for loading translation files
-    backend: {
-      loadPath: '/locales/{{lng}}/translation.json',
-    },
-    
-    interpolation: {
-      escapeValue: false, // React already escapes values
-    },
-    
-    // React options
-    react: {
-      useSuspense: true,
-    },
-  });
+// Initialize function to be called after React is ready
+export const initI18n = () => {
+  if (i18n.isInitialized) return Promise.resolve(i18n);
+  
+  return i18n
+    // Load translations from /public/locales
+    .use(Backend)
+    // Detect user language
+    .use(LanguageDetector)
+    // Pass the i18n instance to react-i18next
+    .use(initReactI18next)
+    // Initialize i18n
+    .init({
+      fallbackLng: 'en',
+      debug: false,
+      
+      // Lazy load only the active language
+      load: 'languageOnly',
+      
+      // Detection options
+      detection: {
+        order: ['localStorage', 'navigator', 'htmlTag'],
+        lookupLocalStorage: 'i18nextLng',
+        caches: ['localStorage'],
+      },
+      
+      // Backend options for loading translation files
+      backend: {
+        loadPath: '/locales/{{lng}}/translation.json',
+      },
+      
+      interpolation: {
+        escapeValue: false, // React already escapes values
+      },
+      
+      // React options
+      react: {
+        useSuspense: true,
+      },
+    });
+};
 
 export default i18n;
