@@ -1,0 +1,129 @@
+{
+  "common": {
+    "search": "بحث",
+    "signUp": "إنشاء حساب",
+    "logIn": "تسجيل الدخول",
+    "logOut": "تسجيل الخروج",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "edit": "تعديل",
+    "delete": "حذف",
+    "loading": "جاري التحميل...",
+    "error": "خطأ",
+    "success": "نجاح",
+    "settings": "الإعدادات",
+    "profile": "الملف الشخصي",
+    "home": "الرئيسية",
+    "language": "اللغة"
+  },
+  "header": {
+    "myProfile": "ملفي الشخصي",
+    "settings": "الإعدادات",
+    "logOut": "تسجيل الخروج"
+  },
+  "auth": {
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "confirmPassword": "تأكيد كلمة المرور",
+    "forgotPassword": "نسيت كلمة المرور؟",
+    "resetPassword": "إعادة تعيين كلمة المرور",
+    "createAccount": "إنشاء حساب",
+    "alreadyHaveAccount": "لديك حساب بالفعل؟",
+    "dontHaveAccount": "ليس لديك حساب؟",
+    "signInWith": "تسجيل الدخول بـ {{provider}}",
+    "orContinueWith": "أو المتابعة بـ"
+  },
+  "dashboard": {
+    "title": "لوحة التحكم",
+    "subtitle": "الإعدادات والتفضيلات",
+    "quickLinks": "روابط سريعة",
+    "commissions": "العمولات",
+    "pricing": "التسعير"
+  },
+  "profile": {
+    "firstName": "الاسم الأول",
+    "lastName": "اسم العائلة",
+    "displayName": "الاسم المعروض",
+    "username": "اسم المستخدم",
+    "bio": "نبذة عني",
+    "location": "الموقع",
+    "viewProfile": "عرض الملف الشخصي",
+    "memberSince": "عضو منذ",
+    "usernameWarning": "يمكنك تغيير اسم المستخدم مرة واحدة فقط. اختر بحكمة!",
+    "usernameChanged": "لقد استخدمت بالفعل تغيير اسم المستخدم الوحيد.",
+    "usernameAvailable": "اسم المستخدم متاح!",
+    "usernameTaken": "اسم المستخدم مستخدم بالفعل",
+    "profileUrl": "رابط ملفك الشخصي",
+    "saveChanges": "حفظ التغييرات",
+    "saving": "جاري الحفظ...",
+    "profileUpdated": "تم تحديث الملف الشخصي بنجاح!",
+    "updateFailed": "فشل تحديث الملف الشخصي",
+    "enterCity": "أدخل مدينتك. يتم اكتشاف البلد تلقائياً."
+  },
+  "account": {
+    "title": "الحساب",
+    "description": "إعدادات الحساب والأمان",
+    "email": "عنوان البريد الإلكتروني",
+    "phone": "رقم الهاتف",
+    "password": "كلمة المرور",
+    "changePassword": "تغيير كلمة المرور",
+    "currentPassword": "كلمة المرور الحالية",
+    "newPassword": "كلمة المرور الجديدة",
+    "confirmNewPassword": "تأكيد كلمة المرور الجديدة",
+    "notSet": "غير محدد",
+    "update": "تحديث",
+    "dangerZone": "منطقة الخطر",
+    "deleteAccount": "حذف الحساب",
+    "deleteWarning": "بمجرد حذف حسابك، لا يمكن التراجع. يرجى التأكد.",
+    "deleteWarning2": "ستفقد أيضاً جميع أموال اشتراكك وأي عمولات معلقة."
+  },
+  "privacy": {
+    "title": "الخصوصية",
+    "description": "تحكم في إعدادات الخصوصية",
+    "showOnlineStatus": "إظهار حالة الاتصال",
+    "showOnlineStatusDesc": "اسمح للآخرين بمعرفة متى تكون متصلاً",
+    "showLastSeen": "إظهار آخر ظهور",
+    "showLastSeenDesc": "عرض وقت نشاطك الأخير",
+    "allowMessages": "السماح بالرسائل المباشرة",
+    "allowMessagesDesc": "اسمح لأي شخص بإرسال رسائل لك"
+  },
+  "notifications": {
+    "title": "الإشعارات",
+    "description": "تفضيلات الإشعارات",
+    "emailNotifications": "إشعارات البريد الإلكتروني",
+    "emailNotificationsDesc": "تلقي الإشعارات عبر البريد الإلكتروني",
+    "pushNotifications": "الإشعارات الفورية",
+    "pushNotificationsDesc": "تلقي الإشعارات الفورية",
+    "messageNotifications": "إشعارات الرسائل",
+    "messageNotificationsDesc": "الإشعار عند وجود رسائل جديدة",
+    "friendRequests": "طلبات الصداقة",
+    "friendRequestsDesc": "الإشعار عند وجود طلبات صداقة"
+  },
+  "appearance": {
+    "title": "المظهر",
+    "description": "تخصيص تجربتك",
+    "darkMode": "الوضع الداكن",
+    "darkModeDesc": "التبديل إلى السمة الداكنة",
+    "compactMode": "الوضع المضغوط",
+    "compactModeDesc": "استخدام تخطيط أكثر إحكاماً",
+    "language": "اللغة",
+    "languageDesc": "اختر لغتك المفضلة"
+  },
+  "feed": {
+    "whatsOnYourMind": "بماذا تفكر؟",
+    "post": "نشر",
+    "like": "إعجاب",
+    "comment": "تعليق",
+    "share": "مشاركة",
+    "comments": "تعليقات",
+    "likes": "إعجابات",
+    "shares": "مشاركات"
+  },
+  "friends": {
+    "addFriend": "إضافة صديق",
+    "message": "رسالة",
+    "friends": "الأصدقاء",
+    "followers": "المتابعون",
+    "following": "المتابَعون"
+  }
+}

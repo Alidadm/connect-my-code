@@ -1,0 +1,129 @@
+{
+  "common": {
+    "search": "Buscar",
+    "signUp": "Registrarse",
+    "logIn": "Iniciar Sesión",
+    "logOut": "Cerrar Sesión",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito",
+    "settings": "Configuración",
+    "profile": "Perfil",
+    "home": "Inicio",
+    "language": "Idioma"
+  },
+  "header": {
+    "myProfile": "Mi Perfil",
+    "settings": "Configuración",
+    "logOut": "Cerrar Sesión"
+  },
+  "auth": {
+    "email": "Correo Electrónico",
+    "password": "Contraseña",
+    "confirmPassword": "Confirmar Contraseña",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "resetPassword": "Restablecer Contraseña",
+    "createAccount": "Crear Cuenta",
+    "alreadyHaveAccount": "¿Ya tienes una cuenta?",
+    "dontHaveAccount": "¿No tienes una cuenta?",
+    "signInWith": "Iniciar sesión con {{provider}}",
+    "orContinueWith": "O continuar con"
+  },
+  "dashboard": {
+    "title": "Mi Panel",
+    "subtitle": "Configuración y Preferencias",
+    "quickLinks": "Enlaces Rápidos",
+    "commissions": "Comisiones",
+    "pricing": "Precios"
+  },
+  "profile": {
+    "firstName": "Nombre",
+    "lastName": "Apellido",
+    "displayName": "Nombre para Mostrar",
+    "username": "Nombre de Usuario",
+    "bio": "Biografía",
+    "location": "Ubicación",
+    "viewProfile": "Ver Perfil",
+    "memberSince": "Miembro desde",
+    "usernameWarning": "¡Solo puedes cambiar tu nombre de usuario una vez. Elige sabiamente!",
+    "usernameChanged": "Ya has usado tu cambio único de nombre de usuario.",
+    "usernameAvailable": "¡Nombre de usuario disponible!",
+    "usernameTaken": "El nombre de usuario ya está en uso",
+    "profileUrl": "URL de tu perfil",
+    "saveChanges": "Guardar Cambios",
+    "saving": "Guardando...",
+    "profileUpdated": "¡Perfil actualizado exitosamente!",
+    "updateFailed": "Error al actualizar el perfil",
+    "enterCity": "Ingresa tu ciudad. El país se detecta automáticamente."
+  },
+  "account": {
+    "title": "Cuenta",
+    "description": "Configuración de cuenta y seguridad",
+    "email": "Correo Electrónico",
+    "phone": "Número de Teléfono",
+    "password": "Contraseña",
+    "changePassword": "Cambiar Contraseña",
+    "currentPassword": "Contraseña Actual",
+    "newPassword": "Nueva Contraseña",
+    "confirmNewPassword": "Confirmar Nueva Contraseña",
+    "notSet": "No establecido",
+    "update": "Actualizar",
+    "dangerZone": "Zona de Peligro",
+    "deleteAccount": "Eliminar Cuenta",
+    "deleteWarning": "Una vez que elimines tu cuenta, no hay vuelta atrás. Por favor, ten certeza.",
+    "deleteWarning2": "También perderás todos los fondos de tu suscripción y cualquier comisión pendiente."
+  },
+  "privacy": {
+    "title": "Privacidad",
+    "description": "Controla tu configuración de privacidad",
+    "showOnlineStatus": "Mostrar Estado En Línea",
+    "showOnlineStatusDesc": "Permite que otros vean cuando estás en línea",
+    "showLastSeen": "Mostrar Última Conexión",
+    "showLastSeenDesc": "Muestra tu última hora activa",
+    "allowMessages": "Permitir Mensajes Directos",
+    "allowMessagesDesc": "Permite que cualquiera te envíe mensajes"
+  },
+  "notifications": {
+    "title": "Notificaciones",
+    "description": "Preferencias de notificación",
+    "emailNotifications": "Notificaciones por Email",
+    "emailNotificationsDesc": "Recibir notificaciones por correo",
+    "pushNotifications": "Notificaciones Push",
+    "pushNotificationsDesc": "Recibir notificaciones push",
+    "messageNotifications": "Notificaciones de Mensajes",
+    "messageNotificationsDesc": "Ser notificado de nuevos mensajes",
+    "friendRequests": "Solicitudes de Amistad",
+    "friendRequestsDesc": "Ser notificado de solicitudes de amistad"
+  },
+  "appearance": {
+    "title": "Apariencia",
+    "description": "Personaliza tu experiencia",
+    "darkMode": "Modo Oscuro",
+    "darkModeDesc": "Cambiar a tema oscuro",
+    "compactMode": "Modo Compacto",
+    "compactModeDesc": "Usar un diseño más compacto",
+    "language": "Idioma",
+    "languageDesc": "Elige tu idioma preferido"
+  },
+  "feed": {
+    "whatsOnYourMind": "¿Qué estás pensando?",
+    "post": "Publicar",
+    "like": "Me Gusta",
+    "comment": "Comentar",
+    "share": "Compartir",
+    "comments": "comentarios",
+    "likes": "me gusta",
+    "shares": "compartidos"
+  },
+  "friends": {
+    "addFriend": "Agregar Amigo",
+    "message": "Mensaje",
+    "friends": "Amigos",
+    "followers": "Seguidores",
+    "following": "Siguiendo"
+  }
+}

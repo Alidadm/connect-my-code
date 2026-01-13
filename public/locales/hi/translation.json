@@ -1,0 +1,129 @@
+{
+  "common": {
+    "search": "खोजें",
+    "signUp": "साइन अप",
+    "logIn": "लॉग इन",
+    "logOut": "लॉग आउट",
+    "save": "सहेजें",
+    "cancel": "रद्द करें",
+    "edit": "संपादित करें",
+    "delete": "हटाएं",
+    "loading": "लोड हो रहा है...",
+    "error": "त्रुटि",
+    "success": "सफलता",
+    "settings": "सेटिंग्स",
+    "profile": "प्रोफ़ाइल",
+    "home": "होम",
+    "language": "भाषा"
+  },
+  "header": {
+    "myProfile": "मेरी प्रोफ़ाइल",
+    "settings": "सेटिंग्स",
+    "logOut": "लॉग आउट"
+  },
+  "auth": {
+    "email": "ईमेल",
+    "password": "पासवर्ड",
+    "confirmPassword": "पासवर्ड की पुष्टि करें",
+    "forgotPassword": "पासवर्ड भूल गए?",
+    "resetPassword": "पासवर्ड रीसेट करें",
+    "createAccount": "खाता बनाएं",
+    "alreadyHaveAccount": "पहले से खाता है?",
+    "dontHaveAccount": "खाता नहीं है?",
+    "signInWith": "{{provider}} से साइन इन करें",
+    "orContinueWith": "या इससे जारी रखें"
+  },
+  "dashboard": {
+    "title": "मेरा डैशबोर्ड",
+    "subtitle": "सेटिंग्स और प्राथमिकताएं",
+    "quickLinks": "त्वरित लिंक",
+    "commissions": "कमीशन",
+    "pricing": "मूल्य निर्धारण"
+  },
+  "profile": {
+    "firstName": "पहला नाम",
+    "lastName": "अंतिम नाम",
+    "displayName": "प्रदर्शन नाम",
+    "username": "यूज़रनेम",
+    "bio": "जीवनी",
+    "location": "स्थान",
+    "viewProfile": "प्रोफ़ाइल देखें",
+    "memberSince": "सदस्य तब से",
+    "usernameWarning": "आप अपना यूज़रनेम केवल एक बार बदल सकते हैं। समझदारी से चुनें!",
+    "usernameChanged": "आपने पहले ही अपना एक बार का यूज़रनेम परिवर्तन उपयोग कर लिया है।",
+    "usernameAvailable": "यूज़रनेम उपलब्ध है!",
+    "usernameTaken": "यूज़रनेम पहले से लिया गया है",
+    "profileUrl": "आपका प्रोफ़ाइल URL",
+    "saveChanges": "परिवर्तन सहेजें",
+    "saving": "सहेज रहा है...",
+    "profileUpdated": "प्रोफ़ाइल सफलतापूर्वक अपडेट हुई!",
+    "updateFailed": "प्रोफ़ाइल अपडेट करने में विफल",
+    "enterCity": "अपना शहर दर्ज करें। देश स्वचालित रूप से पता लगाया जाता है।"
+  },
+  "account": {
+    "title": "खाता",
+    "description": "खाता सेटिंग्स और सुरक्षा",
+    "email": "ईमेल पता",
+    "phone": "फोन नंबर",
+    "password": "पासवर्ड",
+    "changePassword": "पासवर्ड बदलें",
+    "currentPassword": "वर्तमान पासवर्ड",
+    "newPassword": "नया पासवर्ड",
+    "confirmNewPassword": "नए पासवर्ड की पुष्टि करें",
+    "notSet": "सेट नहीं है",
+    "update": "अपडेट करें",
+    "dangerZone": "खतरे का क्षेत्र",
+    "deleteAccount": "खाता हटाएं",
+    "deleteWarning": "एक बार खाता हटाने के बाद, वापस नहीं जा सकते। कृपया निश्चित रहें।",
+    "deleteWarning2": "आप अपनी सदस्यता के सभी धन और किसी भी लंबित कमीशन को भी खो देंगे।"
+  },
+  "privacy": {
+    "title": "गोपनीयता",
+    "description": "अपनी गोपनीयता सेटिंग्स नियंत्रित करें",
+    "showOnlineStatus": "ऑनलाइन स्थिति दिखाएं",
+    "showOnlineStatusDesc": "दूसरों को देखने दें कि आप कब ऑनलाइन हैं",
+    "showLastSeen": "अंतिम बार देखा दिखाएं",
+    "showLastSeenDesc": "अपना अंतिम सक्रिय समय प्रदर्शित करें",
+    "allowMessages": "सीधे संदेश की अनुमति दें",
+    "allowMessagesDesc": "किसी को भी आपको संदेश भेजने की अनुमति दें"
+  },
+  "notifications": {
+    "title": "सूचनाएं",
+    "description": "सूचना प्राथमिकताएं",
+    "emailNotifications": "ईमेल सूचनाएं",
+    "emailNotificationsDesc": "ईमेल द्वारा सूचनाएं प्राप्त करें",
+    "pushNotifications": "पुश सूचनाएं",
+    "pushNotificationsDesc": "पुश सूचनाएं प्राप्त करें",
+    "messageNotifications": "संदेश सूचनाएं",
+    "messageNotificationsDesc": "नए संदेशों के लिए सूचित हों",
+    "friendRequests": "मित्र अनुरोध",
+    "friendRequestsDesc": "मित्र अनुरोधों के लिए सूचित हों"
+  },
+  "appearance": {
+    "title": "दिखावट",
+    "description": "अपने अनुभव को अनुकूलित करें",
+    "darkMode": "डार्क मोड",
+    "darkModeDesc": "डार्क थीम पर स्विच करें",
+    "compactMode": "कॉम्पैक्ट मोड",
+    "compactModeDesc": "अधिक कॉम्पैक्ट लेआउट का उपयोग करें",
+    "language": "भाषा",
+    "languageDesc": "अपनी पसंदीदा भाषा चुनें"
+  },
+  "feed": {
+    "whatsOnYourMind": "आपके मन में क्या है?",
+    "post": "पोस्ट करें",
+    "like": "पसंद",
+    "comment": "टिप्पणी",
+    "share": "साझा करें",
+    "comments": "टिप्पणियां",
+    "likes": "पसंद",
+    "shares": "साझाकरण"
+  },
+  "friends": {
+    "addFriend": "मित्र जोड़ें",
+    "message": "संदेश",
+    "friends": "मित्र",
+    "followers": "अनुयायी",
+    "following": "फॉलो कर रहे हैं"
+  }
+}

@@ -3,7 +3,7 @@ import {
   User, Settings, Bell, Shield, Palette, Layout, Camera, Save,
   ChevronRight, Eye, EyeOff, Lock, Mail, Phone, Globe, Calendar,
   Home, CreditCard, Users, Heart, MessageCircle, LogOut, Clock,
-  CheckCircle2, XCircle, Loader2, ExternalLink
+  CheckCircle2, XCircle, Loader2, ExternalLink, Languages
 } from "lucide-react";
 import Swal from "sweetalert2";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { validateUsername } from "@/lib/username";
+import { useTranslation } from "react-i18next";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 type TabType = "profile" | "account" | "privacy" | "notifications" | "appearance";
 
@@ -920,6 +922,17 @@ const MemberDashboard = () => {
 
   const renderAppearanceTab = () => (
     <div className="space-y-4">
+      <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
+        <div className="flex items-center gap-3">
+          <Languages className="w-5 h-5 text-slate-500" />
+          <div>
+            <h4 className="font-medium text-slate-800">Language</h4>
+            <p className="text-sm text-slate-500">Choose your preferred language</p>
+          </div>
+        </div>
+        <LanguageSwitcher variant="full" />
+      </div>
+
       <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
         <div className="flex items-center gap-3">
           <Palette className="w-5 h-5 text-slate-500" />

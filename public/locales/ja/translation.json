@@ -1,0 +1,129 @@
+{
+  "common": {
+    "search": "検索",
+    "signUp": "登録",
+    "logIn": "ログイン",
+    "logOut": "ログアウト",
+    "save": "保存",
+    "cancel": "キャンセル",
+    "edit": "編集",
+    "delete": "削除",
+    "loading": "読み込み中...",
+    "error": "エラー",
+    "success": "成功",
+    "settings": "設定",
+    "profile": "プロフィール",
+    "home": "ホーム",
+    "language": "言語"
+  },
+  "header": {
+    "myProfile": "マイプロフィール",
+    "settings": "設定",
+    "logOut": "ログアウト"
+  },
+  "auth": {
+    "email": "メールアドレス",
+    "password": "パスワード",
+    "confirmPassword": "パスワード確認",
+    "forgotPassword": "パスワードをお忘れですか？",
+    "resetPassword": "パスワードリセット",
+    "createAccount": "アカウント作成",
+    "alreadyHaveAccount": "アカウントをお持ちですか？",
+    "dontHaveAccount": "アカウントをお持ちでないですか？",
+    "signInWith": "{{provider}}でサインイン",
+    "orContinueWith": "または次で続行"
+  },
+  "dashboard": {
+    "title": "マイダッシュボード",
+    "subtitle": "設定と環境設定",
+    "quickLinks": "クイックリンク",
+    "commissions": "コミッション",
+    "pricing": "料金"
+  },
+  "profile": {
+    "firstName": "名",
+    "lastName": "姓",
+    "displayName": "表示名",
+    "username": "ユーザー名",
+    "bio": "自己紹介",
+    "location": "場所",
+    "viewProfile": "プロフィールを見る",
+    "memberSince": "登録日",
+    "usernameWarning": "ユーザー名は一度しか変更できません。慎重に選んでください！",
+    "usernameChanged": "すでにユーザー名の変更を使用しました。",
+    "usernameAvailable": "ユーザー名は利用可能です！",
+    "usernameTaken": "ユーザー名はすでに使用されています",
+    "profileUrl": "あなたのプロフィールURL",
+    "saveChanges": "変更を保存",
+    "saving": "保存中...",
+    "profileUpdated": "プロフィールが正常に更新されました！",
+    "updateFailed": "プロフィールの更新に失敗しました",
+    "enterCity": "都市を入力してください。国は自動的に検出されます。"
+  },
+  "account": {
+    "title": "アカウント",
+    "description": "アカウント設定とセキュリティ",
+    "email": "メールアドレス",
+    "phone": "電話番号",
+    "password": "パスワード",
+    "changePassword": "パスワード変更",
+    "currentPassword": "現在のパスワード",
+    "newPassword": "新しいパスワード",
+    "confirmNewPassword": "新しいパスワード確認",
+    "notSet": "未設定",
+    "update": "更新",
+    "dangerZone": "危険ゾーン",
+    "deleteAccount": "アカウント削除",
+    "deleteWarning": "アカウントを削除すると元に戻せません。よくご確認ください。",
+    "deleteWarning2": "サブスクリプションの資金と保留中のコミッションもすべて失われます。"
+  },
+  "privacy": {
+    "title": "プライバシー",
+    "description": "プライバシー設定を管理",
+    "showOnlineStatus": "オンライン状態を表示",
+    "showOnlineStatusDesc": "他の人にオンライン中を見せる",
+    "showLastSeen": "最終オンラインを表示",
+    "showLastSeenDesc": "最後のアクティブ時間を表示",
+    "allowMessages": "ダイレクトメッセージを許可",
+    "allowMessagesDesc": "誰でもメッセージを送れるようにする"
+  },
+  "notifications": {
+    "title": "通知",
+    "description": "通知設定",
+    "emailNotifications": "メール通知",
+    "emailNotificationsDesc": "メールで通知を受け取る",
+    "pushNotifications": "プッシュ通知",
+    "pushNotificationsDesc": "プッシュ通知を受け取る",
+    "messageNotifications": "メッセージ通知",
+    "messageNotificationsDesc": "新しいメッセージの通知",
+    "friendRequests": "友達リクエスト",
+    "friendRequestsDesc": "友達リクエストの通知"
+  },
+  "appearance": {
+    "title": "外観",
+    "description": "体験をカスタマイズ",
+    "darkMode": "ダークモード",
+    "darkModeDesc": "ダークテーマに切り替え",
+    "compactMode": "コンパクトモード",
+    "compactModeDesc": "よりコンパクトなレイアウトを使用",
+    "language": "言語",
+    "languageDesc": "お好みの言語を選択"
+  },
+  "feed": {
+    "whatsOnYourMind": "今何を考えていますか？",
+    "post": "投稿",
+    "like": "いいね",
+    "comment": "コメント",
+    "share": "シェア",
+    "comments": "コメント",
+    "likes": "いいね",
+    "shares": "シェア"
+  },
+  "friends": {
+    "addFriend": "友達追加",
+    "message": "メッセージ",
+    "friends": "友達",
+    "followers": "フォロワー",
+    "following": "フォロー中"
+  }
+}

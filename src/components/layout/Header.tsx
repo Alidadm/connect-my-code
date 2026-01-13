@@ -14,6 +14,8 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 // Demo profile for non-logged in users
 const demoProfile = {
@@ -25,6 +27,7 @@ export const Header = () => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
   const [searchOpen, setSearchOpen] = useState(false);
+  const { t } = useTranslation();
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -68,6 +71,9 @@ export const Header = () => {
 
         {/* Right side actions */}
         <div className="flex items-center gap-0.5 sm:gap-1">
+          {/* Language Switcher */}
+          <LanguageSwitcher variant="icon" />
+          
           {/* Temporary Dev Link to Admin */}
           <Button 
             variant="ghost" 
