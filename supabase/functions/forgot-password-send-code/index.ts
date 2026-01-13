@@ -24,30 +24,35 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
+    const resendApiKey = Deno.env.get("RESEND_API_KEY");
+    if (!resendApiKey) {
+      throw new Error("RESEND_API_KEY is not configured");
+    }
+
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
       { auth: { persistSession: false } }
     );
 
-    const { phone } = await req.json();
-    if (!phone) throw new Error("Phone number is required");
+    const { email } = await req.json();
+    if (!email) throw new Error("Email is required");
 
-    logStep("Looking up user by phone", { phone: phone.slice(0, 4) + "****" });
+    logStep("Looking up user by email", { email: email.slice(0, 3) + "***" });
 
-    // Find user by phone number in profiles_private
+    // Find user by email in profiles_private
     const { data: privateProfile, error: lookupError } = await supabaseAdmin
       .from("profiles_private")
       .select("user_id")
-      .eq("phone", phone)
+      .eq("email", email.toLowerCase().trim())
       .single();
 
     if (lookupError || !privateProfile) {
-      logStep("Phone number not found");
-      // Return success anyway to prevent phone enumeration attacks
+      logStep("Email not found");
+      // Return success anyway to prevent email enumeration attacks
       return new Response(JSON.stringify({ 
         success: true, 
-        message: "If this phone number is registered, you will receive a verification code.",
+        message: "If this email is registered, you will receive a verification code.",
         expiresIn: 600
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -68,12 +73,12 @@ serve(async (req) => {
     const code = generateCode();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-    // Store code in database
+    // Store code in database (store email instead of phone)
     const { error: insertError } = await supabaseAdmin
       .from("password_reset_codes")
       .insert({
         user_id: userId,
-        phone: phone,
+        phone: email, // Reusing phone column for email
         code: code,
         expires_at: expiresAt.toISOString(),
         verified: false,
@@ -83,13 +88,50 @@ serve(async (req) => {
 
     logStep("Reset code stored");
 
-    // TODO: Integrate with Twilio/SMS provider to actually send the code
-    // For now, we just store it and log for development
-    console.log(`[DEV ONLY] Password reset code for ${phone}: ${code}`);
+    // Send email via Resend
+    const emailResponse = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${resendApiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: "WeShare <onboarding@resend.dev>",
+        to: [email],
+        subject: "Your WeShare Password Reset Code",
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <div style="background: linear-gradient(135deg, #1c76e6 0%, #3b82f6 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+              <h1 style="color: white; margin: 0;">WeShare</h1>
+            </div>
+            <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px;">
+              <h2 style="color: #1f2937; margin-top: 0;">Password Reset Code</h2>
+              <p style="color: #4b5563; font-size: 16px;">
+                You requested to reset your password. Use the code below to verify your identity:
+              </p>
+              <div style="background: white; border: 2px dashed #1c76e6; border-radius: 10px; padding: 20px; text-align: center; margin: 20px 0;">
+                <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #1c76e6;">${code}</span>
+              </div>
+              <p style="color: #6b7280; font-size: 14px;">
+                This code expires in 10 minutes. If you didn't request this, please ignore this email.
+              </p>
+            </div>
+          </div>
+        `,
+      }),
+    });
+
+    if (!emailResponse.ok) {
+      const errorData = await emailResponse.text();
+      logStep("Resend API error", { error: errorData });
+      throw new Error("Failed to send email");
+    }
+
+    logStep("Email sent successfully");
 
     return new Response(JSON.stringify({ 
       success: true, 
-      message: "Verification code sent",
+      message: "Verification code sent to your email",
       expiresIn: 600
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
