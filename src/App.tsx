@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
+import AdminRouteGuard from "@/components/admin/AdminRouteGuard";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -36,7 +37,14 @@ const App = () => (
             <Route path="/commissions" element={<Commissions />} />
             <Route path="/dashboard" element={<MemberDashboard />} />
             <Route path="/adminindex" element={<AdminIndex />} />
-            <Route path="/admin/users/list" element={<UserList />} />
+            <Route
+              path="/admin/users/list"
+              element={
+                <AdminRouteGuard>
+                  <UserList />
+                </AdminRouteGuard>
+              }
+            />
             {/* Public profile route - must be BEFORE the catch-all */}
             <Route path="/:username" element={<UserProfile />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
@@ -49,3 +57,4 @@ const App = () => (
 );
 
 export default App;
+
