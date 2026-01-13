@@ -61,7 +61,7 @@ const Pricing = () => {
   useEffect(() => {
     const checkout = searchParams.get("checkout");
     if (checkout === "success") {
-      toast.success("Subscription successful! Welcome to WeShare Premium.");
+      toast.success("Subscription successful! Welcome to DolphySN Premium.");
       checkSubscription();
     } else if (checkout === "canceled") {
       toast.info("Checkout was canceled.");
@@ -129,7 +129,7 @@ const Pricing = () => {
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            Join <span className="text-primary">WeShare</span> Premium
+            Join <span className="text-primary">DolphySN</span> Premium
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Connect with friends, share moments, and earn money through referrals. 

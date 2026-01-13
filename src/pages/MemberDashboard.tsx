@@ -359,7 +359,7 @@ const MemberDashboard = () => {
           </p>
         )}
         <p className="text-xs text-slate-400">
-          Your profile URL: weshare.com/{formData.username || "username"}
+          Your profile URL: dolphysn.com/{formData.username || "username"}
         </p>
       </div>
 

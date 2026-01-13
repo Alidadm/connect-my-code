@@ -42,8 +42,8 @@ const Commissions = () => {
   
   // Email form state
   const [emailTo, setEmailTo] = useState("");
-  const [emailSubject, setEmailSubject] = useState("Join me on WeShare!");
-  const [emailMessage, setEmailMessage] = useState("Hey! I've been using WeShare and thought you might enjoy it too. Sign up using my referral link below and we can connect!");
+  const [emailSubject, setEmailSubject] = useState("Join me on DolphySN!");
+  const [emailMessage, setEmailMessage] = useState("Hey! I've been using DolphySN and thought you might enjoy it too. Sign up using my referral link below and we can connect!");
   const [sendingEmail, setSendingEmail] = useState(false);
 
   // Get the referral URL
@@ -76,8 +76,8 @@ const Commissions = () => {
 
   const handleCancelEmail = () => {
     setEmailTo("");
-    setEmailSubject("Join me on WeShare!");
-    setEmailMessage("Hey! I've been using WeShare and thought you might enjoy it too. Sign up using my referral link below and we can connect!");
+    setEmailSubject("Join me on DolphySN!");
+    setEmailMessage("Hey! I've been using DolphySN and thought you might enjoy it too. Sign up using my referral link below and we can connect!");
   };
 
   useEffect(() => {

@@ -140,7 +140,7 @@ export const ForgotPassword = () => {
   return (
     <div className="min-h-screen bg-background flex">
       {/* Left side - Visual */}
-      <div className="hidden lg:flex flex-1 weshare-gradient items-center justify-center p-12">
+      <div className="hidden lg:flex flex-1 dolphy-gradient items-center justify-center p-12">
         <div className="text-center text-primary-foreground max-w-md">
           <h2 className="text-4xl font-bold mb-4">Reset Your Password</h2>
           <p className="text-lg opacity-90">
@@ -154,10 +154,10 @@ export const ForgotPassword = () => {
         <div className="w-full max-w-md">
           {/* Logo */}
           <div className="flex items-center gap-2 mb-6 sm:mb-8">
-            <div className="w-10 h-10 rounded-xl weshare-gradient flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-xl">W</span>
+            <div className="w-10 h-10 rounded-xl dolphy-gradient flex items-center justify-center">
+              <span className="text-primary-foreground font-bold text-xl">D</span>
             </div>
-            <span className="text-2xl font-bold text-foreground">WeShare</span>
+            <span className="text-2xl font-bold text-foreground">DolphySN</span>
           </div>
 
           {step === "email" && (
@@ -185,7 +185,7 @@ export const ForgotPassword = () => {
 
                 <Button 
                   type="submit" 
-                  className="w-full weshare-gradient hover:opacity-90 transition-opacity" 
+                  className="w-full dolphy-gradient hover:opacity-90 transition-opacity" 
                   disabled={isLoading}
                 >
                   {isLoading ? "Sending..." : "Send Verification Code"}
@@ -230,7 +230,7 @@ export const ForgotPassword = () => {
 
                 <Button 
                   onClick={handleVerifyCode}
-                  className="w-full weshare-gradient hover:opacity-90 transition-opacity" 
+                  className="w-full dolphy-gradient hover:opacity-90 transition-opacity" 
                   disabled={isLoading || code.length !== 6}
                 >
                   {isLoading ? "Verifying..." : "Verify Code"}

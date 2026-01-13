@@ -368,10 +368,10 @@ export const Signup = () => {
         <div className="w-full max-w-md">
           {/* Logo */}
           <div className="flex items-center gap-2 mb-6 sm:mb-8">
-            <div className="w-10 h-10 rounded-xl weshare-gradient flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-xl">W</span>
+            <div className="w-10 h-10 rounded-xl dolphy-gradient flex items-center justify-center">
+              <span className="text-primary-foreground font-bold text-xl">D</span>
             </div>
-            <span className="text-2xl font-bold text-foreground">WeShare</span>
+            <span className="text-2xl font-bold text-foreground">DolphySN</span>
           </div>
 
           {step === 'form' ? (
@@ -533,7 +533,7 @@ export const Signup = () => {
 
             <Button 
               type="submit" 
-              className="w-full weshare-gradient hover:opacity-90 transition-opacity"
+              className="w-full dolphy-gradient hover:opacity-90 transition-opacity"
               disabled={isLoading}
             >
               {isLoading ? "Creating account..." : "Create Account"}
@@ -580,7 +580,7 @@ export const Signup = () => {
             <>
               <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Choose Payment Method</h1>
               <p className="text-muted-foreground mb-6 sm:mb-8">
-                Complete your subscription to access WeShare Premium
+                Complete your subscription to access DolphySN Premium
               </p>
 
               <div className="bg-muted/50 rounded-lg p-4 mb-6">
@@ -640,11 +640,11 @@ export const Signup = () => {
       </div>
 
       {/* Right side - Visual */}
-      <div className="hidden lg:flex flex-1 weshare-gradient items-center justify-center p-12">
+      <div className="hidden lg:flex flex-1 dolphy-gradient items-center justify-center p-12">
         <div className="text-center text-primary-foreground max-w-md">
           <h2 className="text-4xl font-bold mb-4">Connect with friends and the world around you</h2>
           <p className="text-lg opacity-90">
-            Share moments, discover stories, and build meaningful connections on WeShare.
+            Share moments, discover stories, and build meaningful connections on DolphySN.
           </p>
         </div>
       </div>
@@ -654,7 +654,7 @@ export const Signup = () => {
         <DialogContent className="sm:max-w-md bg-background border border-border">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold text-foreground flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full weshare-gradient flex items-center justify-center">
+              <div className="w-8 h-8 rounded-full dolphy-gradient flex items-center justify-center">
                 <Mail className="h-4 w-4 text-primary-foreground" />
               </div>
               Verify Your Account
@@ -681,7 +681,7 @@ export const Signup = () => {
           <div className="flex justify-end mt-4">
             <Button 
               onClick={() => setShowVerificationDialog(false)}
-              className="weshare-gradient hover:opacity-90"
+              className="dolphy-gradient hover:opacity-90"
             >
               Got it!
             </Button>
