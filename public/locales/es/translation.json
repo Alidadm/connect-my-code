@@ -41,6 +41,8 @@
     "pricing": "Precios"
   },
   "profile": {
+    "title": "Perfil",
+    "description": "Administra tu perfil público",
     "firstName": "Nombre",
     "lastName": "Apellido",
     "displayName": "Nombre para Mostrar",

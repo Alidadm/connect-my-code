@@ -41,6 +41,8 @@
     "pricing": "Preços"
   },
   "profile": {
+    "title": "Perfil",
+    "description": "Gerencie seu perfil público",
     "firstName": "Nome",
     "lastName": "Sobrenome",
     "displayName": "Nome de Exibição",

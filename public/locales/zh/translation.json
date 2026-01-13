@@ -41,6 +41,8 @@
     "pricing": "定价"
   },
   "profile": {
+    "title": "个人资料",
+    "description": "管理您的公开资料",
     "firstName": "名",
     "lastName": "姓",
     "displayName": "显示名称",
