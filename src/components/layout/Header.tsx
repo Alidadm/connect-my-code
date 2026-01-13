@@ -110,7 +110,7 @@ export const Header = () => {
             <DropdownMenuContent align="end" className="w-56">
               {user ? (
                 <>
-                  <DropdownMenuItem onClick={() => navigate("/profile")}>
+                  <DropdownMenuItem onClick={() => navigate("/dashboard")}>
                     <User className="mr-2 h-4 w-4" />
                     {t('header.myProfile')}
                   </DropdownMenuItem>
