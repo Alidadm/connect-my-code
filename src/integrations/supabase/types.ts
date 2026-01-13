@@ -183,6 +183,39 @@ export type Database = {
         }
         Relationships: []
       }
+      password_reset_codes: {
+        Row: {
+          code: string
+          created_at: string
+          expires_at: string
+          id: string
+          phone: string
+          reset_token: string | null
+          user_id: string
+          verified: boolean
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          phone: string
+          reset_token?: string | null
+          user_id: string
+          verified?: boolean
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          phone?: string
+          reset_token?: string | null
+          user_id?: string
+          verified?: boolean
+        }
+        Relationships: []
+      }
       phone_verification_codes: {
         Row: {
           code: string
