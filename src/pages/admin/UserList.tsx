@@ -96,70 +96,130 @@ const UserList = () => {
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
   const [isDeleting, setIsDeleting] = useState(false);
 
+
+  const extractFunctionError = (err: any): { status?: number; message: string } => {
+    const status = err?.context?.status ?? err?.status;
+
+    const tryParse = (value: unknown) => {
+      if (typeof value !== "string") return null;
+      try {
+        return JSON.parse(value);
+      } catch {
+        return null;
+      }
+    };
+
+    // supabase-js FunctionsHttpError often nests response info under `context`
+    const ctxBody = err?.context?.body;
+    const parsedCtx = tryParse(ctxBody);
+
+    let message = String(err?.message ?? "");
+
+    // Some errors embed a JSON blob at the end of the message:
+    // "Edge function returned 403: Error, {\"error\":\"...\"}"
+    const embeddedJsonMatch = message.match(/(\{[\s\S]*\})\s*$/);
+    const parsedEmbedded = embeddedJsonMatch ? tryParse(embeddedJsonMatch[1]) : null;
+
+    const apiMessage =
+      parsedCtx?.error ??
+      parsedEmbedded?.error ??
+      undefined;
+
+    if (apiMessage) message = String(apiMessage);
+
+    return { status, message };
+  };
+
+  const handleAdminOrAuthError = (
+    err: any,
+    intent: "view the user list" | "delete users"
+  ): boolean => {
+    const { status, message } = extractFunctionError(err);
+
+    const isAdminError = status === 403 || /Admin access required/i.test(message);
+    if (isAdminError) {
+      toast({
+        title: "Admin access required",
+        description: `Please log in with an admin account to ${intent}.`,
+        variant: "destructive",
+      });
+      navigate("/login");
+      return true;
+    }
+
+    const isAuthError =
+      status === 401 ||
+      /Unauthorized/i.test(message) ||
+      /missing sub claim/i.test(message) ||
+      /No authorization header/i.test(message) ||
+      /User not authenticated/i.test(message) ||
+      /Authentication error/i.test(message);
+
+    if (isAuthError) {
+      toast({
+        title: "Session expired",
+        description: "Please log in again to continue.",
+        variant: "destructive",
+      });
+      navigate("/login");
+      return true;
+    }
+
+    return false;
+  };
+
   // Fetch users from database via admin edge function
   const fetchUsers = useCallback(async () => {
     setIsLoading(true);
+
     try {
       // Use admin edge function to get users with private data
-      const { data, error } = await supabase.functions.invoke('admin-get-users', {
+      const { data, error } = await supabase.functions.invoke("admin-get-users", {
         body: {
           searchQuery,
           page: currentPage,
           limit: itemsPerPage,
-          sortColumn: sortColumn === 'firstName' ? 'first_name' 
-            : sortColumn === 'lastName' ? 'last_name' 
-            : sortColumn === 'country' ? 'country'
-            : 'created_at',
+          sortColumn:
+            sortColumn === "firstName"
+              ? "first_name"
+              : sortColumn === "lastName"
+                ? "last_name"
+                : sortColumn === "country"
+                  ? "country"
+                  : "created_at",
           sortDirection,
-        }
+        },
       });
 
-      if (error) throw error;
+      if (error) {
+        if (handleAdminOrAuthError(error, "view the user list")) return;
+        throw error;
+      }
 
-      setUsers(data.users || []);
-      setTotalCount(data.totalCount || 0);
+      setUsers(data?.users || []);
+      setTotalCount(data?.totalCount || 0);
     } catch (error: any) {
-      console.error('Error fetching users:', error);
+      if (handleAdminOrAuthError(error, "view the user list")) return;
 
-      const msg = String(error?.message || '');
-      const isAdminError = /Admin access required/i.test(msg);
-
-      if (isAdminError) {
-        toast({
-          title: "Admin access required",
-          description: "Please log in with an admin account to view the user list.",
-          variant: "destructive",
-        });
-        navigate('/login');
-        return;
-      }
-
-      const isAuthError =
-        /Unauthorized/i.test(msg) ||
-        /missing sub claim/i.test(msg) ||
-        /No authorization header/i.test(msg) ||
-        /User not authenticated/i.test(msg) ||
-        /Authentication error/i.test(msg);
-
-      if (isAuthError) {
-        toast({
-          title: "Session expired",
-          description: "Please log in again to access the admin user list.",
-          variant: "destructive",
-        });
-        navigate('/login');
-        return;
-      }
-
+      console.error("Error fetching users:", error);
       toast({
         title: "Error",
         description: "Failed to load users. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
     }
-  }, [searchQuery, currentPage, itemsPerPage, sortColumn, sortDirection, toast, navigate]);
+  }, [
+    searchQuery,
+    currentPage,
+    itemsPerPage,
+    sortColumn,
+    sortDirection,
+    toast,
+    navigate,
+  ]);
+
 
   // Fetch users when dependencies change
   useEffect(() => {
@@ -294,49 +354,43 @@ const UserList = () => {
     setSelectedUsers(newSelected);
   };
 
+
   // Actual delete function that calls the edge function
   const performDelete = async (userIds: string[]) => {
     setIsDeleting(true);
+
     try {
-      const { data, error } = await supabase.functions.invoke('admin-delete-user', {
-        body: { userIds }
+      const { data, error } = await supabase.functions.invoke("admin-delete-user", {
+        body: { userIds },
       });
 
-      if (error) throw error;
+      if (error) {
+        if (handleAdminOrAuthError(error, "delete users")) return;
+        throw error;
+      }
 
       toast({
         title: "Success",
-        description: data.message,
+        description: data?.message,
       });
 
       // Clear selection and refresh list
       setSelectedUsers(new Set());
       fetchUsers();
     } catch (error: any) {
-      console.error('Error deleting users:', error);
+      if (handleAdminOrAuthError(error, "delete users")) return;
 
-      const msg = String(error?.message || '');
-      const isAdminError = /Admin access required/i.test(msg);
-
-      if (isAdminError) {
-        toast({
-          title: "Admin access required",
-          description: "Please log in with an admin account to delete users.",
-          variant: "destructive",
-        });
-        navigate('/login');
-        return;
-      }
-
+      console.error("Error deleting users:", error);
       toast({
         title: "Error",
-        description: error.message || "Failed to delete users",
-        variant: "destructive"
+        description: error?.message || "Failed to delete users",
+        variant: "destructive",
       });
     } finally {
       setIsDeleting(false);
     }
   };
+
 
   // SweetAlert2 Delete User Modal (single user)
   const handleDeleteUser = (user: User) => {
