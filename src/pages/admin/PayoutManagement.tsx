@@ -122,12 +122,17 @@ const PayoutManagement = () => {
         updated_at: new Date().toISOString()
       };
 
+      let notificationStatus: "approved" | "rejected" | "completed" | null = null;
+
       if (actionType === "approve") {
         updateData.status = "approved";
+        notificationStatus = "approved";
       } else if (actionType === "reject") {
         updateData.status = "rejected";
+        notificationStatus = "rejected";
       } else if (actionType === "complete") {
         updateData.status = "completed";
+        notificationStatus = "completed";
         
         // Update the commissions to "paid" status for this user
         const { error: commissionsError } = await supabase
@@ -151,6 +156,18 @@ const PayoutManagement = () => {
 
       if (error) throw error;
 
+      // Send email notification
+      if (notificationStatus) {
+        await sendWithdrawalNotification(
+          selectedRequest.user_id,
+          notificationStatus,
+          selectedRequest.amount,
+          selectedRequest.currency,
+          adminNotes,
+          selectedRequest.payout_email
+        );
+      }
+
       toast.success(`Withdrawal request ${actionType === "complete" ? "completed" : actionType + "d"} successfully!`);
       setSelectedRequest(null);
       setActionType(null);
@@ -161,6 +178,42 @@ const PayoutManagement = () => {
       console.error(error);
     } finally {
       setProcessing(false);
+    }
+  };
+
+  const sendWithdrawalNotification = async (
+    userId: string,
+    status: "approved" | "rejected" | "completed" | "processing",
+    amount: number,
+    currency: string,
+    adminNotes?: string,
+    payoutEmail?: string | null
+  ) => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-withdrawal-notification`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+          body: JSON.stringify({
+            user_id: userId,
+            status,
+            amount,
+            currency,
+            admin_notes: adminNotes,
+            payout_email: payoutEmail,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        console.error("Failed to send notification email");
+      }
+    } catch (error) {
+      console.error("Error sending notification:", error);
     }
   };
 
@@ -195,6 +248,16 @@ const PayoutManagement = () => {
       if (!response.ok) {
         throw new Error(result.error || "Payout failed");
       }
+
+      // Send completion notification
+      await sendWithdrawalNotification(
+        request.user_id,
+        "completed",
+        request.amount,
+        request.currency,
+        undefined,
+        request.payout_email
+      );
 
       toast.success(`Payout sent successfully! Batch ID: ${result.payout_batch_id}`);
       fetchWithdrawalRequests();
