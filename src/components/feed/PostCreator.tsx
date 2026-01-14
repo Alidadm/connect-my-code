@@ -1,4 +1,4 @@
-import { Image, Paperclip, Radio, Hash, AtSign, Globe, Smile, X, FileAudio, FileText, Film, Upload, Users, FileImage, Sparkles } from "lucide-react";
+import { Image, Paperclip, Radio, Hash, AtSign, Globe, Smile, X, FileAudio, FileText, Film, Upload, Users, FileImage, Sparkles, Lock, UserCheck, List, Eye } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,6 +38,14 @@ interface SelectedTopic {
   name: string;
   icon: string;
   color: string;
+}
+
+interface CustomList {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+  member_count?: number;
 }
 
 export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) => {
@@ -110,6 +118,23 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
     return data || [];
   };
 
+  const fetchCustomLists = async (): Promise<CustomList[]> => {
+    if (!user) return [];
+    
+    const { data, error } = await supabase
+      .from('custom_lists')
+      .select('id, name, icon, color')
+      .eq('user_id', user.id)
+      .order('name');
+    
+    if (error) {
+      console.error('Error fetching custom lists:', error);
+      return [];
+    }
+    
+    return data || [];
+  };
+
   const getFileType = (file: File): MediaFile['type'] => {
     const mimeType = file.type;
     if (mimeType.startsWith('image/gif')) return 'gif';
@@ -167,13 +192,15 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
       `<button type="button" class="hashtag-btn" style="font-size: 13px; padding: 6px 12px; border: 1px solid #e5e7eb; background: #f8fafc; cursor: pointer; border-radius: 16px; color: #1c76e6; transition: all 0.2s;" data-hashtag="${tag}">${tag}</button>`
     ).join('');
 
-    // Track uploaded files and tags
+    // Track uploaded files, tags, and custom lists
     let mediaFiles: MediaFile[] = [];
     let taggedItems: TaggedItem[] = [];
     let selectedTopics: SelectedTopic[] = [];
+    let selectedCustomLists: CustomList[] = [];
 
-    // Fetch topics for display
-    const topics = await fetchTopics();
+    // Fetch topics and custom lists for display
+    const [topics, customLists] = await Promise.all([fetchTopics(), fetchCustomLists()]);
+    
     const topicsHtml = topics.map(topic => 
       `<button type="button" class="topic-btn" data-topic-id="${topic.id}" data-topic-name="${topic.name}" data-topic-icon="${topic.icon}" data-topic-color="${topic.color}" style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; padding: 6px 12px; border: 1px solid #e5e7eb; background: #f8fafc; cursor: pointer; border-radius: 16px; transition: all 0.2s;">
         <span>${topic.icon}</span>
@@ -181,6 +208,18 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
         ${topic.is_trending ? '<span style="font-size: 10px; color: #ef4444;">🔥</span>' : ''}
       </button>`
     ).join('');
+
+    const customListsHtml = customLists.length > 0 
+      ? customLists.map(list => 
+          `<button type="button" class="custom-list-btn" data-list-id="${list.id}" data-list-name="${list.name}" data-list-icon="${list.icon}" data-list-color="${list.color}" style="display: flex; align-items: center; gap: 8px; width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; background: white; cursor: pointer; border-radius: 8px; text-align: left; transition: all 0.2s;">
+            <span style="font-size: 18px;">${list.icon}</span>
+            <span style="font-weight: 500; color: #374151;">${list.name}</span>
+          </button>`
+        ).join('')
+      : `<div style="text-align: center; padding: 20px; color: #666;">
+          <p style="font-size: 14px; margin-bottom: 8px;">${t('feed.noCustomLists', 'No custom lists yet')}</p>
+          <p style="font-size: 12px; color: #999;">${t('feed.createListsHint', 'Create lists to organize your friends')}</p>
+        </div>`;
 
     const { value: formValues } = await Swal.fire({
       html: `
@@ -195,11 +234,12 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
             </div>
             <div style="flex: 1;">
               <div style="font-weight: 600; font-size: 16px; color: #1a1a2e;">${displayName}</div>
-              <select id="swal-visibility" style="font-size: 13px; color: #666; background: #f1f5f9; border: none; border-radius: 16px; padding: 4px 12px; cursor: pointer; margin-top: 4px;">
-                <option value="public">🌍 ${t('feed.public', 'Public')}</option>
-                <option value="friends">👥 ${t('feed.friendsOnly', 'Friends Only')}</option>
-                <option value="private">🔒 ${t('feed.private', 'Private')}</option>
-              </select>
+              <button type="button" id="visibility-btn" style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: #666; background: #f1f5f9; border: none; border-radius: 16px; padding: 6px 12px; cursor: pointer; margin-top: 4px;">
+                <span id="visibility-icon">🌍</span>
+                <span id="visibility-label">${t('feed.public', 'Public')}</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
+              <input type="hidden" id="swal-visibility" value="public" />
             </div>
             <div id="char-counter" style="font-size: 14px; color: #666; font-weight: 500;">
               <span id="char-count">0</span>/<span>${MAX_CHARACTERS}</span>
@@ -323,6 +363,76 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
             <p style="font-size: 12px; color: #666; margin-bottom: 12px;">${t('feed.selectTopicsHelp', 'Select topics that best describe your post')}</p>
             <div style="display: flex; flex-wrap: wrap; gap: 8px;">
               ${topicsHtml}
+            </div>
+          </div>
+
+          <!-- Privacy/Visibility Panel -->
+          <div id="privacy-panel" style="display: none; padding: 16px; background: #f8fafc; border-radius: 12px; margin-bottom: 12px; border: 1px solid #e5e7eb;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <span style="font-weight: 600; font-size: 14px; color: #374151;">👁️ ${t('feed.whoCanSee', 'Who can see this post?')}</span>
+              <button type="button" id="close-privacy" style="background: none; border: none; cursor: pointer; padding: 4px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </button>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <button type="button" class="privacy-option-btn" data-value="public" data-icon="🌍" data-label="${t('feed.public', 'Public')}" style="display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px; border: 2px solid #1c76e6; background: #eff6ff; cursor: pointer; border-radius: 10px; text-align: left;">
+                <span style="font-size: 24px;">🌍</span>
+                <div>
+                  <div style="font-weight: 600; color: #1c76e6;">${t('feed.public', 'Public')}</div>
+                  <div style="font-size: 12px; color: #666;">${t('feed.publicDesc', 'Anyone can see this post')}</div>
+                </div>
+              </button>
+              
+              <button type="button" class="privacy-option-btn" data-value="friends" data-icon="👥" data-label="${t('feed.friendsOnly', 'Friends Only')}" style="display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px; border: 1px solid #e5e7eb; background: white; cursor: pointer; border-radius: 10px; text-align: left;">
+                <span style="font-size: 24px;">👥</span>
+                <div>
+                  <div style="font-weight: 600; color: #374151;">${t('feed.friendsOnly', 'Friends Only')}</div>
+                  <div style="font-size: 12px; color: #666;">${t('feed.friendsDesc', 'Only your friends can see this')}</div>
+                </div>
+              </button>
+              
+              <button type="button" class="privacy-option-btn" data-value="followers" data-icon="👤" data-label="${t('feed.followersOnly', 'Followers Only')}" style="display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px; border: 1px solid #e5e7eb; background: white; cursor: pointer; border-radius: 10px; text-align: left;">
+                <span style="font-size: 24px;">👤</span>
+                <div>
+                  <div style="font-weight: 600; color: #374151;">${t('feed.followersOnly', 'Followers Only')}</div>
+                  <div style="font-size: 12px; color: #666;">${t('feed.followersDesc', 'Only people who follow you')}</div>
+                </div>
+              </button>
+              
+              <button type="button" class="privacy-option-btn" data-value="custom" data-icon="📋" data-label="${t('feed.customLists', 'Custom Lists')}" style="display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px; border: 1px solid #e5e7eb; background: white; cursor: pointer; border-radius: 10px; text-align: left;">
+                <span style="font-size: 24px;">📋</span>
+                <div>
+                  <div style="font-weight: 600; color: #374151;">${t('feed.customLists', 'Custom Lists')}</div>
+                  <div style="font-size: 12px; color: #666;">${t('feed.customDesc', 'Share with specific friend lists')}</div>
+                </div>
+              </button>
+              
+              <button type="button" class="privacy-option-btn" data-value="private" data-icon="🔒" data-label="${t('feed.private', 'Private')}" style="display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px; border: 1px solid #e5e7eb; background: white; cursor: pointer; border-radius: 10px; text-align: left;">
+                <span style="font-size: 24px;">🔒</span>
+                <div>
+                  <div style="font-weight: 600; color: #374151;">${t('feed.private', 'Private')}</div>
+                  <div style="font-size: 12px; color: #666;">${t('feed.privateDesc', 'Only you can see this')}</div>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Custom Lists Selection Panel -->
+          <div id="custom-lists-panel" style="display: none; padding: 16px; background: #fef3c7; border-radius: 12px; margin-bottom: 12px; border: 1px solid #fbbf24;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <span style="font-weight: 600; font-size: 14px; color: #92400e;">📋 ${t('feed.selectLists', 'Select Custom Lists')}</span>
+              <button type="button" id="close-custom-lists" style="background: none; border: none; cursor: pointer; padding: 4px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#92400e" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </button>
+            </div>
+            <p style="font-size: 12px; color: #92400e; margin-bottom: 12px;">${t('feed.selectListsHelp', 'Choose which lists can see this post')}</p>
+            <div id="custom-lists-container" style="display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto;">
+              ${customListsHtml}
+            </div>
+            <div id="selected-lists-preview" style="display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid #fbbf24;">
+              <span style="font-size: 12px; color: #92400e; font-weight: 600;">${t('feed.selectedLists', 'Selected')}:</span>
+              <div id="selected-lists-tags" style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px;"></div>
             </div>
           </div>
 
@@ -575,12 +685,20 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
         // Panel toggle helpers
         const tagPanel = document.getElementById('tag-panel') as HTMLDivElement;
         const topicsPanel = document.getElementById('topics-panel') as HTMLDivElement;
+        const privacyPanel = document.getElementById('privacy-panel') as HTMLDivElement;
+        const customListsPanel = document.getElementById('custom-lists-panel') as HTMLDivElement;
         const tagSearch = document.getElementById('tag-search') as HTMLInputElement;
         const tagResults = document.getElementById('tag-results') as HTMLDivElement;
         const taggedPreview = document.getElementById('tagged-preview') as HTMLDivElement;
         const taggedItemsList = document.getElementById('tagged-items-list') as HTMLDivElement;
         const topicsPreview = document.getElementById('topics-preview') as HTMLDivElement;
         const topicsList = document.getElementById('topics-list') as HTMLDivElement;
+        const visibilityInput = document.getElementById('swal-visibility') as HTMLInputElement;
+        const visibilityBtn = document.getElementById('visibility-btn') as HTMLButtonElement;
+        const visibilityIcon = document.getElementById('visibility-icon') as HTMLSpanElement;
+        const visibilityLabel = document.getElementById('visibility-label') as HTMLSpanElement;
+        const selectedListsPreview = document.getElementById('selected-lists-preview') as HTMLDivElement;
+        const selectedListsTags = document.getElementById('selected-lists-tags') as HTMLDivElement;
         
         let currentTagType: 'user' | 'group' | 'page' = 'user';
         
@@ -591,6 +709,8 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
           mediaPanel.style.display = 'none';
           tagPanel.style.display = 'none';
           topicsPanel.style.display = 'none';
+          privacyPanel.style.display = 'none';
+          customListsPanel.style.display = 'none';
         };
 
         // Update tagged items preview
@@ -917,15 +1037,136 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
           });
         });
 
+        // Privacy panel functionality
+        const updateSelectedListsPreview = () => {
+          if (selectedCustomLists.length === 0) {
+            selectedListsPreview.style.display = 'none';
+            return;
+          }
+          
+          selectedListsPreview.style.display = 'block';
+          selectedListsTags.innerHTML = selectedCustomLists.map((list, index) => `
+            <span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; background: white; border: 1px solid #fbbf24; border-radius: 16px; font-size: 12px;">
+              <span>${list.icon}</span>
+              <span style="color: #92400e; font-weight: 500;">${list.name}</span>
+              <button type="button" class="remove-list-btn" data-index="${index}" style="background: none; border: none; cursor: pointer; padding: 0; margin-left: 2px;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#92400e" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </button>
+            </span>
+          `).join('');
+          
+          document.querySelectorAll('.remove-list-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+              const index = parseInt((e.currentTarget as HTMLButtonElement).dataset.index || '0');
+              const removedList = selectedCustomLists[index];
+              selectedCustomLists.splice(index, 1);
+              updateSelectedListsPreview();
+              // Update button state
+              document.querySelectorAll('.custom-list-btn').forEach(listBtn => {
+                const btnElement = listBtn as HTMLButtonElement;
+                if (btnElement.dataset.listId === removedList.id) {
+                  btnElement.style.background = 'white';
+                  btnElement.style.borderColor = '#e5e7eb';
+                }
+              });
+            });
+          });
+        };
+
+        visibilityBtn?.addEventListener('click', () => {
+          const isVisible = privacyPanel.style.display === 'block';
+          closeAllPanels();
+          privacyPanel.style.display = isVisible ? 'none' : 'block';
+        });
+
+        document.getElementById('close-privacy')?.addEventListener('click', () => {
+          privacyPanel.style.display = 'none';
+        });
+
+        document.getElementById('close-custom-lists')?.addEventListener('click', () => {
+          customListsPanel.style.display = 'none';
+        });
+
+        document.querySelectorAll('.privacy-option-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const el = e.currentTarget as HTMLButtonElement;
+            const value = el.dataset.value!;
+            const icon = el.dataset.icon!;
+            const label = el.dataset.label!;
+            
+            // Update hidden input
+            visibilityInput.value = value;
+            
+            // Update button display
+            visibilityIcon.textContent = icon;
+            visibilityLabel.textContent = label;
+            
+            // Update button styles
+            document.querySelectorAll('.privacy-option-btn').forEach(optBtn => {
+              const optElement = optBtn as HTMLButtonElement;
+              if (optElement === el) {
+                optElement.style.border = '2px solid #1c76e6';
+                optElement.style.background = '#eff6ff';
+                optElement.querySelector('div > div:first-child')!.setAttribute('style', 'font-weight: 600; color: #1c76e6;');
+              } else {
+                optElement.style.border = '1px solid #e5e7eb';
+                optElement.style.background = 'white';
+                optElement.querySelector('div > div:first-child')!.setAttribute('style', 'font-weight: 600; color: #374151;');
+              }
+            });
+            
+            // Handle custom lists selection
+            if (value === 'custom') {
+              privacyPanel.style.display = 'none';
+              customListsPanel.style.display = 'block';
+            } else {
+              privacyPanel.style.display = 'none';
+              customListsPanel.style.display = 'none';
+              selectedCustomLists.length = 0;
+              updateSelectedListsPreview();
+            }
+          });
+        });
+
+        document.querySelectorAll('.custom-list-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const el = e.currentTarget as HTMLButtonElement;
+            const listId = el.dataset.listId!;
+            const existingIndex = selectedCustomLists.findIndex(l => l.id === listId);
+            
+            if (existingIndex >= 0) {
+              selectedCustomLists.splice(existingIndex, 1);
+              el.style.background = 'white';
+              el.style.borderColor = '#e5e7eb';
+            } else {
+              selectedCustomLists.push({
+                id: listId,
+                name: el.dataset.listName!,
+                icon: el.dataset.listIcon!,
+                color: el.dataset.listColor!
+              });
+              el.style.background = '#fef3c7';
+              el.style.borderColor = '#fbbf24';
+            }
+            updateSelectedListsPreview();
+          });
+        });
+
         // Focus textarea
         textarea?.focus();
       },
       preConfirm: async () => {
         const content = (document.getElementById('swal-post-content') as HTMLTextAreaElement).value;
-        const visibility = (document.getElementById('swal-visibility') as HTMLSelectElement).value;
+        const visibility = (document.getElementById('swal-visibility') as HTMLInputElement).value;
         
         if (!content.trim() && mediaFiles.length === 0) {
           Swal.showValidationMessage(t('feed.postCannotBeEmpty', 'Post cannot be empty'));
+          return false;
+        }
+
+        // Validate custom lists selection
+        if (visibility === 'custom' && selectedCustomLists.length === 0) {
+          Swal.showValidationMessage(t('feed.selectAtLeastOneList', 'Please select at least one list'));
           return false;
         }
         
@@ -941,20 +1182,42 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
           }
         }
         
-        return { content: content.trim(), visibility, mediaUrls: uploadedUrls };
+        return { 
+          content: content.trim(), 
+          visibility, 
+          mediaUrls: uploadedUrls,
+          customListIds: selectedCustomLists.map(l => l.id)
+        };
       }
     });
 
     if (formValues) {
       try {
-        const { error } = await supabase.from("posts").insert({
+        // Insert the post
+        const { data: postData, error: postError } = await supabase.from("posts").insert({
           user_id: user.id,
           content: formValues.content || null,
           visibility: formValues.visibility,
           media_urls: formValues.mediaUrls.length > 0 ? formValues.mediaUrls : null,
-        });
+        }).select('id').single();
 
-        if (error) throw error;
+        if (postError) throw postError;
+
+        // If custom visibility, save the selected lists
+        if (formValues.visibility === 'custom' && formValues.customListIds.length > 0 && postData) {
+          const visibilityListEntries = formValues.customListIds.map((listId: string) => ({
+            post_id: postData.id,
+            list_id: listId,
+          }));
+
+          const { error: listError } = await supabase
+            .from('post_visibility_lists')
+            .insert(visibilityListEntries);
+
+          if (listError) {
+            console.error('Error saving visibility lists:', listError);
+          }
+        }
 
         toast({
           title: t('feed.postShared', 'Post shared!'),
