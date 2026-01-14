@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Loader2, Reply, X, Trash2, Heart } from "lucide-react";
+import { Send, Loader2, Reply, X, Trash2, Heart, Pencil, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { formatDistanceToNow } from "date-fns";
@@ -14,6 +14,7 @@ interface GroupComment {
   id: string;
   content: string;
   created_at: string;
+  updated_at: string;
   user_id: string;
   parent_comment_id: string | null;
   profiles?: {
@@ -36,13 +37,39 @@ interface CommentItemProps {
   onReply: (commentId: string, displayName: string) => void;
   onDelete: (commentId: string, hasReplies: boolean) => void;
   onLike: (commentId: string, isLiked: boolean) => void;
+  onEdit: (commentId: string, newContent: string) => void;
   isReply?: boolean;
 }
 
-const CommentItem = ({ comment, onReply, onDelete, onLike, isReply = false }: CommentItemProps) => {
+const CommentItem = ({ comment, onReply, onDelete, onLike, onEdit, isReply = false }: CommentItemProps) => {
   const { user } = useAuth();
   const isOwner = user?.id === comment.user_id;
   const hasReplies = (comment.replies?.length || 0) > 0;
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(comment.content);
+  const wasEdited = comment.updated_at !== comment.created_at;
+
+  const handleSaveEdit = () => {
+    if (editContent.trim() && editContent.trim() !== comment.content) {
+      onEdit(comment.id, editContent.trim());
+    }
+    setIsEditing(false);
+  };
+
+  const handleCancelEdit = () => {
+    setEditContent(comment.content);
+    setIsEditing(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSaveEdit();
+    }
+    if (e.key === "Escape") {
+      handleCancelEdit();
+    }
+  };
   
   return (
     <div className={`flex gap-2 ${isReply ? "ml-10" : ""}`}>
@@ -57,22 +84,54 @@ const CommentItem = ({ comment, onReply, onDelete, onLike, isReply = false }: Co
           <p className={`font-medium text-foreground ${isReply ? "text-xs" : "text-sm"}`}>
             {comment.profiles?.display_name || "Unknown User"}
           </p>
-          <p className={`text-foreground whitespace-pre-wrap break-words ${isReply ? "text-xs" : "text-sm"}`}>
-            {comment.content}
-          </p>
-          {isOwner && (
-            <button
-              onClick={() => onDelete(comment.id, hasReplies)}
-              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
-              title="Delete comment"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-            </button>
+          {isEditing ? (
+            <div className="mt-1">
+              <Textarea
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                onKeyDown={handleKeyDown}
+                className="min-h-[36px] max-h-32 resize-none text-sm"
+                rows={2}
+                autoFocus
+              />
+              <div className="flex items-center gap-2 mt-2">
+                <Button size="sm" variant="default" onClick={handleSaveEdit} className="h-7 px-2">
+                  <Check className="h-3 w-3 mr-1" />
+                  Save
+                </Button>
+                <Button size="sm" variant="ghost" onClick={handleCancelEdit} className="h-7 px-2">
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <p className={`text-foreground whitespace-pre-wrap break-words ${isReply ? "text-xs" : "text-sm"}`}>
+              {comment.content}
+            </p>
+          )}
+          {isOwner && !isEditing && (
+            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+              <button
+                onClick={() => setIsEditing(true)}
+                className="text-muted-foreground hover:text-primary"
+                title="Edit comment"
+              >
+                <Pencil className="h-3.5 w-3.5" />
+              </button>
+              <button
+                onClick={() => onDelete(comment.id, hasReplies)}
+                className="text-muted-foreground hover:text-destructive"
+                title="Delete comment"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            </div>
           )}
         </div>
         <div className="flex items-center gap-3 mt-1">
           <p className="text-xs text-muted-foreground">
             {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
+            {wasEdited && <span className="ml-1">(edited)</span>}
           </p>
           {user && (
             <button
@@ -104,6 +163,7 @@ const CommentItem = ({ comment, onReply, onDelete, onLike, isReply = false }: Co
                 onReply={onReply} 
                 onDelete={onDelete}
                 onLike={onLike}
+                onEdit={onEdit}
                 isReply 
               />
             ))}
@@ -267,6 +327,27 @@ export const GroupPostCommentSection = ({ postId, onCommentCountChange }: GroupP
     },
   });
 
+  const editCommentMutation = useMutation({
+    mutationFn: async ({ commentId, content }: { commentId: string; content: string }) => {
+      if (!user) throw new Error("Not authenticated");
+
+      const { error } = await supabase
+        .from("group_post_comments")
+        .update({ content, updated_at: new Date().toISOString() })
+        .eq("id", commentId)
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Comment updated");
+      queryClient.invalidateQueries({ queryKey: ["group-post-comments", postId] });
+    },
+    onError: () => {
+      toast.error("Failed to update comment");
+    },
+  });
+
   const likeCommentMutation = useMutation({
     mutationFn: async ({ commentId, isLiked }: { commentId: string; isLiked: boolean }) => {
       if (!user) throw new Error("Not authenticated");
@@ -315,6 +396,10 @@ export const GroupPostCommentSection = ({ postId, onCommentCountChange }: GroupP
     deleteCommentMutation.mutate({ commentId, deleteCount });
   };
 
+  const handleEdit = (commentId: string, newContent: string) => {
+    editCommentMutation.mutate({ commentId, content: newContent });
+  };
+
   const handleLike = (commentId: string, isLiked: boolean) => {
     likeCommentMutation.mutate({ commentId, isLiked });
   };
@@ -343,6 +428,7 @@ export const GroupPostCommentSection = ({ postId, onCommentCountChange }: GroupP
               onReply={handleReply}
               onDelete={handleDelete}
               onLike={handleLike}
+              onEdit={handleEdit}
             />
           ))
         )}
