@@ -6,9 +6,15 @@ import { PostCard } from "./PostCard";
 import { DemoPostCard } from "./DemoPostCard";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, ChevronDown } from "lucide-react";
+import { Loader2, ChevronDown, Check } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "react-i18next";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface Post {
   id: string;
@@ -76,54 +82,102 @@ const demoPosts = [
   },
 ];
 
+type FilterType = "following" | "trending" | "recent";
+
 export const Feed = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<"following" | "trending" | "recent">("following");
+  const [filter, setFilter] = useState<FilterType>("recent");
 
   const fetchPosts = async () => {
     try {
+      setLoading(true);
       let postsData: any[] = [];
 
-      if (user) {
-        // Logged in: fetch public posts + user's own posts (any visibility)
-        const { data: publicPosts, error: publicError } = await supabase
-          .from("posts")
-          .select("*")
-          .eq("visibility", "public")
-          .order("created_at", { ascending: false })
-          .limit(20);
+      if (user && filter === "following") {
+        // Get friends list first
+        const { data: friendships } = await supabase
+          .from("friendships")
+          .select("requester_id, addressee_id")
+          .or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`)
+          .eq("status", "accepted");
 
-        if (publicError) throw publicError;
+        const friendIds = friendships?.map(f => 
+          f.requester_id === user.id ? f.addressee_id : f.requester_id
+        ) || [];
 
-        const { data: myPosts, error: myError } = await supabase
-          .from("posts")
-          .select("*")
-          .eq("user_id", user.id)
-          .neq("visibility", "public")
-          .order("created_at", { ascending: false })
-          .limit(20);
+        if (friendIds.length > 0) {
+          // Fetch posts from friends
+          const { data, error } = await supabase
+            .from("posts")
+            .select("*")
+            .in("user_id", friendIds)
+            .eq("visibility", "public")
+            .order("created_at", { ascending: false })
+            .limit(20);
 
-        if (myError) throw myError;
-
-        // Merge and sort by date
-        const allPosts = [...(publicPosts || []), ...(myPosts || [])];
-        postsData = allPosts.sort((a, b) => 
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        ).slice(0, 20);
-      } else {
-        // Not logged in: only public posts
+          if (error) throw error;
+          postsData = data || [];
+        }
+      } else if (filter === "trending") {
+        // Trending: sort by engagement (likes + comments + shares)
         const { data, error } = await supabase
           .from("posts")
           .select("*")
           .eq("visibility", "public")
-          .order("created_at", { ascending: false })
+          .order("likes_count", { ascending: false })
           .limit(20);
 
         if (error) throw error;
-        postsData = data || [];
+        
+        // Sort by total engagement score
+        postsData = (data || []).sort((a, b) => {
+          const scoreA = (a.likes_count || 0) + (a.comments_count || 0) + (a.shares_count || 0);
+          const scoreB = (b.likes_count || 0) + (b.comments_count || 0) + (b.shares_count || 0);
+          return scoreB - scoreA;
+        });
+      } else {
+        // Recent: default sorting by created_at
+        if (user) {
+          // Logged in: fetch public posts + user's own posts (any visibility)
+          const { data: publicPosts, error: publicError } = await supabase
+            .from("posts")
+            .select("*")
+            .eq("visibility", "public")
+            .order("created_at", { ascending: false })
+            .limit(20);
+
+          if (publicError) throw publicError;
+
+          const { data: myPosts, error: myError } = await supabase
+            .from("posts")
+            .select("*")
+            .eq("user_id", user.id)
+            .neq("visibility", "public")
+            .order("created_at", { ascending: false })
+            .limit(20);
+
+          if (myError) throw myError;
+
+          // Merge and sort by date
+          const allPosts = [...(publicPosts || []), ...(myPosts || [])];
+          postsData = allPosts.sort((a, b) => 
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          ).slice(0, 20);
+        } else {
+          // Not logged in: only public posts
+          const { data, error } = await supabase
+            .from("posts")
+            .select("*")
+            .eq("visibility", "public")
+            .order("created_at", { ascending: false })
+            .limit(20);
+
+          if (error) throw error;
+          postsData = data || [];
+        }
       }
 
       // Fetch profiles for each post
@@ -171,7 +225,7 @@ export const Feed = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [filter, user?.id]);
 
   const getFilterLabel = () => {
     switch (filter) {
@@ -182,6 +236,18 @@ export const Feed = () => {
     }
   };
 
+  const handleFilterChange = (newFilter: FilterType) => {
+    if (newFilter !== filter) {
+      setFilter(newFilter);
+    }
+  };
+
+  const filterOptions: { value: FilterType; label: string }[] = [
+    { value: "following", label: t("feed.following") },
+    { value: "trending", label: t("feed.trending") },
+    { value: "recent", label: t("feed.recent") },
+  ];
+
   return (
     <div className="max-w-2xl mx-auto">
       <StoriesRow />
@@ -190,10 +256,28 @@ export const Feed = () => {
       {/* Filter tabs */}
       <div className="flex items-center justify-end mb-4 gap-2">
         <span className="text-sm text-muted-foreground">{t("feed.sortBy")}:</span>
-        <Button variant="ghost" size="sm" className="gap-1 text-foreground font-medium">
-          {getFilterLabel()}
-          <ChevronDown className="h-4 w-4 text-muted-foreground" />
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm" className="gap-1 text-foreground font-medium">
+              {getFilterLabel()}
+              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-40">
+            {filterOptions.map((option) => (
+              <DropdownMenuItem
+                key={option.value}
+                onClick={() => handleFilterChange(option.value)}
+                className="flex items-center justify-between cursor-pointer"
+              >
+                {option.label}
+                {filter === option.value && (
+                  <Check className="h-4 w-4 text-primary" />
+                )}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Posts */}
