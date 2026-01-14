@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { MessageCircle, Share2, MoreVertical, Bookmark, FileText, Music, Pencil, Trash2 } from "lucide-react";
+import { MessageCircle, Share2, MoreVertical, Bookmark, FileText, Music, Pencil, Trash2, Copy, Facebook, Twitter, Link2, Check } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,9 +15,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "react-i18next";
 import { toast } from "@/hooks/use-toast";
 import { CommentSection } from "./CommentSection";
-import { ShareDialog } from "./ShareDialog";
 import { ReactionPicker } from "./ReactionPicker";
 import Swal from "sweetalert2";
+import ReactDOMServer from "react-dom/server";
 
 interface PostCardProps {
   post: {
@@ -44,8 +44,6 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
   const { user } = useAuth();
   const [commentsCount, setCommentsCount] = useState(post.comments_count || 0);
   const [sharesCount, setSharesCount] = useState(post.shares_count || 0);
-  const [showComments, setShowComments] = useState(false);
-  const [showShareDialog, setShowShareDialog] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [postContent, setPostContent] = useState(post.content);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -206,6 +204,194 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
     }
   };
 
+  const handleImageClick = (imageUrl: string, allImages: string[]) => {
+    const currentIndex = allImages.indexOf(imageUrl);
+    
+    Swal.fire({
+      imageUrl: imageUrl,
+      imageAlt: 'Post image',
+      showConfirmButton: false,
+      showCloseButton: true,
+      width: 'auto',
+      padding: '0',
+      background: 'transparent',
+      customClass: {
+        popup: 'swal-image-popup',
+        image: 'max-h-[80vh] max-w-[90vw] object-contain rounded-lg',
+        closeButton: 'text-white hover:text-gray-300',
+      },
+      showClass: {
+        popup: 'animate__animated animate__fadeIn animate__faster'
+      },
+      hideClass: {
+        popup: 'animate__animated animate__fadeOut animate__faster'
+      },
+    });
+  };
+
+  const handleCommentsClick = async () => {
+    const { value: newComment } = await Swal.fire({
+      title: t('feed.comments', 'Comments'),
+      html: `
+        <div id="swal-comments-container" class="max-h-[400px] overflow-y-auto text-left mb-4">
+          <p class="text-gray-500 text-center py-4">${t('feed.loadingComments', 'Loading comments...')}</p>
+        </div>
+      `,
+      input: 'textarea',
+      inputPlaceholder: t('feed.writeComment', 'Write a comment...'),
+      inputAttributes: {
+        'aria-label': 'Comment',
+        style: 'min-height: 60px; resize: vertical;'
+      },
+      showCancelButton: true,
+      confirmButtonText: t('feed.postComment', 'Post Comment'),
+      cancelButtonText: t('common.close', 'Close'),
+      confirmButtonColor: '#1c76e6',
+      width: '500px',
+      didOpen: async () => {
+        const container = document.getElementById('swal-comments-container');
+        if (container) {
+          const { data: comments } = await supabase
+            .from('post_comments')
+            .select(`
+              id, content, created_at, user_id,
+              profiles:user_id (display_name, avatar_url)
+            `)
+            .eq('post_id', post.id)
+            .is('parent_comment_id', null)
+            .order('created_at', { ascending: false })
+            .limit(20);
+
+          if (comments && comments.length > 0) {
+            container.innerHTML = comments.map((c: any) => `
+              <div class="flex gap-3 p-3 border-b border-gray-200 dark:border-gray-700">
+                <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-medium">
+                  ${c.profiles?.display_name?.[0]?.toUpperCase() || 'U'}
+                </div>
+                <div class="flex-1">
+                  <div class="flex items-center gap-2">
+                    <span class="font-medium text-sm">${c.profiles?.display_name || 'User'}</span>
+                    <span class="text-xs text-gray-500">${formatDistanceToNow(new Date(c.created_at), { addSuffix: true })}</span>
+                  </div>
+                  <p class="text-sm mt-1">${c.content}</p>
+                </div>
+              </div>
+            `).join('');
+          } else {
+            container.innerHTML = `<p class="text-gray-500 text-center py-4">${t('feed.noComments', 'No comments yet. Be the first to comment!')}</p>`;
+          }
+        }
+      },
+      preConfirm: (comment) => {
+        if (!comment?.trim()) {
+          Swal.showValidationMessage(t('feed.commentRequired', 'Please enter a comment'));
+          return false;
+        }
+        return comment.trim();
+      }
+    });
+
+    if (newComment && user) {
+      try {
+        await supabase.from('post_comments').insert({
+          post_id: post.id,
+          user_id: user.id,
+          content: newComment,
+        });
+        setCommentsCount(prev => prev + 1);
+        toast({
+          title: t('feed.commentAdded', 'Comment added'),
+          description: t('feed.commentAddedDesc', 'Your comment has been posted.'),
+        });
+      } catch (error) {
+        console.error('Error adding comment:', error);
+        toast({
+          title: t('common.error', 'Error'),
+          description: t('feed.commentFailed', 'Failed to add comment.'),
+          variant: 'destructive',
+        });
+      }
+    }
+  };
+
+  const handleShareClick = async () => {
+    const postUrl = `${window.location.origin}/post/${post.id}`;
+    
+    const result = await Swal.fire({
+      title: t('feed.sharePost', 'Share Post'),
+      html: `
+        <div class="space-y-4 text-left">
+          <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            ${post.content ? `"${post.content.substring(0, 100)}${post.content.length > 100 ? '...' : ''}"` : t('feed.shareThisPost', 'Share this post with your friends')}
+          </p>
+          <div class="flex gap-3 justify-center mb-4">
+            <button id="share-facebook" class="p-3 rounded-full bg-blue-600 hover:bg-blue-700 text-white transition-colors" title="Facebook">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+            </button>
+            <button id="share-twitter" class="p-3 rounded-full bg-black hover:bg-gray-800 text-white transition-colors" title="X (Twitter)">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            </button>
+            <button id="share-copy" class="p-3 rounded-full bg-gray-600 hover:bg-gray-700 text-white transition-colors" title="Copy Link">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m9.9-9.9l1.757-1.757a4.5 4.5 0 016.364 6.364l-4.5 4.5a4.5 4.5 0 01-7.244-1.242M12 12H9.75"/></svg>
+            </button>
+          </div>
+          <div class="flex items-center gap-2 p-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
+            <input id="share-url" type="text" value="${postUrl}" class="flex-1 bg-transparent text-sm outline-none" readonly />
+            <button id="copy-url-btn" class="px-3 py-1 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors">
+              ${t('common.copy', 'Copy')}
+            </button>
+          </div>
+        </div>
+      `,
+      showConfirmButton: false,
+      showCloseButton: true,
+      width: '400px',
+      didOpen: () => {
+        const facebookBtn = document.getElementById('share-facebook');
+        const twitterBtn = document.getElementById('share-twitter');
+        const copyBtn = document.getElementById('share-copy');
+        const copyUrlBtn = document.getElementById('copy-url-btn');
+
+        facebookBtn?.addEventListener('click', () => {
+          window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(postUrl)}`, '_blank');
+          incrementShareCount();
+          Swal.close();
+        });
+
+        twitterBtn?.addEventListener('click', () => {
+          window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(postUrl)}&text=${encodeURIComponent(post.content || '')}`, '_blank');
+          incrementShareCount();
+          Swal.close();
+        });
+
+        const copyToClipboard = async () => {
+          await navigator.clipboard.writeText(postUrl);
+          toast({
+            title: t('feed.linkCopied', 'Link copied!'),
+            description: t('feed.linkCopiedDesc', 'Post link has been copied to clipboard.'),
+          });
+          incrementShareCount();
+          Swal.close();
+        };
+
+        copyBtn?.addEventListener('click', copyToClipboard);
+        copyUrlBtn?.addEventListener('click', copyToClipboard);
+      }
+    });
+  };
+
+  const incrementShareCount = async () => {
+    try {
+      await supabase
+        .from('posts')
+        .update({ shares_count: sharesCount + 1 })
+        .eq('id', post.id);
+      setSharesCount(prev => prev + 1);
+    } catch (error) {
+      console.error('Error updating share count:', error);
+    }
+  };
+
   const getMediaType = (url: string): "image" | "video" | "audio" | "document" => {
     const ext = url.split(".").pop()?.toLowerCase() || "";
     if (["jpg", "jpeg", "png", "gif", "webp", "svg"].includes(ext)) return "image";
@@ -213,6 +399,8 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
     if (["mp3", "wav", "ogg", "m4a"].includes(ext)) return "audio";
     return "document";
   };
+
+  const allImages = post.media_urls?.filter(url => getMediaType(url) === "image") || [];
 
   const renderMedia = (url: string, index: number) => {
     const type = getMediaType(url);
@@ -256,11 +444,15 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
         );
       default:
         return (
-          <div key={index} className="relative aspect-square bg-secondary overflow-hidden">
+          <div 
+            key={index} 
+            className="relative aspect-square bg-secondary overflow-hidden cursor-pointer"
+            onClick={() => handleImageClick(url, allImages)}
+          >
             <img
               src={url}
               alt={`Post media ${index + 1}`}
-              className="w-full h-full object-cover cursor-pointer hover:opacity-95 transition-opacity"
+              className="w-full h-full object-cover hover:opacity-95 transition-opacity"
               loading="lazy"
             />
           </div>
@@ -372,18 +564,18 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
           <Button 
             variant="ghost" 
             size="sm" 
-            className={`gap-1 sm:gap-2 ${showComments ? 'text-primary' : 'text-muted-foreground'}`}
-            onClick={() => setShowComments(!showComments)}
+            className="gap-1 sm:gap-2 text-muted-foreground hover:text-primary"
+            onClick={handleCommentsClick}
           >
-            <MessageCircle className={`h-5 w-5 ${showComments ? 'fill-current' : ''}`} />
+            <MessageCircle className="h-5 w-5" />
             <span className="hidden sm:inline">{commentsCount}</span>
             <span className="sm:hidden">{commentsCount}</span>
           </Button>
           <Button 
             variant="ghost" 
             size="sm" 
-            className="gap-1 sm:gap-2 text-muted-foreground"
-            onClick={() => setShowShareDialog(true)}
+            className="gap-1 sm:gap-2 text-muted-foreground hover:text-primary"
+            onClick={handleShareClick}
           >
             <Share2 className="h-5 w-5" />
             <span className="hidden sm:inline">{sharesCount}</span>
@@ -399,23 +591,6 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
           <Bookmark className={`h-5 w-5 ${isBookmarked ? 'fill-current' : ''}`} />
         </Button>
       </div>
-
-      {/* Comments Section */}
-      {showComments && (
-        <CommentSection 
-          postId={post.id} 
-          onCommentCountChange={setCommentsCount}
-        />
-      )}
-
-      {/* Share Dialog */}
-      <ShareDialog
-        open={showShareDialog}
-        onOpenChange={setShowShareDialog}
-        postId={post.id}
-        postContent={post.content}
-        onShareComplete={() => setSharesCount(prev => prev + 1)}
-      />
     </div>
   );
 };
