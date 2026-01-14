@@ -249,16 +249,17 @@ serve(async (req) => {
       
       logStep("Auto-payout setting", { enabled: autoPayoutEnabled });
 
-      // Check if referrer has Stripe Connect and transfer instantly (if auto-payout enabled)
+      // Check if referrer has Stripe Connect or PayPal for auto-payout
       const { data: referrerPrivate } = await supabaseClient
         .from("profiles_private")
-        .select("stripe_connect_id")
+        .select("stripe_connect_id, paypal_payout_email")
         .eq("user_id", profile.referrer_id)
         .single();
 
       let autoPaidSuccessfully = false;
 
       if (autoPayoutEnabled && referrerPrivate?.stripe_connect_id) {
+        // Try Stripe Connect auto-payout first
         logStep("Referrer has Stripe Connect and auto-payout enabled, attempting auto-payout", { 
           connectId: referrerPrivate.stripe_connect_id 
         });
@@ -296,7 +297,7 @@ serve(async (req) => {
               })
               .eq("id", commission.id);
 
-            logStep("Commission marked as paid via auto-payout");
+            logStep("Commission marked as paid via Stripe auto-payout");
             autoPaidSuccessfully = true;
 
             // Send payout completed notification
@@ -322,18 +323,79 @@ serve(async (req) => {
               logStep("Failed to send payout notification", { error: String(notifError) });
             }
           } else {
-            logStep("Referrer's Stripe account not ready for payouts, commission remains pending");
+            logStep("Referrer's Stripe account not ready for payouts");
           }
         } catch (transferError) {
-          logStep("Auto-payout failed, commission remains pending", { 
+          logStep("Stripe auto-payout failed", { 
             error: transferError instanceof Error ? transferError.message : String(transferError) 
           });
-          // Commission stays as "pending" - can be paid manually later
         }
-      } else if (!autoPayoutEnabled) {
+      }
+
+      // If Stripe auto-payout didn't work, try PayPal auto-payout
+      if (autoPayoutEnabled && !autoPaidSuccessfully && referrerPrivate?.paypal_payout_email) {
+        logStep("Attempting PayPal auto-payout", { 
+          email: referrerPrivate.paypal_payout_email 
+        });
+
+        try {
+          const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+          const paypalResponse = await fetch(`${supabaseUrl}/functions/v1/paypal-auto-payout`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+            },
+            body: JSON.stringify({
+              referrer_id: profile.referrer_id,
+              commission_id: commission.id,
+              amount: commissionAmount / 100,
+              currency: invoice.currency?.toUpperCase() || "USD",
+              paypal_email: referrerPrivate.paypal_payout_email,
+            }),
+          });
+
+          const paypalResult = await paypalResponse.json();
+          
+          if (paypalResult.success) {
+            logStep("PayPal auto-payout successful", { batchId: paypalResult.payout_batch_id });
+            autoPaidSuccessfully = true;
+
+            // Send payout completed notification
+            try {
+              await fetch(`${supabaseUrl}/functions/v1/send-commission-notification`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+                },
+                body: JSON.stringify({
+                  referrer_id: profile.referrer_id,
+                  type: "payout_completed",
+                  amount: commissionAmount / 100,
+                  currency: invoice.currency?.toUpperCase() || "USD",
+                  referred_user_name: referredUserName,
+                  payout_method: "paypal",
+                }),
+              });
+              logStep("Payout completed notification sent");
+            } catch (notifError) {
+              logStep("Failed to send payout notification", { error: String(notifError) });
+            }
+          } else {
+            logStep("PayPal auto-payout failed", { error: paypalResult.error });
+          }
+        } catch (paypalError) {
+          logStep("PayPal auto-payout error", { 
+            error: paypalError instanceof Error ? paypalError.message : String(paypalError) 
+          });
+        }
+      }
+
+      if (!autoPayoutEnabled) {
         logStep("Auto-payout is disabled globally, commission remains pending for manual payout");
-      } else {
-        logStep("Referrer has no Stripe Connect, commission remains pending for manual payout");
+      } else if (!autoPaidSuccessfully) {
+        logStep("No auto-payout method available, commission remains pending for manual payout");
       }
 
       // Send commission earned notification (if not auto-paid, they need to know they earned it)
