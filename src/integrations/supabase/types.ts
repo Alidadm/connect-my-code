@@ -71,6 +71,68 @@ export type Database = {
           },
         ]
       }
+      custom_list_members: {
+        Row: {
+          added_at: string
+          id: string
+          list_id: string
+          member_user_id: string
+        }
+        Insert: {
+          added_at?: string
+          id?: string
+          list_id: string
+          member_user_id: string
+        }
+        Update: {
+          added_at?: string
+          id?: string
+          list_id?: string
+          member_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_list_members_list_id_fkey"
+            columns: ["list_id"]
+            isOneToOne: false
+            referencedRelation: "custom_lists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      custom_lists: {
+        Row: {
+          color: string | null
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       event_rsvps: {
         Row: {
           created_at: string
@@ -567,6 +629,42 @@ export type Database = {
             columns: ["topic_id"]
             isOneToOne: false
             referencedRelation: "topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      post_visibility_lists: {
+        Row: {
+          created_at: string
+          id: string
+          list_id: string
+          post_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          list_id: string
+          post_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          list_id?: string
+          post_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_visibility_lists_list_id_fkey"
+            columns: ["list_id"]
+            isOneToOne: false
+            referencedRelation: "custom_lists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_visibility_lists_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
             referencedColumns: ["id"]
           },
         ]
