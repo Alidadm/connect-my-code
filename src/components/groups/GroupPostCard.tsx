@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Heart, MessageCircle, MoreVertical, Trash2, ChevronDown, ChevronUp, Flag } from "lucide-react";
+import { Heart, MessageCircle, MoreVertical, Trash2, ChevronDown, ChevronUp, Flag, Share2 } from "lucide-react";
 import { GroupPostCommentSection } from "./GroupPostCommentSection";
 import { ReportContentDialog } from "./ReportContentDialog";
+import { GroupShareDialog } from "./GroupShareDialog";
 import { formatDistanceToNow } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -48,6 +49,7 @@ export const GroupPostCard = ({ post, onPostChange, canModerate }: GroupPostCard
   const [isLiking, setIsLiking] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [showReportDialog, setShowReportDialog] = useState(false);
+  const [showShareDialog, setShowShareDialog] = useState(false);
 
   const handleLike = async () => {
     if (!user || isLiking) return;
@@ -239,6 +241,15 @@ export const GroupPostCard = ({ post, onPostChange, canModerate }: GroupPostCard
               <ChevronDown className="h-3 w-3" />
             )}
           </Button>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="gap-2"
+            onClick={() => setShowShareDialog(true)}
+          >
+            <Share2 className="h-4 w-4" />
+            Share
+          </Button>
         </div>
       </CardContent>
 
@@ -258,6 +269,15 @@ export const GroupPostCard = ({ post, onPostChange, canModerate }: GroupPostCard
         groupId={post.group_id}
         postId={post.id}
         contentType="post"
+      />
+
+      {/* Share Dialog */}
+      <GroupShareDialog
+        open={showShareDialog}
+        onOpenChange={setShowShareDialog}
+        groupId={post.group_id}
+        postId={post.id}
+        postContent={post.content}
       />
     </Card>
   );
