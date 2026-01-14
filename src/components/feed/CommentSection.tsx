@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Loader2, Reply, X, Trash2, Heart, Pencil, Check } from "lucide-react";
+import { Send, Loader2, Reply, X, Trash2, Heart, Pencil, Check, ChevronDown, ChevronUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { formatDistanceToNow } from "date-fns";
@@ -41,12 +41,19 @@ interface CommentItemProps {
   isReply?: boolean;
 }
 
+const COLLAPSE_THRESHOLD = 2; // Collapse when more than 2 replies
+
 const CommentItem = ({ comment, onReply, onDelete, onLike, onEdit, isReply = false }: CommentItemProps) => {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const isOwner = user?.id === comment.user_id;
   const hasReplies = (comment.replies?.length || 0) > 0;
+  const replyCount = comment.replies?.length || 0;
+  const shouldCollapse = replyCount > COLLAPSE_THRESHOLD;
+  
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(comment.content);
+  const [isExpanded, setIsExpanded] = useState(!shouldCollapse);
   const wasEdited = comment.updated_at !== comment.created_at;
 
   const handleSaveEdit = () => {
@@ -70,6 +77,10 @@ const CommentItem = ({ comment, onReply, onDelete, onLike, onEdit, isReply = fal
       handleCancelEdit();
     }
   };
+
+  const visibleReplies = isExpanded 
+    ? comment.replies 
+    : comment.replies?.slice(0, COLLAPSE_THRESHOLD);
   
   return (
     <div className={`flex gap-2 ${isReply ? "ml-10" : ""}`}>
@@ -152,11 +163,28 @@ const CommentItem = ({ comment, onReply, onDelete, onLike, onEdit, isReply = fal
               Reply
             </button>
           )}
+          {hasReplies && !isReply && (
+            <span className="text-xs text-muted-foreground">
+              {replyCount} {replyCount === 1 ? t("feed.reply", "reply") : t("feed.replies", "replies")}
+            </span>
+          )}
         </div>
+        
         {/* Render nested replies */}
-        {comment.replies && comment.replies.length > 0 && (
+        {hasReplies && (
           <div className="mt-2 space-y-2">
-            {comment.replies.map((reply) => (
+            {/* Show/Hide toggle for collapsed threads */}
+            {shouldCollapse && !isExpanded && (
+              <button
+                onClick={() => setIsExpanded(true)}
+                className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors ml-2"
+              >
+                <ChevronDown className="h-3 w-3" />
+                {t("feed.showMoreReplies", "Show {{count}} more replies", { count: replyCount - COLLAPSE_THRESHOLD })}
+              </button>
+            )}
+            
+            {visibleReplies?.map((reply) => (
               <CommentItem 
                 key={reply.id} 
                 comment={reply}
@@ -167,6 +195,17 @@ const CommentItem = ({ comment, onReply, onDelete, onLike, onEdit, isReply = fal
                 isReply 
               />
             ))}
+            
+            {/* Collapse toggle when expanded */}
+            {shouldCollapse && isExpanded && (
+              <button
+                onClick={() => setIsExpanded(false)}
+                className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors ml-2"
+              >
+                <ChevronUp className="h-3 w-3" />
+                {t("feed.hideReplies", "Hide replies")}
+              </button>
+            )}
           </div>
         )}
       </div>
