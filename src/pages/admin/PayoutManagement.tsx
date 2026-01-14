@@ -27,7 +27,9 @@ import {
   Search,
   RefreshCw,
   ExternalLink,
-  Mail
+  Mail,
+  Zap,
+  Loader2
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -61,9 +63,10 @@ const PayoutManagement = () => {
   
   // Action dialog state
   const [selectedRequest, setSelectedRequest] = useState<WithdrawalRequest | null>(null);
-  const [actionType, setActionType] = useState<"approve" | "reject" | "complete" | null>(null);
+  const [actionType, setActionType] = useState<"approve" | "reject" | "complete" | "auto_payout" | null>(null);
   const [adminNotes, setAdminNotes] = useState("");
   const [processing, setProcessing] = useState(false);
+  const [payingOut, setPayingOut] = useState<string | null>(null);
 
   useEffect(() => {
     fetchWithdrawalRequests();
@@ -158,6 +161,48 @@ const PayoutManagement = () => {
       console.error(error);
     } finally {
       setProcessing(false);
+    }
+  };
+
+  const handleAutomaticPayout = async (request: WithdrawalRequest) => {
+    if (!request.payout_email) {
+      toast.error("No PayPal email provided for this request");
+      return;
+    }
+
+    setPayingOut(request.id);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error("Session expired. Please log in again.");
+        return;
+      }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/paypal-payout`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ withdrawal_request_id: request.id }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Payout failed");
+      }
+
+      toast.success(`Payout sent successfully! Batch ID: ${result.payout_batch_id}`);
+      fetchWithdrawalRequests();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to process automatic payout");
+      console.error("Payout error:", error);
+    } finally {
+      setPayingOut(null);
     }
   };
 
@@ -421,23 +466,42 @@ const PayoutManagement = () => {
                             <>
                               <Button
                                 size="sm"
+                                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                                onClick={() => handleAutomaticPayout(request)}
+                                disabled={payingOut === request.id}
+                              >
+                                {payingOut === request.id ? (
+                                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                                ) : (
+                                  <Zap className="h-4 w-4 mr-1" />
+                                )}
+                                {payingOut === request.id ? "Sending..." : "Auto Pay"}
+                              </Button>
+                              <Button
+                                size="sm"
                                 variant="outline"
                                 onClick={() => openPayPalPayout(request.payout_email || "", request.amount)}
                               >
                                 <ExternalLink className="h-4 w-4 mr-1" />
-                                Pay via PayPal
+                                Manual
                               </Button>
                               <Button
                                 size="sm"
-                                className="bg-green-600 hover:bg-green-700"
+                                variant="secondary"
                                 onClick={() => {
                                   setSelectedRequest(request);
                                   setActionType("complete");
                                 }}
                               >
-                                Mark Complete
+                                Mark Done
                               </Button>
                             </>
+                          )}
+                          {request.status === "processing" && (
+                            <Badge className="bg-purple-500/10 text-purple-600 border-purple-500/20">
+                              <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                              Processing Payout...
+                            </Badge>
                           )}
                         </div>
                       </div>
