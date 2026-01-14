@@ -15,13 +15,14 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 
-const getNavItems = (t: (key: string) => string) => [
+const getNavItems = (t: TFunction) => [
   { icon: Newspaper, label: t("nav.feed"), path: "/", badge: null },
   { icon: Users, label: t("nav.friends"), path: "/friends", badge: null },
   { icon: Calendar, label: t("nav.events"), path: "/events", badge: 4 },
   { icon: Wallet, label: t("nav.commissions"), path: "/commissions", badge: null },
-  { icon: UsersRound, label: t("nav.groups"), path: "/groups", badge: null },
+  { icon: UsersRound, label: t("nav.groups", { defaultValue: "Groups" }), path: "/groups", badge: null },
   { icon: Image, label: t("nav.photos"), path: "/photos", badge: null },
   { icon: Store, label: t("nav.marketplace"), path: "/marketplace", badge: null },
   { icon: FileText, label: t("nav.files"), path: "/files", badge: 7 },
