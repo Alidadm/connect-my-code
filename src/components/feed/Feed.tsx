@@ -4,11 +4,13 @@ import { PostCreator } from "./PostCreator";
 import { DemoPostCreator } from "./DemoPostCreator";
 import { PostCard } from "./PostCard";
 import { DemoPostCard } from "./DemoPostCard";
+import { PullToRefreshIndicator } from "./PullToRefreshIndicator";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, ChevronDown, Check } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "react-i18next";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -308,8 +310,26 @@ export const Feed = () => {
     { value: "recent", label: t("feed.recent") },
   ];
 
+  const handleRefresh = useCallback(async () => {
+    setPosts([]);
+    setHasMore(true);
+    await fetchPosts(0, false);
+  }, [filter, user?.id]);
+
+  const { pullDistance, isRefreshing, containerRef } = usePullToRefresh({
+    onRefresh: handleRefresh,
+    threshold: 80,
+  });
+
   return (
-    <div className="max-w-2xl mx-auto">
+    <div ref={containerRef} className="max-w-2xl mx-auto">
+      {/* Pull to refresh indicator */}
+      <PullToRefreshIndicator
+        pullDistance={pullDistance}
+        isRefreshing={isRefreshing}
+        threshold={80}
+      />
+
       <StoriesRow />
       {user ? <PostCreator onPostCreated={() => fetchPosts(0, false)} /> : <DemoPostCreator />}
 
@@ -341,7 +361,7 @@ export const Feed = () => {
       </div>
 
       {/* Posts */}
-      {loading ? (
+      {loading && !isRefreshing ? (
         <div className="flex justify-center py-8">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
