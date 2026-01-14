@@ -41,7 +41,9 @@ import {
   Eye,
   EyeOff,
   Trash2,
-  ImagePlus
+  ImagePlus,
+  Camera,
+  Upload
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
@@ -106,6 +108,10 @@ const GroupSettings = () => {
   const [category, setCategory] = useState("");
   const [privacy, setPrivacy] = useState("public");
   const [approvalSetting, setApprovalSetting] = useState("admin_only");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [coverUrl, setCoverUrl] = useState<string | null>(null);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
 
   useEffect(() => {
     if (groupId && user) {
@@ -147,6 +153,8 @@ const GroupSettings = () => {
       setCategory(groupData.category || "");
       setPrivacy(groupData.privacy);
       setApprovalSetting(groupData.approval_setting || "admin_only");
+      setAvatarUrl(groupData.avatar_url);
+      setCoverUrl(groupData.cover_url);
 
       // Fetch members
       await fetchMembers();
@@ -216,6 +224,110 @@ const GroupSettings = () => {
       } else {
         setJoinRequests([]);
       }
+    }
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !group) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please upload an image file");
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be less than 5MB");
+      return;
+    }
+
+    setIsUploadingAvatar(true);
+    try {
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${group.id}/avatar-${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("group-media")
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: publicUrlData } = supabase.storage
+        .from("group-media")
+        .getPublicUrl(fileName);
+
+      const newAvatarUrl = publicUrlData.publicUrl;
+
+      // Update group in database
+      const { error: updateError } = await supabase
+        .from("groups")
+        .update({ avatar_url: newAvatarUrl, updated_at: new Date().toISOString() })
+        .eq("id", group.id);
+
+      if (updateError) throw updateError;
+
+      setAvatarUrl(newAvatarUrl);
+      setGroup({ ...group, avatar_url: newAvatarUrl });
+      toast.success("Avatar updated!");
+    } catch (error) {
+      console.error("Error uploading avatar:", error);
+      toast.error("Failed to upload avatar");
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
+
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !group) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please upload an image file");
+      return;
+    }
+
+    // Validate file size (max 10MB for cover)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("Image must be less than 10MB");
+      return;
+    }
+
+    setIsUploadingCover(true);
+    try {
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${group.id}/cover-${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("group-media")
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: publicUrlData } = supabase.storage
+        .from("group-media")
+        .getPublicUrl(fileName);
+
+      const newCoverUrl = publicUrlData.publicUrl;
+
+      // Update group in database
+      const { error: updateError } = await supabase
+        .from("groups")
+        .update({ cover_url: newCoverUrl, updated_at: new Date().toISOString() })
+        .eq("id", group.id);
+
+      if (updateError) throw updateError;
+
+      setCoverUrl(newCoverUrl);
+      setGroup({ ...group, cover_url: newCoverUrl });
+      toast.success("Cover image updated!");
+    } catch (error) {
+      console.error("Error uploading cover:", error);
+      toast.error("Failed to upload cover image");
+    } finally {
+      setIsUploadingCover(false);
     }
   };
 
@@ -465,29 +577,85 @@ const GroupSettings = () => {
                 <CardDescription>Update your group's basic information</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Group Avatar & Cover Preview */}
+                {/* Cover Image Upload */}
+                <div className="space-y-2">
+                  <Label>Cover Image</Label>
+                  <div 
+                    className="relative h-32 md:h-40 rounded-lg overflow-hidden bg-gradient-to-br from-primary/30 to-primary/10 border-2 border-dashed border-border hover:border-primary/50 transition-colors cursor-pointer group"
+                    style={coverUrl ? { 
+                      backgroundImage: `url(${coverUrl})`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center'
+                    } : {}}
+                    onClick={() => document.getElementById('cover-upload')?.click()}
+                  >
+                    <div className={`absolute inset-0 flex items-center justify-center bg-black/40 ${coverUrl ? 'opacity-0 group-hover:opacity-100' : 'opacity-100'} transition-opacity`}>
+                      {isUploadingCover ? (
+                        <Loader2 className="h-8 w-8 animate-spin text-white" />
+                      ) : (
+                        <div className="text-center text-white">
+                          <Camera className="h-8 w-8 mx-auto mb-2" />
+                          <p className="text-sm font-medium">
+                            {coverUrl ? "Change Cover" : "Upload Cover Image"}
+                          </p>
+                          <p className="text-xs opacity-75">Recommended: 1200x400px, max 10MB</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <input
+                    id="cover-upload"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleCoverUpload}
+                    disabled={isUploadingCover}
+                  />
+                </div>
+
+                {/* Group Avatar Upload */}
                 <div className="flex items-center gap-6">
                   <div className="relative">
-                    <Avatar className="h-20 w-20">
-                      <AvatarImage src={group.avatar_url || undefined} />
-                      <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
-                        {name[0]}
+                    <Avatar className="h-24 w-24 border-4 border-background shadow-lg">
+                      <AvatarImage src={avatarUrl || undefined} />
+                      <AvatarFallback className="bg-primary text-primary-foreground text-3xl">
+                        {name[0] || "G"}
                       </AvatarFallback>
                     </Avatar>
-                    <Button 
-                      size="icon" 
-                      variant="secondary" 
-                      className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full"
-                      onClick={() => toast.info("Image upload coming soon!")}
+                    <label 
+                      htmlFor="avatar-upload"
+                      className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full bg-secondary hover:bg-secondary/80 flex items-center justify-center cursor-pointer transition-colors border-2 border-background"
                     >
-                      <ImagePlus className="h-3.5 w-3.5" />
-                    </Button>
+                      {isUploadingAvatar ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Camera className="h-4 w-4" />
+                      )}
+                    </label>
+                    <input
+                      id="avatar-upload"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleAvatarUpload}
+                      disabled={isUploadingAvatar}
+                    />
                   </div>
                   <div className="flex-1">
-                    <Label className="text-sm text-muted-foreground">Group Avatar</Label>
+                    <Label className="text-sm font-medium text-foreground">Group Avatar</Label>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Recommended: Square image, at least 200x200px
+                      Square image, at least 200x200px, max 5MB
                     </p>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="mt-2 gap-2"
+                      onClick={() => document.getElementById('avatar-upload')?.click()}
+                      disabled={isUploadingAvatar}
+                    >
+                      <Upload className="h-3.5 w-3.5" />
+                      Upload Avatar
+                    </Button>
                   </div>
                 </div>
 
