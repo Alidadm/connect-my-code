@@ -203,6 +203,7 @@ export const AdminStatsCards = () => {
       gradient: "from-blue-600 to-blue-400",
       shadowColor: "shadow-blue-500/30",
       category: "members",
+      link: "/admin/users/list?filter=today",
     },
     {
       title: "Active Users (24h)",
