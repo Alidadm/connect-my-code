@@ -290,7 +290,20 @@ export const Signup = () => {
           console.error('Failed to store private profile data:', privateError);
         }
 
-        toast.success("Account created! Now choose your payment method.");
+        // Send email confirmation
+        try {
+          await supabase.functions.invoke('send-signup-confirmation', {
+            body: { 
+              email: formData.email,
+              name: `${formData.firstName} ${formData.lastName}`,
+              userId: data.user.id,
+            }
+          });
+        } catch (emailError) {
+          console.error('Failed to send confirmation email:', emailError);
+        }
+
+        toast.success("Account created! Check your email for verification, then choose your payment method.");
         setCreatedUserId(data.user.id);
         setStep('payment');
       }

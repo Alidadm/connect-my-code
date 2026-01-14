@@ -88,6 +88,50 @@ serve(async (req) => {
 
     logStep("Reset code stored");
 
+    // Get email template from platform_settings
+    const { data: settings } = await supabaseAdmin
+      .from("platform_settings")
+      .select("setting_value")
+      .eq("setting_key", "email_templates")
+      .single();
+
+    let subject = "Your DolphySN Password Reset Code";
+    let htmlBody = "";
+
+    if (settings?.setting_value?.forgot_password) {
+      const template = settings.setting_value.forgot_password;
+      subject = template.subject || subject;
+      htmlBody = template.body || "";
+    }
+
+    // Replace placeholders in the template
+    htmlBody = htmlBody
+      .replace(/\{\{code\}\}/g, code)
+      .replace(/\{\{email\}\}/g, email);
+
+    // If no template body, use default
+    if (!htmlBody) {
+      htmlBody = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: linear-gradient(135deg, #1c76e6 0%, #3b82f6 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+            <h1 style="color: white; margin: 0;">DolphySN</h1>
+          </div>
+          <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px;">
+            <h2 style="color: #1f2937; margin-top: 0;">Password Reset Code</h2>
+            <p style="color: #4b5563; font-size: 16px;">
+              You requested to reset your password. Use the code below to verify your identity:
+            </p>
+            <div style="background: white; border: 2px dashed #1c76e6; border-radius: 10px; padding: 20px; text-align: center; margin: 20px 0;">
+              <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #1c76e6;">${code}</span>
+            </div>
+            <p style="color: #6b7280; font-size: 14px;">
+              This code expires in 10 minutes. If you didn't request this, please ignore this email.
+            </p>
+          </div>
+        </div>
+      `;
+    }
+
     // Send email via Resend
     const emailResponse = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -96,28 +140,10 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "DolphySN <onboarding@resend.dev>",
+        from: "DolphySN <noreply@dolphysn.com>",
         to: [email],
-        subject: "Your DolphySN Password Reset Code",
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <div style="background: linear-gradient(135deg, #1c76e6 0%, #3b82f6 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-              <h1 style="color: white; margin: 0;">DolphySN</h1>
-            </div>
-            <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px;">
-              <h2 style="color: #1f2937; margin-top: 0;">Password Reset Code</h2>
-              <p style="color: #4b5563; font-size: 16px;">
-                You requested to reset your password. Use the code below to verify your identity:
-              </p>
-              <div style="background: white; border: 2px dashed #1c76e6; border-radius: 10px; padding: 20px; text-align: center; margin: 20px 0;">
-                <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #1c76e6;">${code}</span>
-              </div>
-              <p style="color: #6b7280; font-size: 14px;">
-                This code expires in 10 minutes. If you didn't request this, please ignore this email.
-              </p>
-            </div>
-          </div>
-        `,
+        subject: subject,
+        html: htmlBody,
       }),
     });
 

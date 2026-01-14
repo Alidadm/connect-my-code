@@ -19,8 +19,10 @@ import GroupPostView from "./pages/GroupPostView";
 import GroupSettings from "./pages/GroupSettings";
 import AdminIndex from "./pages/AdminIndex";
 import UserList from "./pages/admin/UserList";
+import EmailTemplates from "./pages/admin/EmailTemplates";
 import MemberDashboard from "./pages/MemberDashboard";
 import UserProfile from "./pages/UserProfile";
+import ConfirmEmail from "./pages/ConfirmEmail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -55,6 +57,15 @@ const App = () => (
                 </AdminRouteGuard>
               }
             />
+            <Route
+              path="/admin/email-templates"
+              element={
+                <AdminRouteGuard>
+                  <EmailTemplates />
+                </AdminRouteGuard>
+              }
+            />
+            <Route path="/confirm-email" element={<ConfirmEmail />} />
             {/* Public profile route - must be BEFORE the catch-all */}
             <Route path="/:username" element={<UserProfile />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
