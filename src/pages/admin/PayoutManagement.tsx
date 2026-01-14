@@ -32,7 +32,8 @@ import {
   Loader2,
   History,
   FileText,
-  Copy
+  Copy,
+  Settings
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -64,7 +65,7 @@ const PayoutManagement = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("pending");
-  const [mainTab, setMainTab] = useState<"requests" | "history">("requests");
+  const [mainTab, setMainTab] = useState<"requests" | "history" | "settings">("requests");
   
   // Action dialog state
   const [selectedRequest, setSelectedRequest] = useState<WithdrawalRequest | null>(null);
@@ -72,10 +73,68 @@ const PayoutManagement = () => {
   const [adminNotes, setAdminNotes] = useState("");
   const [processing, setProcessing] = useState(false);
   const [payingOut, setPayingOut] = useState<string | null>(null);
+  
+  // Settings state
+  const [minimumWithdrawal, setMinimumWithdrawal] = useState<number>(25);
+  const [editingMinimum, setEditingMinimum] = useState<string>("25");
+  const [savingSettings, setSavingSettings] = useState(false);
 
   useEffect(() => {
     fetchWithdrawalRequests();
+    fetchMinimumWithdrawal();
   }, []);
+
+  const fetchMinimumWithdrawal = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("platform_settings")
+        .select("setting_value")
+        .eq("setting_key", "minimum_withdrawal")
+        .single();
+
+      if (!error && data) {
+        const value = typeof data.setting_value === 'string' 
+          ? parseFloat(data.setting_value) 
+          : Number(data.setting_value);
+        if (!isNaN(value)) {
+          setMinimumWithdrawal(value);
+          setEditingMinimum(value.toString());
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching minimum withdrawal:", error);
+    }
+  };
+
+  const saveMinimumWithdrawal = async () => {
+    const value = parseFloat(editingMinimum);
+    if (isNaN(value) || value < 1) {
+      toast.error("Please enter a valid amount (minimum $1)");
+      return;
+    }
+
+    setSavingSettings(true);
+    try {
+      const { error } = await supabase
+        .from("platform_settings")
+        .upsert({
+          setting_key: "minimum_withdrawal",
+          setting_value: value.toString(),
+          updated_at: new Date().toISOString(),
+          updated_by: user?.id
+        }, { onConflict: "setting_key" });
+
+      if (error) throw error;
+
+      setMinimumWithdrawal(value);
+      toast.success(`Minimum withdrawal updated to $${value}`);
+    } catch (error: any) {
+      toast.error("Failed to save setting");
+      console.error(error);
+    } finally {
+      setSavingSettings(false);
+    }
+  };
 
   const fetchWithdrawalRequests = async () => {
     setLoading(true);
@@ -364,15 +423,19 @@ const PayoutManagement = () => {
           </div>
 
           {/* Main Tabs */}
-          <Tabs value={mainTab} onValueChange={(v) => setMainTab(v as "requests" | "history")} className="mb-6">
-            <TabsList className="grid w-full max-w-md grid-cols-2">
+          <Tabs value={mainTab} onValueChange={(v) => setMainTab(v as "requests" | "history" | "settings")} className="mb-6">
+            <TabsList className="grid w-full max-w-lg grid-cols-3">
               <TabsTrigger value="requests" className="gap-2">
                 <FileText className="h-4 w-4" />
                 Requests
               </TabsTrigger>
               <TabsTrigger value="history" className="gap-2">
                 <History className="h-4 w-4" />
-                Payout History
+                History
+              </TabsTrigger>
+              <TabsTrigger value="settings" className="gap-2">
+                <Settings className="h-4 w-4" />
+                Settings
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -733,6 +796,79 @@ const PayoutManagement = () => {
                     ))}
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          )}
+
+          {mainTab === "settings" && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Settings className="h-5 w-5" />
+                  Payout Settings
+                </CardTitle>
+                <CardDescription>
+                  Configure withdrawal and payout settings for the platform
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Minimum Withdrawal */}
+                <div className="p-4 border rounded-lg">
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-1">
+                      <h4 className="font-medium">Minimum Withdrawal Amount</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Users must have at least this amount in pending earnings to request a withdrawal.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="relative">
+                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          type="number"
+                          min="1"
+                          step="1"
+                          value={editingMinimum}
+                          onChange={(e) => setEditingMinimum(e.target.value)}
+                          className="w-24 pl-8"
+                        />
+                      </div>
+                      <Button 
+                        onClick={saveMinimumWithdrawal}
+                        disabled={savingSettings || editingMinimum === minimumWithdrawal.toString()}
+                        size="sm"
+                      >
+                        {savingSettings ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          "Save"
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="mt-3 p-3 bg-muted/50 rounded-lg">
+                    <p className="text-sm">
+                      <span className="font-medium">Current setting:</span>{" "}
+                      <span className="text-green-600 font-semibold">${minimumWithdrawal}</span> minimum to withdraw
+                    </p>
+                  </div>
+                </div>
+
+                {/* Info Card */}
+                <div className="p-4 border rounded-lg bg-blue-500/5 border-blue-500/20">
+                  <div className="flex items-start gap-3">
+                    <div className="h-10 w-10 rounded-full bg-blue-500/20 flex items-center justify-center shrink-0">
+                      <DollarSign className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-blue-700 dark:text-blue-400">About Withdrawal Thresholds</h4>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Setting a minimum withdrawal amount helps reduce transaction fees and administrative overhead 
+                        from processing many small payouts. The recommended range is $10-$50.
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           )}
