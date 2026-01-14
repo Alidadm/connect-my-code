@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,7 +21,11 @@ import {
   Crown,
   Shield,
   MoreVertical,
-  Globe
+  Globe,
+  X,
+  Film,
+  FileAudio,
+  FileText
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
@@ -72,11 +76,21 @@ interface GroupPost {
   };
 }
 
+interface MediaFile {
+  file: File;
+  preview: string;
+  type: 'image' | 'video' | 'gif' | 'audio' | 'document';
+}
+
+const MAX_FILES = 10;
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+
 const GroupDetail = () => {
   const { t } = useTranslation();
   const { groupId } = useParams<{ groupId: string }>();
   const navigate = useNavigate();
   const { user, profile } = useAuth();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [group, setGroup] = useState<Group | null>(null);
   const [members, setMembers] = useState<GroupMember[]>([]);
@@ -86,6 +100,8 @@ const GroupDetail = () => {
   const [isPosting, setIsPosting] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [isMember, setIsMember] = useState(false);
+  const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     if (groupId) {
@@ -193,27 +209,118 @@ const GroupDetail = () => {
     }
   };
 
+  const getFileType = (file: File): MediaFile['type'] => {
+    const mimeType = file.type;
+    if (mimeType.startsWith('image/gif')) return 'gif';
+    if (mimeType.startsWith('image/')) return 'image';
+    if (mimeType.startsWith('video/')) return 'video';
+    if (mimeType.startsWith('audio/')) return 'audio';
+    return 'document';
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    const remainingSlots = MAX_FILES - mediaFiles.length;
+    const filesToAdd = Array.from(files).slice(0, remainingSlots);
+
+    const newMediaFiles: MediaFile[] = [];
+    
+    for (const file of filesToAdd) {
+      if (file.size > MAX_FILE_SIZE) {
+        toast.error(`${file.name} is too large (max 50MB)`);
+        continue;
+      }
+
+      const preview = URL.createObjectURL(file);
+      newMediaFiles.push({
+        file,
+        preview,
+        type: getFileType(file)
+      });
+    }
+
+    setMediaFiles(prev => [...prev, ...newMediaFiles]);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const removeMedia = (index: number) => {
+    setMediaFiles(prev => {
+      const newFiles = [...prev];
+      URL.revokeObjectURL(newFiles[index].preview);
+      newFiles.splice(index, 1);
+      return newFiles;
+    });
+  };
+
+  const uploadFiles = async (files: MediaFile[]): Promise<string[]> => {
+    if (!user) return [];
+    
+    const uploadedUrls: string[] = [];
+    
+    for (const mediaFile of files) {
+      const fileExt = mediaFile.file.name.split('.').pop();
+      const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      
+      const { data, error } = await supabase.storage
+        .from('group-media')
+        .upload(fileName, mediaFile.file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+      
+      if (error) {
+        console.error('Upload error:', error);
+        throw error;
+      }
+      
+      const { data: { publicUrl } } = supabase.storage
+        .from('group-media')
+        .getPublicUrl(data.path);
+      
+      uploadedUrls.push(publicUrl);
+    }
+    
+    return uploadedUrls;
+  };
+
   const handlePost = async () => {
-    if (!postContent.trim() || !user || !group) return;
+    if ((!postContent.trim() && mediaFiles.length === 0) || !user || !group) return;
 
     setIsPosting(true);
     try {
+      let mediaUrls: string[] = [];
+      
+      if (mediaFiles.length > 0) {
+        setIsUploading(true);
+        mediaUrls = await uploadFiles(mediaFiles);
+        setIsUploading(false);
+      }
+
       const { error } = await supabase
         .from("group_posts")
         .insert({
           group_id: group.id,
           user_id: user.id,
-          content: postContent
+          content: postContent || null,
+          media_urls: mediaUrls.length > 0 ? mediaUrls : null
         });
 
       if (error) throw error;
 
+      // Clean up previews
+      mediaFiles.forEach(f => URL.revokeObjectURL(f.preview));
+      setMediaFiles([]);
       setPostContent("");
       toast.success("Post created!");
       fetchGroupPosts();
     } catch (error) {
       console.error("Error creating post:", error);
       toast.error("Failed to create post");
+      setIsUploading(false);
     } finally {
       setIsPosting(false);
     }
@@ -460,19 +567,84 @@ const GroupDetail = () => {
                         onChange={(e) => setPostContent(e.target.value)}
                         className="min-h-[80px] resize-none"
                       />
+
+                      {/* Media Preview */}
+                      {mediaFiles.length > 0 && (
+                        <div className="p-3 bg-muted/50 rounded-lg">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-sm font-medium text-muted-foreground">
+                              {mediaFiles.length}/{MAX_FILES} files attached
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+                            {mediaFiles.map((media, index) => (
+                              <div key={index} className="relative group aspect-square">
+                                {media.type === 'image' || media.type === 'gif' ? (
+                                  <img
+                                    src={media.preview}
+                                    alt="Preview"
+                                    className="w-full h-full object-cover rounded-lg"
+                                  />
+                                ) : media.type === 'video' ? (
+                                  <div className="w-full h-full bg-muted rounded-lg flex items-center justify-center">
+                                    <Film className="h-8 w-8 text-muted-foreground" />
+                                  </div>
+                                ) : media.type === 'audio' ? (
+                                  <div className="w-full h-full bg-muted rounded-lg flex items-center justify-center">
+                                    <FileAudio className="h-8 w-8 text-muted-foreground" />
+                                  </div>
+                                ) : (
+                                  <div className="w-full h-full bg-muted rounded-lg flex items-center justify-center">
+                                    <FileText className="h-8 w-8 text-muted-foreground" />
+                                  </div>
+                                )}
+                                <button
+                                  type="button"
+                                  onClick={() => removeMedia(index)}
+                                  className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                  <X className="h-3 w-3" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Hidden file input */}
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*,video/*,audio/*,.pdf,.doc,.docx"
+                        multiple
+                        className="hidden"
+                        onChange={handleFileSelect}
+                      />
+
                       <div className="flex items-center justify-between">
-                        <Button variant="ghost" size="sm" className="gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="gap-2"
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={mediaFiles.length >= MAX_FILES}
+                        >
                           <Image className="h-4 w-4" />
                           Add Media
+                          {mediaFiles.length > 0 && (
+                            <span className="text-xs text-muted-foreground">
+                              ({mediaFiles.length}/{MAX_FILES})
+                            </span>
+                          )}
                         </Button>
                         <Button 
                           onClick={handlePost} 
-                          disabled={!postContent.trim() || isPosting} 
+                          disabled={(!postContent.trim() && mediaFiles.length === 0) || isPosting || isUploading} 
                           className="gap-2"
                         >
-                          {isPosting && <Loader2 className="h-4 w-4 animate-spin" />}
+                          {(isPosting || isUploading) && <Loader2 className="h-4 w-4 animate-spin" />}
                           <Send className="h-4 w-4" />
-                          Post
+                          {isUploading ? "Uploading..." : "Post"}
                         </Button>
                       </div>
                     </div>
