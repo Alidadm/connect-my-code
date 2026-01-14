@@ -2,13 +2,12 @@ import {
   Newspaper, 
   Users, 
   Calendar, 
-  Video, 
+  UsersRound, 
   Image, 
   Store, 
   FileText,
   BadgeCheck,
-  Wallet,
-  X
+  Wallet
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -22,10 +21,15 @@ const getNavItems = (t: (key: string) => string) => [
   { icon: Users, label: t("nav.friends"), path: "/friends", badge: null },
   { icon: Calendar, label: t("nav.events"), path: "/events", badge: 4 },
   { icon: Wallet, label: t("nav.commissions"), path: "/commissions", badge: null },
-  { icon: Video, label: t("nav.videos"), path: "/videos", badge: null },
+  { icon: UsersRound, label: t("nav.groups"), path: "/groups", badge: null },
   { icon: Image, label: t("nav.photos"), path: "/photos", badge: null },
   { icon: Store, label: t("nav.marketplace"), path: "/marketplace", badge: null },
   { icon: FileText, label: t("nav.files"), path: "/files", badge: 7 },
+];
+
+// Demo group for sidebar
+const yourGroups = [
+  { name: "Tech Enthusiasts", avatar: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=50&h=50&fit=crop", memberCount: 1234 },
 ];
 
 const pagesYouLike = [
@@ -132,6 +136,40 @@ export const LeftSidebar = () => {
             );
           })}
         </nav>
+
+        {/* Your Groups */}
+        <div className="bg-card rounded-xl p-4 border border-border mb-4">
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+            {t("sidebar.yourGroups")}
+          </h3>
+          <div className="space-y-2">
+            {yourGroups.map((group, index) => (
+              <div 
+                key={index} 
+                className="flex items-center gap-3 cursor-pointer hover:bg-secondary/50 -mx-2 px-2 py-1.5 rounded-lg transition-colors"
+                onClick={() => navigate("/groups")}
+              >
+                <Avatar className="h-8 w-8 flex-shrink-0">
+                  <AvatarImage src={group.avatar} />
+                  <AvatarFallback className="bg-primary text-primary-foreground text-xs font-bold">
+                    {group.name.slice(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="min-w-0 flex-1">
+                  <span className="text-sm font-medium text-foreground truncate block">{group.name}</span>
+                  <span className="text-xs text-muted-foreground">{group.memberCount.toLocaleString()} members</span>
+                </div>
+              </div>
+            ))}
+            <Button 
+              variant="link" 
+              className="text-muted-foreground p-0 h-auto text-sm hover:text-foreground"
+              onClick={() => navigate("/groups")}
+            >
+              {t("sidebar.viewAll")}
+            </Button>
+          </div>
+        </div>
 
         {/* Pages You Like */}
         <div className="bg-card rounded-xl p-4 border border-border">
