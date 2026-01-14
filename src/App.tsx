@@ -20,6 +20,7 @@ import GroupSettings from "./pages/GroupSettings";
 import AdminIndex from "./pages/AdminIndex";
 import UserList from "./pages/admin/UserList";
 import EmailTemplates from "./pages/admin/EmailTemplates";
+import PayoutManagement from "./pages/admin/PayoutManagement";
 import MemberDashboard from "./pages/MemberDashboard";
 import UserProfile from "./pages/UserProfile";
 import ConfirmEmail from "./pages/ConfirmEmail";
@@ -62,6 +63,14 @@ const App = () => (
               element={
                 <AdminRouteGuard>
                   <EmailTemplates />
+                </AdminRouteGuard>
+              }
+            />
+            <Route
+              path="/admin/payouts"
+              element={
+                <AdminRouteGuard>
+                  <PayoutManagement />
                 </AdminRouteGuard>
               }
             />

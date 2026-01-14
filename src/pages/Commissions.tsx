@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import WithdrawalRequestSection from "@/components/commissions/WithdrawalRequestSection";
 import { 
   ArrowLeft, 
   DollarSign, 
@@ -277,6 +278,14 @@ const Commissions = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Withdrawal Request Section */}
+        {user && (
+          <WithdrawalRequestSection 
+            pendingEarnings={pendingEarnings} 
+            userId={user.id} 
+          />
+        )}
 
         {/* Referral Email Form */}
         <Card className="mb-8">

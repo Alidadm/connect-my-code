@@ -1534,6 +1534,54 @@ export type Database = {
         }
         Relationships: []
       }
+      withdrawal_requests: {
+        Row: {
+          admin_notes: string | null
+          amount: number
+          created_at: string
+          currency: string | null
+          id: string
+          payout_email: string | null
+          payout_method: string | null
+          processed_at: string | null
+          processed_by: string | null
+          provider_payout_id: string | null
+          status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          amount: number
+          created_at?: string
+          currency?: string | null
+          id?: string
+          payout_email?: string | null
+          payout_method?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          provider_payout_id?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          amount?: number
+          created_at?: string
+          currency?: string | null
+          id?: string
+          payout_email?: string | null
+          payout_method?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          provider_payout_id?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       safe_profiles: {
