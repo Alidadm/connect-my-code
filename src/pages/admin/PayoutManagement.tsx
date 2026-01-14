@@ -33,7 +33,9 @@ import {
   History,
   FileText,
   Copy,
-  Settings
+  Settings,
+  CreditCard,
+  Wallet
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -282,7 +284,9 @@ const PayoutManagement = () => {
   };
 
   const handleAutomaticPayout = async (request: WithdrawalRequest) => {
-    if (!request.payout_email) {
+    const isStripePayout = request.payout_method === "stripe";
+    
+    if (!isStripePayout && !request.payout_email) {
       toast.error("No PayPal email provided for this request");
       return;
     }
@@ -295,8 +299,10 @@ const PayoutManagement = () => {
         return;
       }
 
+      const endpoint = isStripePayout ? "stripe-payout" : "paypal-payout";
+      
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/paypal-payout`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/${endpoint}`,
         {
           method: "POST",
           headers: {
@@ -323,7 +329,8 @@ const PayoutManagement = () => {
         request.payout_email
       );
 
-      toast.success(`Payout sent successfully! Batch ID: ${result.payout_batch_id}`);
+      const successId = isStripePayout ? result.transfer_id : result.payout_batch_id;
+      toast.success(`Payout sent successfully! ${isStripePayout ? 'Transfer' : 'Batch'} ID: ${successId}`);
       fetchWithdrawalRequests();
     } catch (error: any) {
       toast.error(error.message || "Failed to process automatic payout");
@@ -355,6 +362,13 @@ const PayoutManagement = () => {
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
+  };
+
+  const getPayoutMethodBadge = (method: string) => {
+    if (method === "stripe") {
+      return <Badge variant="outline" className="text-purple-600 border-purple-300"><CreditCard className="h-3 w-3 mr-1" />Stripe</Badge>;
+    }
+    return <Badge variant="outline" className="text-blue-600 border-blue-300"><Wallet className="h-3 w-3 mr-1" />PayPal</Badge>;
   };
 
   const formatDate = (dateString: string) => {
@@ -583,15 +597,20 @@ const PayoutManagement = () => {
                           )}
                         </div>
                         <div>
-                          <p className="font-medium">
-                            {request.user_profile?.display_name || "Unknown User"}
-                            <span className="text-muted-foreground text-sm ml-2">
-                              @{request.user_profile?.username || "unknown"}
-                            </span>
-                          </p>
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium">
+                              {request.user_profile?.display_name || "Unknown User"}
+                              <span className="text-muted-foreground text-sm ml-2">
+                                @{request.user_profile?.username || "unknown"}
+                              </span>
+                            </p>
+                            {getPayoutMethodBadge(request.payout_method)}
+                          </div>
                           <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <Mail className="h-3 w-3" />
-                            {request.payout_email || "No email provided"}
+                            {request.payout_method === "stripe" 
+                              ? "Stripe Connect Account" 
+                              : (request.payout_email || "No email provided")}
                           </div>
                           <p className="text-xs text-muted-foreground mt-1">
                             Requested: {formatDate(request.created_at)}
