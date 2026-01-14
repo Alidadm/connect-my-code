@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Save, Mail, Key, Loader2, Eye } from "lucide-react";
+import { ArrowLeft, Save, Mail, Key, Loader2, Eye, PartyPopper } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import AdminRouteGuard from "@/components/admin/AdminRouteGuard";
+import Editor from "react-simple-wysiwyg";
 import {
   Dialog,
   DialogContent,
@@ -26,6 +26,7 @@ interface EmailTemplate {
 interface EmailTemplates {
   signup_confirmation: EmailTemplate;
   forgot_password: EmailTemplate;
+  welcome: EmailTemplate;
 }
 
 const EmailTemplatesPage = () => {
@@ -39,6 +40,10 @@ const EmailTemplatesPage = () => {
     },
     forgot_password: {
       subject: "DolphySN - Password Reset Code",
+      body: ""
+    },
+    welcome: {
+      subject: "Welcome to DolphySN! 🎉",
       body: ""
     }
   });
@@ -62,9 +67,11 @@ const EmailTemplatesPage = () => {
 
       if (data?.setting_value) {
         const value = data.setting_value as unknown as EmailTemplates;
-        if (value.signup_confirmation && value.forgot_password) {
-          setTemplates(value);
-        }
+        setTemplates(prev => ({
+          signup_confirmation: value.signup_confirmation || prev.signup_confirmation,
+          forgot_password: value.forgot_password || prev.forgot_password,
+          welcome: value.welcome || prev.welcome
+        }));
       }
     } catch (error: any) {
       toast.error("Failed to load templates: " + error.message);
@@ -109,9 +116,11 @@ const EmailTemplatesPage = () => {
     // Replace placeholders with sample data
     const previewBody = body
       .replace(/\{\{name\}\}/g, "John Doe")
+      .replace(/\{\{first_name\}\}/g, "John")
       .replace(/\{\{confirmation_link\}\}/g, "https://dolphysn.com/confirm-email?token=example")
       .replace(/\{\{code\}\}/g, "123456")
-      .replace(/\{\{email\}\}/g, "john@example.com");
+      .replace(/\{\{email\}\}/g, "john@example.com")
+      .replace(/\{\{username\}\}/g, "john.doe");
     setPreviewHtml(previewBody);
   };
 
@@ -141,7 +150,7 @@ const EmailTemplatesPage = () => {
               </Button>
               <div>
                 <h1 className="text-xl font-bold text-slate-800">Email Templates</h1>
-                <p className="text-sm text-slate-500">Manage email templates for signup confirmation and password reset</p>
+                <p className="text-sm text-slate-500">Manage email templates with visual editor</p>
               </div>
             </div>
             <Button
@@ -162,10 +171,14 @@ const EmailTemplatesPage = () => {
         {/* Content */}
         <div className="p-6 max-w-5xl mx-auto">
           <Tabs defaultValue="signup" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2 bg-white border">
+            <TabsList className="grid w-full grid-cols-3 bg-white border">
               <TabsTrigger value="signup" className="flex items-center gap-2">
                 <Mail className="w-4 h-4" />
                 Signup Confirmation
+              </TabsTrigger>
+              <TabsTrigger value="welcome" className="flex items-center gap-2">
+                <PartyPopper className="w-4 h-4" />
+                Welcome Email
               </TabsTrigger>
               <TabsTrigger value="password" className="flex items-center gap-2">
                 <Key className="w-4 h-4" />
@@ -196,7 +209,7 @@ const EmailTemplatesPage = () => {
                   </div>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <Label htmlFor="signup-body">Email Body (HTML)</Label>
+                      <Label>Email Body</Label>
                       <Dialog>
                         <DialogTrigger asChild>
                           <Button 
@@ -219,13 +232,72 @@ const EmailTemplatesPage = () => {
                         </DialogContent>
                       </Dialog>
                     </div>
-                    <Textarea
-                      id="signup-body"
-                      value={templates.signup_confirmation.body}
-                      onChange={(e) => handleTemplateChange("signup_confirmation", "body", e.target.value)}
-                      placeholder="Enter HTML email body..."
-                      className="min-h-[400px] font-mono text-sm"
+                    <div className="border rounded-lg overflow-hidden bg-white">
+                      <Editor
+                        value={templates.signup_confirmation.body}
+                        onChange={(e) => handleTemplateChange("signup_confirmation", "body", e.target.value)}
+                        containerProps={{ style: { minHeight: '400px' } }}
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="welcome">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Welcome Email</CardTitle>
+                  <CardDescription>
+                    This email is sent after a user confirms their email. Available placeholders: 
+                    <code className="ml-1 px-1 py-0.5 bg-slate-100 rounded text-xs">{"{{name}}"}</code>, 
+                    <code className="mx-1 px-1 py-0.5 bg-slate-100 rounded text-xs">{"{{first_name}}"}</code>, 
+                    <code className="mx-1 px-1 py-0.5 bg-slate-100 rounded text-xs">{"{{username}}"}</code>,
+                    <code className="mx-1 px-1 py-0.5 bg-slate-100 rounded text-xs">{"{{email}}"}</code>
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="welcome-subject">Subject Line</Label>
+                    <Input
+                      id="welcome-subject"
+                      value={templates.welcome.subject}
+                      onChange={(e) => handleTemplateChange("welcome", "subject", e.target.value)}
+                      placeholder="Email subject..."
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label>Email Body</Label>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handlePreview(templates.welcome.body)}
+                          >
+                            <Eye className="w-4 h-4 mr-2" />
+                            Preview
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-2xl max-h-[80vh] overflow-auto">
+                          <DialogHeader>
+                            <DialogTitle>Email Preview</DialogTitle>
+                          </DialogHeader>
+                          <div 
+                            className="border rounded-lg p-4 bg-white"
+                            dangerouslySetInnerHTML={{ __html: previewHtml }}
+                          />
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                    <div className="border rounded-lg overflow-hidden bg-white">
+                      <Editor
+                        value={templates.welcome.body}
+                        onChange={(e) => handleTemplateChange("welcome", "body", e.target.value)}
+                        containerProps={{ style: { minHeight: '400px' } }}
+                      />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -253,7 +325,7 @@ const EmailTemplatesPage = () => {
                   </div>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <Label htmlFor="password-body">Email Body (HTML)</Label>
+                      <Label>Email Body</Label>
                       <Dialog>
                         <DialogTrigger asChild>
                           <Button 
@@ -276,13 +348,13 @@ const EmailTemplatesPage = () => {
                         </DialogContent>
                       </Dialog>
                     </div>
-                    <Textarea
-                      id="password-body"
-                      value={templates.forgot_password.body}
-                      onChange={(e) => handleTemplateChange("forgot_password", "body", e.target.value)}
-                      placeholder="Enter HTML email body..."
-                      className="min-h-[400px] font-mono text-sm"
-                    />
+                    <div className="border rounded-lg overflow-hidden bg-white">
+                      <Editor
+                        value={templates.forgot_password.body}
+                        onChange={(e) => handleTemplateChange("forgot_password", "body", e.target.value)}
+                        containerProps={{ style: { minHeight: '400px' } }}
+                      />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
