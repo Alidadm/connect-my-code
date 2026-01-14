@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Heart, MessageCircle, MoreVertical, Trash2 } from "lucide-react";
+import { Heart, MessageCircle, MoreVertical, Trash2, ChevronDown, ChevronUp } from "lucide-react";
+import { GroupPostCommentSection } from "./GroupPostCommentSection";
 import { formatDistanceToNow } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -41,7 +42,9 @@ export const GroupPostCard = ({ post, onPostChange, canModerate }: GroupPostCard
   const { user } = useAuth();
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(post.likes_count || 0);
+  const [commentsCount, setCommentsCount] = useState(post.comments_count || 0);
   const [isLiking, setIsLiking] = useState(false);
+  const [showComments, setShowComments] = useState(false);
 
   const handleLike = async () => {
     if (!user || isLiking) return;
@@ -106,7 +109,7 @@ export const GroupPostCard = ({ post, onPostChange, canModerate }: GroupPostCard
   };
 
   // Check if user has already liked this post
-  useState(() => {
+  useEffect(() => {
     if (user) {
       supabase
         .from("group_post_likes")
@@ -118,7 +121,11 @@ export const GroupPostCard = ({ post, onPostChange, canModerate }: GroupPostCard
           if (data) setIsLiked(true);
         });
     }
-  });
+  }, [user, post.id]);
+
+  const handleCommentCountChange = (count: number) => {
+    setCommentsCount(count);
+  };
 
   const isOwner = user?.id === post.user_id;
   const canDelete = isOwner || canModerate;
@@ -205,12 +212,30 @@ export const GroupPostCard = ({ post, onPostChange, canModerate }: GroupPostCard
             <Heart className={`h-4 w-4 ${isLiked ? "fill-current" : ""}`} />
             {likesCount > 0 && likesCount}
           </Button>
-          <Button variant="ghost" size="sm" className="gap-2">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="gap-2"
+            onClick={() => setShowComments(!showComments)}
+          >
             <MessageCircle className="h-4 w-4" />
-            {post.comments_count > 0 && post.comments_count}
+            {commentsCount > 0 && commentsCount}
+            {showComments ? (
+              <ChevronUp className="h-3 w-3" />
+            ) : (
+              <ChevronDown className="h-3 w-3" />
+            )}
           </Button>
         </div>
       </CardContent>
+
+      {/* Comment Section */}
+      {showComments && (
+        <GroupPostCommentSection 
+          postId={post.id} 
+          onCommentCountChange={handleCommentCountChange}
+        />
+      )}
     </Card>
   );
 };
