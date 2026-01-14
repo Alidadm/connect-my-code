@@ -371,7 +371,7 @@ const GroupDetail = () => {
                 variant="secondary" 
                 size="sm" 
                 className="absolute top-4 right-4 gap-2"
-                onClick={() => toast.info("Group settings coming soon!")}
+                onClick={() => navigate(`/groups/${groupId}/settings`)}
               >
                 <Settings className="h-4 w-4" />
                 Manage Group
