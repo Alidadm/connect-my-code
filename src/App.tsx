@@ -13,6 +13,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Pricing from "./pages/Pricing";
 import Commissions from "./pages/Commissions";
 import Groups from "./pages/Groups";
+import GroupDetail from "./pages/GroupDetail";
 import AdminIndex from "./pages/AdminIndex";
 import UserList from "./pages/admin/UserList";
 import MemberDashboard from "./pages/MemberDashboard";
@@ -37,6 +38,7 @@ const App = () => (
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/commissions" element={<Commissions />} />
             <Route path="/groups" element={<Groups />} />
+            <Route path="/groups/:groupId" element={<GroupDetail />} />
             <Route path="/dashboard" element={<MemberDashboard />} />
             <Route path="/adminindex" element={<AdminIndex />} />
             <Route
