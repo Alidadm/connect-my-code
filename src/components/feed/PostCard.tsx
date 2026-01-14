@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Heart, MessageCircle, Share2, MoreVertical, Bookmark, Play, FileText, Music, Pencil, Trash2 } from "lucide-react";
+import { MessageCircle, Share2, MoreVertical, Bookmark, FileText, Music, Pencil, Trash2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,6 +16,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "@/hooks/use-toast";
 import { CommentSection } from "./CommentSection";
 import { ShareDialog } from "./ShareDialog";
+import { ReactionPicker } from "./ReactionPicker";
 import Swal from "sweetalert2";
 
 interface PostCardProps {
@@ -41,8 +42,6 @@ interface PostCardProps {
 export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const [isLiked, setIsLiked] = useState(false);
-  const [likesCount, setLikesCount] = useState(post.likes_count || 0);
   const [commentsCount, setCommentsCount] = useState(post.comments_count || 0);
   const [sharesCount, setSharesCount] = useState(post.shares_count || 0);
   const [showComments, setShowComments] = useState(false);
@@ -53,60 +52,23 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
 
   const isOwner = user?.id === post.user_id;
 
-  // Check if user has already liked and bookmarked this post
+  // Check if user has bookmarked this post
   useEffect(() => {
-    const checkStatus = async () => {
+    const checkBookmarkStatus = async () => {
       if (!user) return;
       
-      const [likeResult, bookmarkResult] = await Promise.all([
-        supabase
-          .from("post_likes")
-          .select("id")
-          .eq("post_id", post.id)
-          .eq("user_id", user.id)
-          .maybeSingle(),
-        supabase
-          .from("bookmarks")
-          .select("id")
-          .eq("post_id", post.id)
-          .eq("user_id", user.id)
-          .maybeSingle()
-      ]);
+      const { data } = await supabase
+        .from("bookmarks")
+        .select("id")
+        .eq("post_id", post.id)
+        .eq("user_id", user.id)
+        .maybeSingle();
       
-      setIsLiked(!!likeResult.data);
-      setIsBookmarked(!!bookmarkResult.data);
+      setIsBookmarked(!!data);
     };
 
-    checkStatus();
+    checkBookmarkStatus();
   }, [post.id, user]);
-
-  const handleLike = async () => {
-    if (!user) return;
-
-    try {
-      if (isLiked) {
-        await supabase
-          .from("post_likes")
-          .delete()
-          .eq("post_id", post.id)
-          .eq("user_id", user.id);
-        
-        setLikesCount(prev => Math.max(0, prev - 1));
-      } else {
-        await supabase.from("post_likes").insert({
-          post_id: post.id,
-          user_id: user.id,
-        });
-        
-        setLikesCount(prev => prev + 1);
-      }
-      
-      setIsLiked(!isLiked);
-      onLikeChange?.();
-    } catch (error) {
-      console.error("Error toggling like:", error);
-    }
-  };
 
   const handleBookmark = async () => {
     if (!user) return;
@@ -406,16 +368,7 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
       {/* Actions */}
       <div className="flex items-center justify-between p-4 border-t border-border">
         <div className="flex items-center gap-2 sm:gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            className={`gap-1 sm:gap-2 ${isLiked ? 'text-destructive' : 'text-muted-foreground'}`}
-            onClick={handleLike}
-          >
-            <Heart className={`h-5 w-5 ${isLiked ? 'fill-current' : ''}`} />
-            <span className="hidden sm:inline">{likesCount}</span>
-            <span className="sm:hidden">{likesCount}</span>
-          </Button>
+          <ReactionPicker postId={post.id} onReactionChange={onLikeChange} />
           <Button 
             variant="ghost" 
             size="sm" 
