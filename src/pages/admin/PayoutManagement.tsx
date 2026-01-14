@@ -18,6 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
 import { 
   ArrowLeft, 
   DollarSign, 
@@ -35,7 +36,8 @@ import {
   Copy,
   Settings,
   CreditCard,
-  Wallet
+  Wallet,
+  ToggleRight
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -79,12 +81,58 @@ const PayoutManagement = () => {
   // Settings state
   const [minimumWithdrawal, setMinimumWithdrawal] = useState<number>(25);
   const [editingMinimum, setEditingMinimum] = useState<string>("25");
+  const [autoPayoutEnabled, setAutoPayoutEnabled] = useState<boolean>(true);
   const [savingSettings, setSavingSettings] = useState(false);
+  const [savingAutoPayout, setSavingAutoPayout] = useState(false);
 
   useEffect(() => {
     fetchWithdrawalRequests();
     fetchMinimumWithdrawal();
+    fetchAutoPayoutSetting();
   }, []);
+
+  const fetchAutoPayoutSetting = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("platform_settings")
+        .select("setting_value")
+        .eq("setting_key", "auto_payout_enabled")
+        .single();
+
+      if (!error && data) {
+        const value = data.setting_value === true || data.setting_value === "true";
+        setAutoPayoutEnabled(value);
+      }
+    } catch (error) {
+      console.error("Error fetching auto payout setting:", error);
+    }
+  };
+
+  const toggleAutoPayout = async () => {
+    setSavingAutoPayout(true);
+    const newValue = !autoPayoutEnabled;
+    
+    try {
+      const { error } = await supabase
+        .from("platform_settings")
+        .upsert({
+          setting_key: "auto_payout_enabled",
+          setting_value: newValue,
+          updated_at: new Date().toISOString(),
+          updated_by: user?.id
+        }, { onConflict: "setting_key" });
+
+      if (error) throw error;
+
+      setAutoPayoutEnabled(newValue);
+      toast.success(`Auto-payout ${newValue ? "enabled" : "disabled"}`);
+    } catch (error: any) {
+      toast.error("Failed to update setting");
+      console.error(error);
+    } finally {
+      setSavingAutoPayout(false);
+    }
+  };
 
   const fetchMinimumWithdrawal = async () => {
     try {
@@ -831,6 +879,46 @@ const PayoutManagement = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
+                {/* Auto Payout Toggle */}
+                <div className="p-4 border rounded-lg">
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <ToggleRight className="h-5 w-5 text-primary" />
+                        <h4 className="font-medium">Automatic Payouts</h4>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        When enabled, commissions are automatically paid to members with connected Stripe accounts
+                        immediately after each subscription payment is processed.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      {savingAutoPayout && (
+                        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                      )}
+                      <Switch
+                        checked={autoPayoutEnabled}
+                        onCheckedChange={toggleAutoPayout}
+                        disabled={savingAutoPayout}
+                      />
+                    </div>
+                  </div>
+                  <div className={`mt-3 p-3 rounded-lg ${autoPayoutEnabled ? "bg-green-500/10" : "bg-yellow-500/10"}`}>
+                    <p className="text-sm">
+                      <span className="font-medium">Status:</span>{" "}
+                      {autoPayoutEnabled ? (
+                        <span className="text-green-600 font-semibold">
+                          Auto-payout is active — Stripe Connect members receive instant payouts
+                        </span>
+                      ) : (
+                        <span className="text-yellow-600 font-semibold">
+                          Auto-payout is paused — All payouts require manual processing
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+
                 {/* Minimum Withdrawal */}
                 <div className="p-4 border rounded-lg">
                   <div className="flex items-start justify-between">
