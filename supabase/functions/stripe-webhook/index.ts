@@ -247,7 +247,16 @@ serve(async (req) => {
       const autoPayoutEnabled = autoPayoutSetting?.setting_value !== false && 
                                  autoPayoutSetting?.setting_value !== "false";
       
-      logStep("Auto-payout setting", { enabled: autoPayoutEnabled });
+      // Check auto-payout priority setting
+      const { data: prioritySetting } = await supabaseClient
+        .from("platform_settings")
+        .select("setting_value")
+        .eq("setting_key", "auto_payout_priority")
+        .single();
+      
+      const autoPayoutPriority = prioritySetting?.setting_value === "paypal" ? "paypal" : "stripe";
+      
+      logStep("Auto-payout settings", { enabled: autoPayoutEnabled, priority: autoPayoutPriority });
 
       // Check if referrer has Stripe Connect or PayPal for auto-payout
       const { data: referrerPrivate } = await supabaseClient
@@ -258,82 +267,91 @@ serve(async (req) => {
 
       let autoPaidSuccessfully = false;
 
-      if (autoPayoutEnabled && referrerPrivate?.stripe_connect_id) {
-        // Try Stripe Connect auto-payout first
-        logStep("Referrer has Stripe Connect and auto-payout enabled, attempting auto-payout", { 
+      // Helper function for Stripe auto-payout
+      const attemptStripeAutoPayout = async (): Promise<boolean> => {
+        if (!referrerPrivate?.stripe_connect_id) {
+          logStep("No Stripe Connect ID available");
+          return false;
+        }
+        
+        logStep("Attempting Stripe Connect auto-payout", { 
           connectId: referrerPrivate.stripe_connect_id 
         });
 
         try {
-          // Verify the connected account can receive payouts
           const connectedAccount = await stripe.accounts.retrieve(referrerPrivate.stripe_connect_id);
           
-          if (connectedAccount.payouts_enabled) {
-            // Create instant transfer to connected account
-            const transfer = await stripe.transfers.create({
-              amount: commissionAmount, // in cents (500 = $5)
-              currency: invoice.currency || "usd",
-              destination: referrerPrivate.stripe_connect_id,
-              description: `DolphySN Auto-Payout - Commission for referral`,
-              metadata: {
-                commission_id: commission.id,
-                referrer_id: profile.referrer_id,
-                referred_user_id: user.id,
-              },
-            });
-
-            logStep("Auto-payout transfer created", { 
-              transferId: transfer.id, 
-              amount: commissionAmount / 100 
-            });
-
-            // Update commission to paid status
-            await supabaseClient
-              .from("commissions")
-              .update({
-                status: "paid",
-                paid_at: new Date().toISOString(),
-                provider_transfer_id: transfer.id,
-              })
-              .eq("id", commission.id);
-
-            logStep("Commission marked as paid via Stripe auto-payout");
-            autoPaidSuccessfully = true;
-
-            // Send payout completed notification
-            try {
-              const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
-              await fetch(`${supabaseUrl}/functions/v1/send-commission-notification`, {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
-                },
-                body: JSON.stringify({
-                  referrer_id: profile.referrer_id,
-                  type: "payout_completed",
-                  amount: commissionAmount / 100,
-                  currency: invoice.currency?.toUpperCase() || "USD",
-                  referred_user_name: referredUserName,
-                  payout_method: "stripe",
-                }),
-              });
-              logStep("Payout completed notification sent");
-            } catch (notifError) {
-              logStep("Failed to send payout notification", { error: String(notifError) });
-            }
-          } else {
+          if (!connectedAccount.payouts_enabled) {
             logStep("Referrer's Stripe account not ready for payouts");
+            return false;
           }
+
+          const transfer = await stripe.transfers.create({
+            amount: commissionAmount,
+            currency: invoice.currency || "usd",
+            destination: referrerPrivate.stripe_connect_id,
+            description: `DolphySN Auto-Payout - Commission for referral`,
+            metadata: {
+              commission_id: commission.id,
+              referrer_id: profile.referrer_id,
+              referred_user_id: user.id,
+            },
+          });
+
+          logStep("Stripe auto-payout transfer created", { 
+            transferId: transfer.id, 
+            amount: commissionAmount / 100 
+          });
+
+          await supabaseClient
+            .from("commissions")
+            .update({
+              status: "paid",
+              paid_at: new Date().toISOString(),
+              provider_transfer_id: transfer.id,
+            })
+            .eq("id", commission.id);
+
+          logStep("Commission marked as paid via Stripe auto-payout");
+
+          try {
+            const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+            await fetch(`${supabaseUrl}/functions/v1/send-commission-notification`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+              },
+              body: JSON.stringify({
+                referrer_id: profile.referrer_id,
+                type: "payout_completed",
+                amount: commissionAmount / 100,
+                currency: invoice.currency?.toUpperCase() || "USD",
+                referred_user_name: referredUserName,
+                payout_method: "stripe",
+              }),
+            });
+            logStep("Payout completed notification sent");
+          } catch (notifError) {
+            logStep("Failed to send payout notification", { error: String(notifError) });
+          }
+
+          return true;
         } catch (transferError) {
           logStep("Stripe auto-payout failed", { 
             error: transferError instanceof Error ? transferError.message : String(transferError) 
           });
+          return false;
         }
-      }
+      };
 
-      // If Stripe auto-payout didn't work, try PayPal auto-payout
-      if (autoPayoutEnabled && !autoPaidSuccessfully && referrerPrivate?.paypal_payout_email) {
+      // Helper function for PayPal auto-payout
+      const attemptPayPalAutoPayout = async (): Promise<boolean> => {
+        if (!referrerPrivate?.paypal_payout_email) {
+          logStep("No PayPal payout email available");
+          return false;
+        }
+
         logStep("Attempting PayPal auto-payout", { 
           email: referrerPrivate.paypal_payout_email 
         });
@@ -359,9 +377,7 @@ serve(async (req) => {
           
           if (paypalResult.success) {
             logStep("PayPal auto-payout successful", { batchId: paypalResult.payout_batch_id });
-            autoPaidSuccessfully = true;
 
-            // Send payout completed notification
             try {
               await fetch(`${supabaseUrl}/functions/v1/send-commission-notification`, {
                 method: "POST",
@@ -382,13 +398,36 @@ serve(async (req) => {
             } catch (notifError) {
               logStep("Failed to send payout notification", { error: String(notifError) });
             }
+
+            return true;
           } else {
             logStep("PayPal auto-payout failed", { error: paypalResult.error });
+            return false;
           }
         } catch (paypalError) {
           logStep("PayPal auto-payout error", { 
             error: paypalError instanceof Error ? paypalError.message : String(paypalError) 
           });
+          return false;
+        }
+      };
+
+      // Execute auto-payout based on priority setting
+      if (autoPayoutEnabled) {
+        if (autoPayoutPriority === "stripe") {
+          // Stripe first, then PayPal fallback
+          logStep("Using priority: Stripe first");
+          autoPaidSuccessfully = await attemptStripeAutoPayout();
+          if (!autoPaidSuccessfully) {
+            autoPaidSuccessfully = await attemptPayPalAutoPayout();
+          }
+        } else {
+          // PayPal first, then Stripe fallback
+          logStep("Using priority: PayPal first");
+          autoPaidSuccessfully = await attemptPayPalAutoPayout();
+          if (!autoPaidSuccessfully) {
+            autoPaidSuccessfully = await attemptStripeAutoPayout();
+          }
         }
       }
 

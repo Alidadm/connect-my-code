@@ -82,13 +82,16 @@ const PayoutManagement = () => {
   const [minimumWithdrawal, setMinimumWithdrawal] = useState<number>(25);
   const [editingMinimum, setEditingMinimum] = useState<string>("25");
   const [autoPayoutEnabled, setAutoPayoutEnabled] = useState<boolean>(true);
+  const [autoPayoutPriority, setAutoPayoutPriority] = useState<"stripe" | "paypal">("stripe");
   const [savingSettings, setSavingSettings] = useState(false);
   const [savingAutoPayout, setSavingAutoPayout] = useState(false);
+  const [savingPriority, setSavingPriority] = useState(false);
 
   useEffect(() => {
     fetchWithdrawalRequests();
     fetchMinimumWithdrawal();
     fetchAutoPayoutSetting();
+    fetchAutoPayoutPriority();
   }, []);
 
   const fetchAutoPayoutSetting = async () => {
@@ -131,6 +134,49 @@ const PayoutManagement = () => {
       console.error(error);
     } finally {
       setSavingAutoPayout(false);
+    }
+  };
+
+  const fetchAutoPayoutPriority = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("platform_settings")
+        .select("setting_value")
+        .eq("setting_key", "auto_payout_priority")
+        .single();
+
+      if (!error && data) {
+        const value = data.setting_value === "paypal" ? "paypal" : "stripe";
+        setAutoPayoutPriority(value);
+      }
+    } catch (error) {
+      console.error("Error fetching auto payout priority:", error);
+    }
+  };
+
+  const toggleAutoPayoutPriority = async () => {
+    setSavingPriority(true);
+    const newValue = autoPayoutPriority === "stripe" ? "paypal" : "stripe";
+    
+    try {
+      const { error } = await supabase
+        .from("platform_settings")
+        .upsert({
+          setting_key: "auto_payout_priority",
+          setting_value: newValue,
+          updated_at: new Date().toISOString(),
+          updated_by: user?.id
+        }, { onConflict: "setting_key" });
+
+      if (error) throw error;
+
+      setAutoPayoutPriority(newValue);
+      toast.success(`Auto-payout priority set to ${newValue === "stripe" ? "Stripe first" : "PayPal first"}`);
+    } catch (error: any) {
+      toast.error("Failed to update priority setting");
+      console.error(error);
+    } finally {
+      setSavingPriority(false);
     }
   };
 
@@ -908,11 +954,62 @@ const PayoutManagement = () => {
                       <span className="font-medium">Status:</span>{" "}
                       {autoPayoutEnabled ? (
                         <span className="text-green-600 font-semibold">
-                          Auto-payout is active — Stripe Connect members receive instant payouts
+                          Auto-payout is active — Members receive instant payouts
                         </span>
                       ) : (
                         <span className="text-yellow-600 font-semibold">
                           Auto-payout is paused — All payouts require manual processing
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Auto-Payout Priority */}
+                <div className="p-4 border rounded-lg">
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-1">
+                      <h4 className="font-medium flex items-center gap-2">
+                        <CreditCard className="h-4 w-4" />
+                        Auto-Payout Priority
+                      </h4>
+                      <p className="text-sm text-muted-foreground">
+                        Choose which payout method to try first when both Stripe Connect and PayPal are available.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant={autoPayoutPriority === "stripe" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => autoPayoutPriority !== "stripe" && toggleAutoPayoutPriority()}
+                        disabled={savingPriority || autoPayoutPriority === "stripe"}
+                        className="gap-1"
+                      >
+                        <CreditCard className="h-3 w-3" />
+                        Stripe First
+                      </Button>
+                      <Button
+                        variant={autoPayoutPriority === "paypal" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => autoPayoutPriority !== "paypal" && toggleAutoPayoutPriority()}
+                        disabled={savingPriority || autoPayoutPriority === "paypal"}
+                        className="gap-1"
+                      >
+                        <Wallet className="h-3 w-3" />
+                        PayPal First
+                      </Button>
+                    </div>
+                  </div>
+                  <div className={`mt-3 p-3 rounded-lg ${autoPayoutPriority === "stripe" ? "bg-purple-500/10" : "bg-blue-500/10"}`}>
+                    <p className="text-sm">
+                      <span className="font-medium">Current priority:</span>{" "}
+                      {autoPayoutPriority === "stripe" ? (
+                        <span className="text-purple-600 font-semibold">
+                          Stripe Connect → PayPal (fallback)
+                        </span>
+                      ) : (
+                        <span className="text-blue-600 font-semibold">
+                          PayPal → Stripe Connect (fallback)
                         </span>
                       )}
                     </p>
