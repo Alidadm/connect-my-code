@@ -39,12 +39,33 @@ const WithdrawalRequestSection = ({ pendingEarnings, userId }: WithdrawalRequest
   const [submitting, setSubmitting] = useState(false);
   const [payoutEmail, setPayoutEmail] = useState("");
   const [showForm, setShowForm] = useState(false);
-
-  const minimumWithdrawal = 10; // Minimum $10 to withdraw
+  const [minimumWithdrawal, setMinimumWithdrawal] = useState(25); // Default $25 minimum
 
   useEffect(() => {
     fetchWithdrawalRequests();
+    fetchMinimumWithdrawal();
   }, [userId]);
+
+  const fetchMinimumWithdrawal = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("platform_settings")
+        .select("setting_value")
+        .eq("setting_key", "minimum_withdrawal")
+        .single();
+
+      if (!error && data) {
+        const value = typeof data.setting_value === 'string' 
+          ? parseFloat(data.setting_value) 
+          : Number(data.setting_value);
+        if (!isNaN(value)) {
+          setMinimumWithdrawal(value);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching minimum withdrawal:", error);
+    }
+  };
 
   const fetchWithdrawalRequests = async () => {
     try {
