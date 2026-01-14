@@ -29,7 +29,10 @@ import {
   ExternalLink,
   Mail,
   Zap,
-  Loader2
+  Loader2,
+  History,
+  FileText,
+  Copy
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -43,6 +46,7 @@ interface WithdrawalRequest {
   payout_email: string | null;
   admin_notes: string | null;
   processed_at: string | null;
+  provider_payout_id: string | null;
   created_at: string;
   updated_at: string;
   // Joined data
@@ -60,6 +64,7 @@ const PayoutManagement = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("pending");
+  const [mainTab, setMainTab] = useState<"requests" | "history">("requests");
   
   // Action dialog state
   const [selectedRequest, setSelectedRequest] = useState<WithdrawalRequest | null>(null);
@@ -321,9 +326,23 @@ const PayoutManagement = () => {
 
   const pendingCount = requests.filter(r => r.status === "pending").length;
   const approvedCount = requests.filter(r => r.status === "approved").length;
+  const completedCount = requests.filter(r => r.status === "completed").length;
   const totalPendingAmount = requests
     .filter(r => r.status === "pending" || r.status === "approved")
     .reduce((sum, r) => sum + r.amount, 0);
+  const totalPaidAmount = requests
+    .filter(r => r.status === "completed")
+    .reduce((sum, r) => sum + r.amount, 0);
+
+  // Get completed payouts with batch IDs for history
+  const payoutHistory = requests
+    .filter(r => r.status === "completed" && r.provider_payout_id)
+    .sort((a, b) => new Date(b.processed_at || b.updated_at).getTime() - new Date(a.processed_at || a.updated_at).getTime());
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success("Copied to clipboard!");
+  };
 
   return (
     <AdminRouteGuard>
@@ -344,50 +363,80 @@ const PayoutManagement = () => {
             </Button>
           </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <Card className="border-yellow-500/20 bg-gradient-to-br from-yellow-500/5 to-yellow-500/10">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-full bg-yellow-500/20 flex items-center justify-center">
-                    <Clock className="h-6 w-6 text-yellow-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Pending Requests</p>
-                    <p className="text-2xl font-bold">{pendingCount}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          {/* Main Tabs */}
+          <Tabs value={mainTab} onValueChange={(v) => setMainTab(v as "requests" | "history")} className="mb-6">
+            <TabsList className="grid w-full max-w-md grid-cols-2">
+              <TabsTrigger value="requests" className="gap-2">
+                <FileText className="h-4 w-4" />
+                Requests
+              </TabsTrigger>
+              <TabsTrigger value="history" className="gap-2">
+                <History className="h-4 w-4" />
+                Payout History
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
 
-            <Card className="border-blue-500/20 bg-gradient-to-br from-blue-500/5 to-blue-500/10">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-full bg-blue-500/20 flex items-center justify-center">
-                    <CheckCircle2 className="h-6 w-6 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Approved (Ready to Pay)</p>
-                    <p className="text-2xl font-bold">{approvedCount}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          {mainTab === "requests" && (
+            <>
+              {/* Stats Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <Card className="border-yellow-500/20 bg-gradient-to-br from-yellow-500/5 to-yellow-500/10">
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-4">
+                      <div className="h-12 w-12 rounded-full bg-yellow-500/20 flex items-center justify-center">
+                        <Clock className="h-6 w-6 text-yellow-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Pending</p>
+                        <p className="text-2xl font-bold">{pendingCount}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
 
-            <Card className="border-green-500/20 bg-gradient-to-br from-green-500/5 to-green-500/10">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-full bg-green-500/20 flex items-center justify-center">
-                    <DollarSign className="h-6 w-6 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Total Pending Amount</p>
-                    <p className="text-2xl font-bold text-green-600">{formatCurrency(totalPendingAmount)}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                <Card className="border-blue-500/20 bg-gradient-to-br from-blue-500/5 to-blue-500/10">
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-4">
+                      <div className="h-12 w-12 rounded-full bg-blue-500/20 flex items-center justify-center">
+                        <CheckCircle2 className="h-6 w-6 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Ready to Pay</p>
+                        <p className="text-2xl font-bold">{approvedCount}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-purple-500/20 bg-gradient-to-br from-purple-500/5 to-purple-500/10">
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-4">
+                      <div className="h-12 w-12 rounded-full bg-purple-500/20 flex items-center justify-center">
+                        <DollarSign className="h-6 w-6 text-purple-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Pending Amount</p>
+                        <p className="text-xl font-bold text-purple-600">{formatCurrency(totalPendingAmount)}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-green-500/20 bg-gradient-to-br from-green-500/5 to-green-500/10">
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-4">
+                      <div className="h-12 w-12 rounded-full bg-green-500/20 flex items-center justify-center">
+                        <CheckCircle2 className="h-6 w-6 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Total Paid</p>
+                        <p className="text-xl font-bold text-green-600">{formatCurrency(totalPaidAmount)}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
 
           {/* Filters */}
           <Card className="mb-6">
@@ -574,6 +623,119 @@ const PayoutManagement = () => {
               )}
             </CardContent>
           </Card>
+            </>
+          )}
+
+          {mainTab === "history" && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <History className="h-5 w-5" />
+                  Payout History
+                </CardTitle>
+                <CardDescription>
+                  {payoutHistory.length} completed payout{payoutHistory.length !== 1 ? "s" : ""} with PayPal batch IDs
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="flex items-center gap-4">
+                          <Skeleton className="h-12 w-12 rounded-full" />
+                          <div className="space-y-2">
+                            <Skeleton className="h-4 w-40" />
+                            <Skeleton className="h-3 w-32" />
+                          </div>
+                        </div>
+                        <Skeleton className="h-8 w-24" />
+                      </div>
+                    ))}
+                  </div>
+                ) : payoutHistory.length === 0 ? (
+                  <div className="text-center py-12">
+                    <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+                      <History className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                    <h3 className="font-semibold mb-2">No payout history</h3>
+                    <p className="text-muted-foreground text-sm">
+                      Completed payouts with PayPal batch IDs will appear here.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {payoutHistory.map((payout) => (
+                      <div 
+                        key={payout.id}
+                        className="flex flex-col md:flex-row items-start md:items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors gap-4"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="h-12 w-12 rounded-full bg-green-500/10 flex items-center justify-center overflow-hidden">
+                            {payout.user_profile?.avatar_url ? (
+                              <img 
+                                src={payout.user_profile.avatar_url} 
+                                alt="" 
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              <CheckCircle2 className="h-6 w-6 text-green-600" />
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-medium">
+                              {payout.user_profile?.display_name || "Unknown User"}
+                              <span className="text-muted-foreground text-sm ml-2">
+                                @{payout.user_profile?.username || "unknown"}
+                              </span>
+                            </p>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Mail className="h-3 w-3" />
+                              {payout.payout_email || "No email provided"}
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Paid: {formatDate(payout.processed_at || payout.updated_at)}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex flex-col md:flex-row items-start md:items-center gap-3 w-full md:w-auto">
+                          <div className="text-right">
+                            <p className="text-xl font-bold text-green-600">
+                              {formatCurrency(payout.amount)}
+                            </p>
+                            <Badge className="bg-green-500/10 text-green-600 border-green-500/20">
+                              <CheckCircle2 className="h-3 w-3 mr-1" />
+                              Completed
+                            </Badge>
+                          </div>
+                          
+                          {payout.provider_payout_id && (
+                            <div className="flex flex-col gap-1">
+                              <p className="text-xs text-muted-foreground">PayPal Batch ID:</p>
+                              <div className="flex items-center gap-2">
+                                <code className="text-xs bg-muted px-2 py-1 rounded font-mono">
+                                  {payout.provider_payout_id.slice(0, 20)}...
+                                </code>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-6 w-6"
+                                  onClick={() => copyToClipboard(payout.provider_payout_id || "")}
+                                >
+                                  <Copy className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Action Dialog */}
