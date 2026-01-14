@@ -388,12 +388,17 @@ export const CommentSection = ({ postId, onCommentCountChange }: CommentSectionP
   };
 
   const handleDelete = (commentId: string, hasReplies: boolean) => {
-    // If comment has replies, they will be cascade deleted, so count them
-    const comment = comments.find(c => c.id === commentId);
-    const replyCount = comment?.replies?.length || 0;
-    const deleteCount = hasReplies ? 1 + replyCount : 1;
-    
-    deleteCommentMutation.mutate({ commentId, deleteCount });
+    // Check if it's a parent comment or a reply
+    const parentComment = comments.find(c => c.id === commentId);
+    if (parentComment) {
+      // It's a parent comment, count its replies
+      const replyCount = parentComment.replies?.length || 0;
+      const deleteCount = 1 + replyCount;
+      deleteCommentMutation.mutate({ commentId, deleteCount });
+    } else {
+      // It's a reply, just delete it
+      deleteCommentMutation.mutate({ commentId, deleteCount: 1 });
+    }
   };
 
   const handleEdit = (commentId: string, newContent: string) => {
