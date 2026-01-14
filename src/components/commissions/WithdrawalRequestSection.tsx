@@ -6,13 +6,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { 
   Wallet, 
   ArrowUpRight, 
   Clock, 
   CheckCircle2, 
   XCircle,
-  AlertCircle
+  AlertCircle,
+  CreditCard,
+  ExternalLink,
+  Loader2
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -28,6 +32,13 @@ interface WithdrawalRequest {
   processed_at: string | null;
 }
 
+interface StripeConnectStatus {
+  connected: boolean;
+  status: string;
+  payouts_enabled?: boolean;
+  details_submitted?: boolean;
+}
+
 interface WithdrawalRequestSectionProps {
   pendingEarnings: number;
   userId: string;
@@ -37,14 +48,91 @@ const WithdrawalRequestSection = ({ pendingEarnings, userId }: WithdrawalRequest
   const [requests, setRequests] = useState<WithdrawalRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [payoutMethod, setPayoutMethod] = useState<"paypal" | "stripe">("paypal");
   const [payoutEmail, setPayoutEmail] = useState("");
   const [showForm, setShowForm] = useState(false);
-  const [minimumWithdrawal, setMinimumWithdrawal] = useState(25); // Default $25 minimum
+  const [minimumWithdrawal, setMinimumWithdrawal] = useState(25);
+  
+  // Stripe Connect state
+  const [stripeStatus, setStripeStatus] = useState<StripeConnectStatus | null>(null);
+  const [checkingStripe, setCheckingStripe] = useState(false);
+  const [connectingStripe, setConnectingStripe] = useState(false);
 
   useEffect(() => {
     fetchWithdrawalRequests();
     fetchMinimumWithdrawal();
+    checkStripeConnectStatus();
   }, [userId]);
+
+  const checkStripeConnectStatus = async () => {
+    setCheckingStripe(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/stripe-connect-status`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session.access_token}`,
+          },
+        }
+      );
+
+      const result = await response.json();
+      if (response.ok) {
+        setStripeStatus(result);
+      }
+    } catch (error) {
+      console.error("Error checking Stripe Connect status:", error);
+    } finally {
+      setCheckingStripe(false);
+    }
+  };
+
+  const handleConnectStripe = async () => {
+    setConnectingStripe(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error("Please log in to connect Stripe");
+        return;
+      }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/stripe-connect-onboarding`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ origin: window.location.origin }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to start Stripe onboarding");
+      }
+
+      if (result.status === "complete") {
+        toast.success("Your Stripe account is already connected!");
+        await checkStripeConnectStatus();
+      } else if (result.url) {
+        window.open(result.url, "_blank");
+        toast.info("Complete your Stripe account setup in the new tab");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to connect Stripe account");
+      console.error(error);
+    } finally {
+      setConnectingStripe(false);
+    }
+  };
 
   const fetchMinimumWithdrawal = async () => {
     try {
@@ -84,8 +172,14 @@ const WithdrawalRequestSection = ({ pendingEarnings, userId }: WithdrawalRequest
   };
 
   const handleSubmitRequest = async () => {
-    if (!payoutEmail.trim()) {
+    // Validate based on payout method
+    if (payoutMethod === "paypal" && !payoutEmail.trim()) {
       toast.error("Please enter your PayPal email address");
+      return;
+    }
+
+    if (payoutMethod === "stripe" && (!stripeStatus?.connected || stripeStatus.status !== "active")) {
+      toast.error("Please connect your Stripe account first");
       return;
     }
 
@@ -94,7 +188,6 @@ const WithdrawalRequestSection = ({ pendingEarnings, userId }: WithdrawalRequest
       return;
     }
 
-    // Check for pending requests
     const hasPendingRequest = requests.some(r => r.status === "pending" || r.status === "approved");
     if (hasPendingRequest) {
       toast.error("You already have a pending withdrawal request");
@@ -103,16 +196,21 @@ const WithdrawalRequestSection = ({ pendingEarnings, userId }: WithdrawalRequest
 
     setSubmitting(true);
     try {
+      const insertData: any = {
+        user_id: userId,
+        amount: pendingEarnings,
+        currency: "usd",
+        payout_method: payoutMethod,
+        status: "pending"
+      };
+
+      if (payoutMethod === "paypal") {
+        insertData.payout_email = payoutEmail.trim();
+      }
+
       const { error } = await supabase
         .from("withdrawal_requests")
-        .insert({
-          user_id: userId,
-          amount: pendingEarnings,
-          currency: "usd",
-          payout_method: "paypal",
-          payout_email: payoutEmail.trim(),
-          status: "pending"
-        });
+        .insert(insertData);
 
       if (error) throw error;
 
@@ -145,6 +243,13 @@ const WithdrawalRequestSection = ({ pendingEarnings, userId }: WithdrawalRequest
     }
   };
 
+  const getPayoutMethodBadge = (method: string) => {
+    if (method === "stripe") {
+      return <Badge variant="outline" className="text-purple-600 border-purple-300"><CreditCard className="h-3 w-3 mr-1" />Stripe</Badge>;
+    }
+    return <Badge variant="outline" className="text-blue-600 border-blue-300"><Wallet className="h-3 w-3 mr-1" />PayPal</Badge>;
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       month: "short",
@@ -162,6 +267,8 @@ const WithdrawalRequestSection = ({ pendingEarnings, userId }: WithdrawalRequest
 
   const canWithdraw = pendingEarnings >= minimumWithdrawal && 
     !requests.some(r => r.status === "pending" || r.status === "approved");
+
+  const isStripeReady = stripeStatus?.connected && stripeStatus.status === "active";
 
   return (
     <Card className="mb-8">
@@ -196,24 +303,109 @@ const WithdrawalRequestSection = ({ pendingEarnings, userId }: WithdrawalRequest
                 <span className="text-xl font-bold text-green-600">{formatCurrency(pendingEarnings)}</span>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="payoutEmail">PayPal Email Address</Label>
-                <Input
-                  id="payoutEmail"
-                  type="email"
-                  placeholder="your-paypal@email.com"
-                  value={payoutEmail}
-                  onChange={(e) => setPayoutEmail(e.target.value)}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Enter the email address associated with your PayPal account
-                </p>
+              {/* Payout Method Selection */}
+              <div className="space-y-3">
+                <Label>Choose Payout Method</Label>
+                <RadioGroup 
+                  value={payoutMethod} 
+                  onValueChange={(value) => setPayoutMethod(value as "paypal" | "stripe")}
+                  className="grid grid-cols-2 gap-4"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="paypal" id="paypal" />
+                    <Label htmlFor="paypal" className="flex items-center gap-2 cursor-pointer">
+                      <Wallet className="h-4 w-4 text-blue-600" />
+                      PayPal
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="stripe" id="stripe" />
+                    <Label htmlFor="stripe" className="flex items-center gap-2 cursor-pointer">
+                      <CreditCard className="h-4 w-4 text-purple-600" />
+                      Stripe
+                      {isStripeReady && (
+                        <CheckCircle2 className="h-3 w-3 text-green-500" />
+                      )}
+                    </Label>
+                  </div>
+                </RadioGroup>
               </div>
+
+              {/* PayPal Email Input */}
+              {payoutMethod === "paypal" && (
+                <div className="space-y-2">
+                  <Label htmlFor="payoutEmail">PayPal Email Address</Label>
+                  <Input
+                    id="payoutEmail"
+                    type="email"
+                    placeholder="your-paypal@email.com"
+                    value={payoutEmail}
+                    onChange={(e) => setPayoutEmail(e.target.value)}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Enter the email address associated with your PayPal account
+                  </p>
+                </div>
+              )}
+
+              {/* Stripe Connect Status */}
+              {payoutMethod === "stripe" && (
+                <div className="space-y-3">
+                  {checkingStripe ? (
+                    <div className="flex items-center gap-2 p-3 border rounded-lg bg-muted/50">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span className="text-sm">Checking Stripe account status...</span>
+                    </div>
+                  ) : isStripeReady ? (
+                    <div className="flex items-center gap-2 p-3 border rounded-lg bg-green-500/10 border-green-500/30">
+                      <CheckCircle2 className="h-5 w-5 text-green-600" />
+                      <div>
+                        <p className="font-medium text-green-700">Stripe Account Connected</p>
+                        <p className="text-xs text-green-600">Ready to receive payouts directly to your bank</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-4 border rounded-lg bg-purple-500/5 border-purple-500/20">
+                      <div className="flex items-start gap-3">
+                        <CreditCard className="h-5 w-5 text-purple-600 mt-0.5" />
+                        <div className="flex-1">
+                          <p className="font-medium text-purple-700">Connect Your Stripe Account</p>
+                          <p className="text-sm text-muted-foreground mb-3">
+                            Link your bank account through Stripe to receive direct deposits
+                          </p>
+                          <Button 
+                            variant="outline" 
+                            onClick={handleConnectStripe}
+                            disabled={connectingStripe}
+                            className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                          >
+                            {connectingStripe ? (
+                              <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                Connecting...
+                              </>
+                            ) : (
+                              <>
+                                <ExternalLink className="h-4 w-4 mr-2" />
+                                Connect Stripe Account
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div className="flex gap-3">
                 <Button 
                   onClick={handleSubmitRequest} 
-                  disabled={submitting || !payoutEmail.trim()}
+                  disabled={
+                    submitting || 
+                    (payoutMethod === "paypal" && !payoutEmail.trim()) ||
+                    (payoutMethod === "stripe" && !isStripeReady)
+                  }
                   className="flex-1"
                 >
                   {submitting ? "Submitting..." : "Submit Request"}
@@ -284,7 +476,10 @@ const WithdrawalRequestSection = ({ pendingEarnings, userId }: WithdrawalRequest
                       )}
                     </div>
                     <div>
-                      <p className="font-medium">Withdrawal Request</p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium">Withdrawal Request</p>
+                        {getPayoutMethodBadge(request.payout_method)}
+                      </div>
                       <p className="text-sm text-muted-foreground">
                         {formatDate(request.created_at)}
                         {request.payout_email && ` • ${request.payout_email}`}
