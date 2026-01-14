@@ -12,6 +12,7 @@ export default function AdminRouteGuard({ children }: { children: ReactNode }) {
   const location = useLocation();
 
   const [checking, setChecking] = useState(true);
+  const [isAuthorized, setIsAuthorized] = useState(false);
   const hasRedirectedRef = useRef(false);
 
   useEffect(() => {
@@ -46,6 +47,7 @@ export default function AdminRouteGuard({ children }: { children: ReactNode }) {
 
       if (!user) {
         setChecking(false);
+        setIsAuthorized(false);
         redirectToLogin("auth");
         return;
       }
@@ -61,10 +63,12 @@ export default function AdminRouteGuard({ children }: { children: ReactNode }) {
 
       if (error || !data) {
         setChecking(false);
+        setIsAuthorized(false);
         redirectToLogin("admin");
         return;
       }
 
+      setIsAuthorized(true);
       setChecking(false);
     };
 
@@ -81,6 +85,18 @@ export default function AdminRouteGuard({ children }: { children: ReactNode }) {
         <div className="flex items-center gap-3 text-muted-foreground">
           <Loader2 className="h-5 w-5 animate-spin" />
           <span className="text-sm">Checking access…</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Only render children if authorized
+  if (!isAuthorized) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex items-center gap-3 text-muted-foreground">
+          <Loader2 className="h-5 w-5 animate-spin" />
+          <span className="text-sm">Redirecting…</span>
         </div>
       </div>
     );
