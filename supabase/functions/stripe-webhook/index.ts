@@ -228,8 +228,64 @@ serve(async (req) => {
         referrerId: profile.referrer_id 
       });
 
-      // TODO: Implement automatic payout via Stripe Connect or manual tracking
-      // For now, commissions are tracked and can be paid out manually
+      // AUTO-PAY: Check if referrer has Stripe Connect and transfer instantly
+      const { data: referrerPrivate } = await supabaseClient
+        .from("profiles_private")
+        .select("stripe_connect_id")
+        .eq("user_id", profile.referrer_id)
+        .single();
+
+      if (referrerPrivate?.stripe_connect_id) {
+        logStep("Referrer has Stripe Connect, attempting auto-payout", { 
+          connectId: referrerPrivate.stripe_connect_id 
+        });
+
+        try {
+          // Verify the connected account can receive payouts
+          const connectedAccount = await stripe.accounts.retrieve(referrerPrivate.stripe_connect_id);
+          
+          if (connectedAccount.payouts_enabled) {
+            // Create instant transfer to connected account
+            const transfer = await stripe.transfers.create({
+              amount: commissionAmount, // in cents (500 = $5)
+              currency: invoice.currency || "usd",
+              destination: referrerPrivate.stripe_connect_id,
+              description: `DolphySN Auto-Payout - Commission for referral`,
+              metadata: {
+                commission_id: commission.id,
+                referrer_id: profile.referrer_id,
+                referred_user_id: user.id,
+              },
+            });
+
+            logStep("Auto-payout transfer created", { 
+              transferId: transfer.id, 
+              amount: commissionAmount / 100 
+            });
+
+            // Update commission to paid status
+            await supabaseClient
+              .from("commissions")
+              .update({
+                status: "paid",
+                paid_at: new Date().toISOString(),
+                provider_transfer_id: transfer.id,
+              })
+              .eq("id", commission.id);
+
+            logStep("Commission marked as paid via auto-payout");
+          } else {
+            logStep("Referrer's Stripe account not ready for payouts, commission remains pending");
+          }
+        } catch (transferError) {
+          logStep("Auto-payout failed, commission remains pending", { 
+            error: transferError instanceof Error ? transferError.message : String(transferError) 
+          });
+          // Commission stays as "pending" - can be paid manually later
+        }
+      } else {
+        logStep("Referrer has no Stripe Connect, commission remains pending for manual payout");
+      }
     }
 
     // Handle subscription deleted/canceled
