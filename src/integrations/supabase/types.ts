@@ -14,26 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
+      bookmark_collections: {
+        Row: {
+          color: string | null
+          created_at: string
+          icon: string | null
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          icon?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          icon?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       bookmarks: {
         Row: {
+          collection_id: string | null
           created_at: string
           id: string
           post_id: string
           user_id: string
         }
         Insert: {
+          collection_id?: string | null
           created_at?: string
           id?: string
           post_id: string
           user_id: string
         }
         Update: {
+          collection_id?: string | null
           created_at?: string
           id?: string
           post_id?: string
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "bookmarks_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "bookmark_collections"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "bookmarks_post_id_fkey"
             columns: ["post_id"]
