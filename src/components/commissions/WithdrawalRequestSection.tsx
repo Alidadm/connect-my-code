@@ -365,32 +365,50 @@ const WithdrawalRequestSection = ({ pendingEarnings, userId }: WithdrawalRequest
                       </div>
                     </div>
                   ) : (
-                    <div className="p-4 border rounded-lg bg-purple-500/5 border-purple-500/20">
-                      <div className="flex items-start gap-3">
-                        <CreditCard className="h-5 w-5 text-purple-600 mt-0.5" />
-                        <div className="flex-1">
-                          <p className="font-medium text-purple-700">Connect Your Stripe Account</p>
-                          <p className="text-sm text-muted-foreground mb-3">
-                            Link your bank account through Stripe to receive direct deposits
-                          </p>
-                          <Button 
-                            variant="outline" 
-                            onClick={handleConnectStripe}
-                            disabled={connectingStripe}
-                            className="border-purple-300 text-purple-700 hover:bg-purple-50"
-                          >
-                            {connectingStripe ? (
-                              <>
-                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                Connecting...
-                              </>
-                            ) : (
-                              <>
-                                <ExternalLink className="h-4 w-4 mr-2" />
-                                Connect Stripe Account
-                              </>
-                            )}
-                          </Button>
+                    <div className="space-y-4">
+                      {/* What to Expect Section */}
+                      <div className="p-4 border rounded-lg bg-blue-500/5 border-blue-500/20">
+                        <h5 className="font-medium text-blue-700 mb-2 flex items-center gap-2">
+                          <AlertCircle className="h-4 w-4" />
+                          What to Expect
+                        </h5>
+                        <ul className="text-sm text-muted-foreground space-y-2 ml-6 list-disc">
+                          <li>You'll be redirected to <strong>Stripe's secure page</strong> (not our site)</li>
+                          <li>Enter your personal info, bank account, and verify identity</li>
+                          <li>This is a one-time setup — takes about 5-10 minutes</li>
+                          <li>Once connected, commissions are deposited <strong>directly to your bank</strong></li>
+                          <li>Funds typically arrive in 2-3 business days</li>
+                        </ul>
+                      </div>
+
+                      {/* Connect Button */}
+                      <div className="p-4 border rounded-lg bg-purple-500/5 border-purple-500/20">
+                        <div className="flex items-start gap-3">
+                          <CreditCard className="h-5 w-5 text-purple-600 mt-0.5" />
+                          <div className="flex-1">
+                            <p className="font-medium text-purple-700">Ready to Connect?</p>
+                            <p className="text-sm text-muted-foreground mb-3">
+                              Click below to securely link your bank account through Stripe
+                            </p>
+                            <Button 
+                              variant="outline" 
+                              onClick={handleConnectStripe}
+                              disabled={connectingStripe}
+                              className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                            >
+                              {connectingStripe ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  Connecting...
+                                </>
+                              ) : (
+                                <>
+                                  <ExternalLink className="h-4 w-4 mr-2" />
+                                  Connect Stripe Account
+                                </>
+                              )}
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     </div>
