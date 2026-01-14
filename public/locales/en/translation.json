@@ -306,5 +306,31 @@
     "advertising": "Advertising",
     "cookies": "Cookies",
     "copyright": "Platform © 2024"
+  },
+  "groups": {
+    "title": "Groups",
+    "createGroup": "Create New Group",
+    "coverPhoto": "Cover Photo",
+    "profileIcon": "Group Profile Icon",
+    "groupName": "Group Name",
+    "description": "Description",
+    "category": "Category",
+    "privacyType": "Privacy Type",
+    "public": "Public",
+    "privateVisible": "Private (Visible)",
+    "privateHidden": "Private (Hidden)",
+    "approvalSettings": "Who Can Join",
+    "inviteMembers": "Invite Members",
+    "noGroups": "No Groups Yet",
+    "noGroupsDesc": "Create your first group or join existing communities",
+    "createFirst": "Create Your First Group",
+    "yourGroups": "Your Groups",
+    "members": "members",
+    "manageGroups": "Manage Groups",
+    "groupSettings": "Group Settings",
+    "leaveGroup": "Leave Group",
+    "joinGroup": "Join Group",
+    "inviteSent": "Invitation sent!",
+    "groupCreated": "Group created successfully!"
   }
 }
