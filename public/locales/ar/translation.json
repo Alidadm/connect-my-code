@@ -147,16 +147,18 @@
     "friends": "الأصدقاء",
     "events": "الفعاليات",
     "commissions": "العمولات",
-    "videos": "مشاهدة الفيديو",
+    "groups": "المجموعات",
     "photos": "الصور",
     "marketplace": "السوق",
     "files": "الملفات",
     "messages": "الرسائل",
-    "notifications": "الإشعارات"
+    "notifications": "الإشعارات",
+    "profile": "الملف الشخصي"
   },
   "sidebar": {
     "posts": "المنشورات",
     "pagesYouLike": "صفحات تعجبك",
+    "yourGroups": "مجموعاتك",
     "viewAll": "عرض الكل"
   },
   "messages": {

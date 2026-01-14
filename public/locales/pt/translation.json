@@ -167,7 +167,7 @@
     "friends": "Amigos",
     "events": "Eventos",
     "commissions": "Comissões",
-    "watchVideos": "Assistir Vídeos",
+    "groups": "Grupos",
     "photos": "Fotos",
     "marketplace": "Mercado",
     "files": "Arquivos",
@@ -177,8 +177,11 @@
   },
   "sidebar": {
     "pagesYouLike": "Páginas que você curte",
+    "yourGroups": "Seus Grupos",
     "follower": "Seguidor",
-    "post": "Publicação"
+    "post": "Publicação",
+    "posts": "Publicações",
+    "viewAll": "Ver tudo"
   },
   "messages": {
     "title": "Mensagens",

@@ -167,7 +167,7 @@
     "friends": "好友",
     "events": "活动",
     "commissions": "佣金",
-    "watchVideos": "观看视频",
+    "groups": "群组",
     "photos": "照片",
     "marketplace": "市场",
     "files": "文件",
@@ -177,8 +177,11 @@
   },
   "sidebar": {
     "pagesYouLike": "您喜欢的页面",
+    "yourGroups": "您的群组",
     "follower": "粉丝",
-    "post": "帖子"
+    "post": "帖子",
+    "posts": "帖子",
+    "viewAll": "查看全部"
   },
   "messages": {
     "title": "消息",
