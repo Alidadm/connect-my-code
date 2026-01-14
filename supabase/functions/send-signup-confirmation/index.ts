@@ -58,7 +58,11 @@ serve(async (req) => {
       exp: Date.now() + 24 * 60 * 60 * 1000 // 24 hours
     }));
 
-    const baseUrl = Deno.env.get("SITE_URL") || "https://dolphysn.com";
+    // Use SITE_URL if set, otherwise derive from Supabase URL for preview environments
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+    const projectRef = supabaseUrl.match(/https:\/\/([^.]+)/)?.[1] || "";
+    const defaultUrl = projectRef ? `https://${projectRef.replace('ahruzugnghcqkonygydo', 'id-preview--7da6d8d7-03a1-4436-af31-faa165a6dce0')}.lovable.app` : "https://dolphysn.com";
+    const baseUrl = Deno.env.get("SITE_URL") || defaultUrl;
     const confirmationLink = `${baseUrl}/confirm-email?token=${encodeURIComponent(token)}`;
 
     // Replace placeholders in the template
