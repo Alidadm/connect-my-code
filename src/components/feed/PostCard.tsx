@@ -205,28 +205,102 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
   };
 
   const handleImageClick = (imageUrl: string, allImages: string[]) => {
-    const currentIndex = allImages.indexOf(imageUrl);
+    let currentIndex = allImages.indexOf(imageUrl);
     
-    Swal.fire({
-      imageUrl: imageUrl,
-      imageAlt: 'Post image',
-      showConfirmButton: false,
-      showCloseButton: true,
-      width: 'auto',
-      padding: '0',
-      background: 'transparent',
-      customClass: {
-        popup: 'swal-image-popup',
-        image: 'max-h-[80vh] max-w-[90vw] object-contain rounded-lg',
-        closeButton: 'text-white hover:text-gray-300',
-      },
-      showClass: {
-        popup: 'animate__animated animate__fadeIn animate__faster'
-      },
-      hideClass: {
-        popup: 'animate__animated animate__fadeOut animate__faster'
-      },
-    });
+    const showImage = (index: number) => {
+      currentIndex = index;
+      const hasMultiple = allImages.length > 1;
+      const hasPrev = currentIndex > 0;
+      const hasNext = currentIndex < allImages.length - 1;
+      
+      Swal.fire({
+        html: `
+          <div class="relative flex items-center justify-center min-h-[50vh]">
+            ${hasMultiple && hasPrev ? `
+              <button id="swal-prev-btn" class="absolute left-2 z-10 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+                </svg>
+              </button>
+            ` : ''}
+            <img src="${allImages[currentIndex]}" alt="Post image" class="max-h-[80vh] max-w-[85vw] object-contain rounded-lg" />
+            ${hasMultiple && hasNext ? `
+              <button id="swal-next-btn" class="absolute right-2 z-10 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                </svg>
+              </button>
+            ` : ''}
+            ${hasMultiple ? `
+              <div class="absolute bottom-4 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-black/50 text-white text-sm">
+                ${currentIndex + 1} / ${allImages.length}
+              </div>
+            ` : ''}
+          </div>
+        `,
+        showConfirmButton: false,
+        showCloseButton: true,
+        width: 'auto',
+        padding: '0.5rem',
+        background: 'rgba(0, 0, 0, 0.9)',
+        customClass: {
+          popup: 'swal-image-popup',
+          closeButton: 'text-white hover:text-gray-300',
+        },
+        showClass: {
+          popup: 'animate__animated animate__fadeIn animate__faster'
+        },
+        hideClass: {
+          popup: 'animate__animated animate__fadeOut animate__faster'
+        },
+        didOpen: () => {
+          const prevBtn = document.getElementById('swal-prev-btn');
+          const nextBtn = document.getElementById('swal-next-btn');
+          
+          prevBtn?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (currentIndex > 0) {
+              Swal.close();
+              setTimeout(() => showImage(currentIndex - 1), 50);
+            }
+          });
+          
+          nextBtn?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (currentIndex < allImages.length - 1) {
+              Swal.close();
+              setTimeout(() => showImage(currentIndex + 1), 50);
+            }
+          });
+
+          // Keyboard navigation
+          const handleKeydown = (e: KeyboardEvent) => {
+            if (e.key === 'ArrowLeft' && currentIndex > 0) {
+              Swal.close();
+              setTimeout(() => showImage(currentIndex - 1), 50);
+            } else if (e.key === 'ArrowRight' && currentIndex < allImages.length - 1) {
+              Swal.close();
+              setTimeout(() => showImage(currentIndex + 1), 50);
+            }
+          };
+          document.addEventListener('keydown', handleKeydown);
+          
+          // Cleanup on close
+          const popup = Swal.getPopup();
+          if (popup) {
+            const observer = new MutationObserver(() => {
+              if (!document.body.contains(popup)) {
+                document.removeEventListener('keydown', handleKeydown);
+                observer.disconnect();
+              }
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+          }
+        },
+      });
+    };
+    
+    showImage(currentIndex);
   };
 
   const handleCommentsClick = async () => {
