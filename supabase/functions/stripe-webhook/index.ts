@@ -237,7 +237,19 @@ serve(async (req) => {
       
       const referredUserName = referredProfile?.display_name || referredProfile?.first_name || null;
 
-      // AUTO-PAY: Check if referrer has Stripe Connect and transfer instantly
+      // AUTO-PAY: Check if auto-payout is enabled globally
+      const { data: autoPayoutSetting } = await supabaseClient
+        .from("platform_settings")
+        .select("setting_value")
+        .eq("setting_key", "auto_payout_enabled")
+        .single();
+      
+      const autoPayoutEnabled = autoPayoutSetting?.setting_value !== false && 
+                                 autoPayoutSetting?.setting_value !== "false";
+      
+      logStep("Auto-payout setting", { enabled: autoPayoutEnabled });
+
+      // Check if referrer has Stripe Connect and transfer instantly (if auto-payout enabled)
       const { data: referrerPrivate } = await supabaseClient
         .from("profiles_private")
         .select("stripe_connect_id")
@@ -246,8 +258,8 @@ serve(async (req) => {
 
       let autoPaidSuccessfully = false;
 
-      if (referrerPrivate?.stripe_connect_id) {
-        logStep("Referrer has Stripe Connect, attempting auto-payout", { 
+      if (autoPayoutEnabled && referrerPrivate?.stripe_connect_id) {
+        logStep("Referrer has Stripe Connect and auto-payout enabled, attempting auto-payout", { 
           connectId: referrerPrivate.stripe_connect_id 
         });
 
@@ -318,6 +330,8 @@ serve(async (req) => {
           });
           // Commission stays as "pending" - can be paid manually later
         }
+      } else if (!autoPayoutEnabled) {
+        logStep("Auto-payout is disabled globally, commission remains pending for manual payout");
       } else {
         logStep("Referrer has no Stripe Connect, commission remains pending for manual payout");
       }
