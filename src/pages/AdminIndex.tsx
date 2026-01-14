@@ -6,6 +6,7 @@ import {
   Play, Clock, Link2, PanelLeftClose, PanelLeft, LayoutDashboard, ListOrdered, AlertTriangle, Mail,
   Shield, CreditCard, BarChart3, Layers, Megaphone, Lock, Code, UserCog, Database, Flag
 } from "lucide-react";
+import { AdminStatsCards } from "@/components/admin/AdminStatsCards";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -523,8 +524,11 @@ const AdminIndex = () => {
           </Button>
         </div>
 
-        {/* Kanban Board */}
+        {/* Stats Cards + Kanban Board */}
         <div className="flex-1 overflow-x-auto p-6">
+          {/* Admin Stats Cards */}
+          <AdminStatsCards />
+          
           <div className="flex gap-6 h-full">
             {/* New Request Column */}
             <div className="w-80 flex-shrink-0">
