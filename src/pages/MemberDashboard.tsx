@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -102,6 +103,9 @@ const MemberDashboard = () => {
     compactMode: false,
   });
 
+  // Pending join requests count for groups badge
+  const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
+
   // Account tab editing state (moved to top level for hooks rules)
   const [editingEmail, setEditingEmail] = useState(false);
   const [editingPhone, setEditingPhone] = useState(false);
@@ -109,6 +113,42 @@ const MemberDashboard = () => {
   const [newPhone, setNewPhone] = useState("");
   const [updatingEmail, setUpdatingEmail] = useState(false);
   const [updatingPhone, setUpdatingPhone] = useState(false);
+
+  // Fetch pending join requests count
+  React.useEffect(() => {
+    const fetchPendingRequestsCount = async () => {
+      if (!user) return;
+      try {
+        // Get groups where user is admin/moderator
+        const { data: adminGroups, error: adminError } = await supabase
+          .from("group_members")
+          .select("group_id")
+          .eq("user_id", user.id)
+          .in("role", ["admin", "moderator"]);
+
+        if (adminError || !adminGroups || adminGroups.length === 0) {
+          setPendingRequestsCount(0);
+          return;
+        }
+
+        const groupIds = adminGroups.map(g => g.group_id);
+
+        // Count pending requests
+        const { count, error } = await supabase
+          .from("group_join_requests")
+          .select("id", { count: "exact", head: true })
+          .in("group_id", groupIds)
+          .eq("status", "pending");
+
+        if (!error) {
+          setPendingRequestsCount(count || 0);
+        }
+      } catch (err) {
+        console.error("Error fetching pending requests count:", err);
+      }
+    };
+    fetchPendingRequestsCount();
+  }, [user]);
 
   // Fetch private profile data
   React.useEffect(() => {
@@ -1047,12 +1087,19 @@ const MemberDashboard = () => {
                   )} />
                 </div>
                 <div className="flex-1">
-                  <p className={cn(
-                    "font-medium text-sm",
-                    activeTab === item.id ? "text-blue-700" : "text-slate-700"
-                  )}>
-                    {item.label}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <p className={cn(
+                      "font-medium text-sm",
+                      activeTab === item.id ? "text-blue-700" : "text-slate-700"
+                    )}>
+                      {item.label}
+                    </p>
+                    {item.id === "groups" && pendingRequestsCount > 0 && (
+                      <Badge className="bg-red-500 hover:bg-red-500 text-white text-xs px-1.5 py-0 min-w-[18px] h-[18px] flex items-center justify-center">
+                        {pendingRequestsCount}
+                      </Badge>
+                    )}
+                  </div>
                   <p className="text-xs text-slate-400">{item.description}</p>
                 </div>
                 <ChevronRight className={cn(
