@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Users, Plus, Image, Send, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
+import { Users, Plus, Image, Send, Lock, Eye, EyeOff, Loader2, ExternalLink } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -26,6 +27,7 @@ interface Group {
 const Groups = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [postContent, setPostContent] = useState("");
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
   const [groups, setGroups] = useState<Group[]>([]);
@@ -229,6 +231,16 @@ const Groups = () => {
                             {group.description || group.category}
                           </p>
                         </div>
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/groups/${group.id}`);
+                          }}
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
