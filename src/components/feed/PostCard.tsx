@@ -1,13 +1,22 @@
 import { useState, useEffect } from "react";
-import { Heart, MessageCircle, Share2, MoreVertical, Bookmark, Play, FileText, Music } from "lucide-react";
+import { Heart, MessageCircle, Share2, MoreVertical, Bookmark, Play, FileText, Music, Pencil, Trash2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { formatDistanceToNow } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "react-i18next";
+import { toast } from "@/hooks/use-toast";
 import { CommentSection } from "./CommentSection";
 import { ShareDialog } from "./ShareDialog";
+import Swal from "sweetalert2";
 
 interface PostCardProps {
   post: {
@@ -39,6 +48,10 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
   const [showComments, setShowComments] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
+  const [postContent, setPostContent] = useState(post.content);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const isOwner = user?.id === post.user_id;
 
   // Check if user has already liked this post
   useEffect(() => {
@@ -89,6 +102,104 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
   const handleBookmark = () => {
     setIsBookmarked(!isBookmarked);
     // TODO: Implement bookmark persistence when bookmarks table is added
+  };
+
+  const handleEdit = async () => {
+    const { value: newContent } = await Swal.fire({
+      title: t('feed.editPost', 'Edit Post'),
+      input: 'textarea',
+      inputValue: postContent || '',
+      inputPlaceholder: t('feed.whatsOnYourMind', "What's on your mind?"),
+      showCancelButton: true,
+      confirmButtonText: t('common.save', 'Save'),
+      cancelButtonText: t('common.cancel', 'Cancel'),
+      confirmButtonColor: '#1c76e6',
+      inputAttributes: {
+        'aria-label': 'Post content',
+        style: 'min-height: 120px; resize: vertical;'
+      },
+      inputValidator: (value) => {
+        if (!value?.trim() && (!post.media_urls || post.media_urls.length === 0)) {
+          return t('feed.postCannotBeEmpty', 'Post cannot be empty');
+        }
+        return null;
+      }
+    });
+
+    if (newContent !== undefined) {
+      try {
+        const { error } = await supabase
+          .from('posts')
+          .update({ content: newContent.trim() || null, updated_at: new Date().toISOString() })
+          .eq('id', post.id)
+          .eq('user_id', user?.id);
+
+        if (error) throw error;
+
+        setPostContent(newContent.trim() || null);
+        toast({
+          title: t('feed.postUpdated', 'Post updated'),
+          description: t('feed.postUpdatedDesc', 'Your post has been updated successfully.'),
+        });
+      } catch (error) {
+        console.error('Error updating post:', error);
+        toast({
+          title: t('common.error', 'Error'),
+          description: t('feed.updateFailed', 'Failed to update post. Please try again.'),
+          variant: 'destructive',
+        });
+      }
+    }
+  };
+
+  const handleDelete = async () => {
+    const result = await Swal.fire({
+      title: t('feed.deletePost', 'Delete Post?'),
+      text: t('feed.deletePostConfirm', 'This action cannot be undone. All likes and comments will also be deleted.'),
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: t('common.delete', 'Delete'),
+      cancelButtonText: t('common.cancel', 'Cancel'),
+    });
+
+    if (result.isConfirmed) {
+      setIsDeleting(true);
+      try {
+        // Delete related data first
+        await supabase.from('post_likes').delete().eq('post_id', post.id);
+        await supabase.from('post_comments').delete().eq('post_id', post.id);
+        await supabase.from('post_tags').delete().eq('post_id', post.id);
+        await supabase.from('post_topics').delete().eq('post_id', post.id);
+        await supabase.from('post_visibility_lists').delete().eq('post_id', post.id);
+
+        // Delete the post
+        const { error } = await supabase
+          .from('posts')
+          .delete()
+          .eq('id', post.id)
+          .eq('user_id', user?.id);
+
+        if (error) throw error;
+
+        toast({
+          title: t('feed.postDeleted', 'Post deleted'),
+          description: t('feed.postDeletedDesc', 'Your post has been removed.'),
+        });
+
+        onLikeChange?.(); // Refresh the feed
+      } catch (error) {
+        console.error('Error deleting post:', error);
+        toast({
+          title: t('common.error', 'Error'),
+          description: t('feed.deleteFailed', 'Failed to delete post. Please try again.'),
+          variant: 'destructive',
+        });
+      } finally {
+        setIsDeleting(false);
+      }
+    }
   };
 
   const getMediaType = (url: string): "image" | "video" | "audio" | "document" => {
@@ -174,15 +285,43 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
             <div className="text-xs text-muted-foreground">{timeAgo}</div>
           </div>
         </div>
-        <Button variant="ghost" size="icon" className="text-muted-foreground">
-          <MoreVertical className="h-5 w-5" />
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="text-muted-foreground">
+              <MoreVertical className="h-5 w-5" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48 bg-popover">
+            {isOwner && (
+              <>
+                <DropdownMenuItem onClick={handleEdit} className="cursor-pointer">
+                  <Pencil className="h-4 w-4 mr-2" />
+                  {t('common.edit', 'Edit')}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  onClick={handleDelete} 
+                  className="cursor-pointer text-destructive focus:text-destructive"
+                  disabled={isDeleting}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  {isDeleting ? t('common.deleting', 'Deleting...') : t('common.delete', 'Delete')}
+                </DropdownMenuItem>
+              </>
+            )}
+            {!isOwner && (
+              <DropdownMenuItem className="cursor-pointer text-muted-foreground">
+                {t('feed.reportPost', 'Report post')}
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Content */}
-      {post.content && (
+      {postContent && (
         <div className="px-4 pb-3">
-          <p className="text-foreground whitespace-pre-wrap">{post.content}</p>
+          <p className="text-foreground whitespace-pre-wrap">{postContent}</p>
         </div>
       )}
 
