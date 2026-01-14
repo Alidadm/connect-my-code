@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { StoriesRow } from "./StoriesRow";
 import { PostCreator } from "./PostCreator";
 import { DemoPostCreator } from "./DemoPostCreator";
@@ -83,17 +83,46 @@ const demoPosts = [
 ];
 
 type FilterType = "following" | "trending" | "recent";
+const POSTS_PER_PAGE = 10;
 
 export const Feed = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const [filter, setFilter] = useState<FilterType>("recent");
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
-  const fetchPosts = async () => {
+  const fetchPostsWithProfiles = async (postsData: any[]) => {
+    const userIds = [...new Set(postsData.map(p => p.user_id))];
+    
+    if (userIds.length > 0) {
+      const { data: profilesData } = await supabase
+        .from("profiles")
+        .select("user_id, display_name, avatar_url, username, is_verified")
+        .in("user_id", userIds);
+
+      const profilesMap = new Map(profilesData?.map(p => [p.user_id, p]) || []);
+      
+      return postsData.map(post => ({
+        ...post,
+        profiles: profilesMap.get(post.user_id) || undefined
+      }));
+    }
+    return postsData;
+  };
+
+  const fetchPosts = async (offset: number = 0, append: boolean = false) => {
     try {
-      setLoading(true);
+      if (offset === 0) {
+        setLoading(true);
+      } else {
+        setLoadingMore(true);
+      }
+
       let postsData: any[] = [];
 
       if (user && filter === "following") {
@@ -109,26 +138,24 @@ export const Feed = () => {
         ) || [];
 
         if (friendIds.length > 0) {
-          // Fetch posts from friends
           const { data, error } = await supabase
             .from("posts")
             .select("*")
             .in("user_id", friendIds)
             .eq("visibility", "public")
             .order("created_at", { ascending: false })
-            .limit(20);
+            .range(offset, offset + POSTS_PER_PAGE - 1);
 
           if (error) throw error;
           postsData = data || [];
         }
       } else if (filter === "trending") {
-        // Trending: sort by engagement (likes + comments + shares)
         const { data, error } = await supabase
           .from("posts")
           .select("*")
           .eq("visibility", "public")
           .order("likes_count", { ascending: false })
-          .limit(20);
+          .range(offset, offset + POSTS_PER_PAGE - 1);
 
         if (error) throw error;
         
@@ -141,13 +168,12 @@ export const Feed = () => {
       } else {
         // Recent: default sorting by created_at
         if (user) {
-          // Logged in: fetch public posts + user's own posts (any visibility)
           const { data: publicPosts, error: publicError } = await supabase
             .from("posts")
             .select("*")
             .eq("visibility", "public")
             .order("created_at", { ascending: false })
-            .limit(20);
+            .range(offset, offset + POSTS_PER_PAGE - 1);
 
           if (publicError) throw publicError;
 
@@ -157,67 +183,101 @@ export const Feed = () => {
             .eq("user_id", user.id)
             .neq("visibility", "public")
             .order("created_at", { ascending: false })
-            .limit(20);
+            .range(offset, offset + POSTS_PER_PAGE - 1);
 
           if (myError) throw myError;
 
-          // Merge and sort by date
           const allPosts = [...(publicPosts || []), ...(myPosts || [])];
           postsData = allPosts.sort((a, b) => 
             new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-          ).slice(0, 20);
+          ).slice(0, POSTS_PER_PAGE);
         } else {
-          // Not logged in: only public posts
           const { data, error } = await supabase
             .from("posts")
             .select("*")
             .eq("visibility", "public")
             .order("created_at", { ascending: false })
-            .limit(20);
+            .range(offset, offset + POSTS_PER_PAGE - 1);
 
           if (error) throw error;
           postsData = data || [];
         }
       }
 
-      // Fetch profiles for each post
-      const userIds = [...new Set(postsData.map(p => p.user_id))];
+      // Check if we have more posts to load
+      setHasMore(postsData.length === POSTS_PER_PAGE);
+
+      // Fetch profiles and update state
+      const postsWithProfiles = await fetchPostsWithProfiles(postsData);
       
-      if (userIds.length > 0) {
-        const { data: profilesData } = await supabase
-          .from("profiles")
-          .select("user_id, display_name, avatar_url, username, is_verified")
-          .in("user_id", userIds);
-
-        const profilesMap = new Map(profilesData?.map(p => [p.user_id, p]) || []);
-        
-        const postsWithProfiles = postsData.map(post => ({
-          ...post,
-          profiles: profilesMap.get(post.user_id) || undefined
-        }));
-
-        setPosts(postsWithProfiles);
+      if (append) {
+        setPosts(prev => {
+          // Deduplicate posts by ID
+          const existingIds = new Set(prev.map(p => p.id));
+          const newPosts = postsWithProfiles.filter(p => !existingIds.has(p.id));
+          return [...prev, ...newPosts];
+        });
       } else {
-        setPosts([]);
+        setPosts(postsWithProfiles);
       }
     } catch (error) {
       console.error("Error fetching posts:", error);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
 
-  useEffect(() => {
-    fetchPosts();
+  const loadMore = useCallback(() => {
+    if (!loadingMore && hasMore) {
+      fetchPosts(posts.length, true);
+    }
+  }, [loadingMore, hasMore, posts.length, filter, user?.id]);
 
-    // Subscribe to realtime updates
+  // Setup intersection observer for infinite scroll
+  useEffect(() => {
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+    }
+
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loadingMore && !loading) {
+          loadMore();
+        }
+      },
+      { threshold: 0.1, rootMargin: "100px" }
+    );
+
+    if (loadMoreRef.current) {
+      observerRef.current.observe(loadMoreRef.current);
+    }
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, [loadMore, hasMore, loadingMore, loading]);
+
+  useEffect(() => {
+    // Reset and fetch when filter or user changes
+    setPosts([]);
+    setHasMore(true);
+    fetchPosts(0, false);
+
+    // Subscribe to realtime updates (only for new posts)
     const channel = supabase
       .channel("posts-channel")
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "posts" },
-        () => {
-          fetchPosts();
+        { event: "INSERT", schema: "public", table: "posts" },
+        async (payload) => {
+          const newPost = payload.new as any;
+          if (newPost.visibility === "public" || newPost.user_id === user?.id) {
+            const postsWithProfiles = await fetchPostsWithProfiles([newPost]);
+            setPosts(prev => [postsWithProfiles[0], ...prev]);
+          }
         }
       )
       .subscribe();
@@ -251,7 +311,7 @@ export const Feed = () => {
   return (
     <div className="max-w-2xl mx-auto">
       <StoriesRow />
-      {user ? <PostCreator onPostCreated={fetchPosts} /> : <DemoPostCreator />}
+      {user ? <PostCreator onPostCreated={() => fetchPosts(0, false)} /> : <DemoPostCreator />}
 
       {/* Filter tabs */}
       <div className="flex items-center justify-end mb-4 gap-2">
@@ -289,13 +349,36 @@ export const Feed = () => {
         <>
           {/* Show real posts if any */}
           {posts.map((post) => (
-            <PostCard key={post.id} post={post} onLikeChange={fetchPosts} />
+            <PostCard key={post.id} post={post} onLikeChange={() => fetchPosts(0, false)} />
           ))}
           
-          {/* Always show demo posts */}
+          {/* Always show demo posts after real posts */}
           {demoPosts.map((post) => (
             <DemoPostCard key={post.id} post={post} />
           ))}
+
+          {/* Infinite scroll trigger / Load more */}
+          {hasMore && posts.length > 0 && (
+            <div ref={loadMoreRef} className="flex justify-center py-6">
+              {loadingMore ? (
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              ) : (
+                <Button 
+                  variant="outline" 
+                  onClick={loadMore}
+                  className="text-muted-foreground"
+                >
+                  {t("feed.loadMore", "Load More")}
+                </Button>
+              )}
+            </div>
+          )}
+
+          {!hasMore && posts.length > 0 && (
+            <div className="text-center py-6 text-sm text-muted-foreground">
+              {t("feed.noMorePosts", "You've reached the end")}
+            </div>
+          )}
         </>
       )}
     </div>
