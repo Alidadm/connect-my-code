@@ -52,7 +52,7 @@ const Groups = () => {
           <div>
             <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
               <Users className="h-7 w-7 text-primary" />
-              {t("nav.groups")}
+              {t("nav.groups", { defaultValue: "Groups" })}
             </h1>
             <p className="text-muted-foreground mt-1">
               Connect with communities that share your interests
