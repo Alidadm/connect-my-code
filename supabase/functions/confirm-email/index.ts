@@ -19,6 +19,8 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
+    const resendApiKey = Deno.env.get("RESEND_API_KEY");
+    
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
@@ -63,6 +65,108 @@ serve(async (req) => {
     }
 
     logStep("Email verified successfully");
+
+    // Send welcome email if Resend is configured
+    if (resendApiKey) {
+      try {
+        logStep("Sending welcome email");
+
+        // Get user profile data
+        const { data: profile } = await supabaseAdmin
+          .from("profiles")
+          .select("first_name, last_name, display_name, username")
+          .eq("user_id", userId)
+          .single();
+
+        const firstName = profile?.first_name || "";
+        const lastName = profile?.last_name || "";
+        const displayName = profile?.display_name || `${firstName} ${lastName}`.trim() || "User";
+        const username = profile?.username || "";
+
+        // Get welcome email template from platform_settings
+        const { data: settings } = await supabaseAdmin
+          .from("platform_settings")
+          .select("setting_value")
+          .eq("setting_key", "email_templates")
+          .single();
+
+        let subject = "Welcome to DolphySN! 🎉";
+        let htmlBody = "";
+
+        if (settings?.setting_value?.welcome) {
+          const template = settings.setting_value.welcome;
+          subject = template.subject || subject;
+          htmlBody = template.body || "";
+        }
+
+        // Replace placeholders in the template
+        htmlBody = htmlBody
+          .replace(/\{\{name\}\}/g, displayName)
+          .replace(/\{\{first_name\}\}/g, firstName)
+          .replace(/\{\{username\}\}/g, username)
+          .replace(/\{\{email\}\}/g, email);
+
+        // If no template body, use default
+        if (!htmlBody) {
+          htmlBody = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <div style="background: linear-gradient(135deg, #1c76e6 0%, #3b82f6 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+                <h1 style="color: white; margin: 0;">🎉 Welcome to DolphySN!</h1>
+              </div>
+              <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px;">
+                <h2 style="color: #1f2937; margin-top: 0;">Hey ${firstName || "there"}!</h2>
+                <p style="color: #4b5563; font-size: 16px;">
+                  Your email has been verified and your account is now fully activated. Welcome to the DolphySN community!
+                </p>
+                <p style="color: #4b5563; font-size: 16px;">
+                  Here's what you can do next:
+                </p>
+                <ul style="color: #4b5563; font-size: 16px;">
+                  <li>Complete your profile</li>
+                  <li>Connect with friends</li>
+                  <li>Join groups and communities</li>
+                  <li>Share your first post</li>
+                </ul>
+                <div style="text-align: center; margin-top: 30px;">
+                  <a href="https://dolphysn.com" style="background: linear-gradient(135deg, #1c76e6 0%, #3b82f6 100%); color: white; padding: 12px 30px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block;">
+                    Get Started
+                  </a>
+                </div>
+                <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
+                  We're excited to have you on board!<br/>
+                  — The DolphySN Team
+                </p>
+              </div>
+            </div>
+          `;
+        }
+
+        // Send email via Resend
+        const emailResponse = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${resendApiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            from: "DolphySN <noreply@dolphysn.com>",
+            to: [email],
+            subject: subject,
+            html: htmlBody,
+          }),
+        });
+
+        if (!emailResponse.ok) {
+          const errorData = await emailResponse.text();
+          logStep("Resend API error for welcome email", { error: errorData });
+        } else {
+          logStep("Welcome email sent successfully");
+        }
+      } catch (emailError) {
+        // Don't fail the confirmation if welcome email fails
+        logStep("Failed to send welcome email", { error: String(emailError) });
+      }
+    }
 
     return new Response(JSON.stringify({ 
       success: true, 
