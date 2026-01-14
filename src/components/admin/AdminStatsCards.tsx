@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { 
   Users, UserPlus, DollarSign, HandCoins, Clock, XCircle, 
   FileText, Flag, AlertTriangle, Activity, MessageSquare, Heart,
-  UserX, Shield
+  TrendingUp, TrendingDown, Minus
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -15,6 +15,10 @@ interface StatCard {
   shadowColor: string;
   category: "members" | "financial" | "content" | "engagement";
   link?: string;
+  trend?: {
+    value: number;
+    isPercentage: boolean;
+  };
 }
 
 export const AdminStatsCards = () => {
@@ -38,34 +42,50 @@ export const AdminStatsCards = () => {
     commentsToday: 0,
     reactionsToday: 0,
   });
+
+  // Yesterday's stats for trends
+  const [yesterdayStats, setYesterdayStats] = useState({
+    dailyJoins: 0,
+    todayRevenue: 0,
+    cancellations: 0,
+    postsToday: 0,
+    commentsToday: 0,
+    reactionsToday: 0,
+  });
+
   const [loading, setLoading] = useState(true);
 
   const fetchStats = async () => {
     try {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
       const last24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
       // ========== MEMBER STATS ==========
-      // Get total active members
       const { count: activeMembers } = await supabase
         .from("profiles")
         .select("*", { count: "exact", head: true });
 
-      // Get daily joins
       const { count: dailyJoins } = await supabase
         .from("profiles")
         .select("*", { count: "exact", head: true })
         .gte("created_at", today.toISOString());
 
-      // Get active users in last 24h (users who updated their profile or posted)
+      // Yesterday's joins for trend
+      const { count: yesterdayJoins } = await supabase
+        .from("profiles")
+        .select("*", { count: "exact", head: true })
+        .gte("created_at", yesterday.toISOString())
+        .lt("created_at", today.toISOString());
+
       const { count: activeUsers24h } = await supabase
         .from("profiles")
         .select("*", { count: "exact", head: true })
         .gte("updated_at", last24h.toISOString());
 
       // ========== FINANCIAL STATS ==========
-      // Get total subscription revenue
       const { data: allSubscriptions } = await supabase
         .from("subscriptions")
         .select("amount, status, created_at");
@@ -73,7 +93,6 @@ export const AdminStatsCards = () => {
       const totalRevenue = allSubscriptions?.reduce((sum, sub) => 
         ["active", "completed"].includes(sub.status) ? sum + (sub.amount || 0) : sum, 0) || 0;
 
-      // Today's revenue
       const todayRevenue = allSubscriptions?.reduce((sum, sub) => {
         const createdAt = new Date(sub.created_at);
         if (createdAt >= today && ["active", "completed"].includes(sub.status)) {
@@ -82,13 +101,26 @@ export const AdminStatsCards = () => {
         return sum;
       }, 0) || 0;
 
-      // Cancellations today
+      // Yesterday's revenue for trend
+      const yesterdayRevenue = allSubscriptions?.reduce((sum, sub) => {
+        const createdAt = new Date(sub.created_at);
+        if (createdAt >= yesterday && createdAt < today && ["active", "completed"].includes(sub.status)) {
+          return sum + (sub.amount || 0);
+        }
+        return sum;
+      }, 0) || 0;
+
       const cancellations = allSubscriptions?.filter(sub => {
         const createdAt = new Date(sub.created_at);
         return createdAt >= today && sub.status === "canceled";
       }).length || 0;
 
-      // Get commissions data
+      // Yesterday's cancellations
+      const yesterdayCancellations = allSubscriptions?.filter(sub => {
+        const createdAt = new Date(sub.created_at);
+        return createdAt >= yesterday && createdAt < today && sub.status === "canceled";
+      }).length || 0;
+
       const { data: allCommissions } = await supabase
         .from("commissions")
         .select("amount, status");
@@ -100,36 +132,52 @@ export const AdminStatsCards = () => {
         com.status === "pending" ? sum + (com.amount || 0) : sum, 0) || 0;
 
       // ========== CONTENT & MODERATION STATS ==========
-      // Posts created today
       const { count: postsToday } = await supabase
         .from("posts")
         .select("*", { count: "exact", head: true })
         .gte("created_at", today.toISOString());
 
-      // Pending content reports
+      // Yesterday's posts
+      const { count: yesterdayPosts } = await supabase
+        .from("posts")
+        .select("*", { count: "exact", head: true })
+        .gte("created_at", yesterday.toISOString())
+        .lt("created_at", today.toISOString());
+
       const { count: pendingReports } = await supabase
         .from("group_content_reports")
         .select("*", { count: "exact", head: true })
         .eq("status", "pending");
 
-      // Flagged content (resolved reports count as flagged items caught)
       const { count: flaggedContent } = await supabase
         .from("group_content_reports")
         .select("*", { count: "exact", head: true })
         .eq("status", "resolved");
 
       // ========== ENGAGEMENT STATS ==========
-      // Comments today
       const { count: commentsToday } = await supabase
         .from("post_comments")
         .select("*", { count: "exact", head: true })
         .gte("created_at", today.toISOString());
 
-      // Reactions today
+      // Yesterday's comments
+      const { count: yesterdayComments } = await supabase
+        .from("post_comments")
+        .select("*", { count: "exact", head: true })
+        .gte("created_at", yesterday.toISOString())
+        .lt("created_at", today.toISOString());
+
       const { count: reactionsToday } = await supabase
         .from("post_reactions")
         .select("*", { count: "exact", head: true })
         .gte("created_at", today.toISOString());
+
+      // Yesterday's reactions
+      const { count: yesterdayReactions } = await supabase
+        .from("post_reactions")
+        .select("*", { count: "exact", head: true })
+        .gte("created_at", yesterday.toISOString())
+        .lt("created_at", today.toISOString());
 
       setStats({
         activeMembers: activeMembers || 0,
@@ -146,6 +194,15 @@ export const AdminStatsCards = () => {
         commentsToday: commentsToday || 0,
         reactionsToday: reactionsToday || 0,
       });
+
+      setYesterdayStats({
+        dailyJoins: yesterdayJoins || 0,
+        todayRevenue: yesterdayRevenue,
+        cancellations: yesterdayCancellations,
+        postsToday: yesterdayPosts || 0,
+        commentsToday: yesterdayComments || 0,
+        reactionsToday: yesterdayReactions || 0,
+      });
     } catch (error) {
       console.error("Error fetching admin stats:", error);
     } finally {
@@ -156,7 +213,6 @@ export const AdminStatsCards = () => {
   useEffect(() => {
     fetchStats();
 
-    // Set up real-time subscriptions
     const channels = [
       supabase.channel("admin-profiles").on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, fetchStats),
       supabase.channel("admin-subscriptions").on("postgres_changes", { event: "*", schema: "public", table: "subscriptions" }, fetchStats),
@@ -168,7 +224,6 @@ export const AdminStatsCards = () => {
     ];
 
     channels.forEach(ch => ch.subscribe());
-
     const interval = setInterval(fetchStats, 30000);
 
     return () => {
@@ -185,8 +240,14 @@ export const AdminStatsCards = () => {
     }).format(amount);
   };
 
+  // Calculate trend percentage
+  const calcTrend = (today: number, yesterday: number): number => {
+    if (yesterday === 0) return today > 0 ? 100 : 0;
+    return Math.round(((today - yesterday) / yesterday) * 100);
+  };
+
   const statCards: StatCard[] = [
-    // Member Stats (Blue theme)
+    // Member Stats
     {
       title: "Total Active Members",
       value: loading ? "..." : stats.activeMembers.toLocaleString(),
@@ -204,6 +265,7 @@ export const AdminStatsCards = () => {
       shadowColor: "shadow-blue-500/30",
       category: "members",
       link: "/admin/users/list?filter=today",
+      trend: { value: calcTrend(stats.dailyJoins, yesterdayStats.dailyJoins), isPercentage: true },
     },
     {
       title: "Active Users (24h)",
@@ -212,8 +274,9 @@ export const AdminStatsCards = () => {
       gradient: "from-cyan-500 to-teal-500",
       shadowColor: "shadow-cyan-500/30",
       category: "members",
+      link: "/admin/users/list?filter=active24h",
     },
-    // Financial Stats (Purple/Pink theme)
+    // Financial Stats
     {
       title: "Total Revenue",
       value: loading ? "..." : formatCurrency(stats.totalRevenue),
@@ -221,6 +284,7 @@ export const AdminStatsCards = () => {
       gradient: "from-purple-500 to-pink-500",
       shadowColor: "shadow-purple-500/30",
       category: "financial",
+      link: "/commissions",
     },
     {
       title: "Today's Revenue",
@@ -229,6 +293,8 @@ export const AdminStatsCards = () => {
       gradient: "from-fuchsia-500 to-purple-500",
       shadowColor: "shadow-fuchsia-500/30",
       category: "financial",
+      link: "/commissions",
+      trend: { value: calcTrend(stats.todayRevenue, yesterdayStats.todayRevenue), isPercentage: true },
     },
     {
       title: "Commissions Paid",
@@ -237,6 +303,7 @@ export const AdminStatsCards = () => {
       gradient: "from-violet-500 to-purple-500",
       shadowColor: "shadow-violet-500/30",
       category: "financial",
+      link: "/commissions",
     },
     {
       title: "Pending Commissions",
@@ -245,6 +312,7 @@ export const AdminStatsCards = () => {
       gradient: "from-pink-500 to-rose-500",
       shadowColor: "shadow-pink-500/30",
       category: "financial",
+      link: "/commissions",
     },
     {
       title: "Cancellations Today",
@@ -253,8 +321,9 @@ export const AdminStatsCards = () => {
       gradient: "from-rose-500 to-red-500",
       shadowColor: "shadow-rose-500/30",
       category: "financial",
+      trend: { value: calcTrend(stats.cancellations, yesterdayStats.cancellations), isPercentage: true },
     },
-    // Content & Moderation Stats (Orange/Amber theme)
+    // Content & Moderation Stats
     {
       title: "Posts Today",
       value: loading ? "..." : stats.postsToday.toLocaleString(),
@@ -262,6 +331,7 @@ export const AdminStatsCards = () => {
       gradient: "from-orange-500 to-amber-500",
       shadowColor: "shadow-orange-500/30",
       category: "content",
+      trend: { value: calcTrend(stats.postsToday, yesterdayStats.postsToday), isPercentage: true },
     },
     {
       title: "Pending Reports",
@@ -279,7 +349,7 @@ export const AdminStatsCards = () => {
       shadowColor: "shadow-amber-500/30",
       category: "content",
     },
-    // Engagement Stats (Green theme)
+    // Engagement Stats
     {
       title: "Comments Today",
       value: loading ? "..." : stats.commentsToday.toLocaleString(),
@@ -287,6 +357,7 @@ export const AdminStatsCards = () => {
       gradient: "from-emerald-500 to-teal-500",
       shadowColor: "shadow-emerald-500/30",
       category: "engagement",
+      trend: { value: calcTrend(stats.commentsToday, yesterdayStats.commentsToday), isPercentage: true },
     },
     {
       title: "Reactions Today",
@@ -295,6 +366,7 @@ export const AdminStatsCards = () => {
       gradient: "from-teal-500 to-green-500",
       shadowColor: "shadow-teal-500/30",
       category: "engagement",
+      trend: { value: calcTrend(stats.reactionsToday, yesterdayStats.reactionsToday), isPercentage: true },
     },
   ];
 
@@ -304,6 +376,29 @@ export const AdminStatsCards = () => {
     { key: "content", title: "📝 Content & Moderation", color: "text-orange-600" },
     { key: "engagement", title: "💬 Engagement Stats", color: "text-emerald-600" },
   ];
+
+  const TrendIndicator = ({ trend }: { trend?: { value: number; isPercentage: boolean } }) => {
+    if (!trend || loading) return null;
+    
+    const { value } = trend;
+    const isPositive = value > 0;
+    const isNeutral = value === 0;
+    
+    return (
+      <div className={`flex items-center gap-1 text-xs font-medium mt-1 ${
+        isNeutral ? 'text-white/60' : isPositive ? 'text-emerald-200' : 'text-red-200'
+      }`}>
+        {isNeutral ? (
+          <Minus className="w-3 h-3" />
+        ) : isPositive ? (
+          <TrendingUp className="w-3 h-3" />
+        ) : (
+          <TrendingDown className="w-3 h-3" />
+        )}
+        <span>{isPositive ? '+' : ''}{value}% vs yesterday</span>
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-6 mb-6">
@@ -327,6 +422,7 @@ export const AdminStatsCards = () => {
                       <div>
                         <p className="text-xs font-medium text-white/80 mb-1">{card.title}</p>
                         <p className="text-2xl font-bold">{card.value}</p>
+                        <TrendIndicator trend={card.trend} />
                       </div>
                       <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-sm">
                         <IconComponent className="w-5 h-5 text-white" />
