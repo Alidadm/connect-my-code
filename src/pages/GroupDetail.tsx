@@ -25,7 +25,8 @@ import {
   X,
   Film,
   FileAudio,
-  FileText
+  FileText,
+  Upload
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
@@ -102,6 +103,70 @@ const GroupDetail = () => {
   const [isMember, setIsMember] = useState(false);
   const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (mediaFiles.length < MAX_FILES) {
+      setIsDragging(true);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const files = e.dataTransfer.files;
+    if (!files || files.length === 0) return;
+
+    processFiles(Array.from(files));
+  };
+
+  const processFiles = (files: File[]) => {
+    const remainingSlots = MAX_FILES - mediaFiles.length;
+    const filesToAdd = files.slice(0, remainingSlots);
+
+    const newMediaFiles: MediaFile[] = [];
+    
+    for (const file of filesToAdd) {
+      if (file.size > MAX_FILE_SIZE) {
+        toast.error(`${file.name} is too large (max 50MB)`);
+        continue;
+      }
+
+      // Check if file type is supported
+      const isSupported = file.type.startsWith('image/') || 
+                          file.type.startsWith('video/') || 
+                          file.type.startsWith('audio/') ||
+                          file.type === 'application/pdf' ||
+                          file.type === 'application/msword' ||
+                          file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+      
+      if (!isSupported) {
+        toast.error(`${file.name} is not a supported file type`);
+        continue;
+      }
+
+      const preview = URL.createObjectURL(file);
+      newMediaFiles.push({
+        file,
+        preview,
+        type: getFileType(file)
+      });
+    }
+
+    if (newMediaFiles.length > 0) {
+      setMediaFiles(prev => [...prev, ...newMediaFiles]);
+    }
+  };
 
   useEffect(() => {
     if (groupId) {
@@ -222,26 +287,7 @@ const GroupDetail = () => {
     const files = e.target.files;
     if (!files) return;
 
-    const remainingSlots = MAX_FILES - mediaFiles.length;
-    const filesToAdd = Array.from(files).slice(0, remainingSlots);
-
-    const newMediaFiles: MediaFile[] = [];
-    
-    for (const file of filesToAdd) {
-      if (file.size > MAX_FILE_SIZE) {
-        toast.error(`${file.name} is too large (max 50MB)`);
-        continue;
-      }
-
-      const preview = URL.createObjectURL(file);
-      newMediaFiles.push({
-        file,
-        preview,
-        type: getFileType(file)
-      });
-    }
-
-    setMediaFiles(prev => [...prev, ...newMediaFiles]);
+    processFiles(Array.from(files));
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -551,7 +597,12 @@ const GroupDetail = () => {
           <TabsContent value="feed" className="mt-4 space-y-4">
             {/* Post Creator (only for members) */}
             {isMember && (
-              <Card>
+              <Card 
+                className={`transition-all duration-200 ${isDragging ? 'ring-2 ring-primary ring-offset-2 bg-primary/5' : ''}`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
                 <CardContent className="pt-4">
                   <div className="flex gap-3">
                     <Avatar className="h-10 w-10">
@@ -561,15 +612,26 @@ const GroupDetail = () => {
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 space-y-3">
-                      <Textarea
-                        placeholder={`Share something with ${group.name}...`}
-                        value={postContent}
-                        onChange={(e) => setPostContent(e.target.value)}
-                        className="min-h-[80px] resize-none"
-                      />
+                      {/* Drag overlay */}
+                      {isDragging && (
+                        <div className="border-2 border-dashed border-primary rounded-lg p-6 text-center bg-primary/5">
+                          <Upload className="h-8 w-8 mx-auto text-primary mb-2" />
+                          <p className="text-sm font-medium text-primary">Drop files here to upload</p>
+                          <p className="text-xs text-muted-foreground mt-1">Images, videos, audio, or documents</p>
+                        </div>
+                      )}
+                      
+                      {!isDragging && (
+                        <Textarea
+                          placeholder={`Share something with ${group.name}...`}
+                          value={postContent}
+                          onChange={(e) => setPostContent(e.target.value)}
+                          className="min-h-[80px] resize-none"
+                        />
+                      )}
 
                       {/* Media Preview */}
-                      {mediaFiles.length > 0 && (
+                      {mediaFiles.length > 0 && !isDragging && (
                         <div className="p-3 bg-muted/50 rounded-lg">
                           <div className="flex justify-between items-center mb-2">
                             <span className="text-sm font-medium text-muted-foreground">
