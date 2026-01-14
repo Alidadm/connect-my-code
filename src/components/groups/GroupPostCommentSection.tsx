@@ -2,13 +2,14 @@ import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Loader2, Reply, X, Trash2, Heart, Pencil, Check } from "lucide-react";
+import { Send, Loader2, Reply, X, Trash2, Heart, Pencil, Check, Flag } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { formatDistanceToNow } from "date-fns";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { ReportContentDialog } from "./ReportContentDialog";
 
 interface GroupComment {
   id: string;
@@ -29,11 +30,13 @@ interface GroupComment {
 
 interface GroupPostCommentSectionProps {
   postId: string;
+  groupId: string;
   onCommentCountChange?: (count: number) => void;
 }
 
 interface CommentItemProps {
   comment: GroupComment;
+  groupId: string;
   onReply: (commentId: string, displayName: string) => void;
   onDelete: (commentId: string, hasReplies: boolean) => void;
   onLike: (commentId: string, isLiked: boolean) => void;
@@ -41,13 +44,15 @@ interface CommentItemProps {
   isReply?: boolean;
 }
 
-const CommentItem = ({ comment, onReply, onDelete, onLike, onEdit, isReply = false }: CommentItemProps) => {
+const CommentItem = ({ comment, groupId, onReply, onDelete, onLike, onEdit, isReply = false }: CommentItemProps) => {
   const { user } = useAuth();
   const isOwner = user?.id === comment.user_id;
   const hasReplies = (comment.replies?.length || 0) > 0;
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(comment.content);
+  const [showReportDialog, setShowReportDialog] = useState(false);
   const wasEdited = comment.updated_at !== comment.created_at;
+  const canReport = user && !isOwner;
 
   const handleSaveEdit = () => {
     if (editContent.trim() && editContent.trim() !== comment.content) {
@@ -109,22 +114,35 @@ const CommentItem = ({ comment, onReply, onDelete, onLike, onEdit, isReply = fal
               {comment.content}
             </p>
           )}
-          {isOwner && !isEditing && (
+          {!isEditing && (isOwner || canReport) && (
             <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
-              <button
-                onClick={() => setIsEditing(true)}
-                className="text-muted-foreground hover:text-primary"
-                title="Edit comment"
-              >
-                <Pencil className="h-3.5 w-3.5" />
-              </button>
-              <button
-                onClick={() => onDelete(comment.id, hasReplies)}
-                className="text-muted-foreground hover:text-destructive"
-                title="Delete comment"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-              </button>
+              {isOwner && (
+                <>
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="text-muted-foreground hover:text-primary"
+                    title="Edit comment"
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    onClick={() => onDelete(comment.id, hasReplies)}
+                    className="text-muted-foreground hover:text-destructive"
+                    title="Delete comment"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </>
+              )}
+              {canReport && (
+                <button
+                  onClick={() => setShowReportDialog(true)}
+                  className="text-muted-foreground hover:text-orange-500"
+                  title="Report comment"
+                >
+                  <Flag className="h-3.5 w-3.5" />
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -159,7 +177,8 @@ const CommentItem = ({ comment, onReply, onDelete, onLike, onEdit, isReply = fal
             {comment.replies.map((reply) => (
               <CommentItem 
                 key={reply.id} 
-                comment={reply} 
+                comment={reply}
+                groupId={groupId}
                 onReply={onReply} 
                 onDelete={onDelete}
                 onLike={onLike}
@@ -170,11 +189,20 @@ const CommentItem = ({ comment, onReply, onDelete, onLike, onEdit, isReply = fal
           </div>
         )}
       </div>
+
+      {/* Report Dialog */}
+      <ReportContentDialog
+        open={showReportDialog}
+        onOpenChange={setShowReportDialog}
+        groupId={groupId}
+        commentId={comment.id}
+        contentType="comment"
+      />
     </div>
   );
 };
 
-export const GroupPostCommentSection = ({ postId, onCommentCountChange }: GroupPostCommentSectionProps) => {
+export const GroupPostCommentSection = ({ postId, groupId, onCommentCountChange }: GroupPostCommentSectionProps) => {
   const { t } = useTranslation();
   const { user, profile } = useAuth();
   const queryClient = useQueryClient();
@@ -424,7 +452,8 @@ export const GroupPostCommentSection = ({ postId, onCommentCountChange }: GroupP
           comments.map((comment) => (
             <CommentItem 
               key={comment.id} 
-              comment={comment} 
+              comment={comment}
+              groupId={groupId}
               onReply={handleReply}
               onDelete={handleDelete}
               onLike={handleLike}

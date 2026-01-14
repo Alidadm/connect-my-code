@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Heart, MessageCircle, MoreVertical, Trash2, ChevronDown, ChevronUp } from "lucide-react";
+import { Heart, MessageCircle, MoreVertical, Trash2, ChevronDown, ChevronUp, Flag } from "lucide-react";
 import { GroupPostCommentSection } from "./GroupPostCommentSection";
+import { ReportContentDialog } from "./ReportContentDialog";
 import { formatDistanceToNow } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -12,6 +13,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
@@ -45,6 +47,7 @@ export const GroupPostCard = ({ post, onPostChange, canModerate }: GroupPostCard
   const [commentsCount, setCommentsCount] = useState(post.comments_count || 0);
   const [isLiking, setIsLiking] = useState(false);
   const [showComments, setShowComments] = useState(false);
+  const [showReportDialog, setShowReportDialog] = useState(false);
 
   const handleLike = async () => {
     if (!user || isLiking) return;
@@ -129,6 +132,7 @@ export const GroupPostCard = ({ post, onPostChange, canModerate }: GroupPostCard
 
   const isOwner = user?.id === post.user_id;
   const canDelete = isOwner || canModerate;
+  const canReport = user && !isOwner;
 
   return (
     <Card className="overflow-hidden">
@@ -157,7 +161,7 @@ export const GroupPostCard = ({ post, onPostChange, canModerate }: GroupPostCard
             </div>
           </div>
 
-          {canDelete && (
+          {(canDelete || canReport) && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -165,13 +169,22 @@ export const GroupPostCard = ({ post, onPostChange, canModerate }: GroupPostCard
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="bg-popover border">
-                <DropdownMenuItem 
-                  onClick={handleDelete}
-                  className="text-destructive focus:text-destructive"
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete Post
-                </DropdownMenuItem>
+                {canDelete && (
+                  <DropdownMenuItem 
+                    onClick={handleDelete}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete Post
+                  </DropdownMenuItem>
+                )}
+                {canDelete && canReport && <DropdownMenuSeparator />}
+                {canReport && (
+                  <DropdownMenuItem onClick={() => setShowReportDialog(true)}>
+                    <Flag className="h-4 w-4 mr-2" />
+                    Report Post
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           )}
@@ -232,10 +245,20 @@ export const GroupPostCard = ({ post, onPostChange, canModerate }: GroupPostCard
       {/* Comment Section */}
       {showComments && (
         <GroupPostCommentSection 
-          postId={post.id} 
+          postId={post.id}
+          groupId={post.group_id}
           onCommentCountChange={handleCommentCountChange}
         />
       )}
+
+      {/* Report Dialog */}
+      <ReportContentDialog
+        open={showReportDialog}
+        onOpenChange={setShowReportDialog}
+        groupId={post.group_id}
+        postId={post.id}
+        contentType="post"
+      />
     </Card>
   );
 };
