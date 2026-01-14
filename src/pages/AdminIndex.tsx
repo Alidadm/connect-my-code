@@ -4,7 +4,7 @@ import {
   MoreHorizontal, Filter, LayoutGrid, Table, List, ChevronRight, ChevronDown,
   Folder, Home, Calendar, FileText, Send, Mic, Phone, Video, X,
   Play, Clock, Link2, PanelLeftClose, PanelLeft, LayoutDashboard, ListOrdered, AlertTriangle, Mail,
-  Shield, CreditCard, BarChart3, Layers, Megaphone, Lock, Code, UserCog, Database, Flag
+  Shield, CreditCard, BarChart3, Layers, Megaphone, Lock, Code, UserCog, Database, Flag, Wallet
 } from "lucide-react";
 import { AdminStatsCards } from "@/components/admin/AdminStatsCards";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ const favoriteProjects = [
   { name: "Member Home", starred: true, path: "/" },
   { name: "Member List", starred: true, path: "/admin/users/list" },
   { name: "Content Moderation", starred: true },
+  { name: "Payouts", starred: true, path: "/admin/payouts", icon: "paypal" },
 ];
 
 const userManagementMenu = [
@@ -243,6 +244,13 @@ const AdminIndex = () => {
             <Bell className="w-5 h-5 text-slate-400 group-hover:text-white" />
             <span className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-rose-500 to-pink-500 rounded-full text-[10px] text-white flex items-center justify-center font-medium">3</span>
           </button>
+          <button 
+            onClick={() => navigate("/admin/payouts")}
+            className="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 flex items-center justify-center transition-colors group"
+            title="Payouts"
+          >
+            <Wallet className="w-5 h-5 text-slate-400 group-hover:text-white" />
+          </button>
           <button className="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 flex items-center justify-center transition-colors group">
             <Users className="w-5 h-5 text-slate-400 group-hover:text-white" />
           </button>
@@ -305,7 +313,11 @@ const AdminIndex = () => {
                   project.path && "text-blue-600 hover:bg-blue-50 font-medium"
                 )}
               >
-                <Star className={cn("w-4 h-4", project.path ? "text-blue-500 fill-blue-500" : "text-amber-400 fill-amber-400")} />
+                {project.icon === "paypal" ? (
+                  <Wallet className="w-4 h-4 text-green-500" />
+                ) : (
+                  <Star className={cn("w-4 h-4", project.path ? "text-blue-500 fill-blue-500" : "text-amber-400 fill-amber-400")} />
+                )}
                 {project.name}
               </button>
             ))}
