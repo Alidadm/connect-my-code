@@ -85,17 +85,49 @@ export const Feed = () => {
 
   const fetchPosts = async () => {
     try {
-      const { data: postsData, error: postsError } = await supabase
-        .from("posts")
-        .select("*")
-        .eq("visibility", "public")
-        .order("created_at", { ascending: false })
-        .limit(20);
+      let postsData: any[] = [];
 
-      if (postsError) throw postsError;
+      if (user) {
+        // Logged in: fetch public posts + user's own posts (any visibility)
+        const { data: publicPosts, error: publicError } = await supabase
+          .from("posts")
+          .select("*")
+          .eq("visibility", "public")
+          .order("created_at", { ascending: false })
+          .limit(20);
+
+        if (publicError) throw publicError;
+
+        const { data: myPosts, error: myError } = await supabase
+          .from("posts")
+          .select("*")
+          .eq("user_id", user.id)
+          .neq("visibility", "public")
+          .order("created_at", { ascending: false })
+          .limit(20);
+
+        if (myError) throw myError;
+
+        // Merge and sort by date
+        const allPosts = [...(publicPosts || []), ...(myPosts || [])];
+        postsData = allPosts.sort((a, b) => 
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        ).slice(0, 20);
+      } else {
+        // Not logged in: only public posts
+        const { data, error } = await supabase
+          .from("posts")
+          .select("*")
+          .eq("visibility", "public")
+          .order("created_at", { ascending: false })
+          .limit(20);
+
+        if (error) throw error;
+        postsData = data || [];
+      }
 
       // Fetch profiles for each post
-      const userIds = [...new Set(postsData?.map(p => p.user_id) || [])];
+      const userIds = [...new Set(postsData.map(p => p.user_id))];
       
       if (userIds.length > 0) {
         const { data: profilesData } = await supabase
@@ -105,10 +137,10 @@ export const Feed = () => {
 
         const profilesMap = new Map(profilesData?.map(p => [p.user_id, p]) || []);
         
-        const postsWithProfiles = postsData?.map(post => ({
+        const postsWithProfiles = postsData.map(post => ({
           ...post,
           profiles: profilesMap.get(post.user_id) || undefined
-        })) || [];
+        }));
 
         setPosts(postsWithProfiles);
       } else {
