@@ -26,13 +26,16 @@ import {
   Film,
   FileAudio,
   FileText,
-  Upload
+  Upload,
+  Megaphone
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { GroupPostCard } from "@/components/groups/GroupPostCard";
+import { GroupAnnouncementBanner } from "@/components/groups/GroupAnnouncementBanner";
+import { CreateAnnouncementDialog } from "@/components/groups/CreateAnnouncementDialog";
 import { formatDistanceToNow } from "date-fns";
 
 interface Group {
@@ -98,6 +101,7 @@ const GroupDetail = () => {
   const [group, setGroup] = useState<Group | null>(null);
   const [members, setMembers] = useState<GroupMember[]>([]);
   const [posts, setPosts] = useState<GroupPost[]>([]);
+  const [announcements, setAnnouncements] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [postContent, setPostContent] = useState("");
   const [isPosting, setIsPosting] = useState(false);
@@ -229,9 +233,8 @@ const GroupDetail = () => {
         setMembers(membersWithProfiles);
       }
 
-      // Fetch group posts (for now, fetch public posts from group members)
-      // In a full implementation, you'd have a group_posts table
-      await fetchGroupPosts();
+      // Fetch group posts and announcements
+      await Promise.all([fetchGroupPosts(), fetchAnnouncements()]);
 
     } catch (error) {
       console.error("Error fetching group:", error);
@@ -285,6 +288,25 @@ const GroupDetail = () => {
       }
     } catch (error) {
       console.error("Error fetching group posts:", error);
+    }
+  };
+
+  const fetchAnnouncements = async () => {
+    if (!groupId) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("group_announcements")
+        .select("*")
+        .eq("group_id", groupId)
+        .eq("is_active", true)
+        .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setAnnouncements(data || []);
+    } catch (error) {
+      console.error("Error fetching announcements:", error);
     }
   };
 
@@ -609,6 +631,25 @@ const GroupDetail = () => {
 
           {/* Feed Tab */}
           <TabsContent value="feed" className="mt-4 space-y-4">
+            {/* Announcements Section */}
+            {announcements.length > 0 && (
+              <GroupAnnouncementBanner 
+                announcements={announcements}
+                canManage={canManage}
+                onAnnouncementChange={fetchAnnouncements}
+              />
+            )}
+
+            {/* New Announcement Button for Admins */}
+            {canManage && (
+              <div className="flex justify-end">
+                <CreateAnnouncementDialog 
+                  groupId={groupId!}
+                  onAnnouncementCreated={fetchAnnouncements}
+                />
+              </div>
+            )}
+
             {/* Post Creator (only for members) */}
             {isMember && (
               <Card 
