@@ -43,7 +43,7 @@ serve(async (req) => {
 
     const { data, error } = await supabaseAdmin
       .from("profiles_private")
-      .select("email, phone, birthday")
+      .select("email, phone, birthday, paypal_payout_email")
       .eq("user_id", user.id)
       .single();
 
@@ -55,7 +55,8 @@ serve(async (req) => {
       });
     }
 
-    return new Response(JSON.stringify({ data: data || null }), {
+    // Return data directly (not wrapped) for easier consumption
+    return new Response(JSON.stringify(data || {}), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

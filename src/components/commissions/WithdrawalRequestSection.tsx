@@ -16,7 +16,9 @@ import {
   AlertCircle,
   CreditCard,
   ExternalLink,
-  Loader2
+  Loader2,
+  Mail,
+  Save
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -57,12 +59,120 @@ const WithdrawalRequestSection = ({ pendingEarnings, userId }: WithdrawalRequest
   const [stripeStatus, setStripeStatus] = useState<StripeConnectStatus | null>(null);
   const [checkingStripe, setCheckingStripe] = useState(false);
   const [connectingStripe, setConnectingStripe] = useState(false);
+  
+  // PayPal auto-payout state
+  const [paypalAutoEmail, setPaypalAutoEmail] = useState("");
+  const [savedPaypalEmail, setSavedPaypalEmail] = useState("");
+  const [savingPaypalEmail, setSavingPaypalEmail] = useState(false);
+  const [loadingPaypalEmail, setLoadingPaypalEmail] = useState(true);
 
   useEffect(() => {
     fetchWithdrawalRequests();
     fetchMinimumWithdrawal();
     checkStripeConnectStatus();
+    fetchPaypalAutoPayoutEmail();
   }, [userId]);
+
+  const fetchPaypalAutoPayoutEmail = async () => {
+    setLoadingPaypalEmail(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-my-private-profile`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session.access_token}`,
+          },
+        }
+      );
+
+      const result = await response.json();
+      if (response.ok && result.paypal_payout_email) {
+        setPaypalAutoEmail(result.paypal_payout_email);
+        setSavedPaypalEmail(result.paypal_payout_email);
+      }
+    } catch (error) {
+      console.error("Error fetching PayPal email:", error);
+    } finally {
+      setLoadingPaypalEmail(false);
+    }
+  };
+
+  const savePaypalAutoEmail = async () => {
+    if (!paypalAutoEmail.trim() || !paypalAutoEmail.includes("@")) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+
+    setSavingPaypalEmail(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error("Please log in to save your PayPal email");
+        return;
+      }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/store-private-profile`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ paypal_payout_email: paypalAutoEmail.trim() }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to save PayPal email");
+      }
+
+      setSavedPaypalEmail(paypalAutoEmail.trim());
+      toast.success("PayPal auto-payout email saved! You'll receive commissions automatically.");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to save PayPal email");
+      console.error(error);
+    } finally {
+      setSavingPaypalEmail(false);
+    }
+  };
+
+  const removePaypalAutoEmail = async () => {
+    setSavingPaypalEmail(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/store-private-profile`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ paypal_payout_email: null }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to remove PayPal email");
+      }
+
+      setPaypalAutoEmail("");
+      setSavedPaypalEmail("");
+      toast.success("PayPal auto-payout disabled");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to remove PayPal email");
+    } finally {
+      setSavingPaypalEmail(false);
+    }
+  };
 
   const checkStripeConnectStatus = async () => {
     setCheckingStripe(true);
@@ -292,6 +402,113 @@ const WithdrawalRequestSection = ({ pendingEarnings, userId }: WithdrawalRequest
         </div>
       </CardHeader>
       <CardContent>
+        {/* Auto-Payout Setup Section */}
+        <div className="p-4 border rounded-lg bg-gradient-to-br from-blue-500/5 to-purple-500/5 border-blue-500/20 mb-6">
+          <h4 className="font-medium mb-3 flex items-center gap-2">
+            <Wallet className="h-4 w-4 text-blue-600" />
+            Auto-Payout Setup
+          </h4>
+          <p className="text-sm text-muted-foreground mb-4">
+            Set up automatic payouts to receive your commissions instantly when they're earned.
+          </p>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            {/* Stripe Connect Option */}
+            <div className="p-3 border rounded-lg bg-background">
+              <div className="flex items-center gap-2 mb-2">
+                <CreditCard className="h-4 w-4 text-purple-600" />
+                <span className="font-medium text-sm">Stripe (Bank Transfer)</span>
+                {isStripeReady && (
+                  <Badge className="bg-green-500/10 text-green-600 border-green-500/20 text-xs">
+                    <CheckCircle2 className="h-3 w-3 mr-1" />Active
+                  </Badge>
+                )}
+              </div>
+              {checkingStripe ? (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  Checking...
+                </div>
+              ) : isStripeReady ? (
+                <p className="text-xs text-green-600">Instant payouts to your bank account</p>
+              ) : (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleConnectStripe}
+                  disabled={connectingStripe}
+                  className="mt-1"
+                >
+                  {connectingStripe ? (
+                    <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                  ) : (
+                    <ExternalLink className="h-3 w-3 mr-1" />
+                  )}
+                  Connect Stripe
+                </Button>
+              )}
+            </div>
+
+            {/* PayPal Auto-Payout Option */}
+            <div className="p-3 border rounded-lg bg-background">
+              <div className="flex items-center gap-2 mb-2">
+                <Mail className="h-4 w-4 text-blue-600" />
+                <span className="font-medium text-sm">PayPal (Email Transfer)</span>
+                {savedPaypalEmail && (
+                  <Badge className="bg-green-500/10 text-green-600 border-green-500/20 text-xs">
+                    <CheckCircle2 className="h-3 w-3 mr-1" />Active
+                  </Badge>
+                )}
+              </div>
+              {loadingPaypalEmail ? (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  Loading...
+                </div>
+              ) : savedPaypalEmail ? (
+                <div className="space-y-2">
+                  <p className="text-xs text-green-600 truncate">{savedPaypalEmail}</p>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={removePaypalAutoEmail}
+                    disabled={savingPaypalEmail}
+                    className="text-xs h-7 text-muted-foreground hover:text-destructive"
+                  >
+                    Remove
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <Input
+                    type="email"
+                    placeholder="PayPal email"
+                    value={paypalAutoEmail}
+                    onChange={(e) => setPaypalAutoEmail(e.target.value)}
+                    className="h-8 text-sm"
+                  />
+                  <Button 
+                    size="sm" 
+                    onClick={savePaypalAutoEmail}
+                    disabled={savingPaypalEmail || !paypalAutoEmail.trim()}
+                    className="h-8"
+                  >
+                    {savingPaypalEmail ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <Save className="h-3 w-3" />
+                    )}
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <p className="text-xs text-muted-foreground mt-3">
+            💡 Stripe is preferred for instant bank deposits. PayPal is used as fallback if Stripe isn't connected.
+          </p>
+        </div>
+
         {/* Withdrawal Form */}
         {showForm && (
           <div className="p-4 border rounded-lg bg-muted/30 mb-6">
