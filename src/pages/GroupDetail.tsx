@@ -69,6 +69,8 @@ interface GroupPost {
   comments_count: number;
   created_at: string;
   user_id: string;
+  is_pinned?: boolean;
+  pinned_at?: string | null;
   profiles?: {
     display_name: string | null;
     avatar_url: string | null;
@@ -243,31 +245,43 @@ const GroupDetail = () => {
     if (!groupId) return;
 
     try {
-      const { data, error } = await supabase
+      // Fetch pinned posts first, then non-pinned by date
+      const { data: pinnedData, error: pinnedError } = await supabase
         .from("group_posts")
         .select("*")
         .eq("group_id", groupId)
+        .eq("is_pinned", true)
+        .order("pinned_at", { ascending: false });
+
+      const { data: regularData, error: regularError } = await supabase
+        .from("group_posts")
+        .select("*")
+        .eq("group_id", groupId)
+        .or("is_pinned.is.null,is_pinned.eq.false")
         .order("created_at", { ascending: false })
         .limit(50);
 
-      if (!error && data) {
+      if (pinnedError) console.error("Error fetching pinned posts:", pinnedError);
+      if (regularError) console.error("Error fetching regular posts:", regularError);
+
+      const allPosts = [...(pinnedData || []), ...(regularData || [])];
+
+      if (allPosts.length > 0) {
         // Fetch profiles for posts
-        const userIds = [...new Set(data.map(p => p.user_id))];
-        if (userIds.length > 0) {
-          const { data: profilesData } = await supabase
-            .from("profiles")
-            .select("user_id, display_name, avatar_url, username, is_verified")
-            .in("user_id", userIds);
+        const userIds = [...new Set(allPosts.map(p => p.user_id))];
+        const { data: profilesData } = await supabase
+          .from("profiles")
+          .select("user_id, display_name, avatar_url, username, is_verified")
+          .in("user_id", userIds);
 
-          const postsWithProfiles = data.map(post => ({
-            ...post,
-            profiles: profilesData?.find(p => p.user_id === post.user_id)
-          }));
+        const postsWithProfiles = allPosts.map(post => ({
+          ...post,
+          profiles: profilesData?.find(p => p.user_id === post.user_id)
+        }));
 
-          setPosts(postsWithProfiles);
-        } else {
-          setPosts([]);
-        }
+        setPosts(postsWithProfiles);
+      } else {
+        setPosts([]);
       }
     } catch (error) {
       console.error("Error fetching group posts:", error);
