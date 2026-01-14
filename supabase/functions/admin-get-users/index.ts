@@ -83,14 +83,25 @@ serve(async (req) => {
 
     logStep("Admin request from user", { userId });
 
-    const { searchQuery, page = 1, limit = 10, sortColumn = 'created_at', sortDirection = 'desc', filterToday = false } = await req.json();
+    const { searchQuery, page = 1, limit = 10, sortColumn = 'created_at', sortDirection = 'desc', filterToday = false, dateFrom, dateTo } = await req.json();
 
     // Fetch profiles with pagination
     let query = supabaseAdmin
       .from('profiles')
       .select('*', { count: 'exact' });
 
-    // Apply today filter if requested
+    // Apply date range filter
+    if (dateFrom) {
+      query = query.gte('created_at', dateFrom);
+    }
+    if (dateTo) {
+      // Add one day to include the end date fully
+      const endDate = new Date(dateTo);
+      endDate.setDate(endDate.getDate() + 1);
+      query = query.lt('created_at', endDate.toISOString());
+    }
+
+    // Apply today filter if requested (overrides date range)
     if (filterToday) {
       const today = new Date();
       today.setHours(0, 0, 0, 0);

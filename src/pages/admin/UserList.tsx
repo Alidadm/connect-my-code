@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Swal from "sweetalert2";
+import { format, subDays, startOfMonth, endOfMonth, subMonths } from "date-fns";
 import {
   Search, Filter, Download, Upload, Plus, MoreHorizontal,
   ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight,
-  Edit, Trash2, Eye, Mail, Phone, ArrowUpDown, ArrowLeft, Loader2, AtSign
+  Edit, Trash2, Eye, Mail, Phone, ArrowUpDown, ArrowLeft, Loader2, AtSign, Calendar, X
 } from "lucide-react";
 
 // Country name to ISO 2-letter code mapping for flag emojis
@@ -57,11 +58,24 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+
+type DateRange = {
+  from: Date | undefined;
+  to: Date | undefined;
+};
+
+type DatePreset = 'all' | 'today' | 'last7days' | 'last30days' | 'thisMonth' | 'lastMonth' | 'custom';
 
 // User type definition matching database schema
 type User = {
@@ -89,7 +103,12 @@ const UserList = () => {
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   
   // Filter state from URL params
-  const filterToday = searchParams.get('filter') === 'today';
+  const filterParam = searchParams.get('filter') as DatePreset | null;
+  
+  // Date range state
+  const [datePreset, setDatePreset] = useState<DatePreset>(filterParam || 'all');
+  const [dateRange, setDateRange] = useState<DateRange>({ from: undefined, to: undefined });
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   
   // Data state
   const [users, setUsers] = useState<User[]>([]);
@@ -100,13 +119,87 @@ const UserList = () => {
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Toggle filter function
-  const toggleFilter = (showToday: boolean) => {
-    if (showToday) {
-      setSearchParams({ filter: 'today' });
-    } else {
-      setSearchParams({});
+  // Calculate date range based on preset
+  const getDateRangeFromPreset = useCallback((preset: DatePreset): DateRange => {
+    const now = new Date();
+    switch (preset) {
+      case 'today':
+        return { from: new Date(now.setHours(0, 0, 0, 0)), to: new Date() };
+      case 'last7days':
+        return { from: subDays(new Date(), 7), to: new Date() };
+      case 'last30days':
+        return { from: subDays(new Date(), 30), to: new Date() };
+      case 'thisMonth':
+        return { from: startOfMonth(new Date()), to: endOfMonth(new Date()) };
+      case 'lastMonth':
+        const lastMonth = subMonths(new Date(), 1);
+        return { from: startOfMonth(lastMonth), to: endOfMonth(lastMonth) };
+      case 'custom':
+        return dateRange;
+      default:
+        return { from: undefined, to: undefined };
     }
+  }, [dateRange]);
+
+  // Update date range when preset changes
+  useEffect(() => {
+    if (datePreset !== 'custom') {
+      setDateRange(getDateRangeFromPreset(datePreset));
+    }
+  }, [datePreset, getDateRangeFromPreset]);
+
+  // Initialize from URL param
+  useEffect(() => {
+    if (filterParam && filterParam !== datePreset) {
+      setDatePreset(filterParam);
+    }
+  }, [filterParam]);
+
+  // Handle preset change
+  const handlePresetChange = (preset: DatePreset) => {
+    setDatePreset(preset);
+    if (preset === 'all') {
+      setSearchParams({});
+    } else {
+      setSearchParams({ filter: preset });
+    }
+    setCurrentPage(1);
+    if (preset !== 'custom') {
+      setIsDatePickerOpen(false);
+    }
+  };
+
+  // Get label for preset
+  const getPresetLabel = (preset: DatePreset): string => {
+    switch (preset) {
+      case 'all': return 'All Time';
+      case 'today': return "Today's Signups";
+      case 'last7days': return 'Last 7 Days';
+      case 'last30days': return 'Last 30 Days';
+      case 'thisMonth': return 'This Month';
+      case 'lastMonth': return 'Last Month';
+      case 'custom': return 'Custom Range';
+      default: return 'All Time';
+    }
+  };
+
+  // Handle custom date range selection
+  const handleCustomDateChange = (range: DateRange | undefined) => {
+    if (range) {
+      setDateRange(range);
+      if (range.from && range.to) {
+        setDatePreset('custom');
+        setSearchParams({ filter: 'custom' });
+        setCurrentPage(1);
+      }
+    }
+  };
+
+  // Clear date filter
+  const clearDateFilter = () => {
+    setDatePreset('all');
+    setDateRange({ from: undefined, to: undefined });
+    setSearchParams({});
     setCurrentPage(1);
   };
 
@@ -188,6 +281,8 @@ const UserList = () => {
 
     try {
       // Use admin edge function to get users with private data
+      const activeDateRange = getDateRangeFromPreset(datePreset);
+      
       const { data, error } = await supabase.functions.invoke("admin-get-users", {
         body: {
           searchQuery,
@@ -202,7 +297,9 @@ const UserList = () => {
                   ? "country"
                   : "created_at",
           sortDirection,
-          filterToday,
+          filterToday: datePreset === 'today',
+          dateFrom: activeDateRange.from?.toISOString(),
+          dateTo: activeDateRange.to?.toISOString(),
         },
       });
 
@@ -231,7 +328,9 @@ const UserList = () => {
     itemsPerPage,
     sortColumn,
     sortDirection,
-    filterToday,
+    datePreset,
+    dateRange,
+    getDateRangeFromPreset,
     toast,
     navigate,
   ]);
@@ -512,11 +611,11 @@ const UserList = () => {
               </Button>
               <div>
                 <h1 className="text-2xl font-bold text-slate-900">
-                  {filterToday ? "Today's New Members" : "User List"}
+                  {datePreset !== 'all' ? getPresetLabel(datePreset) : "User List"}
                 </h1>
                 <p className="text-sm text-slate-500">
-                  {filterToday 
-                    ? `Members who joined today (${totalCount} total)` 
+                  {datePreset !== 'all'
+                    ? `${totalCount} members in selected period` 
                     : "Manage and view all registered users"}
                 </p>
               </div>
@@ -558,33 +657,63 @@ const UserList = () => {
       <div className="max-w-7xl mx-auto px-6 py-4">
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
           {/* Cover Tools Header */}
-          <div className="p-4 border-b border-slate-200 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3 flex-1">
-              {/* Filter Toggle */}
-              <div className="flex rounded-lg border border-slate-200 overflow-hidden">
-                <button
-                  onClick={() => toggleFilter(false)}
-                  className={cn(
-                    "px-4 py-2 text-sm font-medium transition-colors",
-                    !filterToday 
-                      ? "bg-blue-600 text-white" 
-                      : "bg-white text-slate-600 hover:bg-slate-50"
-                  )}
-                >
-                  All Members
-                </button>
-                <button
-                  onClick={() => toggleFilter(true)}
-                  className={cn(
-                    "px-4 py-2 text-sm font-medium transition-colors border-l border-slate-200",
-                    filterToday 
-                      ? "bg-blue-600 text-white" 
-                      : "bg-white text-slate-600 hover:bg-slate-50"
-                  )}
-                >
-                  Today's Signups
-                </button>
-              </div>
+          <div className="p-4 border-b border-slate-200 flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-3 flex-1 flex-wrap">
+              {/* Date Range Filter */}
+              <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="gap-2 min-w-[200px] justify-start">
+                    <Calendar className="w-4 h-4" />
+                    {datePreset === 'all' ? (
+                      <span>All Time</span>
+                    ) : datePreset === 'custom' && dateRange.from && dateRange.to ? (
+                      <span>{format(dateRange.from, "MMM d")} - {format(dateRange.to, "MMM d, yyyy")}</span>
+                    ) : (
+                      <span>{getPresetLabel(datePreset)}</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 bg-white" align="start">
+                  <div className="flex">
+                    {/* Presets */}
+                    <div className="border-r border-slate-200 p-2 space-y-1 min-w-[140px]">
+                      {(['all', 'today', 'last7days', 'last30days', 'thisMonth', 'lastMonth'] as DatePreset[]).map((preset) => (
+                        <button
+                          key={preset}
+                          onClick={() => handlePresetChange(preset)}
+                          className={cn(
+                            "w-full text-left px-3 py-2 text-sm rounded-md transition-colors",
+                            datePreset === preset
+                              ? "bg-blue-100 text-blue-700 font-medium"
+                              : "text-slate-600 hover:bg-slate-100"
+                          )}
+                        >
+                          {getPresetLabel(preset)}
+                        </button>
+                      ))}
+                    </div>
+                    {/* Calendar */}
+                    <div className="p-3">
+                      <CalendarComponent
+                        mode="range"
+                        selected={dateRange.from && dateRange.to ? { from: dateRange.from, to: dateRange.to } : undefined}
+                        onSelect={(range) => handleCustomDateChange(range as DateRange)}
+                        numberOfMonths={2}
+                        disabled={(date) => date > new Date()}
+                      />
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+
+              {/* Clear filter button */}
+              {datePreset !== 'all' && (
+                <Button variant="ghost" size="sm" onClick={clearDateFilter} className="gap-1 text-slate-500">
+                  <X className="w-3 h-3" />
+                  Clear
+                </Button>
+              )}
+
               <div className="relative flex-1 max-w-md">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <Input 
