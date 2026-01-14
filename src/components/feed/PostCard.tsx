@@ -53,22 +53,31 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
 
   const isOwner = user?.id === post.user_id;
 
-  // Check if user has already liked this post
+  // Check if user has already liked and bookmarked this post
   useEffect(() => {
-    const checkLikeStatus = async () => {
+    const checkStatus = async () => {
       if (!user) return;
       
-      const { data } = await supabase
-        .from("post_likes")
-        .select("id")
-        .eq("post_id", post.id)
-        .eq("user_id", user.id)
-        .maybeSingle();
+      const [likeResult, bookmarkResult] = await Promise.all([
+        supabase
+          .from("post_likes")
+          .select("id")
+          .eq("post_id", post.id)
+          .eq("user_id", user.id)
+          .maybeSingle(),
+        supabase
+          .from("bookmarks")
+          .select("id")
+          .eq("post_id", post.id)
+          .eq("user_id", user.id)
+          .maybeSingle()
+      ]);
       
-      setIsLiked(!!data);
+      setIsLiked(!!likeResult.data);
+      setIsBookmarked(!!bookmarkResult.data);
     };
 
-    checkLikeStatus();
+    checkStatus();
   }, [post.id, user]);
 
   const handleLike = async () => {
@@ -99,9 +108,42 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
     }
   };
 
-  const handleBookmark = () => {
-    setIsBookmarked(!isBookmarked);
-    // TODO: Implement bookmark persistence when bookmarks table is added
+  const handleBookmark = async () => {
+    if (!user) return;
+
+    try {
+      if (isBookmarked) {
+        await supabase
+          .from("bookmarks")
+          .delete()
+          .eq("post_id", post.id)
+          .eq("user_id", user.id);
+        
+        toast({
+          title: t('feed.bookmarkRemoved', 'Bookmark removed'),
+          description: t('feed.bookmarkRemovedDesc', 'Post removed from your saved items.'),
+        });
+      } else {
+        await supabase.from("bookmarks").insert({
+          post_id: post.id,
+          user_id: user.id,
+        });
+        
+        toast({
+          title: t('feed.bookmarkAdded', 'Bookmark saved'),
+          description: t('feed.bookmarkAddedDesc', 'Post added to your saved items.'),
+        });
+      }
+      
+      setIsBookmarked(!isBookmarked);
+    } catch (error) {
+      console.error("Error toggling bookmark:", error);
+      toast({
+        title: t('common.error', 'Error'),
+        description: t('feed.bookmarkFailed', 'Failed to update bookmark. Please try again.'),
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleEdit = async () => {
