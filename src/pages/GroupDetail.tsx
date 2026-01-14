@@ -27,7 +27,7 @@ import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { PostCard } from "@/components/feed/PostCard";
+import { GroupPostCard } from "@/components/groups/GroupPostCard";
 import { formatDistanceToNow } from "date-fns";
 
 interface Group {
@@ -57,11 +57,11 @@ interface GroupMember {
 
 interface GroupPost {
   id: string;
+  group_id: string;
   content: string | null;
   media_urls: string[] | null;
   likes_count: number;
   comments_count: number;
-  shares_count: number;
   created_at: string;
   user_id: string;
   profiles?: {
@@ -161,33 +161,35 @@ const GroupDetail = () => {
   const fetchGroupPosts = async () => {
     if (!groupId) return;
 
-    // For now, we'll simulate group posts by fetching recent posts
-    // In production, you'd have a dedicated group_posts table
     try {
       const { data, error } = await supabase
-        .from("posts")
+        .from("group_posts")
         .select("*")
-        .eq("visibility", "public")
+        .eq("group_id", groupId)
         .order("created_at", { ascending: false })
-        .limit(20);
+        .limit(50);
 
       if (!error && data) {
         // Fetch profiles for posts
         const userIds = [...new Set(data.map(p => p.user_id))];
-        const { data: profilesData } = await supabase
-          .from("profiles")
-          .select("user_id, display_name, avatar_url, username, is_verified")
-          .in("user_id", userIds);
+        if (userIds.length > 0) {
+          const { data: profilesData } = await supabase
+            .from("profiles")
+            .select("user_id, display_name, avatar_url, username, is_verified")
+            .in("user_id", userIds);
 
-        const postsWithProfiles = data.map(post => ({
-          ...post,
-          profiles: profilesData?.find(p => p.user_id === post.user_id)
-        }));
+          const postsWithProfiles = data.map(post => ({
+            ...post,
+            profiles: profilesData?.find(p => p.user_id === post.user_id)
+          }));
 
-        setPosts(postsWithProfiles);
+          setPosts(postsWithProfiles);
+        } else {
+          setPosts([]);
+        }
       }
     } catch (error) {
-      console.error("Error fetching posts:", error);
+      console.error("Error fetching group posts:", error);
     }
   };
 
@@ -197,11 +199,11 @@ const GroupDetail = () => {
     setIsPosting(true);
     try {
       const { error } = await supabase
-        .from("posts")
+        .from("group_posts")
         .insert({
+          group_id: group.id,
           user_id: user.id,
-          content: postContent,
-          visibility: "public"
+          content: postContent
         });
 
       if (error) throw error;
@@ -490,10 +492,11 @@ const GroupDetail = () => {
               </Card>
             ) : (
               posts.map((post) => (
-                <PostCard 
+                <GroupPostCard 
                   key={post.id} 
                   post={post}
-                  onLikeChange={fetchGroupPosts}
+                  onPostChange={fetchGroupPosts}
+                  canModerate={canManage}
                 />
               ))
             )}
