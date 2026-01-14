@@ -2,12 +2,13 @@ import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Loader2, Reply, X } from "lucide-react";
+import { Send, Loader2, Reply, X, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { formatDistanceToNow } from "date-fns";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 
 interface GroupComment {
   id: string;
@@ -31,11 +32,14 @@ interface GroupPostCommentSectionProps {
 interface CommentItemProps {
   comment: GroupComment;
   onReply: (commentId: string, displayName: string) => void;
+  onDelete: (commentId: string, hasReplies: boolean) => void;
   isReply?: boolean;
 }
 
-const CommentItem = ({ comment, onReply, isReply = false }: CommentItemProps) => {
+const CommentItem = ({ comment, onReply, onDelete, isReply = false }: CommentItemProps) => {
   const { user } = useAuth();
+  const isOwner = user?.id === comment.user_id;
+  const hasReplies = (comment.replies?.length || 0) > 0;
   
   return (
     <div className={`flex gap-2 ${isReply ? "ml-10" : ""}`}>
@@ -46,13 +50,22 @@ const CommentItem = ({ comment, onReply, isReply = false }: CommentItemProps) =>
         </AvatarFallback>
       </Avatar>
       <div className="flex-1 min-w-0">
-        <div className="bg-secondary rounded-lg px-3 py-2">
+        <div className="bg-secondary rounded-lg px-3 py-2 group relative">
           <p className={`font-medium text-foreground ${isReply ? "text-xs" : "text-sm"}`}>
             {comment.profiles?.display_name || "Unknown User"}
           </p>
           <p className={`text-foreground whitespace-pre-wrap break-words ${isReply ? "text-xs" : "text-sm"}`}>
             {comment.content}
           </p>
+          {isOwner && (
+            <button
+              onClick={() => onDelete(comment.id, hasReplies)}
+              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+              title="Delete comment"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
         <div className="flex items-center gap-3 mt-1">
           <p className="text-xs text-muted-foreground">
@@ -71,7 +84,13 @@ const CommentItem = ({ comment, onReply, isReply = false }: CommentItemProps) =>
         {comment.replies && comment.replies.length > 0 && (
           <div className="mt-2 space-y-2">
             {comment.replies.map((reply) => (
-              <CommentItem key={reply.id} comment={reply} onReply={onReply} isReply />
+              <CommentItem 
+                key={reply.id} 
+                comment={reply} 
+                onReply={onReply} 
+                onDelete={onDelete}
+                isReply 
+              />
             ))}
           </div>
         )}
@@ -175,6 +194,37 @@ export const GroupPostCommentSection = ({ postId, onCommentCountChange }: GroupP
     },
   });
 
+  const deleteCommentMutation = useMutation({
+    mutationFn: async ({ commentId, deleteCount }: { commentId: string; deleteCount: number }) => {
+      if (!user) throw new Error("Not authenticated");
+
+      const { error } = await supabase
+        .from("group_post_comments")
+        .delete()
+        .eq("id", commentId);
+
+      if (error) throw error;
+
+      // Update comment count on group post
+      const currentCount = getTotalCount();
+      const newCount = Math.max(0, currentCount - deleteCount);
+      await supabase
+        .from("group_posts")
+        .update({ comments_count: newCount })
+        .eq("id", postId);
+
+      return newCount;
+    },
+    onSuccess: (newCount) => {
+      toast.success("Comment deleted");
+      queryClient.invalidateQueries({ queryKey: ["group-post-comments", postId] });
+      onCommentCountChange?.(newCount);
+    },
+    onError: () => {
+      toast.error("Failed to delete comment");
+    },
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (newComment.trim() && !addCommentMutation.isPending) {
@@ -187,6 +237,15 @@ export const GroupPostCommentSection = ({ postId, onCommentCountChange }: GroupP
 
   const handleReply = (commentId: string, displayName: string) => {
     setReplyingTo({ id: commentId, displayName });
+  };
+
+  const handleDelete = (commentId: string, hasReplies: boolean) => {
+    // If comment has replies, they will be cascade deleted, so count them
+    const comment = comments.find(c => c.id === commentId);
+    const replyCount = comment?.replies?.length || 0;
+    const deleteCount = hasReplies ? 1 + replyCount : 1;
+    
+    deleteCommentMutation.mutate({ commentId, deleteCount });
   };
 
   const cancelReply = () => {
@@ -211,6 +270,7 @@ export const GroupPostCommentSection = ({ postId, onCommentCountChange }: GroupP
               key={comment.id} 
               comment={comment} 
               onReply={handleReply}
+              onDelete={handleDelete}
             />
           ))
         )}
