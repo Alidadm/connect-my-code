@@ -3,7 +3,7 @@ import {
   Search, Star, Settings, Users, MessageCircle, Bell, Plus, 
   MoreHorizontal, Filter, LayoutGrid, Table, List, ChevronRight, ChevronDown,
   Folder, Home, Calendar, FileText, Send, Mic, Phone, Video, X,
-  Play, Clock, Link2, PanelLeftClose, PanelLeft, LayoutDashboard, ListOrdered, AlertTriangle
+  Play, Clock, Link2, PanelLeftClose, PanelLeft, LayoutDashboard, ListOrdered, AlertTriangle, Mail
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,7 @@ const userManagementMenu = [
   { name: "User Dashboard", icon: LayoutDashboard, path: "/admin/users/dashboard" },
   { name: "User List", icon: ListOrdered, path: "/admin/users/list" },
   { name: "User Alert", icon: AlertTriangle, path: "/admin/users/alerts" },
+  { name: "Email Templates", icon: Mail, path: "/admin/email-templates" },
 ];
 
 const allProjects = [
