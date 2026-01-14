@@ -6,6 +6,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
@@ -15,6 +21,15 @@ export type ReactionType = 'like' | 'love' | 'laugh' | 'angry' | 'sad' | 'wow';
 interface ReactionCount {
   reaction_type: ReactionType;
   count: number;
+}
+
+interface ReactionWithUser {
+  reaction_type: ReactionType;
+  user_id: string;
+  profiles?: {
+    display_name: string | null;
+    avatar_url: string | null;
+  };
 }
 
 interface ReactionPickerProps {
@@ -35,10 +50,11 @@ export const ReactionPicker = ({ postId, onReactionChange }: ReactionPickerProps
   const { user } = useAuth();
   const [userReaction, setUserReaction] = useState<ReactionType | null>(null);
   const [reactionCounts, setReactionCounts] = useState<ReactionCount[]>([]);
+  const [reactionsWithUsers, setReactionsWithUsers] = useState<ReactionWithUser[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [totalReactions, setTotalReactions] = useState(0);
 
-  // Fetch user's reaction and all reaction counts
+  // Fetch user's reaction and all reaction counts with user profiles
   useEffect(() => {
     const fetchReactions = async () => {
       // Get all reactions for this post
@@ -52,12 +68,36 @@ export const ReactionPicker = ({ postId, onReactionChange }: ReactionPickerProps
         return;
       }
 
+      if (!allReactions || allReactions.length === 0) {
+        setReactionsWithUsers([]);
+        setReactionCounts([]);
+        setTotalReactions(0);
+        return;
+      }
+
+      // Get unique user IDs and fetch their profiles
+      const userIds = [...new Set(allReactions.map(r => r.user_id))];
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, display_name, avatar_url")
+        .in("user_id", userIds);
+
+      // Map profiles to reactions
+      const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
+      const reactionsWithProfiles: ReactionWithUser[] = allReactions.map(r => ({
+        reaction_type: r.reaction_type as ReactionType,
+        user_id: r.user_id,
+        profiles: profileMap.get(r.user_id) || undefined
+      }));
+
+      setReactionsWithUsers(reactionsWithProfiles);
+
       // Count reactions by type
       const counts: Record<ReactionType, number> = {
         like: 0, love: 0, laugh: 0, angry: 0, sad: 0, wow: 0
       };
       
-      allReactions?.forEach((r) => {
+      allReactions.forEach((r) => {
         counts[r.reaction_type as ReactionType]++;
         if (user && r.user_id === user.id) {
           setUserReaction(r.reaction_type as ReactionType);
@@ -69,7 +109,7 @@ export const ReactionPicker = ({ postId, onReactionChange }: ReactionPickerProps
         .map(([type, count]) => ({ reaction_type: type as ReactionType, count }));
       
       setReactionCounts(countsArray);
-      setTotalReactions(allReactions?.length || 0);
+      setTotalReactions(allReactions.length);
     };
 
     fetchReactions();
@@ -98,6 +138,7 @@ export const ReactionPicker = ({ postId, onReactionChange }: ReactionPickerProps
           ).filter(r => r.count > 0);
           return updated;
         });
+        setReactionsWithUsers(prev => prev.filter(r => r.user_id !== user.id));
       } else {
         // Upsert reaction (insert or update)
         const { error } = await supabase
@@ -144,6 +185,12 @@ export const ReactionPicker = ({ postId, onReactionChange }: ReactionPickerProps
           
           return updated;
         });
+
+        // Update reactionsWithUsers
+        setReactionsWithUsers(prev => {
+          const filtered = prev.filter(r => r.user_id !== user.id);
+          return [...filtered, { reaction_type: type, user_id: user.id, profiles: undefined }];
+        });
       }
       
       onReactionChange?.();
@@ -160,6 +207,15 @@ export const ReactionPicker = ({ postId, onReactionChange }: ReactionPickerProps
   const topReactions = reactionCounts
     .sort((a, b) => b.count - a.count)
     .slice(0, 3);
+
+  // Group reactions by type for tooltip
+  const reactionsByType = REACTIONS.reduce((acc, reaction) => {
+    const usersWithThisReaction = reactionsWithUsers.filter(r => r.reaction_type === reaction.type);
+    if (usersWithThisReaction.length > 0) {
+      acc[reaction.type] = usersWithThisReaction;
+    }
+    return acc;
+  }, {} as Record<ReactionType, ReactionWithUser[]>);
 
   return (
     <div className="flex items-center gap-1">
@@ -209,21 +265,67 @@ export const ReactionPicker = ({ postId, onReactionChange }: ReactionPickerProps
         </PopoverContent>
       </Popover>
 
-      {/* Reaction summary */}
+      {/* Reaction summary with tooltip */}
       {totalReactions > 0 && (
-        <div className="flex items-center gap-1 text-muted-foreground text-sm">
-          <div className="flex -space-x-1">
-            {topReactions.map(({ reaction_type }) => {
-              const reaction = REACTIONS.find(r => r.type === reaction_type);
-              return (
-                <span key={reaction_type} className={cn("text-xs", reaction?.color)}>
-                  {reaction?.icon}
-                </span>
-              );
-            })}
-          </div>
-          <span className="ml-1">{totalReactions}</span>
-        </div>
+        <HoverCard openDelay={200} closeDelay={100}>
+          <HoverCardTrigger asChild>
+            <button className="flex items-center gap-1 text-muted-foreground text-sm hover:text-foreground transition-colors cursor-pointer">
+              <div className="flex -space-x-1">
+                {topReactions.map(({ reaction_type }) => {
+                  const reaction = REACTIONS.find(r => r.type === reaction_type);
+                  return (
+                    <span key={reaction_type} className={cn("text-xs", reaction?.color)}>
+                      {reaction?.icon}
+                    </span>
+                  );
+                })}
+              </div>
+              <span className="ml-1">{totalReactions}</span>
+            </button>
+          </HoverCardTrigger>
+          <HoverCardContent 
+            className="w-64 p-3 bg-popover border border-border shadow-lg z-50"
+            side="top"
+            align="start"
+          >
+            <div className="space-y-3">
+              {Object.entries(reactionsByType).map(([type, users]) => {
+                const reaction = REACTIONS.find(r => r.type === type);
+                if (!reaction) return null;
+                
+                return (
+                  <div key={type} className="space-y-1.5">
+                    <div className={cn("flex items-center gap-2 font-medium text-sm", reaction.color)}>
+                      {reaction.icon}
+                      <span>{reaction.label}</span>
+                      <span className="text-muted-foreground">({users.length})</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 pl-7">
+                      {users.slice(0, 5).map((u) => (
+                        <div key={u.user_id} className="flex items-center gap-1.5">
+                          <Avatar className="h-5 w-5">
+                            <AvatarImage src={u.profiles?.avatar_url || ""} />
+                            <AvatarFallback className="text-[10px] bg-muted">
+                              {u.profiles?.display_name?.[0]?.toUpperCase() || "U"}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="text-xs text-muted-foreground truncate max-w-[100px]">
+                            {u.profiles?.display_name || "User"}
+                          </span>
+                        </div>
+                      ))}
+                      {users.length > 5 && (
+                        <span className="text-xs text-muted-foreground">
+                          +{users.length - 5} more
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </HoverCardContent>
+        </HoverCard>
       )}
     </div>
   );
