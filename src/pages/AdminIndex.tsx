@@ -3,7 +3,8 @@ import {
   Search, Star, Settings, Users, MessageCircle, Bell, Plus, 
   MoreHorizontal, Filter, LayoutGrid, Table, List, ChevronRight, ChevronDown,
   Folder, Home, Calendar, FileText, Send, Mic, Phone, Video, X,
-  Play, Clock, Link2, PanelLeftClose, PanelLeft, LayoutDashboard, ListOrdered, AlertTriangle, Mail
+  Play, Clock, Link2, PanelLeftClose, PanelLeft, LayoutDashboard, ListOrdered, AlertTriangle, Mail,
+  Shield, CreditCard, BarChart3, Layers, Megaphone, Lock, Code, UserCog, Database, Flag
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,9 +17,8 @@ import { useNavigate } from "react-router-dom";
 // Demo data
 const favoriteProjects = [
   { name: "Member Home", starred: true, path: "/" },
-  { name: "Mashroom", starred: true },
-  { name: "Weedo", starred: true },
-  { name: "Lonely Walls", starred: true },
+  { name: "Member List", starred: true, path: "/admin/users/list" },
+  { name: "Content Moderation", starred: true },
 ];
 
 const userManagementMenu = [
@@ -28,18 +28,89 @@ const userManagementMenu = [
   { name: "Email Templates", icon: Mail, path: "/admin/email-templates" },
 ];
 
-const allProjects = [
-  { name: "Essential Bottle", notifications: 0 },
-  { name: "New Shtetl", notifications: 0 },
-  { name: "Nintendo", notifications: 0 },
-  { name: "Mirage", notifications: 0 },
-  { name: "Mashroom", notifications: 0 },
-  { name: "Lonely Walls", notifications: 0 },
-  { name: "Unique", notifications: 2, active: true, subItems: ["Website", "iOS App", "Dribbble Shot"] },
-  { name: "Select", notifications: 0 },
-  { name: "Weedo", notifications: 0 },
-  { name: "Virgin Galactic", notifications: 1 },
-  { name: "Zephyr", notifications: 0 },
+const adminMenuSections = [
+  {
+    title: "Reports & Safety Tools",
+    icon: Flag,
+    items: [
+      { name: "Content Reports", path: "/admin/reports" },
+      { name: "User Reports", path: "/admin/user-reports" },
+      { name: "Safety Dashboard", path: "/admin/safety" },
+    ],
+  },
+  {
+    title: "Payments & Financial Controls",
+    icon: CreditCard,
+    items: [
+      { name: "Transactions", path: "/admin/transactions" },
+      { name: "Subscriptions", path: "/admin/subscriptions" },
+      { name: "Refunds", path: "/admin/refunds" },
+      { name: "Commission Payouts", path: "/admin/payouts" },
+    ],
+  },
+  {
+    title: "Analytics & Insights",
+    icon: BarChart3,
+    items: [
+      { name: "User Analytics", path: "/admin/analytics/users" },
+      { name: "Content Analytics", path: "/admin/analytics/content" },
+      { name: "Revenue Reports", path: "/admin/analytics/revenue" },
+    ],
+  },
+  {
+    title: "Platform Structure & Content Types",
+    icon: Layers,
+    items: [
+      { name: "Categories", path: "/admin/categories" },
+      { name: "Topics", path: "/admin/topics" },
+      { name: "Content Types", path: "/admin/content-types" },
+    ],
+  },
+  {
+    title: "Advertising & Monetization Controls",
+    icon: Megaphone,
+    items: [
+      { name: "Ad Campaigns", path: "/admin/ads/campaigns" },
+      { name: "Ad Placements", path: "/admin/ads/placements" },
+      { name: "Monetization Settings", path: "/admin/monetization" },
+    ],
+  },
+  {
+    title: "Security & Compliance",
+    icon: Lock,
+    items: [
+      { name: "Security Logs", path: "/admin/security/logs" },
+      { name: "IP Blocks", path: "/admin/security/ip-blocks" },
+      { name: "Compliance Reports", path: "/admin/compliance" },
+    ],
+  },
+  {
+    title: "Developer & System Tools",
+    icon: Code,
+    items: [
+      { name: "API Logs", path: "/admin/developer/api-logs" },
+      { name: "Webhooks", path: "/admin/developer/webhooks" },
+      { name: "System Health", path: "/admin/system/health" },
+    ],
+  },
+  {
+    title: "Admin Roles & Permissions",
+    icon: UserCog,
+    items: [
+      { name: "Role Management", path: "/admin/roles" },
+      { name: "Permission Settings", path: "/admin/permissions" },
+      { name: "Admin Activity Log", path: "/admin/activity" },
+    ],
+  },
+  {
+    title: "Data Management",
+    icon: Database,
+    items: [
+      { name: "Data Export", path: "/admin/data/export" },
+      { name: "Data Import", path: "/admin/data/import" },
+      { name: "Backup & Restore", path: "/admin/data/backup" },
+    ],
+  },
 ];
 
 const tasks = {
@@ -133,8 +204,16 @@ const AdminIndex = () => {
   const [isChatOpen, setIsChatOpen] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const [activeProject, setActiveProject] = useState("Unique");
+  const [openMenuSections, setOpenMenuSections] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState("Tasks");
+
+  const toggleMenuSection = (title: string) => {
+    setOpenMenuSections(prev => 
+      prev.includes(title) 
+        ? prev.filter(t => t !== title)
+        : [...prev, title]
+    );
+  };
 
   const tabs = ["Discussion", "Tasks", "Timeline", "Files", "Overview"];
 
@@ -281,38 +360,46 @@ const AdminIndex = () => {
           </button>
         </div>
 
-        {/* All Projects */}
+        {/* Admin Menu Sections */}
         <ScrollArea className="flex-1 px-4">
-          <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">All Projects</h3>
-          <div className="space-y-0.5">
-            {allProjects.map((project) => (
-              <button
-                key={project.name}
-                onClick={() => setActiveProject(project.name)}
-                className={cn(
-                  "w-full flex items-center justify-between px-2 py-1.5 rounded-lg transition-colors text-sm",
-                  project.name === activeProject 
-                    ? "bg-gradient-to-r from-blue-50 to-cyan-50 text-blue-700 border border-blue-200" 
-                    : "text-slate-600 hover:bg-slate-50"
-                )}
-              >
-                <div className="flex items-center gap-2">
-                  <div className={cn(
-                    "w-4 h-4 rounded border-2",
-                    project.name === activeProject ? "border-blue-400" : "border-slate-300"
-                  )} />
-                  {project.name}
+          <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Admin Tools</h3>
+          <div className="space-y-1">
+            {adminMenuSections.map((section) => {
+              const isOpen = openMenuSections.includes(section.title);
+              const SectionIcon = section.icon;
+              return (
+                <div key={section.title}>
+                  <button
+                    onClick={() => toggleMenuSection(section.title)}
+                    className="w-full flex items-center justify-between px-2 py-2 rounded-lg hover:bg-slate-50 transition-colors text-sm text-slate-700"
+                  >
+                    <div className="flex items-center gap-2">
+                      <SectionIcon className="w-4 h-4 text-slate-500" />
+                      <span className="text-left">{section.title}</span>
+                    </div>
+                    {isOpen ? (
+                      <ChevronDown className="w-4 h-4 text-slate-400" />
+                    ) : (
+                      <ChevronRight className="w-4 h-4 text-slate-400" />
+                    )}
+                  </button>
+                  {isOpen && (
+                    <div className="ml-4 mt-1 space-y-0.5 border-l-2 border-slate-200 pl-2">
+                      {section.items.map((item) => (
+                        <button
+                          key={item.name}
+                          onClick={() => navigate(item.path)}
+                          className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-blue-50 transition-colors text-sm text-slate-600 hover:text-blue-700"
+                        >
+                          {item.name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                {project.notifications > 0 && (
-                  <span className="w-5 h-5 rounded-full bg-gradient-to-r from-rose-500 to-pink-500 text-[10px] text-white flex items-center justify-center font-medium">
-                    {project.notifications}
-                  </span>
-                )}
-              </button>
-            ))}
+              );
+            })}
           </div>
-
-          <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mt-6 mb-3">Archive</h3>
         </ScrollArea>
 
         {/* New Project Button */}
@@ -339,7 +426,7 @@ const AdminIndex = () => {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="w-6 h-6 rounded border-2 border-slate-300" />
-              <h1 className="text-xl font-bold text-slate-800">{activeProject}</h1>
+              <h1 className="text-xl font-bold text-slate-800">Admin Dashboard</h1>
             </div>
             <div className="flex items-center gap-2">
               <Button variant="ghost" size="icon">
