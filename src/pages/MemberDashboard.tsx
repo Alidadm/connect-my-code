@@ -3,8 +3,9 @@ import {
   User, Settings, Bell, Shield, Palette, Layout, Camera, Save,
   ChevronRight, Eye, EyeOff, Lock, Mail, Phone, Globe, Calendar,
   Home, CreditCard, Users, Heart, MessageCircle, LogOut, Clock,
-  CheckCircle2, XCircle, Loader2, ExternalLink, Languages
+  CheckCircle2, XCircle, Loader2, ExternalLink, Languages, UsersRound
 } from "lucide-react";
+import { GroupsManagement } from "@/components/dashboard/GroupsManagement";
 import Swal from "sweetalert2";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,7 +23,7 @@ import { validateUsername } from "@/lib/username";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
-type TabType = "profile" | "account" | "privacy" | "notifications" | "appearance";
+type TabType = "profile" | "account" | "privacy" | "notifications" | "appearance" | "groups";
 
 // Country code to name mapping
 const countryNames: Record<string, string> = {
@@ -45,6 +46,7 @@ const countryNames: Record<string, string> = {
 const getMenuItems = (t: (key: string) => string) => [
   { id: "profile" as TabType, label: t("profile.title"), icon: User, description: t("profile.description") },
   { id: "account" as TabType, label: t("account.title"), icon: Settings, description: t("account.description") },
+  { id: "groups" as TabType, label: t("nav.groups"), icon: UsersRound, description: t("groups.manageGroups") },
   { id: "privacy" as TabType, label: t("privacy.title"), icon: Shield, description: t("privacy.description") },
   { id: "notifications" as TabType, label: t("notifications.title"), icon: Bell, description: t("notifications.description") },
   { id: "appearance" as TabType, label: t("appearance.title"), icon: Palette, description: t("appearance.description") },
@@ -971,6 +973,8 @@ const MemberDashboard = () => {
         return renderProfileTab();
       case "account":
         return renderAccountTab();
+      case "groups":
+        return <GroupsManagement />;
       case "privacy":
         return renderPrivacyTab();
       case "notifications":
