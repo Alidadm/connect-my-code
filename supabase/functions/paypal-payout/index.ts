@@ -225,6 +225,28 @@ serve(async (req) => {
         .eq("status", "pending");
       
       logStep("Marked commissions as paid", { userId: request.user_id });
+
+      // Send payout completed email notification
+      try {
+        const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+        await fetch(`${supabaseUrl}/functions/v1/send-commission-notification`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+          },
+          body: JSON.stringify({
+            referrer_id: request.user_id,
+            type: "payout_completed",
+            amount: request.amount,
+            currency: request.currency || "USD",
+            payout_method: "paypal",
+          }),
+        });
+        logStep("Payout notification email sent");
+      } catch (notifError) {
+        logStep("Failed to send payout notification", { error: String(notifError) });
+      }
     }
 
     logStep("Payout completed successfully", { 

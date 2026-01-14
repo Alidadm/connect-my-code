@@ -228,12 +228,23 @@ serve(async (req) => {
         referrerId: profile.referrer_id 
       });
 
+      // Get referred user's name for the notification
+      const { data: referredProfile } = await supabaseClient
+        .from("profiles")
+        .select("display_name, first_name")
+        .eq("user_id", user.id)
+        .single();
+      
+      const referredUserName = referredProfile?.display_name || referredProfile?.first_name || null;
+
       // AUTO-PAY: Check if referrer has Stripe Connect and transfer instantly
       const { data: referrerPrivate } = await supabaseClient
         .from("profiles_private")
         .select("stripe_connect_id")
         .eq("user_id", profile.referrer_id)
         .single();
+
+      let autoPaidSuccessfully = false;
 
       if (referrerPrivate?.stripe_connect_id) {
         logStep("Referrer has Stripe Connect, attempting auto-payout", { 
@@ -274,6 +285,30 @@ serve(async (req) => {
               .eq("id", commission.id);
 
             logStep("Commission marked as paid via auto-payout");
+            autoPaidSuccessfully = true;
+
+            // Send payout completed notification
+            try {
+              const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+              await fetch(`${supabaseUrl}/functions/v1/send-commission-notification`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+                },
+                body: JSON.stringify({
+                  referrer_id: profile.referrer_id,
+                  type: "payout_completed",
+                  amount: commissionAmount / 100,
+                  currency: invoice.currency?.toUpperCase() || "USD",
+                  referred_user_name: referredUserName,
+                  payout_method: "stripe",
+                }),
+              });
+              logStep("Payout completed notification sent");
+            } catch (notifError) {
+              logStep("Failed to send payout notification", { error: String(notifError) });
+            }
           } else {
             logStep("Referrer's Stripe account not ready for payouts, commission remains pending");
           }
@@ -285,6 +320,30 @@ serve(async (req) => {
         }
       } else {
         logStep("Referrer has no Stripe Connect, commission remains pending for manual payout");
+      }
+
+      // Send commission earned notification (if not auto-paid, they need to know they earned it)
+      if (!autoPaidSuccessfully) {
+        try {
+          const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+          await fetch(`${supabaseUrl}/functions/v1/send-commission-notification`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+            },
+            body: JSON.stringify({
+              referrer_id: profile.referrer_id,
+              type: "commission_earned",
+              amount: commissionAmount / 100,
+              currency: invoice.currency?.toUpperCase() || "USD",
+              referred_user_name: referredUserName,
+            }),
+          });
+          logStep("Commission earned notification sent");
+        } catch (notifError) {
+          logStep("Failed to send commission notification", { error: String(notifError) });
+        }
       }
     }
 
