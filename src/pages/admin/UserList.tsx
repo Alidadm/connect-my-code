@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import {
   Search, Filter, Download, Upload, Plus, MoreHorizontal,
@@ -80,12 +80,16 @@ type User = {
 
 const UserList = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [sortColumn, setSortColumn] = useState<string>("created_at");
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  
+  // Filter state from URL params
+  const filterToday = searchParams.get('filter') === 'today';
   
   // Data state
   const [users, setUsers] = useState<User[]>([]);
@@ -95,6 +99,16 @@ const UserList = () => {
   // Selection state
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Toggle filter function
+  const toggleFilter = (showToday: boolean) => {
+    if (showToday) {
+      setSearchParams({ filter: 'today' });
+    } else {
+      setSearchParams({});
+    }
+    setCurrentPage(1);
+  };
 
 
   const extractFunctionError = (err: any): { status?: number; message: string } => {
@@ -188,6 +202,7 @@ const UserList = () => {
                   ? "country"
                   : "created_at",
           sortDirection,
+          filterToday,
         },
       });
 
@@ -216,6 +231,7 @@ const UserList = () => {
     itemsPerPage,
     sortColumn,
     sortDirection,
+    filterToday,
     toast,
     navigate,
   ]);
@@ -495,8 +511,14 @@ const UserList = () => {
                 <ArrowLeft className="w-5 h-5" />
               </Button>
               <div>
-                <h1 className="text-2xl font-bold text-slate-900">User List</h1>
-                <p className="text-sm text-slate-500">Manage and view all registered users</p>
+                <h1 className="text-2xl font-bold text-slate-900">
+                  {filterToday ? "Today's New Members" : "User List"}
+                </h1>
+                <p className="text-sm text-slate-500">
+                  {filterToday 
+                    ? `Members who joined today (${totalCount} total)` 
+                    : "Manage and view all registered users"}
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -538,6 +560,31 @@ const UserList = () => {
           {/* Cover Tools Header */}
           <div className="p-4 border-b border-slate-200 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3 flex-1">
+              {/* Filter Toggle */}
+              <div className="flex rounded-lg border border-slate-200 overflow-hidden">
+                <button
+                  onClick={() => toggleFilter(false)}
+                  className={cn(
+                    "px-4 py-2 text-sm font-medium transition-colors",
+                    !filterToday 
+                      ? "bg-blue-600 text-white" 
+                      : "bg-white text-slate-600 hover:bg-slate-50"
+                  )}
+                >
+                  All Members
+                </button>
+                <button
+                  onClick={() => toggleFilter(true)}
+                  className={cn(
+                    "px-4 py-2 text-sm font-medium transition-colors border-l border-slate-200",
+                    filterToday 
+                      ? "bg-blue-600 text-white" 
+                      : "bg-white text-slate-600 hover:bg-slate-50"
+                  )}
+                >
+                  Today's Signups
+                </button>
+              </div>
               <div className="relative flex-1 max-w-md">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <Input 
@@ -550,10 +597,6 @@ const UserList = () => {
                   }}
                 />
               </div>
-              <Button variant="outline" className="gap-2">
-                <Filter className="w-4 h-4" />
-                Filters
-              </Button>
             </div>
             <div className="flex items-center gap-2 text-sm text-slate-500">
               <span>Show</span>

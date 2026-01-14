@@ -83,12 +83,19 @@ serve(async (req) => {
 
     logStep("Admin request from user", { userId });
 
-    const { searchQuery, page = 1, limit = 10, sortColumn = 'created_at', sortDirection = 'desc' } = await req.json();
+    const { searchQuery, page = 1, limit = 10, sortColumn = 'created_at', sortDirection = 'desc', filterToday = false } = await req.json();
 
     // Fetch profiles with pagination
     let query = supabaseAdmin
       .from('profiles')
       .select('*', { count: 'exact' });
+
+    // Apply today filter if requested
+    if (filterToday) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      query = query.gte('created_at', today.toISOString());
+    }
 
     // Apply search on public fields only
     if (searchQuery) {
