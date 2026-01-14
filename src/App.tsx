@@ -14,6 +14,7 @@ import Pricing from "./pages/Pricing";
 import Commissions from "./pages/Commissions";
 import Groups from "./pages/Groups";
 import GroupDetail from "./pages/GroupDetail";
+import GroupPostView from "./pages/GroupPostView";
 import GroupSettings from "./pages/GroupSettings";
 import AdminIndex from "./pages/AdminIndex";
 import UserList from "./pages/admin/UserList";
@@ -40,6 +41,7 @@ const App = () => (
             <Route path="/commissions" element={<Commissions />} />
             <Route path="/groups" element={<Groups />} />
             <Route path="/groups/:groupId" element={<GroupDetail />} />
+            <Route path="/groups/:groupId/post/:postId" element={<GroupPostView />} />
             <Route path="/groups/:groupId/settings" element={<GroupSettings />} />
             <Route path="/dashboard" element={<MemberDashboard />} />
             <Route path="/adminindex" element={<AdminIndex />} />
