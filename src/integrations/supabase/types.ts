@@ -534,8 +534,10 @@ export type Database = {
           created_at: string
           group_id: string
           id: string
+          is_pinned: boolean | null
           likes_count: number | null
           media_urls: string[] | null
+          pinned_at: string | null
           updated_at: string
           user_id: string
         }
@@ -545,8 +547,10 @@ export type Database = {
           created_at?: string
           group_id: string
           id?: string
+          is_pinned?: boolean | null
           likes_count?: number | null
           media_urls?: string[] | null
+          pinned_at?: string | null
           updated_at?: string
           user_id: string
         }
@@ -556,8 +560,10 @@ export type Database = {
           created_at?: string
           group_id?: string
           id?: string
+          is_pinned?: boolean | null
           likes_count?: number | null
           media_urls?: string[] | null
+          pinned_at?: string | null
           updated_at?: string
           user_id?: string
         }
