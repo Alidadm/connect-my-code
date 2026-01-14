@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Loader2, Reply, X, Trash2 } from "lucide-react";
+import { Send, Loader2, Reply, X, Trash2, Heart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { formatDistanceToNow } from "date-fns";
@@ -22,6 +22,8 @@ interface GroupComment {
     username: string | null;
   };
   replies?: GroupComment[];
+  likesCount?: number;
+  isLiked?: boolean;
 }
 
 interface GroupPostCommentSectionProps {
@@ -33,10 +35,11 @@ interface CommentItemProps {
   comment: GroupComment;
   onReply: (commentId: string, displayName: string) => void;
   onDelete: (commentId: string, hasReplies: boolean) => void;
+  onLike: (commentId: string, isLiked: boolean) => void;
   isReply?: boolean;
 }
 
-const CommentItem = ({ comment, onReply, onDelete, isReply = false }: CommentItemProps) => {
+const CommentItem = ({ comment, onReply, onDelete, onLike, isReply = false }: CommentItemProps) => {
   const { user } = useAuth();
   const isOwner = user?.id === comment.user_id;
   const hasReplies = (comment.replies?.length || 0) > 0;
@@ -71,6 +74,17 @@ const CommentItem = ({ comment, onReply, onDelete, isReply = false }: CommentIte
           <p className="text-xs text-muted-foreground">
             {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
           </p>
+          {user && (
+            <button
+              onClick={() => onLike(comment.id, comment.isLiked || false)}
+              className={`text-xs flex items-center gap-1 transition-colors ${
+                comment.isLiked ? "text-red-500" : "text-muted-foreground hover:text-red-500"
+              }`}
+            >
+              <Heart className={`h-3 w-3 ${comment.isLiked ? "fill-current" : ""}`} />
+              {(comment.likesCount || 0) > 0 && <span>{comment.likesCount}</span>}
+            </button>
+          )}
           {user && !isReply && (
             <button
               onClick={() => onReply(comment.id, comment.profiles?.display_name || "User")}
@@ -89,6 +103,7 @@ const CommentItem = ({ comment, onReply, onDelete, isReply = false }: CommentIte
                 comment={reply} 
                 onReply={onReply} 
                 onDelete={onDelete}
+                onLike={onLike}
                 isReply 
               />
             ))}
@@ -117,18 +132,45 @@ export const GroupPostCommentSection = ({ postId, onCommentCountChange }: GroupP
 
       if (error) throw error;
 
-      // Fetch profiles for comments
       if (commentsData && commentsData.length > 0) {
         const userIds = [...new Set(commentsData.map(c => c.user_id))];
-        const { data: profiles } = await supabase
-          .from("profiles")
-          .select("user_id, display_name, avatar_url, username")
-          .in("user_id", userIds);
+        const commentIds = commentsData.map(c => c.id);
 
-        const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
+        // Fetch profiles and likes in parallel
+        const [profilesResult, likesCountResult, userLikesResult] = await Promise.all([
+          supabase
+            .from("profiles")
+            .select("user_id, display_name, avatar_url, username")
+            .in("user_id", userIds),
+          supabase
+            .from("group_comment_likes")
+            .select("comment_id")
+            .in("comment_id", commentIds),
+          user
+            ? supabase
+                .from("group_comment_likes")
+                .select("comment_id")
+                .in("comment_id", commentIds)
+                .eq("user_id", user.id)
+            : Promise.resolve({ data: [] }),
+        ]);
+
+        const profileMap = new Map(profilesResult.data?.map(p => [p.user_id, p]) || []);
+        
+        // Count likes per comment
+        const likesCountMap = new Map<string, number>();
+        likesCountResult.data?.forEach(like => {
+          likesCountMap.set(like.comment_id, (likesCountMap.get(like.comment_id) || 0) + 1);
+        });
+
+        // Track which comments user has liked
+        const userLikedSet = new Set(userLikesResult.data?.map(l => l.comment_id) || []);
+
         const commentsWithProfiles = commentsData.map(comment => ({
           ...comment,
-          profiles: profileMap.get(comment.user_id)
+          profiles: profileMap.get(comment.user_id),
+          likesCount: likesCountMap.get(comment.id) || 0,
+          isLiked: userLikedSet.has(comment.id),
         })) as GroupComment[];
 
         // Organize into parent comments with nested replies
@@ -225,6 +267,31 @@ export const GroupPostCommentSection = ({ postId, onCommentCountChange }: GroupP
     },
   });
 
+  const likeCommentMutation = useMutation({
+    mutationFn: async ({ commentId, isLiked }: { commentId: string; isLiked: boolean }) => {
+      if (!user) throw new Error("Not authenticated");
+
+      if (isLiked) {
+        // Unlike
+        const { error } = await supabase
+          .from("group_comment_likes")
+          .delete()
+          .eq("comment_id", commentId)
+          .eq("user_id", user.id);
+        if (error) throw error;
+      } else {
+        // Like
+        const { error } = await supabase
+          .from("group_comment_likes")
+          .insert({ comment_id: commentId, user_id: user.id });
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["group-post-comments", postId] });
+    },
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (newComment.trim() && !addCommentMutation.isPending) {
@@ -246,6 +313,10 @@ export const GroupPostCommentSection = ({ postId, onCommentCountChange }: GroupP
     const deleteCount = hasReplies ? 1 + replyCount : 1;
     
     deleteCommentMutation.mutate({ commentId, deleteCount });
+  };
+
+  const handleLike = (commentId: string, isLiked: boolean) => {
+    likeCommentMutation.mutate({ commentId, isLiked });
   };
 
   const cancelReply = () => {
@@ -271,6 +342,7 @@ export const GroupPostCommentSection = ({ postId, onCommentCountChange }: GroupP
               comment={comment} 
               onReply={handleReply}
               onDelete={handleDelete}
+              onLike={handleLike}
             />
           ))
         )}
