@@ -25,17 +25,17 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    const { code, phone } = await req.json();
+    const { code, email } = await req.json();
     if (!code) throw new Error("Verification code is required");
-    if (!phone) throw new Error("Phone number is required");
+    if (!email) throw new Error("Email is required");
 
-    logStep("Verifying code", { phone: phone.slice(0, 4) + "****" });
+    logStep("Verifying code", { email: email.slice(0, 3) + "***" });
 
-    // Get the stored reset code
+    // Get the stored reset code (phone column stores email for this flow)
     const { data: storedCode, error: fetchError } = await supabaseAdmin
       .from("password_reset_codes")
       .select("*")
-      .eq("phone", phone)
+      .eq("phone", email.toLowerCase().trim())
       .eq("verified", false)
       .single();
 
