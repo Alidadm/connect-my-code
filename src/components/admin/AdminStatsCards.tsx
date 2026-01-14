@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { 
   Users, UserPlus, DollarSign, HandCoins, Clock, XCircle, 
   FileText, Flag, AlertTriangle, Activity, MessageSquare, Heart,
@@ -13,9 +14,11 @@ interface StatCard {
   gradient: string;
   shadowColor: string;
   category: "members" | "financial" | "content" | "engagement";
+  link?: string;
 }
 
 export const AdminStatsCards = () => {
+  const navigate = useNavigate();
   const [stats, setStats] = useState({
     // Member stats
     activeMembers: 0,
@@ -191,6 +194,7 @@ export const AdminStatsCards = () => {
       gradient: "from-blue-500 to-cyan-500",
       shadowColor: "shadow-blue-500/30",
       category: "members",
+      link: "/admin/users/list",
     },
     {
       title: "Daily New Members",
@@ -315,7 +319,8 @@ export const AdminStatsCards = () => {
                 return (
                   <div
                     key={card.title}
-                    className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${card.gradient} p-5 text-white shadow-lg ${card.shadowColor} transition-transform hover:scale-[1.02] cursor-pointer`}
+                    onClick={() => card.link && navigate(card.link)}
+                    className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${card.gradient} p-5 text-white shadow-lg ${card.shadowColor} transition-transform hover:scale-[1.02] ${card.link ? 'cursor-pointer' : 'cursor-default'}`}
                   >
                     <div className="flex items-start justify-between">
                       <div>
