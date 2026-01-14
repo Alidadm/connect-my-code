@@ -147,16 +147,18 @@
     "friends": "मित्र",
     "events": "इवेंट्स",
     "commissions": "कमीशन",
-    "videos": "वीडियो देखें",
+    "groups": "समूह",
     "photos": "फ़ोटो",
     "marketplace": "मार्केटप्लेस",
     "files": "फ़ाइलें",
     "messages": "संदेश",
-    "notifications": "सूचनाएं"
+    "notifications": "सूचनाएं",
+    "profile": "प्रोफ़ाइल"
   },
   "sidebar": {
     "posts": "पोस्ट",
     "pagesYouLike": "आपको पसंद आने वाले पेज",
+    "yourGroups": "आपके समूह",
     "viewAll": "सभी देखें"
   },
   "messages": {

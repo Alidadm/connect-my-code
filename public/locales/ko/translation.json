@@ -147,16 +147,18 @@
     "friends": "친구",
     "events": "이벤트",
     "commissions": "커미션",
-    "videos": "동영상 보기",
+    "groups": "그룹",
     "photos": "사진",
     "marketplace": "마켓플레이스",
     "files": "파일",
     "messages": "메시지",
-    "notifications": "알림"
+    "notifications": "알림",
+    "profile": "프로필"
   },
   "sidebar": {
     "posts": "게시물",
     "pagesYouLike": "좋아하는 페이지",
+    "yourGroups": "내 그룹",
     "viewAll": "모두 보기"
   },
   "messages": {

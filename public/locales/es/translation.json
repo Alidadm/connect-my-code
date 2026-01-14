@@ -127,5 +127,24 @@
     "friends": "Amigos",
     "followers": "Seguidores",
     "following": "Siguiendo"
+  },
+  "nav": {
+    "feed": "Feed",
+    "friends": "Amigos",
+    "events": "Eventos",
+    "commissions": "Comisiones",
+    "groups": "Grupos",
+    "photos": "Fotos",
+    "marketplace": "Mercado",
+    "files": "Archivos",
+    "messages": "Mensajes",
+    "notifications": "Notificaciones",
+    "profile": "Perfil"
+  },
+  "sidebar": {
+    "pagesYouLike": "Páginas que te gustan",
+    "yourGroups": "Tus Grupos",
+    "posts": "Publicaciones",
+    "viewAll": "Ver todo"
   }
 }

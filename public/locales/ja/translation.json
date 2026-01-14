@@ -147,16 +147,18 @@
     "friends": "友達",
     "events": "イベント",
     "commissions": "コミッション",
-    "videos": "動画を見る",
+    "groups": "グループ",
     "photos": "写真",
     "marketplace": "マーケットプレイス",
     "files": "ファイル",
     "messages": "メッセージ",
-    "notifications": "通知"
+    "notifications": "通知",
+    "profile": "プロフィール"
   },
   "sidebar": {
     "posts": "投稿",
     "pagesYouLike": "いいねしたページ",
+    "yourGroups": "あなたのグループ",
     "viewAll": "すべて見る"
   },
   "messages": {
