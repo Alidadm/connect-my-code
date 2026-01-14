@@ -218,7 +218,7 @@
     "friends": "Friends",
     "events": "Events",
     "commissions": "Commissions",
-    "watchVideos": "Watch Videos",
+    "groups": "Groups",
     "photos": "Photos",
     "marketplace": "Marketplace",
     "files": "Files",
@@ -228,8 +228,11 @@
   },
   "sidebar": {
     "pagesYouLike": "Pages You Like",
+    "yourGroups": "Your Groups",
     "follower": "Follower",
-    "post": "Post"
+    "post": "Post",
+    "posts": "Posts",
+    "viewAll": "View All"
   },
   "messages": {
     "title": "Messages",
