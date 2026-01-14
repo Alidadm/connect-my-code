@@ -43,13 +43,15 @@ import {
   Trash2,
   ImagePlus,
   Camera,
-  Upload
+  Upload,
+  Flag
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
+import { ModerationPanel } from "@/components/groups/ModerationPanel";
 
 interface Group {
   id: string;
@@ -567,6 +569,10 @@ const GroupSettings = () => {
               <Lock className="h-4 w-4" />
               Privacy
             </TabsTrigger>
+            <TabsTrigger value="moderation" className="gap-2">
+              <Flag className="h-4 w-4" />
+              Moderation
+            </TabsTrigger>
           </TabsList>
 
           {/* General Settings Tab */}
@@ -951,6 +957,11 @@ const GroupSettings = () => {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Moderation Tab */}
+          <TabsContent value="moderation" className="mt-4">
+            <ModerationPanel groupId={group.id} />
           </TabsContent>
         </Tabs>
       </div>
