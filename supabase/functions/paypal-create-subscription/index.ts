@@ -11,6 +11,28 @@ const logStep = (step: string, details?: any) => {
   console.log(`[PAYPAL-CREATE-SUBSCRIPTION] ${step}${detailsStr}`);
 };
 
+const base64UrlEncode = (bytes: Uint8Array) =>
+  btoa(String.fromCharCode(...bytes))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/g, "");
+
+const base64UrlEncodeString = (value: string) =>
+  base64UrlEncode(new TextEncoder().encode(value));
+
+const hmacSha256Base64Url = async (data: string, secret: string) => {
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw",
+    enc.encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  const sig = await crypto.subtle.sign("HMAC", key, enc.encode(data));
+  return base64UrlEncode(new Uint8Array(sig));
+};
+
 // PayPal API base URLs
 const PAYPAL_API_BASE = "https://api-m.sandbox.paypal.com"; // Use api-m.paypal.com for production
 
@@ -241,11 +263,22 @@ serve(async (req) => {
 
     // Create subscription
     const origin = req.headers.get("origin") || "http://localhost:5173";
+
+    // Create a short-lived signed state token so /verify-email can resend even if the auth session isn't restored.
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    if (!serviceRoleKey) throw new Error("SUPABASE_SERVICE_ROLE_KEY is not set");
+
+    const payloadB64 = base64UrlEncodeString(
+      JSON.stringify({ uid: user.id, exp: Date.now() + 60 * 60 * 1000 })
+    );
+    const sigB64 = await hmacSha256Base64Url(payloadB64, serviceRoleKey);
+    const state = `${payloadB64}.${sigB64}`;
+
     const { subscriptionId, approvalUrl } = await createSubscription(
       accessToken,
       planId,
       user.id,
-      `${origin}/verify-email?checkout=success&provider=paypal`,
+      `${origin}/verify-email?checkout=success&provider=paypal&state=${encodeURIComponent(state)}`,
       `${origin}/pricing?checkout=canceled`
     );
 

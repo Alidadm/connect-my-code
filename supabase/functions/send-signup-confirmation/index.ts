@@ -30,8 +30,80 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    const { email, name, userId } = await req.json();
-    if (!email || !userId) throw new Error("Email and userId are required");
+    const body = await req.json().catch(() => ({} as any));
+
+    let email: string | undefined = body?.email;
+    let name: string | undefined = body?.name;
+    let userId: string | undefined = body?.userId;
+
+    const stateToken: string | undefined = body?.stateToken || body?.state_token || body?.state;
+
+    // If the client doesn't have an auth session (common in embedded/preview browsers), it can use a short-lived signed state token
+    if (stateToken) {
+      const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+      if (!serviceRoleKey) throw new Error("SUPABASE_SERVICE_ROLE_KEY is not configured");
+
+      const base64UrlEncode = (bytes: Uint8Array) =>
+        btoa(String.fromCharCode(...bytes))
+          .replace(/\+/g, "-")
+          .replace(/\//g, "_")
+          .replace(/=+$/g, "");
+
+      const base64UrlDecodeToString = (input: string) => {
+        const b64 = input.replace(/-/g, "+").replace(/_/g, "/");
+        const pad = b64.length % 4 === 0 ? "" : "=".repeat(4 - (b64.length % 4));
+        return atob(b64 + pad);
+      };
+
+      const hmacSha256Base64Url = async (data: string, secret: string) => {
+        const enc = new TextEncoder();
+        const key = await crypto.subtle.importKey(
+          "raw",
+          enc.encode(secret),
+          { name: "HMAC", hash: "SHA-256" },
+          false,
+          ["sign"]
+        );
+        const sig = await crypto.subtle.sign("HMAC", key, enc.encode(data));
+        return base64UrlEncode(new Uint8Array(sig));
+      };
+
+      const [payloadB64, sigB64] = stateToken.split(".");
+      if (!payloadB64 || !sigB64) throw new Error("Invalid state token");
+
+      const expectedSig = await hmacSha256Base64Url(payloadB64, serviceRoleKey);
+      if (sigB64 !== expectedSig) throw new Error("Invalid state token");
+
+      const payload = JSON.parse(base64UrlDecodeToString(payloadB64));
+      if (!payload?.uid || !payload?.exp) throw new Error("Invalid state token");
+      if (Date.now() > Number(payload.exp)) throw new Error("State token expired");
+
+      userId = String(payload.uid);
+
+      // Resolve email/name server-side (avoids leaking data in the URL)
+      const { data: privateProfile } = await supabaseAdmin
+        .from("profiles_private")
+        .select("email")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      if (!email) email = privateProfile?.email ?? undefined;
+
+      const { data: profile } = await supabaseAdmin
+        .from("profiles")
+        .select("display_name, first_name, last_name")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      if (!name) {
+        name =
+          profile?.display_name ||
+          `${profile?.first_name || ""} ${profile?.last_name || ""}`.trim() ||
+          "Member";
+      }
+    }
+
+    if (!email || !userId) throw new Error("Email and userId (or stateToken) are required");
 
     logStep("Processing confirmation for", { email: email.slice(0, 3) + "***" });
 
