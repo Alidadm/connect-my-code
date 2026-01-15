@@ -16,6 +16,7 @@ export const VerifyEmail = () => {
   const [sessionReady, setSessionReady] = useState(false);
   const checkoutStatus = searchParams.get("checkout");
   const provider = searchParams.get("provider");
+  const stateToken = searchParams.get("state");
 
   const didAutoSendRef = useRef(false);
   const didPayPalVerifyRef = useRef(false);
@@ -80,10 +81,30 @@ export const VerifyEmail = () => {
           }
         }
         
-        // Fallback: Send confirmation email directly
+        // Fallback 1: If session isn't restored (common in embedded/preview browsers), use the signed state token
+        if (stateToken && (!userEmail || !userId)) {
+          console.log("Sending confirmation email via state token...");
+
+          const { error } = await supabase.functions.invoke("send-signup-confirmation", {
+            body: {
+              stateToken,
+            },
+          });
+
+          if (!error) {
+            console.log("Confirmation email sent successfully via state token");
+            if (isPayPal) toast.success("Verification email sent! Check your inbox.");
+          } else {
+            console.error("Failed to send confirmation email via state token:", error);
+          }
+
+          return;
+        }
+
+        // Fallback 2: Send confirmation email directly (requires session)
         if (userEmail && userId) {
           console.log("Sending confirmation email directly...");
-          
+
           // Get user's profile for name
           const { data: profile } = await supabase
             .from("profiles")
@@ -126,6 +147,25 @@ export const VerifyEmail = () => {
   }, [sessionReady, checkoutStatus, provider, userId, userEmail]);
 
   const handleResendEmail = async (silent = false) => {
+    // If the auth session isn't available (common in embedded/preview browsers), fall back to the signed state token
+    if ((!userEmail || !userId) && stateToken) {
+      setIsResending(true);
+      try {
+        const { error } = await supabase.functions.invoke("send-signup-confirmation", {
+          body: { stateToken },
+        });
+
+        if (error) throw error;
+        if (!silent) toast.success("Verification email sent! Check your inbox.");
+      } catch (err: any) {
+        console.error("Failed to resend email via state token:", err);
+        if (!silent) toast.error("Failed to resend email. Please try again later.");
+      } finally {
+        setIsResending(false);
+      }
+      return;
+    }
+
     if (!userEmail || !userId) {
       if (!silent) toast.error("Unable to resend email. Please try again later.");
       return;

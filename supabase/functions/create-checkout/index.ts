@@ -12,6 +12,28 @@ const logStep = (step: string, details?: any) => {
   console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
 };
 
+const base64UrlEncode = (bytes: Uint8Array) =>
+  btoa(String.fromCharCode(...bytes))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/g, "");
+
+const base64UrlEncodeString = (value: string) =>
+  base64UrlEncode(new TextEncoder().encode(value));
+
+const hmacSha256Base64Url = async (data: string, secret: string) => {
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw",
+    enc.encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  const sig = await crypto.subtle.sign("HMAC", key, enc.encode(data));
+  return base64UrlEncode(new Uint8Array(sig));
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -78,7 +100,25 @@ serve(async (req) => {
     }
 
     const origin = req.headers.get("origin") || "http://localhost:5173";
-    
+
+    // Create a short-lived signed state token so /verify-email can resend even if the auth session isn't restored.
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    if (!serviceRoleKey) throw new Error("SUPABASE_SERVICE_ROLE_KEY is not set");
+
+    const payloadB64 = base64UrlEncodeString(
+      JSON.stringify({ uid: user.id, exp: Date.now() + 60 * 60 * 1000 })
+    );
+    const sigB64 = await hmacSha256Base64Url(payloadB64, serviceRoleKey);
+    const state = `${payloadB64}.${sigB64}`;
+
+    const successUrl = new URL(`${origin}/verify-email`);
+    successUrl.searchParams.set("checkout", "success");
+    successUrl.searchParams.set("provider", "stripe");
+    successUrl.searchParams.set("state", state);
+
+    const cancelUrl = new URL(`${origin}/pricing`);
+    cancelUrl.searchParams.set("checkout", "canceled");
+
     // TESTING MODE: Using daily billing interval (change to 'month' for production)
     const TESTING_MODE = true;
     const billingInterval = TESTING_MODE ? 'day' : 'month';
@@ -88,7 +128,7 @@ serve(async (req) => {
     let product;
     const products = await stripe.products.list({ limit: 1, active: true });
     const existingProduct = products.data.find((p: { name: string }) => p.name === "DolphySN Premium");
-    
+
     if (existingProduct) {
       product = existingProduct;
       logStep("Using existing product", { productId: product.id });
@@ -121,8 +161,8 @@ serve(async (req) => {
         },
       ],
       mode: "subscription",
-      success_url: `${origin}/verify-email?checkout=success`,
-      cancel_url: `${origin}/pricing?checkout=canceled`,
+      success_url: successUrl.toString(),
+      cancel_url: cancelUrl.toString(),
       metadata: {
         user_id: user.id,
       },
