@@ -32,31 +32,46 @@ export const VerifyEmail = () => {
   }, []);
 
   // Immediately verify PayPal subscription when returning from PayPal
+  // Also check if user has a PayPal subscription even without URL params (for edge cases)
   useEffect(() => {
-    if (provider !== "paypal" || checkoutStatus !== "success") return;
     if (didPayPalVerifyRef.current) return;
-
-    didPayPalVerifyRef.current = true;
+    
+    // Only run for PayPal returns OR when checkout=success (to detect PayPal users)
+    const isPayPalReturn = provider === "paypal" && checkoutStatus === "success";
+    const isSuccessReturn = checkoutStatus === "success";
+    
+    if (!isPayPalReturn && !isSuccessReturn) return;
 
     const verifyPayPalSubscription = async () => {
+      didPayPalVerifyRef.current = true;
       setIsVerifyingPayPal(true);
+      
       try {
+        console.log("Attempting PayPal subscription verification...");
         const { data, error } = await supabase.functions.invoke("verify-paypal-subscription");
         
         if (error) {
           console.error("PayPal verification error:", error);
-          // Fall back to manual resend
+          // Fall back to manual resend for non-PayPal users
+          if (!isPayPalReturn) {
+            setIsVerifyingPayPal(false);
+          }
           return;
         }
+
+        console.log("PayPal verification response:", data);
 
         if (data?.verified) {
           setPaypalVerified(true);
           toast.success("Payment verified! Check your email for verification link.");
+        } else if (data?.reason === "no_subscription") {
+          // Not a PayPal user, ignore
+          console.log("User does not have PayPal subscription");
         } else if (data?.status === "APPROVAL_PENDING") {
           toast.info("Please complete approval in PayPal to activate your subscription.");
         } else {
-          // Subscription not active yet, will retry or fallback
-          console.log("PayPal subscription status:", data?.status);
+          // Subscription not active yet
+          console.log("PayPal subscription status:", data?.status, data?.reason);
         }
       } catch (err) {
         console.error("Failed to verify PayPal subscription:", err);
@@ -66,7 +81,7 @@ export const VerifyEmail = () => {
     };
 
     // Small delay to ensure PayPal has processed
-    const t = window.setTimeout(verifyPayPalSubscription, 1500);
+    const t = window.setTimeout(verifyPayPalSubscription, 1000);
     return () => window.clearTimeout(t);
   }, [provider, checkoutStatus]);
 
