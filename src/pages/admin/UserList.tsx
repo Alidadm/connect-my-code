@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import { format, subDays, startOfMonth, endOfMonth, subMonths } from "date-fns";
@@ -125,34 +125,47 @@ const UserList = () => {
   // Refresh trigger - increment to force a refetch
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  // Calculate date range based on preset
-  const getDateRangeFromPreset = useCallback((preset: DatePreset): DateRange => {
-    const now = new Date();
-    switch (preset) {
-      case 'today':
-        return { from: new Date(now.setHours(0, 0, 0, 0)), to: new Date() };
-      case 'last7days':
-        return { from: subDays(new Date(), 7), to: new Date() };
-      case 'last30days':
-        return { from: subDays(new Date(), 30), to: new Date() };
-      case 'thisMonth':
-        return { from: startOfMonth(new Date()), to: endOfMonth(new Date()) };
-      case 'lastMonth':
-        const lastMonth = subMonths(new Date(), 1);
-        return { from: startOfMonth(lastMonth), to: endOfMonth(lastMonth) };
-      case 'custom':
-        return dateRange;
-      default:
-        return { from: undefined, to: undefined };
-    }
-  }, [dateRange]);
+  // Only trigger refetch on custom date changes (avoid object identity loops)
+  const customRangeKey =
+    datePreset === "custom"
+      ? `${dateRange.from?.toISOString() ?? ""}|${dateRange.to?.toISOString() ?? ""}`
+      : "";
 
-  // Update date range when preset changes
+  // Keep dateRange in sync for non-custom presets (used for UI display)
   useEffect(() => {
-    if (datePreset !== 'custom') {
-      setDateRange(getDateRangeFromPreset(datePreset));
+    if (datePreset === "custom") return;
+
+    let next: DateRange = { from: undefined, to: undefined };
+
+    switch (datePreset) {
+      case "today": {
+        const start = new Date();
+        start.setHours(0, 0, 0, 0);
+        next = { from: start, to: new Date() };
+        break;
+      }
+      case "last7days":
+        next = { from: subDays(new Date(), 7), to: new Date() };
+        break;
+      case "last30days":
+        next = { from: subDays(new Date(), 30), to: new Date() };
+        break;
+      case "thisMonth":
+        next = { from: startOfMonth(new Date()), to: endOfMonth(new Date()) };
+        break;
+      case "lastMonth": {
+        const lastMonth = subMonths(new Date(), 1);
+        next = { from: startOfMonth(lastMonth), to: endOfMonth(lastMonth) };
+        break;
+      }
+      case "all":
+      default:
+        next = { from: undefined, to: undefined };
+        break;
     }
-  }, [datePreset, getDateRangeFromPreset]);
+
+    setDateRange(next);
+  }, [datePreset]);
 
   // Initialize from URL param
   useEffect(() => {
@@ -291,7 +304,6 @@ const UserList = () => {
       try {
         // Calculate date range inline to avoid dependency issues
         let activeDateRange: DateRange = { from: undefined, to: undefined };
-        const now = new Date();
         switch (datePreset) {
           case 'today':
             activeDateRange = { from: new Date(new Date().setHours(0, 0, 0, 0)), to: new Date() };
@@ -372,7 +384,7 @@ const UserList = () => {
     sortColumn,
     sortDirection,
     datePreset,
-    dateRange,
+    customRangeKey,
     refreshTrigger,
   ]);
 
