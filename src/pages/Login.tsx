@@ -73,7 +73,7 @@ export const Login = () => {
       <div className="hidden lg:flex flex-1 dolphy-gradient items-center justify-center p-12">
         <div className="text-center text-primary-foreground max-w-md">
           <h2 className="text-4xl font-bold mb-4">{t("login.welcomeTitle")}</h2>
-          <p className="text-lg opacity-90">
+          <p className="text-lg opacity-90 whitespace-pre-line">
             {t("login.welcomeSubtitle")}
           </p>
         </div>
