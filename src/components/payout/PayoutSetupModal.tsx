@@ -117,14 +117,19 @@ export const PayoutSetupModal = ({ userId, onComplete }: PayoutSetupModalProps) 
             <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
               <span style="font-size: 18px;">💳</span>
               <strong style="color: #7c3aed;">Stripe (Bank Transfer)</strong>
+              <span style="background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 12px; font-size: 11px;">Optional</span>
               ${isStripeReady ? '<span style="background: #dcfce7; color: #16a34a; padding: 2px 8px; border-radius: 12px; font-size: 11px;">✓ Connected</span>' : ''}
             </div>
             <p style="color: #666; font-size: 13px; margin-bottom: 8px;">
-              Connect your bank account to receive instant transfers for Stripe commissions.
+              ${isStripeReady 
+                ? 'Your bank account is connected for direct transfers.' 
+                : 'For direct bank deposits. Stripe requires identity verification for security - your info is pre-filled to speed this up.'
+              }
             </p>
             <button id="swal-stripe-btn" class="swal2-confirm swal2-styled" style="background: ${isStripeReady ? '#22c55e' : '#7c3aed'}; font-size: 13px; padding: 8px 16px;">
-              ${isStripeReady ? '✓ Stripe Connected' : 'Connect Stripe Account'}
+              ${isStripeReady ? '✓ Stripe Connected' : 'Connect Bank Account'}
             </button>
+            ${!isStripeReady ? '<p style="color: #999; font-size: 11px; margin-top: 6px; margin-bottom: 0;">Skip this if you prefer PayPal only</p>' : ''}
           </div>
 
           <div style="background: linear-gradient(135deg, #f0f9ff 0%, #fef3e0 100%); border-radius: 12px; padding: 16px;">
