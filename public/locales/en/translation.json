@@ -67,6 +67,16 @@
     "connectingPaypal": "Connecting to PayPal...",
     "signUpToSubscribe": "Sign Up to Subscribe"
   },
+  "login": {
+    "title": "Login",
+    "subtitle": "Enter your credentials to access your account",
+    "welcomeTitle": "Welcome DolphySN",
+    "welcomeSubtitle": "Dolphy Social Network",
+    "welcomeBack": "Welcome back!",
+    "successMessage": "You've successfully logged in.",
+    "failed": "Login failed",
+    "loggingIn": "Logging in..."
+  },
   "dashboard": {
     "title": "My Dashboard",
     "subtitle": "Settings & Preferences",
