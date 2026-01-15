@@ -48,7 +48,7 @@ async function getOrCreateProduct(accessToken: string): Promise<string> {
 
   if (listResponse.ok) {
     const products = await listResponse.json();
-    const existingProduct = products.products?.find((p: any) => p.name === "WeShare Premium");
+    const existingProduct = products.products?.find((p: any) => p.name === "DolphySN Premium" || p.name === "WeShare Premium");
     if (existingProduct) {
       logStep("Found existing product", { productId: existingProduct.id });
       return existingProduct.id;
@@ -64,8 +64,8 @@ async function getOrCreateProduct(accessToken: string): Promise<string> {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      name: "WeShare Premium",
-      description: "Monthly premium membership for WeShare social platform",
+      name: "DolphySN Premium",
+      description: "Monthly premium membership for DolphySN social platform",
       type: "SERVICE",
       category: "SOFTWARE",
     }),
@@ -94,7 +94,9 @@ async function getOrCreatePlan(accessToken: string, productId: string): Promise<
 
   if (listResponse.ok) {
     const plans = await listResponse.json();
-    const existingPlan = plans.plans?.find((p: any) => p.name === "WeShare Monthly Premium" && p.status === "ACTIVE");
+    const existingPlan = plans.plans?.find((p: any) => 
+      (p.name === "DolphySN Monthly Premium" || p.name === "WeShare Monthly Premium") && p.status === "ACTIVE"
+    );
     if (existingPlan) {
       logStep("Found existing plan", { planId: existingPlan.id });
       return existingPlan.id;
@@ -111,8 +113,8 @@ async function getOrCreatePlan(accessToken: string, productId: string): Promise<
     },
     body: JSON.stringify({
       product_id: productId,
-      name: "WeShare Monthly Premium",
-      description: "$9.99/month subscription for WeShare Premium access",
+      name: "DolphySN Monthly Premium",
+      description: "$9.99/month subscription for DolphySN Premium access",
       status: "ACTIVE",
       billing_cycles: [
         {
@@ -172,7 +174,7 @@ async function createSubscription(
       plan_id: planId,
       custom_id: userId, // Store user ID for webhook processing
       application_context: {
-        brand_name: "WeShare",
+        brand_name: "DolphySN",
         locale: "en-US",
         shipping_preference: "NO_SHIPPING",
         user_action: "SUBSCRIBE_NOW",

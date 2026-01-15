@@ -111,6 +111,29 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+
+    // Helper function to get user email from auth
+    async function getUserEmail(userId: string): Promise<string | null> {
+      const { data: authUsers } = await supabaseClient.auth.admin.listUsers();
+      const user = authUsers?.users.find(u => u.id === userId);
+      return user?.email || null;
+    }
+
+    // Helper function to get user name
+    async function getUserName(userId: string): Promise<string> {
+      const { data: profile } = await supabaseClient
+        .from("profiles")
+        .select("display_name, first_name, last_name")
+        .eq("user_id", userId)
+        .single();
+      
+      return profile?.display_name || 
+        `${profile?.first_name || ""} ${profile?.last_name || ""}`.trim() || 
+        "Member";
+    }
+
     // Handle different event types
     switch (event.event_type) {
       case "BILLING.SUBSCRIPTION.ACTIVATED":
@@ -118,20 +141,31 @@ serve(async (req) => {
         // Subscription activated or renewed - update status
         const subscription = event.resource;
         const userId = subscription.custom_id;
+        const isRenewal = event.event_type === "BILLING.SUBSCRIPTION.RENEWED";
         
         logStep("Processing subscription activation/renewal", { 
           subscriptionId: subscription.id,
-          userId 
+          userId,
+          isRenewal
         });
 
         if (userId) {
+          // Check if this is first activation
+          const { data: profileRow } = await supabaseClient
+            .from("profiles")
+            .select("subscription_status")
+            .eq("user_id", userId)
+            .single();
+
+          const wasAlreadyActive = profileRow?.subscription_status === "active";
+
           // Update subscription status in profiles
           await supabaseClient
             .from("profiles")
             .update({ subscription_status: "active" })
             .eq("user_id", userId);
           
-          logStep("Updated subscription status to active");
+          logStep("Updated subscription status to active", { wasAlreadyActive });
 
           // Create or update subscription record
           const billingInfo = subscription.billing_info;
@@ -184,6 +218,56 @@ serve(async (req) => {
               logStep("Created subscription record");
             }
           }
+
+          // Get user email and name for notifications
+          const userEmail = await getUserEmail(userId);
+          const userName = await getUserName(userId);
+
+          if (userEmail) {
+            if (!wasAlreadyActive) {
+              // First activation - send confirmation email
+              try {
+                logStep("First activation detected; sending confirmation email", { email: userEmail });
+                await fetch(`${supabaseUrl}/functions/v1/send-signup-confirmation`, {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${serviceRoleKey}`,
+                  },
+                  body: JSON.stringify({
+                    email: userEmail,
+                    name: userName,
+                    userId: userId,
+                  }),
+                });
+                logStep("Confirmation email sent");
+              } catch (emailError) {
+                logStep("Failed to send confirmation email", { error: String(emailError) });
+              }
+            } else if (isRenewal) {
+              // Renewal - send renewal notification
+              try {
+                logStep("Renewal detected; sending renewal notification", { email: userEmail });
+                await fetch(`${supabaseUrl}/functions/v1/send-renewal-notification`, {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${serviceRoleKey}`,
+                  },
+                  body: JSON.stringify({
+                    email: userEmail,
+                    name: userName,
+                    amount: 9.99,
+                    currency: "USD",
+                    nextBillingDate: periodEnd.toISOString(),
+                  }),
+                });
+                logStep("Renewal notification sent");
+              } catch (emailError) {
+                logStep("Failed to send renewal notification", { error: String(emailError) });
+              }
+            }
+          }
         }
         break;
       }
@@ -231,7 +315,7 @@ serve(async (req) => {
 
                 if (!existingCommission) {
                   // Create commission record ($5 fixed)
-                  const { error: commissionError } = await supabaseClient
+                  const { data: commission, error: commissionError } = await supabaseClient
                     .from("commissions")
                     .insert({
                       referrer_id: profile.referrer_id,
@@ -241,12 +325,44 @@ serve(async (req) => {
                       status: "pending",
                       payment_provider: "paypal",
                       provider_transfer_id: sale.id,
-                    });
+                    })
+                    .select()
+                    .single();
 
                   if (commissionError) {
                     logStep("Failed to create commission", { error: commissionError.message });
                   } else {
                     logStep("Commission created", { referrerId: profile.referrer_id });
+
+                    // Get referred user's name for the notification
+                    const { data: referredProfile } = await supabaseClient
+                      .from("profiles")
+                      .select("display_name, first_name")
+                      .eq("user_id", userId)
+                      .single();
+                    
+                    const referredUserName = referredProfile?.display_name || referredProfile?.first_name || null;
+
+                    // Send commission notification
+                    try {
+                      await fetch(`${supabaseUrl}/functions/v1/send-commission-notification`, {
+                        method: "POST",
+                        headers: {
+                          "Content-Type": "application/json",
+                          "Authorization": `Bearer ${serviceRoleKey}`,
+                        },
+                        body: JSON.stringify({
+                          referrer_id: profile.referrer_id,
+                          type: "commission_earned",
+                          amount: 5.00,
+                          currency: "USD",
+                          referred_user_name: referredUserName,
+                        }),
+                      });
+                      logStep("Commission earned notification sent");
+                    } catch (notifError) {
+                      logStep("Failed to send commission notification", { error: String(notifError) });
+                    }
                   }
                 } else {
                   logStep("Commission already exists for this sale");
@@ -289,6 +405,12 @@ serve(async (req) => {
               ? "expired" 
               : "suspended";
 
+          // Get subscription end date from billing info
+          const billingInfo = subscription.billing_info;
+          const endDate = billingInfo?.next_billing_time 
+            ? new Date(billingInfo.next_billing_time).toISOString()
+            : new Date().toISOString();
+
           const { error: subError } = await supabaseClient
             .from("subscriptions")
             .update({
@@ -302,6 +424,88 @@ serve(async (req) => {
             logStep("Failed to update subscription record", { error: subError.message });
           } else {
             logStep("Updated subscription record to " + canceledStatus);
+          }
+
+          // Send cancellation notification email
+          const userEmail = await getUserEmail(userId);
+          const userName = await getUserName(userId);
+
+          if (userEmail) {
+            try {
+              logStep("Sending cancellation notification", { email: userEmail });
+              await fetch(`${supabaseUrl}/functions/v1/send-cancellation-notification`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "Authorization": `Bearer ${serviceRoleKey}`,
+                },
+                body: JSON.stringify({
+                  email: userEmail,
+                  name: userName,
+                  endDate,
+                }),
+              });
+              logStep("Cancellation notification sent");
+            } catch (notifError) {
+              logStep("Failed to send cancellation notification", { error: String(notifError) });
+            }
+          }
+        }
+        break;
+      }
+
+      case "PAYMENT.SALE.DENIED":
+      case "BILLING.SUBSCRIPTION.PAYMENT.FAILED": {
+        // Payment failed
+        const resource = event.resource;
+        const subscriptionId = resource.billing_agreement_id || resource.id;
+        
+        logStep("Processing payment failure", { 
+          eventType: event.event_type,
+          subscriptionId
+        });
+
+        if (subscriptionId) {
+          // Get subscription details
+          const accessToken = await getPayPalAccessToken(clientId, secretKey);
+          const subResponse = await fetch(`${PAYPAL_API_BASE}/v1/billing/subscriptions/${subscriptionId}`, {
+            headers: {
+              "Authorization": `Bearer ${accessToken}`,
+              "Content-Type": "application/json",
+            },
+          });
+
+          if (subResponse.ok) {
+            const subscription = await subResponse.json();
+            const userId = subscription.custom_id;
+
+            if (userId) {
+              const userEmail = await getUserEmail(userId);
+              const userName = await getUserName(userId);
+
+              if (userEmail) {
+                try {
+                  logStep("Sending payment failed notification", { email: userEmail });
+                  await fetch(`${supabaseUrl}/functions/v1/send-payment-failed-notification`, {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                      "Authorization": `Bearer ${serviceRoleKey}`,
+                    },
+                    body: JSON.stringify({
+                      email: userEmail,
+                      name: userName,
+                      amount: 9.99,
+                      currency: "USD",
+                      nextAttemptDate: null, // PayPal handles retries automatically
+                    }),
+                  });
+                  logStep("Payment failed notification sent");
+                } catch (notifError) {
+                  logStep("Failed to send payment failed notification", { error: String(notifError) });
+                }
+              }
+            }
           }
         }
         break;
