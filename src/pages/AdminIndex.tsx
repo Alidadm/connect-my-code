@@ -96,7 +96,7 @@ const adminMenuSections = [
     ],
   },
   {
-    title: "Admin Roles & Permissions",
+    title: "Admin & Permissions",
     icon: UserCog,
     items: [
       { name: "Role Management", path: "/admin/roles" },
