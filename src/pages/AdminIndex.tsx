@@ -455,27 +455,6 @@ const AdminIndex = () => {
 
         </div>
 
-        {/* View Toggle & Filter */}
-        <div className="bg-white px-6 py-3 border-b border-slate-200 flex items-center justify-between">
-          <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-lg">
-            <button className="flex items-center gap-2 px-3 py-1.5 bg-white rounded-md shadow-sm text-sm font-medium text-slate-700">
-              <LayoutGrid className="w-4 h-4" />
-              Kanban
-            </button>
-            <button className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm text-slate-500 hover:text-slate-700">
-              <Table className="w-4 h-4" />
-              Table
-            </button>
-            <button className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm text-slate-500 hover:text-slate-700">
-              <List className="w-4 h-4" />
-              List View
-            </button>
-          </div>
-          <Button variant="ghost" className="text-slate-500">
-            <Filter className="w-4 h-4 mr-2" />
-            Filter
-          </Button>
-        </div>
 
         {/* Stats Cards + Kanban Board */}
         <div className="flex-1 overflow-x-auto p-6">
