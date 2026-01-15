@@ -1,6 +1,6 @@
-import { useState, useCallback } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Mail, User, ArrowRight, Calendar, Lock, Home, CreditCard, Loader2 } from "lucide-react";
+import { useState, useCallback, useEffect } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Mail, User, ArrowRight, Calendar, Lock, Home, CreditCard, Loader2, Gift } from "lucide-react";
 import { isValidPhoneNumber } from 'react-phone-number-input';
 import { SlideAlert } from "@/components/ui/slide-alert";
 import { Button } from "@/components/ui/button";
@@ -34,6 +34,7 @@ const PayPalIcon = () => (
 
 export const Signup = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [showVerificationDialog, setShowVerificationDialog] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [paymentLoading, setPaymentLoading] = useState<'stripe' | 'paypal' | null>(null);
@@ -41,6 +42,18 @@ export const Signup = () => {
   const [showAlert, setShowAlert] = useState(false);
   const [step, setStep] = useState<'form' | 'payment'>('form');
   const [createdUserId, setCreatedUserId] = useState<string | null>(null);
+  const [referralCode, setReferralCode] = useState("");
+  const [referralValidated, setReferralValidated] = useState<boolean | null>(null);
+  
+  // Get referral code from URL if present
+  useEffect(() => {
+    const urlRef = searchParams.get("ref");
+    if (urlRef) {
+      setReferralCode(urlRef);
+      // Validate the referral code from URL
+      validateReferralCode(urlRef);
+    }
+  }, [searchParams]);
   
   const [formData, setFormData] = useState({
     firstName: "",
@@ -52,6 +65,33 @@ export const Signup = () => {
     dobMonth: "",
     dobYear: "",
   });
+
+  // Validate referral code
+  const validateReferralCode = async (code: string) => {
+    if (!code.trim()) {
+      setReferralValidated(null);
+      return;
+    }
+    
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("user_id")
+        .eq("referral_code", code.trim())
+        .maybeSingle();
+      
+      if (error) {
+        console.error("Error validating referral code:", error);
+        setReferralValidated(false);
+        return;
+      }
+      
+      setReferralValidated(!!data);
+    } catch (err) {
+      console.error("Error validating referral code:", err);
+      setReferralValidated(false);
+    }
+  };
 
   const checkDuplicates = useCallback(async (): Promise<boolean> => {
     // Check if phone already exists via backend function (phone is in profiles_private)
@@ -260,6 +300,20 @@ export const Signup = () => {
           }
         }
 
+        // Find referrer if referral code is provided and valid
+        let referrerId: string | null = null;
+        if (referralCode.trim() && referralValidated) {
+          const { data: referrerData } = await supabase
+            .from("profiles")
+            .select("user_id")
+            .eq("referral_code", referralCode.trim())
+            .maybeSingle();
+          
+          if (referrerData) {
+            referrerId = referrerData.user_id;
+          }
+        }
+
         // Update public profile with non-sensitive info
         const { error: profileError } = await supabase
           .from('profiles')
@@ -269,6 +323,7 @@ export const Signup = () => {
             last_name: formData.lastName,
             country: country,
             username: username,
+            ...(referrerId && { referrer_id: referrerId }),
           })
           .eq('user_id', data.user.id);
 
@@ -532,6 +587,40 @@ export const Signup = () => {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+
+            {/* Referral Code */}
+            <div className="space-y-2">
+              <Label htmlFor="referralCode" className="flex items-center gap-2">
+                <Gift className="h-4 w-4 text-muted-foreground" />
+                Referral Code (Optional)
+              </Label>
+              <div className="relative">
+                <Input
+                  id="referralCode"
+                  placeholder="Enter referral code"
+                  value={referralCode}
+                  onChange={(e) => {
+                    setReferralCode(e.target.value);
+                    setReferralValidated(null);
+                  }}
+                  onBlur={() => validateReferralCode(referralCode)}
+                  className={`${
+                    referralValidated === true
+                      ? "border-green-500 focus-visible:ring-green-500"
+                      : referralValidated === false
+                      ? "border-destructive focus-visible:ring-destructive"
+                      : ""
+                  }`}
+                />
+                {referralValidated === true && (
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500 text-sm">✓ Valid</span>
+                )}
+                {referralValidated === false && (
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-destructive text-sm">Invalid</span>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">Have a friend on DolphySN? Enter their referral code!</p>
             </div>
 
             <Button 
