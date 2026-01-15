@@ -104,27 +104,46 @@ serve(async (req) => {
 
       logStep("Found user", { userId: user.id });
 
+      // Fetch current profile state to detect first activation and get a display name
+      const { data: profileRow, error: profileRowError } = await supabaseClient
+        .from("profiles")
+        .select("subscription_status, first_name, last_name, display_name")
+        .eq("user_id", user.id)
+        .single();
+
+      if (profileRowError) {
+        logStep("Failed to fetch profile before update", { error: profileRowError.message });
+      }
+
+      const wasAlreadyActive = profileRow?.subscription_status === "active";
+      const userName =
+        profileRow?.display_name ||
+        `${profileRow?.first_name || ""} ${profileRow?.last_name || ""}`.trim() ||
+        "Member";
+
       // Update profile subscription status
-      await supabaseClient
+      const { error: profileUpdateError } = await supabaseClient
         .from("profiles")
         .update({ subscription_status: "active" })
         .eq("user_id", user.id);
-      
-      logStep("Updated profile subscription status to active");
+
+      if (profileUpdateError) {
+        logStep("Failed to update profile subscription status", { error: profileUpdateError.message });
+      } else {
+        logStep("Updated profile subscription status to active", { wasAlreadyActive });
+      }
 
       // Create or update subscription record
       const stripeSubscriptionId = invoice.subscription as string;
       if (stripeSubscriptionId) {
         const stripeSubscription = await stripe.subscriptions.retrieve(stripeSubscriptionId);
-        
+
         const { data: existingSub } = await supabaseClient
           .from("subscriptions")
           .select("id")
           .eq("provider_subscription_id", stripeSubscriptionId)
           .single();
 
-        const isNewSubscription = !existingSub;
-        
         if (existingSub) {
           // Update existing subscription
           await supabaseClient
@@ -136,7 +155,7 @@ serve(async (req) => {
               updated_at: new Date().toISOString(),
             })
             .eq("id", existingSub.id);
-          
+
           logStep("Updated existing subscription record", { id: existingSub.id });
         } else {
           // Create new subscription record
@@ -159,44 +178,33 @@ serve(async (req) => {
             logStep("Created subscription record");
           }
         }
-        
-        // Send welcome/confirmation email for NEW subscriptions only (first-time payers)
-        if (isNewSubscription) {
-          try {
-            // Get user's profile for name
-            const { data: userProfile } = await supabaseClient
-              .from("profiles")
-              .select("first_name, last_name, display_name")
-              .eq("user_id", user.id)
-              .single();
-            
-            const userName = userProfile?.display_name || 
-              `${userProfile?.first_name || ''} ${userProfile?.last_name || ''}`.trim() || 
-              'Member';
-            
-            // Send confirmation email via edge function
-            const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
-            const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-            
-            const emailResponse = await fetch(`${supabaseUrl}/functions/v1/send-signup-confirmation`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${supabaseServiceKey}`,
-              },
-              body: JSON.stringify({
+      }
+
+      // Send verification/confirmation email only on FIRST activation
+      // (this avoids duplicates and doesn't depend on whether the subscription row already existed)
+      if (!wasAlreadyActive) {
+        try {
+          logStep("First activation detected; sending confirmation email", { email: customer.email });
+
+          const { data: emailData, error: emailError } = await supabaseClient.functions.invoke(
+            "send-signup-confirmation",
+            {
+              body: {
                 email: customer.email,
                 name: userName,
                 userId: user.id,
-              }),
-            });
-            
-            const emailResult = await emailResponse.json();
-            logStep("Sent welcome confirmation email", { email: customer.email, result: emailResult });
-          } catch (emailError) {
-            logStep("Failed to send confirmation email", { error: String(emailError) });
-            // Don't fail the webhook for email issues
+              },
+            }
+          );
+
+          if (emailError) {
+            logStep("Confirmation email send failed", { error: emailError.message });
+          } else {
+            logStep("Confirmation email sent", { email: customer.email, emailData });
           }
+        } catch (emailError) {
+          logStep("Failed to send confirmation email", { error: String(emailError) });
+          // Don't fail the webhook for email issues
         }
       }
 
