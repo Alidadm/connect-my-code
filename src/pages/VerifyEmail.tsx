@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Mail, CheckCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,10 +12,14 @@ export const VerifyEmail = () => {
   const [isResending, setIsResending] = useState(false);
   const checkoutStatus = searchParams.get("checkout");
 
+  const didAutoSendRef = useRef(false);
+
   useEffect(() => {
     // Get current user's email
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (user?.email) {
         setUserEmail(user.email);
       }
@@ -23,18 +27,20 @@ export const VerifyEmail = () => {
     getUser();
   }, []);
 
-  const handleResendEmail = async () => {
+  const handleResendEmail = async (silent = false) => {
     if (!userEmail) {
-      toast.error("Unable to resend email. Please try again later.");
+      if (!silent) toast.error("Unable to resend email. Please try again later.");
       return;
     }
 
     setIsResending(true);
     try {
       // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
-        toast.error("Session expired. Please log in again.");
+        if (!silent) toast.error("Session expired. Please log in again.");
         navigate("/login");
         return;
       }
@@ -46,8 +52,9 @@ export const VerifyEmail = () => {
         .eq("user_id", user.id)
         .single();
 
-      const userName = profile?.display_name || 
-        `${profile?.first_name || ""} ${profile?.last_name || ""}`.trim() || 
+      const userName =
+        profile?.display_name ||
+        `${profile?.first_name || ""} ${profile?.last_name || ""}`.trim() ||
         "Member";
 
       // Trigger the confirmation email again
@@ -56,18 +63,33 @@ export const VerifyEmail = () => {
           email: userEmail,
           name: userName,
           userId: user.id,
-        }
+        },
       });
 
       if (error) throw error;
-      toast.success("Verification email sent! Check your inbox.");
+      if (!silent) toast.success("Verification email sent! Check your inbox.");
     } catch (err: any) {
       console.error("Failed to resend email:", err);
-      toast.error("Failed to resend email. Please try again later.");
+      if (!silent) toast.error("Failed to resend email. Please try again later.");
     } finally {
       setIsResending(false);
     }
   };
+
+  // Auto-send once when we land here after payment (webhooks can be delayed).
+  useEffect(() => {
+    if (!userEmail) return;
+    if (didAutoSendRef.current) return;
+
+    didAutoSendRef.current = true;
+
+    const t = window.setTimeout(() => {
+      void handleResendEmail(true);
+    }, 800);
+
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userEmail]);
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -89,10 +111,10 @@ export const VerifyEmail = () => {
           <h1 className="text-2xl font-bold text-foreground mb-2">
             {checkoutStatus === "success" ? "Payment Successful!" : "Almost There!"}
           </h1>
-          
+
           <p className="text-muted-foreground mb-6">
-            {checkoutStatus === "success" 
-              ? "Thank you for subscribing to DolphySN Premium!" 
+            {checkoutStatus === "success"
+              ? "Thank you for subscribing to DolphySN Premium!"
               : "Your account has been created successfully."}
           </p>
 
@@ -101,40 +123,33 @@ export const VerifyEmail = () => {
             <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
               <Mail className="w-7 h-7 text-primary" />
             </div>
-            
-            <h2 className="text-lg font-semibold text-foreground mb-2">
-              Check Your Email
-            </h2>
-            
+
+            <h2 className="text-lg font-semibold text-foreground mb-2">Check Your Email</h2>
+
             <p className="text-sm text-muted-foreground mb-4">
               We've sent a verification email to{" "}
-              <span className="font-medium text-foreground">
-                {userEmail || "your email address"}
-              </span>
-              . Click the link in the email to verify your account and access all features.
+              <span className="font-medium text-foreground">{userEmail || "your email address"}</span>.
+              Click the link in the email to verify your account and access all features.
             </p>
 
             <div className="text-xs text-muted-foreground">
-              <p>Didn't receive the email? Check your spam folder or</p>
+              <p>Didn't receive the email? Check your spam/promotions folder or</p>
             </div>
           </div>
 
           {/* Action buttons */}
           <div className="space-y-3">
-            <Button 
-              onClick={handleResendEmail} 
-              variant="outline" 
+            <Button
+              onClick={() => handleResendEmail(false)}
+              variant="outline"
               className="w-full gap-2"
               disabled={isResending}
             >
               <RefreshCw className={`h-4 w-4 ${isResending ? "animate-spin" : ""}`} />
               {isResending ? "Sending..." : "Resend Verification Email"}
             </Button>
-            
-            <Button 
-              onClick={() => navigate("/login")} 
-              className="dolphy-gradient text-white w-full"
-            >
+
+            <Button onClick={() => navigate("/login")} className="dolphy-gradient text-white w-full">
               Go to Login
             </Button>
           </div>

@@ -93,6 +93,8 @@ serve(async (req) => {
 
     logStep("Sending email via Resend");
 
+    const plainText = `Hi ${name || "there"},\n\nVerify your email address by opening this link (expires in 24 hours):\n${confirmationLink}\n\nIf you didn’t request this, you can ignore this email.\n\n— DolphySN`;
+
     // Send email via Resend
     const emailResponse = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -104,6 +106,7 @@ serve(async (req) => {
         from: "DolphySN <noreply@dolphysn.com>",
         to: [email],
         subject: subject,
+        text: plainText,
         html: htmlBody,
       }),
     });
@@ -114,15 +117,20 @@ serve(async (req) => {
       throw new Error("Failed to send confirmation email");
     }
 
-    logStep("Email sent successfully");
+    const resendPayload = await emailResponse.json().catch(() => null);
+    logStep("Email sent successfully", { id: resendPayload?.id ?? null });
 
-    return new Response(JSON.stringify({ 
-      success: true, 
-      message: "Confirmation email sent"
-    }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
-    });
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message: "Confirmation email sent",
+        resend_id: resendPayload?.id ?? null,
+      }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      }
+    );
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logStep("ERROR", { message: errorMessage });
