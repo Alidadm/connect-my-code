@@ -51,10 +51,16 @@ serve(async (req) => {
       apiVersion: "2023-10-16",
     });
 
-    // Check if user already has a Stripe Connect account
+    // Fetch user's private profile and public profile for pre-filling
     const { data: privateProfile } = await supabaseClient
       .from("profiles_private")
-      .select("stripe_connect_id, email")
+      .select("stripe_connect_id, email, phone, birthday")
+      .eq("user_id", user.id)
+      .single();
+
+    const { data: publicProfile } = await supabaseClient
+      .from("profiles")
+      .select("first_name, last_name, country")
       .eq("user_id", user.id)
       .single();
 
@@ -78,19 +84,66 @@ serve(async (req) => {
         );
       }
     } else {
-      // Create new Express account
-      logStep("Creating new Stripe Connect Express account");
+      // Create new Express account with pre-filled data to reduce onboarding steps
+      logStep("Creating new Stripe Connect Express account with pre-filled data");
       
-      const account = await stripe.accounts.create({
+      // Parse birthday for DOB pre-fill
+      let dobData: { day?: number; month?: number; year?: number } = {};
+      if (privateProfile?.birthday) {
+        const dob = new Date(privateProfile.birthday);
+        dobData = {
+          day: dob.getDate(),
+          month: dob.getMonth() + 1,
+          year: dob.getFullYear(),
+        };
+      }
+
+      // Map country code to Stripe country (ISO 3166-1 alpha-2)
+      const countryCode = publicProfile?.country || "US";
+
+      const accountParams: any = {
         type: "express",
+        country: countryCode,
         email: privateProfile?.email || user.email,
         capabilities: {
           transfers: { requested: true },
         },
+        business_type: "individual",
         metadata: {
           supabase_user_id: user.id,
         },
+      };
+
+      // Pre-fill individual details if available
+      if (publicProfile?.first_name || publicProfile?.last_name || Object.keys(dobData).length > 0 || privateProfile?.email) {
+        accountParams.individual = {};
+        
+        if (publicProfile?.first_name) {
+          accountParams.individual.first_name = publicProfile.first_name;
+        }
+        if (publicProfile?.last_name) {
+          accountParams.individual.last_name = publicProfile.last_name;
+        }
+        if (privateProfile?.email) {
+          accountParams.individual.email = privateProfile.email;
+        }
+        if (Object.keys(dobData).length === 3) {
+          accountParams.individual.dob = dobData;
+        }
+        if (privateProfile?.phone) {
+          accountParams.individual.phone = privateProfile.phone;
+        }
+      }
+
+      logStep("Account params", { 
+        hasName: !!(publicProfile?.first_name && publicProfile?.last_name),
+        hasEmail: !!privateProfile?.email,
+        hasDob: Object.keys(dobData).length === 3,
+        hasPhone: !!privateProfile?.phone,
+        country: countryCode,
       });
+
+      const account = await stripe.accounts.create(accountParams);
 
       accountId = account.id;
       logStep("Created Stripe Connect account", { accountId });
