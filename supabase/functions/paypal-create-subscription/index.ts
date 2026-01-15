@@ -243,7 +243,7 @@ serve(async (req) => {
       accessToken,
       planId,
       user.id,
-      `${origin}/?checkout=success&provider=paypal`,
+      `${origin}/verify-email?checkout=success&provider=paypal`,
       `${origin}/pricing?checkout=canceled`
     );
 
