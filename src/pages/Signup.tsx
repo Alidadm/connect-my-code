@@ -290,20 +290,10 @@ export const Signup = () => {
           console.error('Failed to store private profile data:', privateError);
         }
 
-        // Send email confirmation
-        try {
-          await supabase.functions.invoke('send-signup-confirmation', {
-            body: { 
-              email: formData.email,
-              name: `${formData.firstName} ${formData.lastName}`,
-              userId: data.user.id,
-            }
-          });
-        } catch (emailError) {
-          console.error('Failed to send confirmation email:', emailError);
-        }
+        // Email confirmation will be sent AFTER successful payment via webhook
+        // This ensures users only get verification emails after they've actually subscribed
 
-        toast.success("Account created! Check your email for verification, then choose your payment method.");
+        toast.success("Account created! Choose your payment method to complete signup.");
         setCreatedUserId(data.user.id);
         setStep('payment');
       }
