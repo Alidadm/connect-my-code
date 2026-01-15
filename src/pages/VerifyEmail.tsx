@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Mail, CheckCircle, RefreshCw, Loader2 } from "lucide-react";
+import { Mail, CheckCircle, RefreshCw, Loader2, Pencil, X, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -17,6 +18,14 @@ export const VerifyEmail = () => {
   const checkoutStatus = searchParams.get("checkout");
   const provider = searchParams.get("provider");
   const stateToken = searchParams.get("state");
+
+  // Resend cooldown state
+  const [cooldownSeconds, setCooldownSeconds] = useState(0);
+  
+  // Email edit state
+  const [isEditingEmail, setIsEditingEmail] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [isUpdatingEmail, setIsUpdatingEmail] = useState(false);
 
   const didAutoSendRef = useRef(false);
   const didPayPalVerifyRef = useRef(false);
@@ -146,7 +155,22 @@ export const VerifyEmail = () => {
     return () => window.clearTimeout(t);
   }, [sessionReady, checkoutStatus, provider, userId, userEmail]);
 
+  // Cooldown timer effect
+  useEffect(() => {
+    if (cooldownSeconds <= 0) return;
+    const timer = setInterval(() => {
+      setCooldownSeconds(prev => prev - 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [cooldownSeconds]);
+
   const handleResendEmail = async (silent = false) => {
+    // Check cooldown
+    if (cooldownSeconds > 0) {
+      toast.error(`Please wait ${cooldownSeconds} seconds before resending`);
+      return;
+    }
+
     // If the auth session isn't available (common in embedded/preview browsers), fall back to the signed state token
     if ((!userEmail || !userId) && stateToken) {
       setIsResending(true);
@@ -156,7 +180,10 @@ export const VerifyEmail = () => {
         });
 
         if (error) throw error;
-        if (!silent) toast.success("Verification email sent! Check your inbox.");
+        if (!silent) {
+          toast.success("Verification email sent! Check your inbox.");
+          setCooldownSeconds(60); // Start 60 second cooldown
+        }
       } catch (err: any) {
         console.error("Failed to resend email via state token:", err);
         if (!silent) toast.error("Failed to resend email. Please try again later.");
@@ -195,12 +222,58 @@ export const VerifyEmail = () => {
       });
 
       if (error) throw error;
-      if (!silent) toast.success("Verification email sent! Check your inbox.");
+      if (!silent) {
+        toast.success("Verification email sent! Check your inbox.");
+        setCooldownSeconds(60); // Start 60 second cooldown
+      }
     } catch (err: any) {
       console.error("Failed to resend email:", err);
       if (!silent) toast.error("Failed to resend email. Please try again later.");
     } finally {
       setIsResending(false);
+    }
+  };
+
+  const handleUpdateEmail = async () => {
+    if (!newEmail.trim() || !userId) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(newEmail.trim())) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+
+    setIsUpdatingEmail(true);
+    try {
+      // Update email in auth
+      const { error: authError } = await supabase.auth.updateUser({
+        email: newEmail.trim(),
+      });
+
+      if (authError) throw authError;
+
+      // Update email in profiles_private
+      await supabase.functions.invoke("store-private-profile", {
+        body: { email: newEmail.trim() },
+      });
+
+      setUserEmail(newEmail.trim());
+      setIsEditingEmail(false);
+      setNewEmail("");
+      toast.success("Email updated! Sending verification to new address...");
+      
+      // Trigger resend to new email
+      setCooldownSeconds(0); // Reset cooldown for immediate resend
+      await handleResendEmail(false);
+    } catch (err: any) {
+      console.error("Failed to update email:", err);
+      toast.error(err.message || "Failed to update email. Please try again.");
+    } finally {
+      setIsUpdatingEmail(false);
     }
   };
 
@@ -253,11 +326,66 @@ export const VerifyEmail = () => {
 
             <h2 className="text-lg font-semibold text-foreground mb-2">Check Your Email</h2>
 
-            <p className="text-sm text-muted-foreground mb-4">
-              We've sent a verification email to{" "}
-              <span className="font-medium text-foreground">{userEmail || "your email address"}</span>.
-              Click the link in the email to verify your account and access all features.
-            </p>
+            <div className="text-sm text-muted-foreground mb-4">
+              {isEditingEmail ? (
+                <div className="space-y-3">
+                  <p>Enter your correct email address:</p>
+                  <div className="flex gap-2">
+                    <Input
+                      type="email"
+                      value={newEmail}
+                      onChange={(e) => setNewEmail(e.target.value)}
+                      placeholder="your@email.com"
+                      className="flex-1"
+                      disabled={isUpdatingEmail}
+                    />
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={handleUpdateEmail}
+                      disabled={isUpdatingEmail || !newEmail.trim()}
+                      className="shrink-0"
+                    >
+                      {isUpdatingEmail ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Check className="h-4 w-4 text-green-600" />
+                      )}
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => {
+                        setIsEditingEmail(false);
+                        setNewEmail("");
+                      }}
+                      disabled={isUpdatingEmail}
+                      className="shrink-0"
+                    >
+                      <X className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <p>
+                  We've sent a verification email to{" "}
+                  <span className="font-medium text-foreground">{userEmail || "your email address"}</span>
+                  {userId && (
+                    <button
+                      onClick={() => {
+                        setIsEditingEmail(true);
+                        setNewEmail(userEmail || "");
+                      }}
+                      className="ml-1 text-primary hover:underline inline-flex items-center gap-1"
+                    >
+                      <Pencil className="h-3 w-3" />
+                      <span className="text-xs">Change</span>
+                    </button>
+                  )}
+                  . Click the link in the email to verify your account.
+                </p>
+              )}
+            </div>
 
             <div className="text-xs text-muted-foreground">
               <p>Didn't receive the email? Check your spam/promotions folder or</p>
@@ -270,10 +398,14 @@ export const VerifyEmail = () => {
               onClick={() => handleResendEmail(false)}
               variant="outline"
               className="w-full gap-2"
-              disabled={isResending || isVerifyingPayPal || !sessionReady}
+              disabled={isResending || isVerifyingPayPal || !sessionReady || cooldownSeconds > 0}
             >
               <RefreshCw className={`h-4 w-4 ${isResending ? "animate-spin" : ""}`} />
-              {isResending ? "Sending..." : "Resend Verification Email"}
+              {isResending 
+                ? "Sending..." 
+                : cooldownSeconds > 0 
+                  ? `Wait ${cooldownSeconds}s to resend` 
+                  : "Resend Verification Email"}
             </Button>
 
             <Button onClick={() => navigate("/login")} className="dolphy-gradient text-white w-full">
