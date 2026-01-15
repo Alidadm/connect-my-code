@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import { format, subDays, startOfMonth, endOfMonth, subMonths } from "date-fns";
@@ -118,6 +118,12 @@ const UserList = () => {
   // Selection state
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
   const [isDeleting, setIsDeleting] = useState(false);
+  
+  // Request tracking ref to prevent race conditions
+  const fetchRequestId = useRef(0);
+  
+  // Refresh trigger - increment to force a refetch
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Calculate date range based on preset
   const getDateRangeFromPreset = useCallback((preset: DatePreset): DateRange => {
@@ -276,52 +282,67 @@ const UserList = () => {
   };
 
   // Fetch users from database via admin edge function
-  const fetchUsers = useCallback(async () => {
-    setIsLoading(true);
+  useEffect(() => {
+    const currentRequestId = ++fetchRequestId.current;
+    
+    const fetchUsers = async () => {
+      setIsLoading(true);
 
-    try {
-      // Use admin edge function to get users with private data
-      const activeDateRange = getDateRangeFromPreset(datePreset);
-      
-      const { data, error } = await supabase.functions.invoke("admin-get-users", {
-        body: {
-          searchQuery,
-          page: currentPage,
-          limit: itemsPerPage,
-          sortColumn:
-            sortColumn === "firstName"
-              ? "first_name"
-              : sortColumn === "lastName"
-                ? "last_name"
-                : sortColumn === "country"
-                  ? "country"
-                  : "created_at",
-          sortDirection,
-          filterToday: datePreset === 'today',
-          dateFrom: activeDateRange.from?.toISOString(),
-          dateTo: activeDateRange.to?.toISOString(),
-        },
-      });
+      try {
+        // Use admin edge function to get users with private data
+        const activeDateRange = getDateRangeFromPreset(datePreset);
+        
+        const { data, error } = await supabase.functions.invoke("admin-get-users", {
+          body: {
+            searchQuery,
+            page: currentPage,
+            limit: itemsPerPage,
+            sortColumn:
+              sortColumn === "firstName"
+                ? "first_name"
+                : sortColumn === "lastName"
+                  ? "last_name"
+                  : sortColumn === "country"
+                    ? "country"
+                    : "created_at",
+            sortDirection,
+            filterToday: datePreset === 'today',
+            dateFrom: activeDateRange.from?.toISOString(),
+            dateTo: activeDateRange.to?.toISOString(),
+          },
+        });
 
-      if (error) {
+        // Ignore stale responses
+        if (currentRequestId !== fetchRequestId.current) return;
+
+        if (error) {
+          if (handleAdminOrAuthError(error, "view the user list")) return;
+          throw error;
+        }
+
+        setUsers(data?.users || []);
+        setTotalCount(data?.totalCount || 0);
+      } catch (error: any) {
+        // Ignore aborted requests
+        if (error?.name === 'AbortError' || error?.context?.name === 'AbortError') return;
+        if (currentRequestId !== fetchRequestId.current) return;
+        
         if (handleAdminOrAuthError(error, "view the user list")) return;
-        throw error;
+
+        console.error("Error fetching users:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load users. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        if (currentRequestId === fetchRequestId.current) {
+          setIsLoading(false);
+        }
       }
+    };
 
-      setUsers(data?.users || []);
-      setTotalCount(data?.totalCount || 0);
-    } catch (error: any) {
-      if (handleAdminOrAuthError(error, "view the user list")) return;
-
-      console.error("Error fetching users:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load users. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    fetchUsers();
   }, [
     searchQuery,
     currentPage,
@@ -329,17 +350,11 @@ const UserList = () => {
     sortColumn,
     sortDirection,
     datePreset,
-    dateRange,
     getDateRangeFromPreset,
     toast,
     navigate,
+    refreshTrigger,
   ]);
-
-
-  // Fetch users when dependencies change
-  useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
 
   // Debounce search
   useEffect(() => {
@@ -491,7 +506,7 @@ const UserList = () => {
 
       // Clear selection and refresh list
       setSelectedUsers(new Set());
-      fetchUsers();
+      setRefreshTrigger(prev => prev + 1);
     } catch (error: any) {
       if (handleAdminOrAuthError(error, "delete users")) return;
 
