@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Mail, CheckCircle, RefreshCw } from "lucide-react";
+import { Mail, CheckCircle, RefreshCw, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -10,9 +10,13 @@ export const VerifyEmail = () => {
   const [searchParams] = useSearchParams();
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [isResending, setIsResending] = useState(false);
+  const [isVerifyingPayPal, setIsVerifyingPayPal] = useState(false);
+  const [paypalVerified, setPaypalVerified] = useState(false);
   const checkoutStatus = searchParams.get("checkout");
+  const provider = searchParams.get("provider");
 
   const didAutoSendRef = useRef(false);
+  const didPayPalVerifyRef = useRef(false);
 
   useEffect(() => {
     // Get current user's email
@@ -26,6 +30,45 @@ export const VerifyEmail = () => {
     };
     getUser();
   }, []);
+
+  // Immediately verify PayPal subscription when returning from PayPal
+  useEffect(() => {
+    if (provider !== "paypal" || checkoutStatus !== "success") return;
+    if (didPayPalVerifyRef.current) return;
+
+    didPayPalVerifyRef.current = true;
+
+    const verifyPayPalSubscription = async () => {
+      setIsVerifyingPayPal(true);
+      try {
+        const { data, error } = await supabase.functions.invoke("verify-paypal-subscription");
+        
+        if (error) {
+          console.error("PayPal verification error:", error);
+          // Fall back to manual resend
+          return;
+        }
+
+        if (data?.verified) {
+          setPaypalVerified(true);
+          toast.success("Payment verified! Check your email for verification link.");
+        } else if (data?.status === "APPROVAL_PENDING") {
+          toast.info("Please complete approval in PayPal to activate your subscription.");
+        } else {
+          // Subscription not active yet, will retry or fallback
+          console.log("PayPal subscription status:", data?.status);
+        }
+      } catch (err) {
+        console.error("Failed to verify PayPal subscription:", err);
+      } finally {
+        setIsVerifyingPayPal(false);
+      }
+    };
+
+    // Small delay to ensure PayPal has processed
+    const t = window.setTimeout(verifyPayPalSubscription, 1500);
+    return () => window.clearTimeout(t);
+  }, [provider, checkoutStatus]);
 
   const handleResendEmail = async (silent = false) => {
     if (!userEmail) {
@@ -76,10 +119,12 @@ export const VerifyEmail = () => {
     }
   };
 
-  // Auto-send once when we land here after payment (webhooks can be delayed).
+  // Auto-send once when we land here after non-PayPal payment (webhooks can be delayed).
+  // For PayPal, we use the verify-paypal-subscription function instead.
   useEffect(() => {
     if (!userEmail) return;
     if (didAutoSendRef.current) return;
+    if (provider === "paypal") return; // PayPal uses its own verification flow
 
     didAutoSendRef.current = true;
 
@@ -89,7 +134,7 @@ export const VerifyEmail = () => {
 
     return () => window.clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userEmail]);
+  }, [userEmail, provider]);
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -118,6 +163,20 @@ export const VerifyEmail = () => {
               : "Your account has been created successfully."}
           </p>
 
+          {/* PayPal verification status */}
+          {provider === "paypal" && isVerifyingPayPal && (
+            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 mb-4 flex items-center justify-center gap-2">
+              <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+              <span className="text-sm text-blue-700 dark:text-blue-300">Verifying PayPal payment...</span>
+            </div>
+          )}
+
+          {provider === "paypal" && paypalVerified && (
+            <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 mb-4">
+              <span className="text-sm text-green-700 dark:text-green-300">✓ PayPal payment verified successfully!</span>
+            </div>
+          )}
+
           {/* Email verification section */}
           <div className="bg-muted/50 rounded-lg p-6 mb-6">
             <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
@@ -143,7 +202,7 @@ export const VerifyEmail = () => {
               onClick={() => handleResendEmail(false)}
               variant="outline"
               className="w-full gap-2"
-              disabled={isResending}
+              disabled={isResending || isVerifyingPayPal}
             >
               <RefreshCw className={`h-4 w-4 ${isResending ? "animate-spin" : ""}`} />
               {isResending ? "Sending..." : "Resend Verification Email"}
