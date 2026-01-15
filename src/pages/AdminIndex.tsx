@@ -207,7 +207,6 @@ const AdminIndex = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [openMenuSections, setOpenMenuSections] = useState<string[]>([]);
-  const [activeTab, setActiveTab] = useState("Tasks");
 
   const toggleMenuSection = (title: string) => {
     setOpenMenuSections(prev => 
@@ -217,7 +216,7 @@ const AdminIndex = () => {
     );
   };
 
-  const tabs = ["Discussion", "Tasks", "Timeline", "Files", "Overview"];
+  
 
   return (
     <div className="flex h-screen bg-slate-50 overflow-hidden">
@@ -454,64 +453,6 @@ const AdminIndex = () => {
             </div>
           </div>
 
-          {/* Breadcrumbs */}
-          <div className="flex items-center gap-2 text-sm text-slate-500 mb-4">
-            <span className="flex items-center gap-1">
-              <div className="w-4 h-4 rounded border border-slate-300" />
-              Website
-            </span>
-            <span>/</span>
-            <span className="flex items-center gap-1">
-              <div className="w-4 h-4 rounded border border-slate-300" />
-              iOS App
-            </span>
-            <span>/</span>
-            <span className="flex items-center gap-1">
-              <div className="w-4 h-4 rounded border border-slate-300" />
-              Dribbble Shot
-            </span>
-          </div>
-
-          {/* Tabs */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1">
-              {tabs.map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={cn(
-                    "px-4 py-2 rounded-lg text-sm font-medium transition-all",
-                    activeTab === tab
-                      ? "bg-slate-100 text-slate-900"
-                      : "text-slate-500 hover:text-slate-700 hover:bg-slate-50"
-                  )}
-                >
-                  {tab}
-                  {tab === "Discussion" && (
-                    <span className="ml-2 px-2 py-0.5 rounded-full bg-gradient-to-r from-emerald-400 to-teal-400 text-white text-xs">
-                      3
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="flex -space-x-2">
-                {[1, 2, 3].map((i) => (
-                  <Avatar key={i} className="w-8 h-8 border-2 border-white">
-                    <AvatarImage src={`https://i.pravatar.cc/32?img=${i + 10}`} />
-                    <AvatarFallback>U{i}</AvatarFallback>
-                  </Avatar>
-                ))}
-                <div className="w-8 h-8 rounded-full bg-slate-200 border-2 border-white flex items-center justify-center text-xs font-medium text-slate-600">
-                  +32
-                </div>
-              </div>
-              <Button size="icon" variant="ghost" className="rounded-full">
-                <Plus className="w-5 h-5" />
-              </Button>
-            </div>
-          </div>
         </div>
 
         {/* View Toggle & Filter */}
@@ -638,23 +579,6 @@ const AdminIndex = () => {
           </Button>
         </div>
 
-        {/* User Profile */}
-        <div className="p-6 border-b border-slate-200 text-center">
-          <Avatar className="w-20 h-20 mx-auto mb-3 ring-4 ring-gradient-to-r from-blue-400 to-cyan-400 ring-offset-2">
-            <AvatarImage src="https://i.pravatar.cc/80?img=5" />
-            <AvatarFallback>MB</AvatarFallback>
-          </Avatar>
-          <h3 className="font-bold text-slate-800 text-lg">Mira Brown</h3>
-          <p className="text-sm text-slate-500">@mira.b</p>
-          <p className="text-xs text-slate-400 mt-2">Visual Design, Product Design, Research. Typography & colors lover.</p>
-          <div className="flex gap-2 justify-center mt-3">
-            <Badge variant="outline" className="border-slate-300">UX/UI designer</Badge>
-            <Badge variant="outline" className="border-slate-300">Dribbbier</Badge>
-          </div>
-          <Button variant="link" className="text-blue-500 mt-3">
-            Open Full Chat
-          </Button>
-        </div>
 
         {/* Chat Messages */}
         <ScrollArea className="flex-1 p-4">
