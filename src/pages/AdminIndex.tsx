@@ -69,7 +69,7 @@ const adminMenuSections = [
     ],
   },
   {
-    title: "Advertising & Monetization",
+    title: "Advertising",
     icon: Megaphone,
     items: [
       { name: "Ad Campaigns", path: "/admin/ads/campaigns" },
