@@ -586,6 +586,95 @@ serve(async (req) => {
               .eq("user_id", user.id);
             
             logStep("Updated profile subscription status to inactive", { userId: user.id });
+
+            // Get user's name for the cancellation email
+            const { data: profileData } = await supabaseClient
+              .from("profiles")
+              .select("display_name, first_name, last_name")
+              .eq("user_id", user.id)
+              .single();
+
+            const userName = profileData?.display_name || 
+              `${profileData?.first_name || ""} ${profileData?.last_name || ""}`.trim() || 
+              "Member";
+
+            // Send cancellation notification email
+            try {
+              const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+              const endDate = subscription.current_period_end 
+                ? new Date(subscription.current_period_end * 1000).toISOString() 
+                : null;
+
+              await fetch(`${supabaseUrl}/functions/v1/send-cancellation-notification`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+                },
+                body: JSON.stringify({
+                  email: customer.email,
+                  name: userName,
+                  endDate,
+                }),
+              });
+              logStep("Cancellation notification sent", { email: customer.email });
+            } catch (notifError) {
+              logStep("Failed to send cancellation notification", { error: String(notifError) });
+            }
+          }
+        }
+      }
+    }
+
+    // Handle invoice payment failed
+    if (event.type === "invoice.payment_failed") {
+      const invoice = event.data.object as Stripe.Invoice;
+      logStep("Invoice payment failed", { invoiceId: invoice.id });
+
+      const customerId = typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id;
+      if (customerId) {
+        const customer = await stripe.customers.retrieve(customerId);
+        if (!customer.deleted && customer.email) {
+          const { data: authUsers } = await supabaseClient.auth.admin.listUsers();
+          const user = authUsers?.users.find(u => u.email?.toLowerCase() === customer.email?.toLowerCase());
+
+          if (user) {
+            // Get user's name
+            const { data: profileData } = await supabaseClient
+              .from("profiles")
+              .select("display_name, first_name, last_name")
+              .eq("user_id", user.id)
+              .single();
+
+            const userName = profileData?.display_name || 
+              `${profileData?.first_name || ""} ${profileData?.last_name || ""}`.trim() || 
+              "Member";
+
+            // Send payment failed notification
+            try {
+              const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+              const nextAttemptDate = invoice.next_payment_attempt 
+                ? new Date(invoice.next_payment_attempt * 1000).toISOString() 
+                : null;
+
+              await fetch(`${supabaseUrl}/functions/v1/send-payment-failed-notification`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+                },
+                body: JSON.stringify({
+                  email: customer.email,
+                  name: userName,
+                  amount: invoice.amount_due / 100,
+                  currency: invoice.currency?.toUpperCase() || "USD",
+                  nextAttemptDate,
+                }),
+              });
+              logStep("Payment failed notification sent", { email: customer.email });
+            } catch (notifError) {
+              logStep("Failed to send payment failed notification", { error: String(notifError) });
+            }
           }
         }
       }
