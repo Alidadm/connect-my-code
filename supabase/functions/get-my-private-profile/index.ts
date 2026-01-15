@@ -43,7 +43,7 @@ serve(async (req) => {
 
     const { data, error } = await supabaseAdmin
       .from("profiles_private")
-      .select("email, phone, birthday, paypal_payout_email")
+      .select("email, phone, birthday, paypal_payout_email, payout_setup_completed, stripe_connect_id")
       .eq("user_id", user.id)
       .single();
 

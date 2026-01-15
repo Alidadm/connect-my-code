@@ -43,7 +43,7 @@ serve(async (req) => {
     
     logStep("User authenticated", { userId: user.id });
 
-    const { signup_ip_address, stripe_customer_id, paypal_customer_id, email, phone, birthday, paypal_payout_email } = await req.json();
+    const { signup_ip_address, stripe_customer_id, paypal_customer_id, email, phone, birthday, paypal_payout_email, payout_setup_completed } = await req.json();
 
     // Check if record exists
     const { data: existing } = await supabaseAdmin
@@ -63,6 +63,7 @@ serve(async (req) => {
       if (birthday) updateData.birthday = birthday;
       // Allow setting to null to remove
       if (paypal_payout_email !== undefined) updateData.paypal_payout_email = paypal_payout_email;
+      if (payout_setup_completed !== undefined) updateData.payout_setup_completed = payout_setup_completed;
 
       const { error: updateError } = await supabaseAdmin
         .from("profiles_private")
@@ -84,6 +85,7 @@ serve(async (req) => {
           phone,
           birthday,
           paypal_payout_email,
+          payout_setup_completed,
         });
 
       if (insertError) throw insertError;
