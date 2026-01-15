@@ -60,7 +60,7 @@ const adminMenuSections = [
     ],
   },
   {
-    title: "Platform Structure & Content Types",
+    title: "Platform Structure",
     icon: Layers,
     items: [
       { name: "Categories", path: "/admin/categories" },
