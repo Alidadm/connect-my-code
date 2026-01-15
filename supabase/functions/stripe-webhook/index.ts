@@ -123,6 +123,8 @@ serve(async (req) => {
           .eq("provider_subscription_id", stripeSubscriptionId)
           .single();
 
+        const isNewSubscription = !existingSub;
+        
         if (existingSub) {
           // Update existing subscription
           await supabaseClient
@@ -155,42 +157,45 @@ serve(async (req) => {
             logStep("Failed to create subscription record", { error: subError.message });
           } else {
             logStep("Created subscription record");
+          }
+        }
+        
+        // Send welcome/confirmation email for NEW subscriptions only (first-time payers)
+        if (isNewSubscription) {
+          try {
+            // Get user's profile for name
+            const { data: userProfile } = await supabaseClient
+              .from("profiles")
+              .select("first_name, last_name, display_name")
+              .eq("user_id", user.id)
+              .single();
             
-            // Send welcome/confirmation email for NEW subscriptions only
-            try {
-              // Get user's profile for name
-              const { data: userProfile } = await supabaseClient
-                .from("profiles")
-                .select("first_name, last_name, display_name")
-                .eq("user_id", user.id)
-                .single();
-              
-              const userName = userProfile?.display_name || 
-                `${userProfile?.first_name || ''} ${userProfile?.last_name || ''}`.trim() || 
-                'Member';
-              
-              // Send confirmation email via edge function
-              const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
-              const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-              
-              await fetch(`${supabaseUrl}/functions/v1/send-signup-confirmation`, {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  "Authorization": `Bearer ${supabaseServiceKey}`,
-                },
-                body: JSON.stringify({
-                  email: customer.email,
-                  name: userName,
-                  userId: user.id,
-                }),
-              });
-              
-              logStep("Sent welcome confirmation email", { email: customer.email });
-            } catch (emailError) {
-              logStep("Failed to send confirmation email", { error: String(emailError) });
-              // Don't fail the webhook for email issues
-            }
+            const userName = userProfile?.display_name || 
+              `${userProfile?.first_name || ''} ${userProfile?.last_name || ''}`.trim() || 
+              'Member';
+            
+            // Send confirmation email via edge function
+            const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+            const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+            
+            const emailResponse = await fetch(`${supabaseUrl}/functions/v1/send-signup-confirmation`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${supabaseServiceKey}`,
+              },
+              body: JSON.stringify({
+                email: customer.email,
+                name: userName,
+                userId: user.id,
+              }),
+            });
+            
+            const emailResult = await emailResponse.json();
+            logStep("Sent welcome confirmation email", { email: customer.email, result: emailResult });
+          } catch (emailError) {
+            logStep("Failed to send confirmation email", { error: String(emailError) });
+            // Don't fail the webhook for email issues
           }
         }
       }
