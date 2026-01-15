@@ -9,105 +9,135 @@ export const VerifyEmail = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
   const [isResending, setIsResending] = useState(false);
   const [isVerifyingPayPal, setIsVerifyingPayPal] = useState(false);
   const [paypalVerified, setPaypalVerified] = useState(false);
+  const [sessionReady, setSessionReady] = useState(false);
   const checkoutStatus = searchParams.get("checkout");
   const provider = searchParams.get("provider");
 
   const didAutoSendRef = useRef(false);
   const didPayPalVerifyRef = useRef(false);
 
+  // Wait for session to be ready after redirect
   useEffect(() => {
-    // Get current user's email
-    const getUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (user?.email) {
-        setUserEmail(user.email);
+    const checkSession = async () => {
+      // Give the session a moment to restore after redirect
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session?.user) {
+        setUserEmail(session.user.email || null);
+        setUserId(session.user.id);
+        setSessionReady(true);
+        console.log("Session ready:", session.user.id);
+      } else {
+        // Try getUser as fallback
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          setUserEmail(user.email || null);
+          setUserId(user.id);
+          setSessionReady(true);
+          console.log("User ready via getUser:", user.id);
+        } else {
+          console.log("No session found, user may need to log in");
+          setSessionReady(true); // Still mark as ready so UI shows
+        }
       }
     };
-    getUser();
+    
+    checkSession();
   }, []);
 
-  // Immediately verify PayPal subscription when returning from PayPal
-  // Also check if user has a PayPal subscription even without URL params (for edge cases)
+  // Verify PayPal subscription and send email when session is ready
   useEffect(() => {
-    if (didPayPalVerifyRef.current) return;
+    if (!sessionReady || didPayPalVerifyRef.current) return;
+    if (checkoutStatus !== "success") return;
     
-    // Only run for PayPal returns OR when checkout=success (to detect PayPal users)
-    const isPayPalReturn = provider === "paypal" && checkoutStatus === "success";
-    const isSuccessReturn = checkoutStatus === "success";
-    
-    if (!isPayPalReturn && !isSuccessReturn) return;
+    didPayPalVerifyRef.current = true;
+    const isPayPal = provider === "paypal";
 
-    const verifyPayPalSubscription = async () => {
-      didPayPalVerifyRef.current = true;
-      setIsVerifyingPayPal(true);
+    const verifyAndSendEmail = async () => {
+      if (isPayPal) {
+        setIsVerifyingPayPal(true);
+      }
       
       try {
-        console.log("Attempting PayPal subscription verification...");
-        const { data, error } = await supabase.functions.invoke("verify-paypal-subscription");
-        
-        if (error) {
-          console.error("PayPal verification error:", error);
-          // Fall back to manual resend for non-PayPal users
-          if (!isPayPalReturn) {
+        // If PayPal, try to verify the subscription first
+        if (isPayPal && userId) {
+          console.log("Attempting PayPal subscription verification...");
+          const { data, error } = await supabase.functions.invoke("verify-paypal-subscription");
+          
+          if (!error && data?.verified) {
+            setPaypalVerified(true);
+            toast.success("Payment verified! Check your email for verification link.");
             setIsVerifyingPayPal(false);
+            return; // Email was sent by the edge function
+          } else {
+            console.log("PayPal verification result:", data, error);
           }
-          return;
         }
+        
+        // Fallback: Send confirmation email directly
+        if (userEmail && userId) {
+          console.log("Sending confirmation email directly...");
+          
+          // Get user's profile for name
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("display_name, first_name, last_name")
+            .eq("user_id", userId)
+            .single();
 
-        console.log("PayPal verification response:", data);
+          const userName =
+            profile?.display_name ||
+            `${profile?.first_name || ""} ${profile?.last_name || ""}`.trim() ||
+            "Member";
 
-        if (data?.verified) {
-          setPaypalVerified(true);
-          toast.success("Payment verified! Check your email for verification link.");
-        } else if (data?.reason === "no_subscription") {
-          // Not a PayPal user, ignore
-          console.log("User does not have PayPal subscription");
-        } else if (data?.status === "APPROVAL_PENDING") {
-          toast.info("Please complete approval in PayPal to activate your subscription.");
-        } else {
-          // Subscription not active yet
-          console.log("PayPal subscription status:", data?.status, data?.reason);
+          const { error } = await supabase.functions.invoke("send-signup-confirmation", {
+            body: {
+              email: userEmail,
+              name: userName,
+              userId: userId,
+            },
+          });
+
+          if (!error) {
+            console.log("Confirmation email sent successfully");
+            if (isPayPal) {
+              toast.success("Verification email sent! Check your inbox.");
+            }
+          } else {
+            console.error("Failed to send confirmation email:", error);
+          }
         }
       } catch (err) {
-        console.error("Failed to verify PayPal subscription:", err);
+        console.error("Failed to verify/send email:", err);
       } finally {
         setIsVerifyingPayPal(false);
       }
     };
 
-    // Small delay to ensure PayPal has processed
-    const t = window.setTimeout(verifyPayPalSubscription, 1000);
+    // Small delay to ensure everything is ready
+    const t = window.setTimeout(verifyAndSendEmail, 1000);
     return () => window.clearTimeout(t);
-  }, [provider, checkoutStatus]);
+  }, [sessionReady, checkoutStatus, provider, userId, userEmail]);
 
   const handleResendEmail = async (silent = false) => {
-    if (!userEmail) {
+    if (!userEmail || !userId) {
       if (!silent) toast.error("Unable to resend email. Please try again later.");
       return;
     }
 
     setIsResending(true);
     try {
-      // Get current user
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
-        if (!silent) toast.error("Session expired. Please log in again.");
-        navigate("/login");
-        return;
-      }
-
       // Get user's profile for name
       const { data: profile } = await supabase
         .from("profiles")
         .select("display_name, first_name, last_name")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .single();
 
       const userName =
@@ -120,7 +150,7 @@ export const VerifyEmail = () => {
         body: {
           email: userEmail,
           name: userName,
-          userId: user.id,
+          userId: userId,
         },
       });
 
@@ -133,23 +163,6 @@ export const VerifyEmail = () => {
       setIsResending(false);
     }
   };
-
-  // Auto-send once when we land here after non-PayPal payment (webhooks can be delayed).
-  // For PayPal, we use the verify-paypal-subscription function instead.
-  useEffect(() => {
-    if (!userEmail) return;
-    if (didAutoSendRef.current) return;
-    if (provider === "paypal") return; // PayPal uses its own verification flow
-
-    didAutoSendRef.current = true;
-
-    const t = window.setTimeout(() => {
-      void handleResendEmail(true);
-    }, 800);
-
-    return () => window.clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userEmail, provider]);
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -217,7 +230,7 @@ export const VerifyEmail = () => {
               onClick={() => handleResendEmail(false)}
               variant="outline"
               className="w-full gap-2"
-              disabled={isResending || isVerifyingPayPal}
+              disabled={isResending || isVerifyingPayPal || !sessionReady}
             >
               <RefreshCw className={`h-4 w-4 ${isResending ? "animate-spin" : ""}`} />
               {isResending ? "Sending..." : "Resend Verification Email"}
