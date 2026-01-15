@@ -24,12 +24,31 @@ export const Login = () => {
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data: authData, error } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password,
       });
 
       if (error) throw error;
+
+      // Check if email is verified
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("email_verified")
+        .eq("user_id", authData.user.id)
+        .single();
+
+      if (!profile?.email_verified) {
+        // Sign out the user since they haven't verified their email
+        await supabase.auth.signOut();
+        
+        toast({
+          title: "Email Not Verified",
+          description: "Please check your email and click the verification link before logging in.",
+          variant: "destructive",
+        });
+        return;
+      }
 
       toast({
         title: t("login.welcomeBack"),
