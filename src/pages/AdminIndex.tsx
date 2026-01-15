@@ -41,7 +41,7 @@ const adminMenuSections = [
     ],
   },
   {
-    title: "Payments & Financial Controls",
+    title: "Payments & Financial",
     icon: CreditCard,
     items: [
       { name: "Transactions", path: "/admin/transactions" },
@@ -69,7 +69,7 @@ const adminMenuSections = [
     ],
   },
   {
-    title: "Advertising & Monetization Controls",
+    title: "Advertising & Monetization",
     icon: Megaphone,
     items: [
       { name: "Ad Campaigns", path: "/admin/ads/campaigns" },
