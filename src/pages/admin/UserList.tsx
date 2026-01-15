@@ -289,8 +289,30 @@ const UserList = () => {
       setIsLoading(true);
 
       try {
-        // Use admin edge function to get users with private data
-        const activeDateRange = getDateRangeFromPreset(datePreset);
+        // Calculate date range inline to avoid dependency issues
+        let activeDateRange: DateRange = { from: undefined, to: undefined };
+        const now = new Date();
+        switch (datePreset) {
+          case 'today':
+            activeDateRange = { from: new Date(new Date().setHours(0, 0, 0, 0)), to: new Date() };
+            break;
+          case 'last7days':
+            activeDateRange = { from: subDays(new Date(), 7), to: new Date() };
+            break;
+          case 'last30days':
+            activeDateRange = { from: subDays(new Date(), 30), to: new Date() };
+            break;
+          case 'thisMonth':
+            activeDateRange = { from: startOfMonth(new Date()), to: endOfMonth(new Date()) };
+            break;
+          case 'lastMonth':
+            const lastMonth = subMonths(new Date(), 1);
+            activeDateRange = { from: startOfMonth(lastMonth), to: endOfMonth(lastMonth) };
+            break;
+          case 'custom':
+            activeDateRange = dateRange;
+            break;
+        }
         
         const { data, error } = await supabase.functions.invoke("admin-get-users", {
           body: {
@@ -350,9 +372,7 @@ const UserList = () => {
     sortColumn,
     sortDirection,
     datePreset,
-    getDateRangeFromPreset,
-    toast,
-    navigate,
+    dateRange,
     refreshTrigger,
   ]);
 
