@@ -32,10 +32,17 @@ serve(async (req) => {
 
     logStep("Processing token");
 
-    // Decode and validate token
+    // Decode and validate token (supports both URL-safe and standard base64)
     let tokenData;
     try {
-      tokenData = JSON.parse(atob(token));
+      // Convert URL-safe base64 back to standard base64
+      let base64 = token.replace(/-/g, '+').replace(/_/g, '/');
+      // Add padding if needed
+      const padding = base64.length % 4;
+      if (padding) {
+        base64 += '='.repeat(4 - padding);
+      }
+      tokenData = JSON.parse(atob(base64));
     } catch {
       throw new Error("Invalid token format");
     }

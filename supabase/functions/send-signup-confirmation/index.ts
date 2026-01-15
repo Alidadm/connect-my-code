@@ -123,19 +123,26 @@ serve(async (req) => {
       htmlBody = template.body || "";
     }
 
-    // Generate confirmation token (simple base64 encoded userId + timestamp)
-    const token = btoa(JSON.stringify({ 
+    // Generate confirmation token using URL-safe base64 (no padding, no special chars)
+    const tokenPayload = JSON.stringify({ 
       userId, 
       email, 
       exp: Date.now() + 24 * 60 * 60 * 1000 // 24 hours
-    }));
+    });
+    
+    // Use URL-safe base64 encoding to avoid issues with special characters
+    const token = btoa(tokenPayload)
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
 
     // Use SITE_URL if set, otherwise derive from Supabase URL for preview environments
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
     const projectRef = supabaseUrl.match(/https:\/\/([^.]+)/)?.[1] || "";
     const defaultUrl = projectRef ? `https://${projectRef.replace('ahruzugnghcqkonygydo', 'id-preview--7da6d8d7-03a1-4436-af31-faa165a6dce0')}.lovable.app` : "https://dolphysn.com";
     const baseUrl = Deno.env.get("SITE_URL") || defaultUrl;
-    const confirmationLink = `${baseUrl}/confirm-email?token=${encodeURIComponent(token)}`;
+    // Don't double-encode the token since it's already URL-safe
+    const confirmationLink = `${baseUrl}/confirm-email?token=${token}`;
 
     // Replace placeholders in the template
     htmlBody = htmlBody
