@@ -1308,6 +1308,7 @@ export type Database = {
           created_at: string
           email: string | null
           id: string
+          payout_setup_completed: boolean | null
           paypal_customer_id: string | null
           paypal_payout_email: string | null
           phone: string | null
@@ -1322,6 +1323,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          payout_setup_completed?: boolean | null
           paypal_customer_id?: string | null
           paypal_payout_email?: string | null
           phone?: string | null
@@ -1336,6 +1338,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          payout_setup_completed?: boolean | null
           paypal_customer_id?: string | null
           paypal_payout_email?: string | null
           phone?: string | null
