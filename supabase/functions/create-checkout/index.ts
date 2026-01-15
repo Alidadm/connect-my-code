@@ -79,12 +79,44 @@ serve(async (req) => {
 
     const origin = req.headers.get("origin") || "http://localhost:5173";
     
+    // TESTING MODE: Using daily billing interval (change to 'month' for production)
+    const TESTING_MODE = true;
+    const billingInterval = TESTING_MODE ? 'day' : 'month';
+    logStep("Billing mode", { testing: TESTING_MODE, interval: billingInterval });
+
+    // Create or retrieve the test product
+    let product;
+    const products = await stripe.products.list({ limit: 1, active: true });
+    const existingProduct = products.data.find((p: { name: string }) => p.name === "DolphySN Premium");
+    
+    if (existingProduct) {
+      product = existingProduct;
+      logStep("Using existing product", { productId: product.id });
+    } else {
+      product = await stripe.products.create({
+        name: "DolphySN Premium",
+        description: "Premium subscription with full access",
+      });
+      logStep("Created new product", { productId: product.id });
+    }
+
+    // Create a price with the appropriate interval
+    const price = await stripe.prices.create({
+      product: product.id,
+      unit_amount: 999, // $9.99
+      currency: "usd",
+      recurring: {
+        interval: billingInterval,
+      },
+    });
+    logStep("Created price", { priceId: price.id, interval: billingInterval });
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
       line_items: [
         {
-          price: "price_1SnopqIWgNr7BcTJkQ2da79b",
+          price: price.id,
           quantity: 1,
         },
       ],
