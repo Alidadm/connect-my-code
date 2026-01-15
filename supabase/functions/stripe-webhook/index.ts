@@ -206,6 +206,45 @@ serve(async (req) => {
           logStep("Failed to send confirmation email", { error: String(emailError) });
           // Don't fail the webhook for email issues
         }
+      } else {
+        // Send renewal notification email for existing active subscribers
+        try {
+          logStep("Renewal detected; sending renewal notification", { email: customer.email });
+
+          // Get subscription details for next billing date
+          const stripeSubId = invoice.subscription as string;
+          let nextBillingDate: string | null = null;
+          if (stripeSubId) {
+            const stripeSub = await stripe.subscriptions.retrieve(stripeSubId);
+            nextBillingDate = new Date(stripeSub.current_period_end * 1000).toISOString();
+          }
+
+          const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+          const renewalResponse = await fetch(`${supabaseUrl}/functions/v1/send-renewal-notification`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+            },
+            body: JSON.stringify({
+              email: customer.email,
+              name: userName,
+              amount: invoice.amount_paid / 100,
+              currency: invoice.currency?.toUpperCase() || "USD",
+              nextBillingDate,
+            }),
+          });
+
+          if (renewalResponse.ok) {
+            logStep("Renewal notification sent", { email: customer.email });
+          } else {
+            const errorText = await renewalResponse.text();
+            logStep("Renewal notification failed", { error: errorText });
+          }
+        } catch (renewalError) {
+          logStep("Failed to send renewal notification", { error: String(renewalError) });
+          // Don't fail the webhook for email issues
+        }
       }
 
       // Get user's profile to check for referrer
