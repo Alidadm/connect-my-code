@@ -160,6 +160,10 @@
   },
   "notifications": {
     "title": "通知",
+    "new": "新通知",
+    "unread": "未读",
+    "noNew": "没有新通知",
+    "noUnread": "没有未读消息",
     "description": "通知偏好设置",
     "emailNotifications": "电子邮件通知",
     "emailNotificationsDesc": "通过电子邮件接收通知",

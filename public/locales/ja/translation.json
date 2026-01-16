@@ -136,6 +136,10 @@
   },
   "notifications": {
     "title": "通知",
+    "new": "通知",
+    "unread": "未読",
+    "noNew": "新しい通知はありません",
+    "noUnread": "未読メッセージはありません",
     "description": "通知設定",
     "emailNotifications": "メール通知",
     "emailNotificationsDesc": "メールで通知を受け取る",

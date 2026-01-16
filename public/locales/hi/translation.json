@@ -136,6 +136,10 @@
   },
   "notifications": {
     "title": "सूचनाएं",
+    "new": "सूचना",
+    "unread": "अपठित",
+    "noNew": "कोई नई सूचना नहीं",
+    "noUnread": "कोई अपठित संदेश नहीं",
     "description": "सूचना प्राथमिकताएं",
     "emailNotifications": "ईमेल सूचनाएं",
     "emailNotificationsDesc": "ईमेल द्वारा सूचनाएं प्राप्त करें",

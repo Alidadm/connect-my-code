@@ -160,6 +160,10 @@
   },
   "notifications": {
     "title": "Notificações",
+    "new": "Notificação",
+    "unread": "Não lidas",
+    "noNew": "Sem novas notificações",
+    "noUnread": "Sem mensagens não lidas",
     "description": "Preferências de notificação",
     "emailNotifications": "Notificações por Email",
     "emailNotificationsDesc": "Receber notificações por email",
