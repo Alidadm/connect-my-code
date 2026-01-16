@@ -85,6 +85,14 @@
     "referralNetwork": "Referral Network",
     "pricing": "Pricing"
   },
+  "referrals": {
+    "all": "All",
+    "friends": "Friends",
+    "nonFriends": "Non-Friends",
+    "searchPlaceholder": "Search referrals...",
+    "noReferrals": "No referrals found",
+    "sendFriendRequest": "Send Friend Request"
+  },
   "profile": {
     "title": "Profile",
     "description": "Manage your public profile",

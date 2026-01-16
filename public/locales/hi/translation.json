@@ -51,6 +51,14 @@
     "referralNetwork": "रेफरल नेटवर्क",
     "pricing": "मूल्य निर्धारण"
   },
+  "referrals": {
+    "all": "सभी",
+    "friends": "मित्र",
+    "nonFriends": "गैर-मित्र",
+    "searchPlaceholder": "रेफरल खोजें...",
+    "noReferrals": "कोई रेफरल नहीं मिला",
+    "sendFriendRequest": "मित्र अनुरोध भेजें"
+  },
   "profile": {
     "title": "प्रोफ़ाइल",
     "description": "अपनी सार्वजनिक प्रोफ़ाइल प्रबंधित करें",

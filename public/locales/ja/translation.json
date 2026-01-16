@@ -51,6 +51,14 @@
     "referralNetwork": "紹介ネットワーク",
     "pricing": "料金"
   },
+  "referrals": {
+    "all": "すべて",
+    "friends": "友達",
+    "nonFriends": "友達以外",
+    "searchPlaceholder": "紹介を検索...",
+    "noReferrals": "紹介が見つかりません",
+    "sendFriendRequest": "友達リクエストを送信"
+  },
   "profile": {
     "title": "プロフィール",
     "description": "公開プロフィールを管理",

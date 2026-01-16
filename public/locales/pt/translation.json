@@ -75,6 +75,14 @@
     "referralNetwork": "Rede de Indicações",
     "pricing": "Preços"
   },
+  "referrals": {
+    "all": "Todos",
+    "friends": "Amigos",
+    "nonFriends": "Não Amigos",
+    "searchPlaceholder": "Pesquisar indicações...",
+    "noReferrals": "Nenhuma indicação encontrada",
+    "sendFriendRequest": "Enviar Pedido de Amizade"
+  },
   "profile": {
     "title": "Perfil",
     "description": "Gerencie seu perfil público",

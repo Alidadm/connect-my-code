@@ -41,6 +41,14 @@
     "referralNetwork": "Empfehlungsnetzwerk",
     "pricing": "Preise"
   },
+  "referrals": {
+    "all": "Alle",
+    "friends": "Freunde",
+    "nonFriends": "Nicht-Freunde",
+    "searchPlaceholder": "Empfehlungen suchen...",
+    "noReferrals": "Keine Empfehlungen gefunden",
+    "sendFriendRequest": "Freundschaftsanfrage senden"
+  },
   "profile": {
     "title": "Profil",
     "description": "Verwalten Sie Ihr öffentliches Profil",

@@ -41,6 +41,14 @@
     "referralNetwork": "Réseau de Parrainage",
     "pricing": "Tarification"
   },
+  "referrals": {
+    "all": "Tous",
+    "friends": "Amis",
+    "nonFriends": "Non-Amis",
+    "searchPlaceholder": "Rechercher des filleuls...",
+    "noReferrals": "Aucun filleul trouvé",
+    "sendFriendRequest": "Envoyer une Demande d'Ami"
+  },
   "profile": {
     "title": "Profil",
     "description": "Gérez votre profil public",
