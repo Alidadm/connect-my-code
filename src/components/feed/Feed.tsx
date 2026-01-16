@@ -367,13 +367,13 @@ export const Feed = () => {
         </div>
       ) : (
         <>
-          {/* Show real posts if any */}
+          {/* Show real posts if user is logged in or has posts */}
           {posts.map((post) => (
             <PostCard key={post.id} post={post} onLikeChange={() => fetchPosts(0, false)} />
           ))}
           
-          {/* Always show demo posts after real posts */}
-          {demoPosts.map((post) => (
+          {/* Only show demo posts when user is not logged in AND has no real posts */}
+          {!user && posts.length === 0 && demoPosts.map((post) => (
             <DemoPostCard key={post.id} post={post} />
           ))}
 
