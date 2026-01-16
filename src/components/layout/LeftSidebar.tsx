@@ -13,7 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
-import { useMemberStats, formatCount } from "@/hooks/useMemberStats";
+import { useMemberStats, useUserCreatedGroups, formatCount } from "@/hooks/useMemberStats";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
@@ -29,10 +29,6 @@ const getNavItems = (t: TFunction) => [
   { icon: Settings, label: t("nav.settings", { defaultValue: "Settings" }), path: "/dashboard", badge: null, iconColor: "text-gray-500" },
 ];
 
-// Demo group for sidebar
-const yourGroups = [
-  { name: "Tech Enthusiasts", avatar: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=50&h=50&fit=crop", memberCount: 1234 },
-];
 
 const pagesYouLike = [
   { name: "UI/UX Community", avatar: "https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=50&h=50&fit=crop", verified: false, color: "bg-orange-500" },
@@ -55,6 +51,7 @@ export const LeftSidebar = () => {
   const { t } = useTranslation();
   const { user, profile } = useAuth();
   const { data: memberStats } = useMemberStats();
+  const { data: userGroups } = useUserCreatedGroups();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -141,39 +138,41 @@ export const LeftSidebar = () => {
           })}
         </nav>
 
-        {/* Your Groups */}
-        <div className="bg-card rounded-xl p-4 border border-border mb-4">
-          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-            {t("sidebar.yourGroups")}
-          </h3>
-          <div className="space-y-2">
-            {yourGroups.map((group, index) => (
-              <div 
-                key={index} 
-                className="flex items-center gap-3 cursor-pointer hover:bg-secondary/50 -mx-2 px-2 py-1.5 rounded-lg transition-colors"
+        {/* Your Groups - Only show if user has created groups */}
+        {user && userGroups && userGroups.length > 0 && (
+          <div className="bg-card rounded-xl p-4 border border-border mb-4">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+              {t("sidebar.yourGroups")}
+            </h3>
+            <div className="space-y-2">
+              {userGroups.map((group) => (
+                <div 
+                  key={group.id} 
+                  className="flex items-center gap-3 cursor-pointer hover:bg-secondary/50 -mx-2 px-2 py-1.5 rounded-lg transition-colors"
+                  onClick={() => navigate(`/groups/${group.id}`)}
+                >
+                  <Avatar className="h-8 w-8 flex-shrink-0">
+                    <AvatarImage src={group.avatar_url || undefined} />
+                    <AvatarFallback className="bg-primary text-primary-foreground text-xs font-bold">
+                      {group.name.slice(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0 flex-1">
+                    <span className="text-sm font-medium text-foreground truncate block">{group.name}</span>
+                    <span className="text-xs text-muted-foreground">{(group.member_count || 0).toLocaleString()} members</span>
+                  </div>
+                </div>
+              ))}
+              <Button 
+                variant="link" 
+                className="text-muted-foreground p-0 h-auto text-sm hover:text-foreground"
                 onClick={() => navigate("/groups")}
               >
-                <Avatar className="h-8 w-8 flex-shrink-0">
-                  <AvatarImage src={group.avatar} />
-                  <AvatarFallback className="bg-primary text-primary-foreground text-xs font-bold">
-                    {group.name.slice(0, 2).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="min-w-0 flex-1">
-                  <span className="text-sm font-medium text-foreground truncate block">{group.name}</span>
-                  <span className="text-xs text-muted-foreground">{group.memberCount.toLocaleString()} members</span>
-                </div>
-              </div>
-            ))}
-            <Button 
-              variant="link" 
-              className="text-muted-foreground p-0 h-auto text-sm hover:text-foreground"
-              onClick={() => navigate("/groups")}
-            >
-              {t("sidebar.viewAll")}
-            </Button>
+                {t("sidebar.viewAll")}
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Pages You Like */}
         <div className="bg-card rounded-xl p-4 border border-border">
