@@ -13,6 +13,7 @@ interface UserGroup {
   name: string;
   avatar_url: string | null;
   member_count: number | null;
+  creator_id: string;
 }
 
 export const useMemberStats = () => {
@@ -88,7 +89,7 @@ export const useUserGroups = () => {
 
       const { data, error } = await supabase
         .from("groups")
-        .select("id, name, avatar_url, member_count")
+        .select("id, name, avatar_url, member_count, creator_id")
         .in("id", groupIds)
         .order("created_at", { ascending: false })
         .limit(5);

@@ -7,7 +7,8 @@ import {
   Store,
   BadgeCheck,
   Bookmark,
-  Settings
+  Settings,
+  Crown
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -145,24 +146,41 @@ export const LeftSidebar = () => {
               {t("sidebar.yourGroups")}
             </h3>
             <div className="space-y-2">
-              {userGroups.map((group) => (
-                <div 
-                  key={group.id} 
-                  className="flex items-center gap-3 cursor-pointer hover:bg-secondary/50 -mx-2 px-2 py-1.5 rounded-lg transition-colors"
-                  onClick={() => navigate(`/groups/${group.id}`)}
-                >
-                  <Avatar className="h-8 w-8 flex-shrink-0">
-                    <AvatarImage src={group.avatar_url || undefined} />
-                    <AvatarFallback className="bg-primary text-primary-foreground text-xs font-bold">
-                      {group.name.slice(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="min-w-0 flex-1">
-                    <span className="text-sm font-medium text-foreground truncate block">{group.name}</span>
-                    <span className="text-xs text-muted-foreground">{(group.member_count || 0).toLocaleString()} members</span>
+              {userGroups.map((group) => {
+                const isCreator = group.creator_id === user.id;
+                return (
+                  <div 
+                    key={group.id} 
+                    className="flex items-center gap-3 cursor-pointer hover:bg-secondary/50 -mx-2 px-2 py-1.5 rounded-lg transition-colors"
+                    onClick={() => navigate(`/groups/${group.id}`)}
+                  >
+                    <div className="relative">
+                      <Avatar className="h-8 w-8 flex-shrink-0">
+                        <AvatarImage src={group.avatar_url || undefined} />
+                        <AvatarFallback className="bg-primary text-primary-foreground text-xs font-bold">
+                          {group.name.slice(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      {isCreator && (
+                        <div className="absolute -bottom-1 -right-1 bg-yellow-500 rounded-full p-0.5">
+                          <Crown className="h-2.5 w-2.5 text-white" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-sm font-medium text-foreground truncate">{group.name}</span>
+                        {isCreator && (
+                          <span className="text-[10px] font-medium bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 px-1.5 py-0.5 rounded-full flex-shrink-0">
+                            Owner
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-xs text-muted-foreground">{(group.member_count || 0).toLocaleString()} members</span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
               <Button 
                 variant="link" 
                 className="text-muted-foreground p-0 h-auto text-sm hover:text-foreground"
