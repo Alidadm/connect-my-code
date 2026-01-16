@@ -56,7 +56,21 @@ const Commissions = () => {
   // Email form state
   const [emailTo, setEmailTo] = useState("");
   const [emailSubject, setEmailSubject] = useState("Join me on DolphySN!");
-  const [emailMessage, setEmailMessage] = useState("Hey! I've been using DolphySN and thought you might enjoy it too. Sign up using my referral link below and we can connect!");
+  const [emailMessage, setEmailMessage] = useState(`Hi everyone,
+
+DolphySN.com is a new social network built for people who want to connect, grow, and earn real monthly income at the same time.
+
+When you join through my link below, your membership is only $9.99 per month. After you sign up, you can invite anyone — friends, followers, or even people you've never met.
+
+For every person who subscribes through your link, you earn $5 every month as long as they stay active.
+
+Example:
+If 20 people join under you, that's $100 every month (20 × $5).
+As your downline grows, your monthly income grows too — from both existing members and new members.
+
+Start building your network and your income today.
+
+See you inside DolphySN.`);
   const [sendingEmail, setSendingEmail] = useState(false);
 
   // Get the referral URL
@@ -120,7 +134,21 @@ const Commissions = () => {
   const handleCancelEmail = () => {
     setEmailTo("");
     setEmailSubject("Join me on DolphySN!");
-    setEmailMessage("Hey! I've been using DolphySN and thought you might enjoy it too. Sign up using my referral link below and we can connect!");
+    setEmailMessage(`Hi everyone,
+
+DolphySN.com is a new social network built for people who want to connect, grow, and earn real monthly income at the same time.
+
+When you join through my link below, your membership is only $9.99 per month. After you sign up, you can invite anyone — friends, followers, or even people you've never met.
+
+For every person who subscribes through your link, you earn $5 every month as long as they stay active.
+
+Example:
+If 20 people join under you, that's $100 every month (20 × $5).
+As your downline grows, your monthly income grows too — from both existing members and new members.
+
+Start building your network and your income today.
+
+See you inside DolphySN.`);
   };
 
   useEffect(() => {
