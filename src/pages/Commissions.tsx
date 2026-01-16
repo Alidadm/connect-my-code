@@ -61,11 +61,9 @@ const Commissions = () => {
     isLoading: boolean;
   }>({ hasStripe: false, hasPaypal: false, isLoading: true });
   
-  // Email form state
-  const [emailTo, setEmailTo] = useState("");
-  const [emailSubject, setEmailSubject] = useState("Build Your Monthly Income with DolphySN");
-  const [showPreview, setShowPreview] = useState(false);
-  const [emailMessage, setEmailMessage] = useState(`Hi everyone,
+  // Default email template
+  const defaultEmailSubject = "Build Your Monthly Income with DolphySN";
+  const defaultEmailMessage = `Hi everyone,
 
 DolphySN.com is a new social network built for people who want to connect, grow, and earn real monthly income at the same time.
 
@@ -80,8 +78,27 @@ As your downline grows, your monthly income grows too — from both existing mem
 Start building your network and your income today.
 Join here: {{referral_link}}
 
-See you inside DolphySN.`);
+See you inside DolphySN.`;
+
+  // Email form state - load from localStorage or use defaults
+  const [emailTo, setEmailTo] = useState("");
+  const [emailSubject, setEmailSubject] = useState(() => {
+    return localStorage.getItem("referral_email_subject") || defaultEmailSubject;
+  });
+  const [showPreview, setShowPreview] = useState(false);
+  const [emailMessage, setEmailMessage] = useState(() => {
+    return localStorage.getItem("referral_email_message") || defaultEmailMessage;
+  });
   const [sendingEmail, setSendingEmail] = useState(false);
+
+  // Save to localStorage when subject or message changes
+  useEffect(() => {
+    localStorage.setItem("referral_email_subject", emailSubject);
+  }, [emailSubject]);
+
+  useEffect(() => {
+    localStorage.setItem("referral_email_message", emailMessage);
+  }, [emailMessage]);
 
   // Get the referral URL
   const baseUrl = window.location.origin;
@@ -146,23 +163,11 @@ See you inside DolphySN.`);
 
   const handleCancelEmail = () => {
     setEmailTo("");
-    setEmailSubject("Build Your Monthly Income with DolphySN");
-    setEmailMessage(`Hi everyone,
-
-DolphySN.com is a new social network built for people who want to connect, grow, and earn real monthly income at the same time.
-
-When you join through my link below, your membership is only $9.99 per month. After you sign up, you can invite anyone — friends, followers, or even people you've never met.
-
-For every person who subscribes through your link, you earn $5 every month as long as they stay active.
-
-Example:
-If 20 people join under you, that's $100 every month (20 × $5).
-As your downline grows, your monthly income grows too — from both existing members and new members.
-
-Start building your network and your income today.
-Join here: {{referral_link}}
-
-See you inside DolphySN.`);
+    setEmailSubject(defaultEmailSubject);
+    setEmailMessage(defaultEmailMessage);
+    // Clear localStorage to reset to defaults
+    localStorage.removeItem("referral_email_subject");
+    localStorage.removeItem("referral_email_message");
   };
 
   useEffect(() => {
