@@ -402,26 +402,22 @@ serve(async (req) => {
 
           logStep("Commission marked as paid via Stripe auto-payout");
 
+          // Queue payout notification for daily digest instead of sending immediately
           try {
-            const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
-            await fetch(`${supabaseUrl}/functions/v1/send-commission-notification`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
-              },
-              body: JSON.stringify({
+            await supabaseClient
+              .from("pending_commission_notifications")
+              .insert({
                 referrer_id: profile.referrer_id,
-                type: "payout_completed",
+                notification_type: "payout_completed",
                 amount: commissionAmount / 100,
                 currency: invoice.currency?.toUpperCase() || "USD",
                 referred_user_name: referredUserName,
                 payout_method: "stripe",
-              }),
-            });
-            logStep("Payout completed notification sent");
+                payment_provider: "stripe",
+              });
+            logStep("Payout notification queued for daily digest");
           } catch (notifError) {
-            logStep("Failed to send payout notification", { error: String(notifError) });
+            logStep("Failed to queue payout notification", { error: String(notifError) });
           }
 
           return true;
@@ -466,25 +462,22 @@ serve(async (req) => {
           if (paypalResult.success) {
             logStep("PayPal auto-payout successful", { batchId: paypalResult.payout_batch_id });
 
+            // Queue payout notification for daily digest instead of sending immediately
             try {
-              await fetch(`${supabaseUrl}/functions/v1/send-commission-notification`, {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
-                },
-                body: JSON.stringify({
+              await supabaseClient
+                .from("pending_commission_notifications")
+                .insert({
                   referrer_id: profile.referrer_id,
-                  type: "payout_completed",
+                  notification_type: "payout_completed",
                   amount: commissionAmount / 100,
                   currency: invoice.currency?.toUpperCase() || "USD",
                   referred_user_name: referredUserName,
                   payout_method: "paypal",
-                }),
-              });
-              logStep("Payout completed notification sent");
+                  payment_provider: "stripe",
+                });
+              logStep("Payout notification queued for daily digest");
             } catch (notifError) {
-              logStep("Failed to send payout notification", { error: String(notifError) });
+              logStep("Failed to queue payout notification", { error: String(notifError) });
             }
 
             return true;
@@ -525,27 +518,22 @@ serve(async (req) => {
         logStep("No auto-payout method available, commission remains pending for manual payout");
       }
 
-      // Send commission earned notification (if not auto-paid, they need to know they earned it)
+      // Queue commission earned notification for daily digest (if not auto-paid, they need to know they earned it)
       if (!autoPaidSuccessfully) {
         try {
-          const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
-          await fetch(`${supabaseUrl}/functions/v1/send-commission-notification`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
-            },
-            body: JSON.stringify({
+          await supabaseClient
+            .from("pending_commission_notifications")
+            .insert({
               referrer_id: profile.referrer_id,
-              type: "commission_earned",
+              notification_type: "commission_earned",
               amount: commissionAmount / 100,
               currency: invoice.currency?.toUpperCase() || "USD",
               referred_user_name: referredUserName,
-            }),
-          });
-          logStep("Commission earned notification sent");
+              payment_provider: "stripe",
+            });
+          logStep("Commission earned notification queued for daily digest");
         } catch (notifError) {
-          logStep("Failed to send commission notification", { error: String(notifError) });
+          logStep("Failed to queue commission notification", { error: String(notifError) });
         }
       }
     }

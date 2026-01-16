@@ -343,25 +343,21 @@ serve(async (req) => {
                     
                     const referredUserName = referredProfile?.display_name || referredProfile?.first_name || null;
 
-                    // Send commission notification
+                    // Queue commission notification for daily digest instead of sending immediately
                     try {
-                      await fetch(`${supabaseUrl}/functions/v1/send-commission-notification`, {
-                        method: "POST",
-                        headers: {
-                          "Content-Type": "application/json",
-                          "Authorization": `Bearer ${serviceRoleKey}`,
-                        },
-                        body: JSON.stringify({
+                      await supabaseClient
+                        .from("pending_commission_notifications")
+                        .insert({
                           referrer_id: profile.referrer_id,
-                          type: "commission_earned",
+                          notification_type: "commission_earned",
                           amount: 5.00,
                           currency: "USD",
                           referred_user_name: referredUserName,
-                        }),
-                      });
-                      logStep("Commission earned notification sent");
+                          payment_provider: "paypal",
+                        });
+                      logStep("Commission earned notification queued for daily digest");
                     } catch (notifError) {
-                      logStep("Failed to send commission notification", { error: String(notifError) });
+                      logStep("Failed to queue commission notification", { error: String(notifError) });
                     }
                   }
                 } else {
