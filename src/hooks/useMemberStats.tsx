@@ -8,6 +8,13 @@ interface MemberStats {
   posts: number;
 }
 
+interface UserGroup {
+  id: string;
+  name: string;
+  avatar_url: string | null;
+  member_count: number | null;
+}
+
 export const useMemberStats = () => {
   const { user } = useAuth();
 
@@ -49,6 +56,35 @@ export const useMemberStats = () => {
     },
     enabled: !!user?.id,
     staleTime: 30000, // Cache for 30 seconds
+  });
+};
+
+export const useUserCreatedGroups = () => {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ["userCreatedGroups", user?.id],
+    queryFn: async (): Promise<UserGroup[]> => {
+      if (!user?.id) {
+        return [];
+      }
+
+      const { data, error } = await supabase
+        .from("groups")
+        .select("id, name, avatar_url, member_count")
+        .eq("creator_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(5);
+
+      if (error) {
+        console.error("Error fetching user groups:", error);
+        return [];
+      }
+
+      return data || [];
+    },
+    enabled: !!user?.id,
+    staleTime: 30000,
   });
 };
 
