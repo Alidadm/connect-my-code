@@ -61,6 +61,18 @@
       "completed": "Completado",
       "approved": "Aprobado",
       "rejected": "Rechazado"
+    },
+    "amounts": {
+      "earned": "Ganado",
+      "pending": "Pendiente",
+      "paid": "Pagado",
+      "total": "Total",
+      "monthly": "Mensual",
+      "perMonth": "por mes",
+      "commission": "Comisión",
+      "balance": "Saldo Disponible",
+      "withdrawn": "Retirado",
+      "currency": "USD"
     }
   },
   "profile": {

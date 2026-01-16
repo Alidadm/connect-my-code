@@ -71,6 +71,18 @@
       "completed": "مكتمل",
       "approved": "موافق عليه",
       "rejected": "مرفوض"
+    },
+    "amounts": {
+      "earned": "مكتسب",
+      "pending": "قيد الانتظار",
+      "paid": "مدفوع",
+      "total": "المجموع",
+      "monthly": "شهري",
+      "perMonth": "شهرياً",
+      "commission": "العمولة",
+      "balance": "الرصيد المتاح",
+      "withdrawn": "مسحوب",
+      "currency": "دولار"
     }
   },
   "profile": {

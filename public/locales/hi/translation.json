@@ -71,6 +71,18 @@
       "completed": "पूर्ण",
       "approved": "स्वीकृत",
       "rejected": "अस्वीकृत"
+    },
+    "amounts": {
+      "earned": "अर्जित",
+      "pending": "लंबित",
+      "paid": "भुगतान किया",
+      "total": "कुल",
+      "monthly": "मासिक",
+      "perMonth": "प्रति माह",
+      "commission": "कमीशन",
+      "balance": "उपलब्ध शेष",
+      "withdrawn": "निकाला गया",
+      "currency": "USD"
     }
   },
   "profile": {

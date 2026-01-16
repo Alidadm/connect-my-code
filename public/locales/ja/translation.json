@@ -69,8 +69,20 @@
       "paid": "支払済",
       "cancelled": "キャンセル済",
       "completed": "完了",
-      "approved": "承認済",
-      "rejected": "却下"
+      "approved": "承認済み",
+      "rejected": "拒否"
+    },
+    "amounts": {
+      "earned": "獲得済み",
+      "pending": "保留中",
+      "paid": "支払済み",
+      "total": "合計",
+      "monthly": "月間",
+      "perMonth": "月額",
+      "commission": "コミッション",
+      "balance": "利用可能残高",
+      "withdrawn": "出金済み",
+      "currency": "USD"
     }
   },
   "profile": {

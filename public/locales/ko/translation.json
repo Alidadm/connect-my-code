@@ -71,6 +71,18 @@
       "completed": "완료됨",
       "approved": "승인됨",
       "rejected": "거부됨"
+    },
+    "amounts": {
+      "earned": "획득",
+      "pending": "대기 중",
+      "paid": "지급됨",
+      "total": "총액",
+      "monthly": "월간",
+      "perMonth": "월별",
+      "commission": "커미션",
+      "balance": "사용 가능 잔액",
+      "withdrawn": "출금됨",
+      "currency": "USD"
     }
   },
   "profile": {
