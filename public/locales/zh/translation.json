@@ -75,6 +75,14 @@
     "referralNetwork": "推荐网络",
     "pricing": "定价"
   },
+  "referrals": {
+    "all": "全部",
+    "friends": "好友",
+    "nonFriends": "非好友",
+    "searchPlaceholder": "搜索推荐...",
+    "noReferrals": "未找到推荐",
+    "sendFriendRequest": "发送好友请求"
+  },
   "profile": {
     "title": "个人资料",
     "description": "管理您的公开资料",

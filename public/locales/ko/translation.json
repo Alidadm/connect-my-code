@@ -51,6 +51,14 @@
     "referralNetwork": "추천 네트워크",
     "pricing": "가격"
   },
+  "referrals": {
+    "all": "전체",
+    "friends": "친구",
+    "nonFriends": "친구 아님",
+    "searchPlaceholder": "추천 검색...",
+    "noReferrals": "추천을 찾을 수 없습니다",
+    "sendFriendRequest": "친구 요청 보내기"
+  },
   "profile": {
     "title": "프로필",
     "description": "공개 프로필 관리",

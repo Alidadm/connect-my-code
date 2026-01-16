@@ -51,6 +51,14 @@
     "referralNetwork": "شبكة الإحالات",
     "pricing": "التسعير"
   },
+  "referrals": {
+    "all": "الكل",
+    "friends": "الأصدقاء",
+    "nonFriends": "غير الأصدقاء",
+    "searchPlaceholder": "البحث عن الإحالات...",
+    "noReferrals": "لم يتم العثور على إحالات",
+    "sendFriendRequest": "إرسال طلب صداقة"
+  },
   "profile": {
     "title": "الملف الشخصي",
     "description": "إدارة ملفك الشخصي العام",

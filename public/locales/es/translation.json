@@ -41,6 +41,14 @@
     "referralNetwork": "Red de Referidos",
     "pricing": "Precios"
   },
+  "referrals": {
+    "all": "Todos",
+    "friends": "Amigos",
+    "nonFriends": "No Amigos",
+    "searchPlaceholder": "Buscar referidos...",
+    "noReferrals": "No se encontraron referidos",
+    "sendFriendRequest": "Enviar Solicitud de Amistad"
+  },
   "profile": {
     "title": "Perfil",
     "description": "Administra tu perfil público",
