@@ -218,5 +218,23 @@
       "thumbs": "Pouces",
       "funEmoji": "Emoji"
     }
+  },
+  "cover": {
+    "updateCover": "Modifier la Photo de Couverture",
+    "takePhoto": "Prendre une Photo",
+    "upload": "Télécharger",
+    "adjustCrop": "Ajuster et Recadrer",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "reset": "Réinitialiser",
+    "chooseMethod": "Choisissez une photo ou prenez-en une nouvelle pour votre couverture.",
+    "coverUpdated": "Photo de couverture mise à jour !",
+    "uploadFailed": "Échec du téléchargement de la photo",
+    "removeCover": "Supprimer la Couverture",
+    "coverRemoved": "Photo de couverture supprimée !",
+    "removeFailed": "Échec de la suppression",
+    "cameraError": "Impossible d'accéder à la caméra.",
+    "invalidImage": "Veuillez sélectionner une image",
+    "imageTooLarge": "L'image doit faire moins de 10 Mo"
   }
 }

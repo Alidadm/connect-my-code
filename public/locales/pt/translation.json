@@ -327,5 +327,23 @@
       "thumbs": "Polegares",
       "funEmoji": "Emoji"
     }
+  },
+  "cover": {
+    "updateCover": "Atualizar Foto de Capa",
+    "takePhoto": "Tirar Foto",
+    "upload": "Enviar",
+    "adjustCrop": "Ajustar e Recortar",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "reset": "Redefinir",
+    "chooseMethod": "Escolha uma foto ou tire uma nova para sua capa.",
+    "coverUpdated": "Foto de capa atualizada com sucesso!",
+    "uploadFailed": "Falha ao enviar foto de capa",
+    "removeCover": "Remover Capa",
+    "coverRemoved": "Foto de capa removida com sucesso!",
+    "removeFailed": "Falha ao remover",
+    "cameraError": "Não foi possível acessar a câmera.",
+    "invalidImage": "Selecione uma imagem",
+    "imageTooLarge": "A imagem deve ter menos de 10MB"
   }
 }

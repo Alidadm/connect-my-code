@@ -246,5 +246,23 @@
       "thumbs": "إبهام",
       "funEmoji": "إيموجي"
     }
+  },
+  "cover": {
+    "updateCover": "تحديث صورة الغلاف",
+    "takePhoto": "التقاط صورة",
+    "upload": "رفع",
+    "adjustCrop": "ضبط واقتصاص",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "reset": "إعادة تعيين",
+    "chooseMethod": "اختر صورة أو التقط صورة جديدة لغلافك.",
+    "coverUpdated": "تم تحديث صورة الغلاف بنجاح!",
+    "uploadFailed": "فشل في رفع صورة الغلاف",
+    "removeCover": "إزالة الغلاف",
+    "coverRemoved": "تمت إزالة صورة الغلاف!",
+    "removeFailed": "فشل في الإزالة",
+    "cameraError": "تعذر الوصول إلى الكاميرا.",
+    "invalidImage": "الرجاء تحديد صورة",
+    "imageTooLarge": "يجب أن تكون الصورة أقل من 10 ميجابايت"
   }
 }

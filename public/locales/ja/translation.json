@@ -246,5 +246,23 @@
       "thumbs": "サムズ",
       "funEmoji": "絵文字"
     }
+  },
+  "cover": {
+    "updateCover": "カバー写真を更新",
+    "takePhoto": "写真を撮る",
+    "upload": "アップロード",
+    "adjustCrop": "調整とトリミング",
+    "save": "保存",
+    "cancel": "キャンセル",
+    "reset": "リセット",
+    "chooseMethod": "カバー用の写真を選択するか、新しく撮影してください。",
+    "coverUpdated": "カバー写真が正常に更新されました！",
+    "uploadFailed": "カバー写真のアップロードに失敗しました",
+    "removeCover": "カバーを削除",
+    "coverRemoved": "カバー写真が削除されました！",
+    "removeFailed": "削除に失敗しました",
+    "cameraError": "カメラにアクセスできませんでした。",
+    "invalidImage": "画像を選択してください",
+    "imageTooLarge": "画像は10MB未満である必要があります"
   }
 }

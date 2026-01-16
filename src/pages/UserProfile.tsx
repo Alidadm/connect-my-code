@@ -131,12 +131,14 @@ const UserProfile = () => {
       <div className="max-w-4xl mx-auto">
         {/* Cover Image */}
         <div className="relative h-48 sm:h-64 bg-gradient-to-br from-primary/30 to-primary/10">
-          {profile?.cover_url && (
+          {profile?.cover_url ? (
             <img 
               src={profile.cover_url} 
               alt="Cover" 
               className="w-full h-full object-cover"
             />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5" />
           )}
           
           {/* Back Button */}
