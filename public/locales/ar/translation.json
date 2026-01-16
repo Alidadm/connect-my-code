@@ -136,6 +136,10 @@
   },
   "notifications": {
     "title": "الإشعارات",
+    "new": "إشعار",
+    "unread": "غير مقروء",
+    "noNew": "لا توجد إشعارات جديدة",
+    "noUnread": "لا توجد رسائل غير مقروءة",
     "description": "تفضيلات الإشعارات",
     "emailNotifications": "إشعارات البريد الإلكتروني",
     "emailNotificationsDesc": "تلقي الإشعارات عبر البريد الإلكتروني",

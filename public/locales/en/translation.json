@@ -170,6 +170,10 @@
   },
   "notifications": {
     "title": "Notifications",
+    "new": "Notification",
+    "unread": "Unread",
+    "noNew": "No new notifications",
+    "noUnread": "No unread messages",
     "description": "Notification preferences",
     "emailNotifications": "Email Notifications",
     "emailNotificationsDesc": "Receive notifications via email",

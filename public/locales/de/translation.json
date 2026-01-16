@@ -126,6 +126,10 @@
   },
   "notifications": {
     "title": "Benachrichtigungen",
+    "new": "Benachrichtigung",
+    "unread": "Ungelesen",
+    "noNew": "Keine neuen Benachrichtigungen",
+    "noUnread": "Keine ungelesenen Nachrichten",
     "description": "Benachrichtigungseinstellungen",
     "emailNotifications": "E-Mail-Benachrichtigungen",
     "emailNotificationsDesc": "Benachrichtigungen per E-Mail erhalten",

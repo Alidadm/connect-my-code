@@ -136,6 +136,10 @@
   },
   "notifications": {
     "title": "알림",
+    "new": "알림",
+    "unread": "읽지 않음",
+    "noNew": "새 알림이 없습니다",
+    "noUnread": "읽지 않은 메시지가 없습니다",
     "description": "알림 설정",
     "emailNotifications": "이메일 알림",
     "emailNotificationsDesc": "이메일로 알림 받기",
