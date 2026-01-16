@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { 
   MapPin, Calendar, Users, Link as LinkIcon, 
   MessageCircle, UserPlus, MoreHorizontal, ArrowLeft,
-  CheckCircle2, Image as ImageIcon
+  CheckCircle2, Image as ImageIcon, Camera
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-
+import { CoverEditor } from "@/components/cover/CoverEditor";
 interface PublicProfile {
   user_id: string;
   username: string | null;
@@ -48,6 +48,7 @@ const UserProfile = () => {
   const [profile, setProfile] = useState<PublicProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [showCoverEditor, setShowCoverEditor] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -126,11 +127,16 @@ const UserProfile = () => {
 
   const isOwnProfile = user?.id === profile?.user_id;
 
+  const handleCoverSaved = (newCoverUrl: string) => {
+    setProfile(prev => prev ? { ...prev, cover_url: newCoverUrl || null } : null);
+    setShowCoverEditor(false);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto">
         {/* Cover Image */}
-        <div className="relative h-48 sm:h-64 bg-gradient-to-br from-primary/30 to-primary/10">
+        <div className="relative h-48 sm:h-64 bg-gradient-to-br from-primary/30 to-primary/10 group">
           {profile?.cover_url ? (
             <img 
               src={profile.cover_url} 
@@ -148,7 +154,29 @@ const UserProfile = () => {
               Back
             </Button>
           </Link>
+
+          {/* Edit Cover Button - Only show for own profile */}
+          {isOwnProfile && (
+            <Button
+              variant="secondary"
+              size="sm"
+              className="absolute bottom-4 right-4 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={() => setShowCoverEditor(true)}
+            >
+              <Camera className="w-4 h-4 mr-2" />
+              Edit Cover
+            </Button>
+          )}
         </div>
+
+        {/* Cover Editor Modal */}
+        <CoverEditor
+          open={showCoverEditor}
+          onOpenChange={setShowCoverEditor}
+          userId={user?.id || ""}
+          currentCover={profile?.cover_url || undefined}
+          onCoverSaved={handleCoverSaved}
+        />
 
         {/* Profile Header */}
         <div className="px-4 pb-4 bg-card border-b">
