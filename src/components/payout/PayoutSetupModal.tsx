@@ -127,7 +127,7 @@ export const PayoutSetupModal = ({ userId, onComplete }: PayoutSetupModalProps) 
               }
             </p>
             <button id="swal-stripe-btn" class="swal2-confirm swal2-styled" style="background: ${isStripeReady ? '#22c55e' : '#7c3aed'}; font-size: 13px; padding: 8px 16px;">
-              ${isStripeReady ? '✓ Stripe Connected' : 'Connect Bank Account'}
+              ${isStripeReady ? '✓ Stripe Connected' : 'Connect Bank Account to Receive Auto Commissions'}
             </button>
             ${!isStripeReady ? '<p style="color: #999; font-size: 11px; margin-top: 6px; margin-bottom: 0;">Skip this if you prefer PayPal only</p>' : ''}
           </div>
