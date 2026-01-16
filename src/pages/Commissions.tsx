@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import WithdrawalRequestSection from "@/components/commissions/WithdrawalRequestSection";
+import ReferralNetworkSection from "@/components/commissions/ReferralNetworkSection";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { 
   DollarSign, 
@@ -421,6 +422,11 @@ const Commissions = () => {
             pendingEarnings={pendingEarnings} 
             userId={user.id} 
           />
+        )}
+
+        {/* Referral Network Section */}
+        {user && (
+          <ReferralNetworkSection userId={user.id} />
         )}
 
         {/* Referral Email Form */}
