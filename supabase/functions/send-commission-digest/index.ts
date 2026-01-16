@@ -319,6 +319,26 @@ serve(async (req) => {
       }
     }
 
+    // Auto-cleanup: Delete notifications older than 60 days
+    const sixtyDaysAgo = new Date();
+    sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+    
+    const { data: deletedRecords, error: deleteError } = await supabaseAdmin
+      .from("pending_commission_notifications")
+      .delete()
+      .not("sent_at", "is", null)
+      .lt("sent_at", sixtyDaysAgo.toISOString())
+      .select("id");
+
+    if (deleteError) {
+      logStep("Error cleaning up old notifications", { error: deleteError.message });
+    } else {
+      const deletedCount = deletedRecords?.length || 0;
+      if (deletedCount > 0) {
+        logStep("Cleaned up old notifications", { deletedCount, olderThan: sixtyDaysAgo.toISOString() });
+      }
+    }
+
     logStep("Digest processing complete", { emailsSent, notificationsProcessed: notificationIds.length });
 
     return new Response(JSON.stringify({ 
@@ -326,7 +346,8 @@ serve(async (req) => {
       message: "Daily digest sent",
       emails_sent: emailsSent,
       notifications_processed: notificationIds.length,
-      batch_id: batchId
+      batch_id: batchId,
+      old_records_cleaned: deletedRecords?.length || 0
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
