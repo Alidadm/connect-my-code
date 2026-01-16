@@ -65,12 +65,12 @@ export const useUserGroups = () => {
 
   return useQuery({
     queryKey: ["userGroups", user?.id],
-    queryFn: async (): Promise<UserGroup[]> => {
+    queryFn: async (): Promise<{ createdGroups: UserGroup[]; joinedGroups: UserGroup[] }> => {
       if (!user?.id) {
-        return [];
+        return { createdGroups: [], joinedGroups: [] };
       }
 
-      // Fetch groups where user is a member (includes created groups since creator is auto-added as member)
+      // Fetch groups where user is a member
       const { data: membershipData, error: membershipError } = await supabase
         .from("group_members")
         .select("group_id")
@@ -78,11 +78,11 @@ export const useUserGroups = () => {
 
       if (membershipError) {
         console.error("Error fetching group memberships:", membershipError);
-        return [];
+        return { createdGroups: [], joinedGroups: [] };
       }
 
       if (!membershipData || membershipData.length === 0) {
-        return [];
+        return { createdGroups: [], joinedGroups: [] };
       }
 
       const groupIds = membershipData.map((m) => m.group_id);
@@ -91,15 +91,20 @@ export const useUserGroups = () => {
         .from("groups")
         .select("id, name, avatar_url, member_count, creator_id")
         .in("id", groupIds)
-        .order("created_at", { ascending: false })
-        .limit(5);
+        .order("created_at", { ascending: false });
 
       if (error) {
         console.error("Error fetching user groups:", error);
-        return [];
+        return { createdGroups: [], joinedGroups: [] };
       }
 
-      return data || [];
+      const allGroups = data || [];
+      
+      // Separate created groups (owner) from joined groups (member only)
+      const createdGroups = allGroups.filter((g) => g.creator_id === user.id).slice(0, 5);
+      const joinedGroups = allGroups.filter((g) => g.creator_id !== user.id).slice(0, 5);
+
+      return { createdGroups, joinedGroups };
     },
     enabled: !!user?.id,
     staleTime: 30000,
