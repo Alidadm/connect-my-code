@@ -24,8 +24,16 @@ import {
   Copy,
   Send,
   AlertCircle,
-  CreditCard
+  CreditCard,
+  Eye
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -56,6 +64,7 @@ const Commissions = () => {
   // Email form state
   const [emailTo, setEmailTo] = useState("");
   const [emailSubject, setEmailSubject] = useState("Build Your Monthly Income with DolphySN");
+  const [showPreview, setShowPreview] = useState(false);
   const [emailMessage, setEmailMessage] = useState(`Hi everyone,
 
 DolphySN.com is a new social network built for people who want to connect, grow, and earn real monthly income at the same time.
@@ -510,6 +519,15 @@ See you inside DolphySN.`);
             </div>
             
             <div className="flex gap-3 pt-2">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowPreview(true)} 
+                disabled={sendingEmail}
+                className="flex-1"
+              >
+                <Eye className="h-4 w-4 mr-2" />
+                Preview
+              </Button>
               <Button onClick={handleSendEmail} disabled={sendingEmail} className="flex-1">
                 {sendingEmail ? (
                   <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2" />
@@ -518,10 +536,65 @@ See you inside DolphySN.`);
                 )}
                 {sendingEmail ? "Sending..." : "Send"}
               </Button>
-              <Button variant="outline" onClick={handleCancelEmail} disabled={sendingEmail} className="flex-1">
+              <Button variant="outline" onClick={handleCancelEmail} disabled={sendingEmail}>
                 Cancel
               </Button>
             </div>
+
+            {/* Email Preview Modal */}
+            <Dialog open={showPreview} onOpenChange={setShowPreview}>
+              <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <Mail className="h-5 w-5" />
+                    Email Preview
+                  </DialogTitle>
+                  <DialogDescription>
+                    This is how your email will appear to the recipient
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <div className="space-y-4 mt-4">
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">To</Label>
+                    <div className="bg-muted rounded-md px-3 py-2 text-sm">
+                      {emailTo || <span className="text-muted-foreground italic">No recipient specified</span>}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Subject</Label>
+                    <div className="bg-muted rounded-md px-3 py-2 text-sm font-medium">
+                      {emailSubject}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Message</Label>
+                    <div className="bg-muted rounded-md px-4 py-3 text-sm whitespace-pre-wrap">
+                      {emailMessage.replace(/\{\{referral_link\}\}/g, referralUrl || "[Your referral link]")}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 mt-6">
+                  <Button 
+                    onClick={() => {
+                      setShowPreview(false);
+                      handleSendEmail();
+                    }} 
+                    disabled={sendingEmail || !emailTo} 
+                    className="flex-1"
+                  >
+                    <Send className="h-4 w-4 mr-2" />
+                    Send Email
+                  </Button>
+                  <Button variant="outline" onClick={() => setShowPreview(false)} className="flex-1">
+                    Edit
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
 
             {/* Referral URL Section */}
             <div className="pt-4 border-t">
