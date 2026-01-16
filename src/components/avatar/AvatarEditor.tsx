@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
-import { Camera, Upload, X, RotateCcw, ZoomIn, ZoomOut, Check, Loader2 } from "lucide-react";
+import { Camera, Upload, X, RotateCcw, ZoomIn, ZoomOut, Check, Loader2, Shuffle, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Slider } from "@/components/ui/slider";
@@ -13,9 +13,22 @@ interface AvatarEditorProps {
   onAvatarSaved: (url: string) => void;
   userId?: string;
   currentAvatar?: string;
+  userName?: string;
 }
 
-type Mode = "select" | "camera" | "crop";
+type Mode = "select" | "camera" | "crop" | "generate";
+
+// DiceBear avatar styles
+const AVATAR_STYLES = [
+  { id: "initials", name: "Initials" },
+  { id: "avataaars", name: "Cartoon" },
+  { id: "bottts", name: "Robot" },
+  { id: "lorelei", name: "Artistic" },
+  { id: "notionists", name: "Sketch" },
+  { id: "personas", name: "Person" },
+  { id: "thumbs", name: "Thumbs" },
+  { id: "fun-emoji", name: "Emoji" },
+] as const;
 
 export const AvatarEditor: React.FC<AvatarEditorProps> = ({
   open,
@@ -23,6 +36,7 @@ export const AvatarEditor: React.FC<AvatarEditorProps> = ({
   onAvatarSaved,
   userId,
   currentAvatar,
+  userName = "User",
 }) => {
   const [mode, setMode] = useState<Mode>("select");
   const [imageSrc, setImageSrc] = useState<string | null>(null);
@@ -33,12 +47,21 @@ export const AvatarEditor: React.FC<AvatarEditorProps> = ({
   const [uploading, setUploading] = useState(false);
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
   const [facingMode, setFacingMode] = useState<"user" | "environment">("user");
+  const [selectedStyle, setSelectedStyle] = useState<string>("initials");
+  const [generatedSeed, setGeneratedSeed] = useState<string>(() => Math.random().toString(36).substring(7));
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cropAreaRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
+
+  // Generate DiceBear avatar URL
+  const getDiceBearUrl = useCallback((style: string, seed: string) => {
+    const baseUrl = "https://api.dicebear.com/7.x";
+    const seedValue = style === "initials" ? userName : seed;
+    return `${baseUrl}/${style}/svg?seed=${encodeURIComponent(seedValue)}&size=400&radius=50`;
+  }, [userName]);
 
   // Cleanup camera on unmount or mode change
   useEffect(() => {
@@ -311,6 +334,84 @@ export const AvatarEditor: React.FC<AvatarEditorProps> = ({
     }
   };
 
+  // Save generated avatar
+  const saveGeneratedAvatar = async () => {
+    if (!userId) return;
+    
+    setUploading(true);
+    
+    try {
+      // Fetch the SVG from DiceBear
+      const avatarUrl = getDiceBearUrl(selectedStyle, generatedSeed);
+      const response = await fetch(avatarUrl);
+      const svgText = await response.text();
+      
+      // Convert SVG to PNG using canvas
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("Could not get canvas context");
+      
+      canvas.width = 400;
+      canvas.height = 400;
+      
+      const img = new Image();
+      const svgBlob = new Blob([svgText], { type: "image/svg+xml;charset=utf-8" });
+      const svgUrl = URL.createObjectURL(svgBlob);
+      
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => {
+          ctx.drawImage(img, 0, 0, 400, 400);
+          URL.revokeObjectURL(svgUrl);
+          resolve();
+        };
+        img.onerror = reject;
+        img.src = svgUrl;
+      });
+      
+      // Convert to blob
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob((b) => {
+          if (b) resolve(b);
+          else reject(new Error("Failed to create blob"));
+        }, "image/png");
+      });
+      
+      // Upload to Supabase storage
+      const fileName = `${userId}/avatar-${Date.now()}.png`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(fileName, blob, {
+          cacheControl: "3600",
+          upsert: true,
+        });
+      
+      if (uploadError) throw uploadError;
+      
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from("avatars")
+        .getPublicUrl(fileName);
+      
+      // Update profile
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ avatar_url: urlData.publicUrl })
+        .eq("user_id", userId);
+      
+      if (updateError) throw updateError;
+      
+      toast.success("Avatar updated successfully!");
+      onAvatarSaved(urlData.publicUrl);
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error("Failed to save avatar");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const renderSelectMode = () => (
     <div className="space-y-6">
       <div className="flex justify-center">
@@ -323,14 +424,14 @@ export const AvatarEditor: React.FC<AvatarEditorProps> = ({
         </div>
       </div>
       
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-3 gap-3">
         <Button
           variant="outline"
           className="h-24 flex-col gap-2"
           onClick={startCamera}
         >
-          <Camera className="w-8 h-8" />
-          <span>Take Photo</span>
+          <Camera className="w-7 h-7" />
+          <span className="text-xs">Take Photo</span>
         </Button>
         
         <Button
@@ -338,8 +439,17 @@ export const AvatarEditor: React.FC<AvatarEditorProps> = ({
           className="h-24 flex-col gap-2"
           onClick={() => fileInputRef.current?.click()}
         >
-          <Upload className="w-8 h-8" />
-          <span>Upload Image</span>
+          <Upload className="w-7 h-7" />
+          <span className="text-xs">Upload</span>
+        </Button>
+        
+        <Button
+          variant="outline"
+          className="h-24 flex-col gap-2"
+          onClick={() => setMode("generate")}
+        >
+          <User className="w-7 h-7" />
+          <span className="text-xs">Generate</span>
         </Button>
       </div>
       
@@ -352,7 +462,7 @@ export const AvatarEditor: React.FC<AvatarEditorProps> = ({
       />
       
       <p className="text-center text-sm text-muted-foreground">
-        Choose a photo or take a new one. It will be cropped to a circle.
+        Choose a photo, take a new one, or generate an avatar.
       </p>
     </div>
   );
@@ -502,6 +612,72 @@ export const AvatarEditor: React.FC<AvatarEditorProps> = ({
     </div>
   );
 
+  const renderGenerateMode = () => (
+    <div className="space-y-4">
+      {/* Preview */}
+      <div className="flex justify-center">
+        <div className="w-40 h-40 rounded-full bg-muted overflow-hidden border-4 border-primary/20">
+          <img
+            src={getDiceBearUrl(selectedStyle, generatedSeed)}
+            alt="Generated avatar"
+            className="w-full h-full object-cover"
+          />
+        </div>
+      </div>
+      
+      {/* Style selector */}
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-muted-foreground">Style</label>
+        <div className="grid grid-cols-4 gap-2">
+          {AVATAR_STYLES.map((style) => (
+            <Button
+              key={style.id}
+              variant={selectedStyle === style.id ? "default" : "outline"}
+              size="sm"
+              className="text-xs h-9"
+              onClick={() => setSelectedStyle(style.id)}
+            >
+              {style.name}
+            </Button>
+          ))}
+        </div>
+      </div>
+      
+      {/* Randomize button */}
+      <Button
+        variant="outline"
+        className="w-full"
+        onClick={() => setGeneratedSeed(Math.random().toString(36).substring(7))}
+      >
+        <Shuffle className="w-4 h-4 mr-2" />
+        Randomize
+      </Button>
+      
+      {/* Action buttons */}
+      <div className="flex justify-between gap-4">
+        <Button
+          variant="outline"
+          onClick={() => setMode("select")}
+        >
+          <X className="w-4 h-4 mr-2" />
+          Cancel
+        </Button>
+        
+        <Button
+          onClick={saveGeneratedAvatar}
+          disabled={uploading}
+        >
+          {uploading ? (
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          ) : (
+            <Check className="w-4 h-4 mr-2" />
+          )}
+          Save
+        </Button>
+      </div>
+    </div>
+  );
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -510,12 +686,14 @@ export const AvatarEditor: React.FC<AvatarEditorProps> = ({
             {mode === "select" && "Update Avatar"}
             {mode === "camera" && "Take Photo"}
             {mode === "crop" && "Adjust & Crop"}
+            {mode === "generate" && "Generate Avatar"}
           </DialogTitle>
         </DialogHeader>
         
         {mode === "select" && renderSelectMode()}
         {mode === "camera" && renderCameraMode()}
         {mode === "crop" && renderCropMode()}
+        {mode === "generate" && renderGenerateMode()}
       </DialogContent>
     </Dialog>
   );
