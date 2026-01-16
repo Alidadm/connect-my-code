@@ -560,8 +560,9 @@ const Commissions = () => {
                         )}
                       </div>
                       <div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <p className="font-medium">Referral Commission</p>
+                          {/* Payment source badge */}
                           {commission.payment_provider && (
                             <Badge 
                               variant="outline" 
@@ -576,7 +577,27 @@ const Commissions = () => {
                               ) : (
                                 <CreditCard className="h-3 w-3 mr-1" />
                               )}
-                              {commission.payment_provider === 'paypal' ? 'PayPal' : 'Stripe'}
+                              via {commission.payment_provider === 'paypal' ? 'PayPal' : 'Stripe'}
+                            </Badge>
+                          )}
+                          {/* Expected payout method for pending commissions */}
+                          {commission.status === 'pending' && !payoutStatus.isLoading && (
+                            <Badge 
+                              variant="secondary" 
+                              className="text-xs bg-amber-100 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400"
+                            >
+                              {(() => {
+                                // Determine expected payout method based on configured methods
+                                if (payoutStatus.hasStripe && payoutStatus.hasPaypal) {
+                                  return "→ Stripe or PayPal";
+                                } else if (payoutStatus.hasStripe) {
+                                  return "→ Bank (Stripe)";
+                                } else if (payoutStatus.hasPaypal) {
+                                  return "→ PayPal";
+                                } else {
+                                  return "⚠ No payout method";
+                                }
+                              })()}
                             </Badge>
                           )}
                         </div>
