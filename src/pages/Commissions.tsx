@@ -560,14 +560,28 @@ const Commissions = () => {
                         )}
                       </div>
                       <div>
-                        <p className="font-medium">Referral Commission</p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium">Referral Commission</p>
+                          {commission.payment_provider && (
+                            <Badge 
+                              variant="outline" 
+                              className={`text-xs ${
+                                commission.payment_provider === 'paypal' 
+                                  ? 'border-blue-500/50 text-blue-600 bg-blue-50 dark:bg-blue-950/30' 
+                                  : 'border-purple-500/50 text-purple-600 bg-purple-50 dark:bg-purple-950/30'
+                              }`}
+                            >
+                              {commission.payment_provider === 'paypal' ? (
+                                <Wallet className="h-3 w-3 mr-1" />
+                              ) : (
+                                <CreditCard className="h-3 w-3 mr-1" />
+                              )}
+                              {commission.payment_provider === 'paypal' ? 'PayPal' : 'Stripe'}
+                            </Badge>
+                          )}
+                        </div>
                         <p className="text-sm text-muted-foreground">
                           {formatDate(commission.created_at)}
-                          {commission.payment_provider && (
-                            <span className="text-xs text-muted-foreground/80 ml-1">
-                              ({commission.payment_provider === 'paypal' ? 'PayPal' : 'Credit Card'})
-                            </span>
-                          )}
                           {commission.paid_at && ` • Paid ${formatDate(commission.paid_at)}`}
                         </p>
                       </div>
