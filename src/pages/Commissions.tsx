@@ -58,21 +58,51 @@ const Commissions = () => {
     }
   };
 
-  const handleSendEmail = () => {
+  const handleSendEmail = async () => {
     if (!emailTo.trim()) {
       toast.error("Please enter an email address");
       return;
     }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailTo)) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
     
-    // Create mailto link with pre-filled content
-    const body = `${emailMessage}\n\nJoin here: ${referralUrl}`;
-    const mailtoLink = `mailto:${emailTo}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(body)}`;
-    window.location.href = mailtoLink;
+    setSendingEmail(true);
     
-    toast.success("Opening your email client...");
-    
-    // Clear the form
-    setEmailTo("");
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session?.access_token) {
+        toast.error("Please log in to send invitations");
+        return;
+      }
+
+      const response = await supabase.functions.invoke("send-referral-invite", {
+        body: {
+          recipientEmail: emailTo,
+          subject: emailSubject,
+          message: emailMessage,
+        },
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message || "Failed to send invitation");
+      }
+
+      toast.success("Invitation email sent successfully!");
+      
+      // Clear the form
+      setEmailTo("");
+    } catch (error: any) {
+      console.error("Error sending invitation:", error);
+      toast.error(error.message || "Failed to send invitation email");
+    } finally {
+      setSendingEmail(false);
+    }
   };
 
   const handleCancelEmail = () => {
@@ -330,11 +360,15 @@ const Commissions = () => {
             </div>
             
             <div className="flex gap-3 pt-2">
-              <Button onClick={handleSendEmail} className="flex-1">
-                <Send className="h-4 w-4 mr-2" />
-                Send
+              <Button onClick={handleSendEmail} disabled={sendingEmail} className="flex-1">
+                {sendingEmail ? (
+                  <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2" />
+                ) : (
+                  <Send className="h-4 w-4 mr-2" />
+                )}
+                {sendingEmail ? "Sending..." : "Send"}
               </Button>
-              <Button variant="outline" onClick={handleCancelEmail} className="flex-1">
+              <Button variant="outline" onClick={handleCancelEmail} disabled={sendingEmail} className="flex-1">
                 Cancel
               </Button>
             </div>
