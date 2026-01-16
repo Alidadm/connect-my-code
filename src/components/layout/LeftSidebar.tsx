@@ -6,12 +6,14 @@ import {
   Image, 
   Store,
   BadgeCheck,
-  Bookmark
+  Bookmark,
+  Settings
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { useMemberStats, formatCount } from "@/hooks/useMemberStats";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
@@ -19,11 +21,12 @@ import type { TFunction } from "i18next";
 const getNavItems = (t: TFunction) => [
   { icon: Newspaper, label: t("nav.feed"), path: "/", badge: null },
   { icon: Users, label: t("nav.friends"), path: "/friends", badge: null },
-  { icon: Calendar, label: t("nav.events"), path: "/events", badge: 4 },
+  { icon: Calendar, label: t("nav.events"), path: "/events", badge: null },
   { icon: Bookmark, label: t("nav.saved", { defaultValue: "Saved" }), path: "/saved", badge: null },
   { icon: UsersRound, label: t("nav.groups", { defaultValue: "Groups" }), path: "/groups", badge: null },
   { icon: Image, label: t("nav.photos"), path: "/photos", badge: null },
   { icon: Store, label: t("nav.marketplace"), path: "/marketplace", badge: null },
+  { icon: Settings, label: t("nav.settings", { defaultValue: "Settings" }), path: "/dashboard", badge: null },
 ];
 
 // Demo group for sidebar
@@ -46,22 +49,24 @@ const demoProfile = {
   username: "jakobbtsh",
   avatar_url: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop",
   is_verified: true,
-  followers: "2.3k",
-  following: "235",
-  posts: "80",
 };
 
 export const LeftSidebar = () => {
   const { t } = useTranslation();
   const { user, profile } = useAuth();
+  const { data: memberStats } = useMemberStats();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const displayProfile = profile || demoProfile;
   const displayName = profile?.display_name || demoProfile.display_name;
   const username = profile?.username || user?.email?.split("@")[0] || demoProfile.username;
   const avatarUrl = profile?.avatar_url || demoProfile.avatar_url;
   const isVerified = profile?.is_verified ?? demoProfile.is_verified;
+
+  // Use real stats for logged-in users, demo stats for guests
+  const followers = user ? formatCount(memberStats?.followers || 0) : "2.3k";
+  const following = user ? formatCount(memberStats?.following || 0) : "235";
+  const posts = user ? formatCount(memberStats?.posts || 0) : "80";
 
   const navItems = getNavItems(t);
 
@@ -93,15 +98,15 @@ export const LeftSidebar = () => {
           </div>
           <div className="flex justify-between text-center border-t border-border pt-3">
             <div className="flex-1">
-              <div className="font-bold text-foreground">{demoProfile.followers}</div>
+              <div className="font-bold text-foreground">{followers}</div>
               <div className="text-xs text-muted-foreground">{t("friends.followers")}</div>
             </div>
             <div className="flex-1 border-x border-border">
-              <div className="font-bold text-foreground">{demoProfile.following}</div>
+              <div className="font-bold text-foreground">{following}</div>
               <div className="text-xs text-muted-foreground">{t("friends.following")}</div>
             </div>
             <div className="flex-1">
-              <div className="font-bold text-foreground">{demoProfile.posts}</div>
+              <div className="font-bold text-foreground">{posts}</div>
               <div className="text-xs text-muted-foreground">{t("sidebar.posts")}</div>
             </div>
           </div>
