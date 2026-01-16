@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
@@ -51,6 +52,7 @@ export const AvatarEditor: React.FC<AvatarEditorProps> = ({
   const [facingMode, setFacingMode] = useState<"user" | "environment">("user");
   const [selectedStyle, setSelectedStyle] = useState<string>("initials");
   const [generatedSeed, setGeneratedSeed] = useState<string>(() => Math.random().toString(36).substring(7));
+  const [avatarLoading, setAvatarLoading] = useState(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -657,45 +659,72 @@ export const AvatarEditor: React.FC<AvatarEditorProps> = ({
     </div>
   );
 
-  const renderGenerateMode = () => (
-    <div className="space-y-4">
-      {/* Preview with circular overlay - matching crop mode */}
-      <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-black flex items-center justify-center">
-        <img
-          src={getDiceBearUrl(selectedStyle, generatedSeed)}
-          alt="Generated avatar"
-          className="w-[280px] h-[280px] object-cover"
-        />
+  const renderGenerateMode = () => {
+    const handleAvatarLoad = () => {
+      setAvatarLoading(false);
+    };
+
+    const handleStyleChange = (styleId: string) => {
+      setAvatarLoading(true);
+      setSelectedStyle(styleId);
+    };
+
+    const handleRandomize = () => {
+      setAvatarLoading(true);
+      setGeneratedSeed(Math.random().toString(36).substring(7));
+    };
+
+    return (
+      <div className="space-y-4">
+        {/* Preview with circular overlay - matching crop mode */}
+        <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-black flex items-center justify-center">
+          {/* Loading skeleton */}
+          {avatarLoading && (
+            <div className="absolute inset-0 flex items-center justify-center z-10">
+              <Skeleton className="w-[280px] h-[280px] rounded-full bg-muted/30" />
+            </div>
+          )}
+          
+          <img
+            src={getDiceBearUrl(selectedStyle, generatedSeed)}
+            alt="Generated avatar"
+            className={cn(
+              "w-[280px] h-[280px] object-cover transition-opacity duration-300",
+              avatarLoading ? "opacity-0" : "opacity-100"
+            )}
+            onLoad={handleAvatarLoad}
+          />
+          
+          {/* Circular crop guide - same as crop mode */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="w-[280px] h-[280px] rounded-full border-4 border-white shadow-[0_0_0_9999px_rgba(0,0,0,0.6)]" />
+          </div>
+        </div>
         
-        {/* Circular crop guide - same as crop mode */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="w-[280px] h-[280px] rounded-full border-4 border-white shadow-[0_0_0_9999px_rgba(0,0,0,0.6)]" />
+        {/* Style selector */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-muted-foreground">{t("avatar.style")}</label>
+          <div className="grid grid-cols-4 gap-2">
+            {AVATAR_STYLES.map((style) => (
+              <Button
+                key={style.id}
+                variant={selectedStyle === style.id ? "default" : "outline"}
+                size="sm"
+                className="text-xs h-9"
+                onClick={() => handleStyleChange(style.id)}
+              >
+                {t(`avatar.styles.${style.key}`)}
+              </Button>
+            ))}
+          </div>
         </div>
-      </div>
-      
-      {/* Style selector */}
-      <div className="space-y-2">
-        <label className="text-sm font-medium text-muted-foreground">{t("avatar.style")}</label>
-        <div className="grid grid-cols-4 gap-2">
-          {AVATAR_STYLES.map((style) => (
-            <Button
-              key={style.id}
-              variant={selectedStyle === style.id ? "default" : "outline"}
-              size="sm"
-              className="text-xs h-9"
-              onClick={() => setSelectedStyle(style.id)}
-            >
-              {t(`avatar.styles.${style.key}`)}
-            </Button>
-          ))}
-        </div>
-      </div>
-      
-      {/* Randomize button */}
-      <Button
-        variant="outline"
-        className="w-full"
-        onClick={() => setGeneratedSeed(Math.random().toString(36).substring(7))}
+        
+        {/* Randomize button */}
+        <Button
+          variant="outline"
+          className="w-full"
+          onClick={handleRandomize}
+          disabled={avatarLoading}
       >
         <Shuffle className="w-4 h-4 mr-2" />
         {t("avatar.randomize")}
@@ -724,7 +753,8 @@ export const AvatarEditor: React.FC<AvatarEditorProps> = ({
         </Button>
       </div>
     </div>
-  );
+    );
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
