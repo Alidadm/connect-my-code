@@ -10,8 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import WithdrawalRequestSection from "@/components/commissions/WithdrawalRequestSection";
+import { MainLayout } from "@/components/layout/MainLayout";
 import { 
-  ArrowLeft, 
   DollarSign, 
   Clock, 
   CheckCircle2, 
@@ -159,17 +159,12 @@ const Commissions = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-      <div className="container max-w-4xl mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold">Referral Commissions</h1>
-            <p className="text-muted-foreground">Track your earnings from referrals</p>
-          </div>
+    <MainLayout>
+      <div className="max-w-4xl mx-auto">
+        {/* Page Title */}
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold">Referral Commissions</h1>
+          <p className="text-muted-foreground">Track your earnings from referrals</p>
         </div>
 
         {/* Primary Stats Cards */}
@@ -445,7 +440,7 @@ const Commissions = () => {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </MainLayout>
   );
 };
 
