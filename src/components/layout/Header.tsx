@@ -13,7 +13,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
@@ -27,7 +27,31 @@ export const Header = () => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
   const [searchOpen, setSearchOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const { t } = useTranslation();
+
+  // Check if user is admin
+  useEffect(() => {
+    const checkAdminRole = async () => {
+      if (!user) {
+        setIsAdmin(false);
+        return;
+      }
+      
+      const { data, error } = await supabase.rpc("has_role", {
+        _role: "admin",
+        _user_id: user.id,
+      });
+      
+      if (!error && data) {
+        setIsAdmin(true);
+      } else {
+        setIsAdmin(false);
+      }
+    };
+    
+    checkAdminRole();
+  }, [user]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -74,16 +98,18 @@ export const Header = () => {
           {/* Language Switcher */}
           <LanguageSwitcher variant="icon" />
           
-          {/* Temporary Dev Link to Admin */}
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="text-amber-500 hover:text-amber-600 hover:bg-amber-50 h-9 w-9 sm:h-10 sm:w-10"
-            onClick={() => navigate("/adminindex")}
-            title="Admin Dashboard (Dev)"
-          >
-            <Shield className="h-5 w-5" />
-          </Button>
+          {/* Admin Dashboard Link - Only visible to admin users */}
+          {isAdmin && (
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="text-amber-500 hover:text-amber-600 hover:bg-amber-50 h-9 w-9 sm:h-10 sm:w-10"
+              onClick={() => navigate("/adminindex")}
+              title="Admin Dashboard"
+            >
+              <Shield className="h-5 w-5" />
+            </Button>
+          )}
           
           <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground hover:bg-secondary h-9 w-9 sm:h-10 sm:w-10 hidden sm:flex">
             <ExternalLink className="h-5 w-5" />
