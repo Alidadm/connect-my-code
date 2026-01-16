@@ -20,9 +20,12 @@ import {
   Wallet,
   Mail,
   Copy,
-  Send
+  Send,
+  AlertCircle,
+  CreditCard
 } from "lucide-react";
 import { toast } from "sonner";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface Commission {
   id: string;
@@ -40,6 +43,13 @@ const Commissions = () => {
   const navigate = useNavigate();
   const [commissions, setCommissions] = useState<Commission[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Payout setup status
+  const [payoutStatus, setPayoutStatus] = useState<{
+    hasStripe: boolean;
+    hasPaypal: boolean;
+    isLoading: boolean;
+  }>({ hasStripe: false, hasPaypal: false, isLoading: true });
   
   // Email form state
   const [emailTo, setEmailTo] = useState("");
@@ -119,8 +129,55 @@ const Commissions = () => {
 
     if (user) {
       fetchCommissions();
+      fetchPayoutStatus();
     }
   }, [user, authLoading, navigate]);
+
+  const fetchPayoutStatus = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      // Check private profile for PayPal email
+      const profileResponse = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-my-private-profile`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session.access_token}`,
+          },
+        }
+      );
+
+      const profileData = await profileResponse.json();
+      const hasPaypal = !!profileData?.paypal_payout_email;
+
+      // Check Stripe Connect status
+      const stripeResponse = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/stripe-connect-status`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session.access_token}`,
+          },
+        }
+      );
+
+      const stripeData = await stripeResponse.json();
+      const hasStripe = stripeData?.connected && stripeData?.status === "active";
+
+      setPayoutStatus({
+        hasStripe,
+        hasPaypal,
+        isLoading: false,
+      });
+    } catch (error) {
+      console.error("Error fetching payout status:", error);
+      setPayoutStatus(prev => ({ ...prev, isLoading: false }));
+    }
+  };
 
   const fetchCommissions = async () => {
     try {
@@ -188,14 +245,57 @@ const Commissions = () => {
     );
   }
 
+  const showPayoutReminder = !payoutStatus.isLoading && (!payoutStatus.hasStripe || !payoutStatus.hasPaypal);
+
   return (
     <MainLayout>
       <div className="max-w-4xl mx-auto">
         {/* Page Title */}
-        <div className="mb-8">
+        <div className="mb-6">
           <h1 className="text-2xl font-bold">Referral Commissions</h1>
           <p className="text-muted-foreground">Track your earnings from referrals</p>
         </div>
+
+        {/* Payout Setup Reminder Banner */}
+        {showPayoutReminder && (
+          <Alert className="mb-6 border-amber-500/50 bg-amber-50 dark:bg-amber-950/20">
+            <AlertCircle className="h-5 w-5 text-amber-600" />
+            <AlertTitle className="text-amber-800 dark:text-amber-200">Complete Your Payout Setup</AlertTitle>
+            <AlertDescription className="text-amber-700 dark:text-amber-300">
+              <p className="mb-3">
+                {!payoutStatus.hasStripe && !payoutStatus.hasPaypal
+                  ? "You haven't set up any payout methods yet. Add your bank account or PayPal email to receive commissions."
+                  : !payoutStatus.hasStripe
+                  ? "Connect your bank account via Stripe to receive commissions from credit card payments."
+                  : "Add your PayPal email to receive commissions from PayPal payments."}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {!payoutStatus.hasStripe && (
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="border-amber-600 text-amber-700 hover:bg-amber-100 dark:hover:bg-amber-900/30"
+                    onClick={() => navigate("/dashboard")}
+                  >
+                    <CreditCard className="h-4 w-4 mr-2" />
+                    Connect Bank Account
+                  </Button>
+                )}
+                {!payoutStatus.hasPaypal && (
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="border-amber-600 text-amber-700 hover:bg-amber-100 dark:hover:bg-amber-900/30"
+                    onClick={() => navigate("/dashboard")}
+                  >
+                    <Wallet className="h-4 w-4 mr-2" />
+                    Add PayPal Email
+                  </Button>
+                )}
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
 
         {/* Primary Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
