@@ -15,6 +15,7 @@ import {
   DollarSign, 
   Clock, 
   CheckCircle2, 
+  CheckCircle,
   TrendingUp,
   Users,
   Wallet,
@@ -256,7 +257,17 @@ const Commissions = () => {
           <p className="text-muted-foreground">Track your earnings from referrals</p>
         </div>
 
-        {/* Payout Setup Reminder Banner */}
+        {/* Payout Status Banners */}
+        {payoutStatus.hasStripe && payoutStatus.hasPaypal && (
+          <Alert className="mb-6 border-green-500/50 bg-green-50 dark:bg-green-950/20">
+            <CheckCircle className="h-5 w-5 text-green-600" />
+            <AlertTitle className="text-green-800 dark:text-green-200">Payout Methods Configured</AlertTitle>
+            <AlertDescription className="text-green-700 dark:text-green-300">
+              You're all set! Both Stripe and PayPal payouts are configured. You'll receive commissions automatically.
+            </AlertDescription>
+          </Alert>
+        )}
+        
         {showPayoutReminder && (
           <Alert className="mb-6 border-amber-500/50 bg-amber-50 dark:bg-amber-950/20">
             <AlertCircle className="h-5 w-5 text-amber-600" />
