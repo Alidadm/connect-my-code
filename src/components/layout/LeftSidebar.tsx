@@ -4,10 +4,8 @@ import {
   Calendar, 
   UsersRound, 
   Image, 
-  Store, 
-  FileText,
+  Store,
   BadgeCheck,
-  Wallet,
   Bookmark
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -23,11 +21,9 @@ const getNavItems = (t: TFunction) => [
   { icon: Users, label: t("nav.friends"), path: "/friends", badge: null },
   { icon: Calendar, label: t("nav.events"), path: "/events", badge: 4 },
   { icon: Bookmark, label: t("nav.saved", { defaultValue: "Saved" }), path: "/saved", badge: null },
-  { icon: Wallet, label: t("nav.commissions"), path: "/commissions", badge: null },
   { icon: UsersRound, label: t("nav.groups", { defaultValue: "Groups" }), path: "/groups", badge: null },
   { icon: Image, label: t("nav.photos"), path: "/photos", badge: null },
   { icon: Store, label: t("nav.marketplace"), path: "/marketplace", badge: null },
-  { icon: FileText, label: t("nav.files"), path: "/files", badge: 7 },
 ];
 
 // Demo group for sidebar
