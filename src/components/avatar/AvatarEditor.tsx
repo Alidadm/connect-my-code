@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
-import { Camera, Upload, X, RotateCcw, ZoomIn, ZoomOut, Check, Loader2, Shuffle, User } from "lucide-react";
+import { Camera, Upload, X, RotateCcw, ZoomIn, ZoomOut, Check, Loader2, Shuffle, User, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Slider } from "@/components/ui/slider";
@@ -414,6 +414,32 @@ export const AvatarEditor: React.FC<AvatarEditorProps> = ({
     }
   };
 
+  // Remove current avatar
+  const removeAvatar = async () => {
+    if (!userId) return;
+    
+    setUploading(true);
+    
+    try {
+      // Update profile to remove avatar
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ avatar_url: null })
+        .eq("user_id", userId);
+      
+      if (updateError) throw updateError;
+      
+      toast.success(t("avatar.avatarRemoved"));
+      onAvatarSaved("");
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Remove avatar error:", error);
+      toast.error(t("avatar.removeFailed"));
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const renderSelectMode = () => (
     <div className="space-y-6">
       <div className="flex justify-center">
@@ -454,6 +480,23 @@ export const AvatarEditor: React.FC<AvatarEditorProps> = ({
           <span className="text-xs">{t("avatar.generate")}</span>
         </Button>
       </div>
+      
+      {/* Remove avatar button - only show if there's a current avatar */}
+      {currentAvatar && (
+        <Button
+          variant="outline"
+          className="w-full text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30"
+          onClick={removeAvatar}
+          disabled={uploading}
+        >
+          {uploading ? (
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          ) : (
+            <Trash2 className="w-4 h-4 mr-2" />
+          )}
+          {t("avatar.removeAvatar")}
+        </Button>
+      )}
       
       <input
         ref={fileInputRef}
