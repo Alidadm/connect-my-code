@@ -498,14 +498,14 @@ See you inside DolphySN.`);
               />
             </div>
             
-            <div className="space-y-2">
+            <div className="space-y-2 flex-1">
               <Label htmlFor="emailMessage">Message</Label>
               <Textarea
                 id="emailMessage"
                 placeholder="Write your message..."
                 value={emailMessage}
                 onChange={(e) => setEmailMessage(e.target.value)}
-                rows={4}
+                className="min-h-[300px] h-full resize-none"
               />
             </div>
             
