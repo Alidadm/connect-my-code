@@ -61,6 +61,18 @@
       "completed": "Abgeschlossen",
       "approved": "Genehmigt",
       "rejected": "Abgelehnt"
+    },
+    "amounts": {
+      "earned": "Verdient",
+      "pending": "Ausstehend",
+      "paid": "Bezahlt",
+      "total": "Gesamt",
+      "monthly": "Monatlich",
+      "perMonth": "pro Monat",
+      "commission": "Provision",
+      "balance": "Verfügbares Guthaben",
+      "withdrawn": "Abgehoben",
+      "currency": "USD"
     }
   },
   "profile": {

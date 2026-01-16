@@ -95,6 +95,18 @@
       "completed": "已完成",
       "approved": "已批准",
       "rejected": "已拒绝"
+    },
+    "amounts": {
+      "earned": "已赚取",
+      "pending": "待处理",
+      "paid": "已支付",
+      "total": "总计",
+      "monthly": "每月",
+      "perMonth": "每月",
+      "commission": "佣金",
+      "balance": "可用余额",
+      "withdrawn": "已提取",
+      "currency": "美元"
     }
   },
   "profile": {
