@@ -47,6 +47,7 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [postContent, setPostContent] = useState(post.content);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showComments, setShowComments] = useState(false);
 
   const isOwner = user?.id === post.user_id;
 
@@ -303,103 +304,8 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
     showImage(currentIndex);
   };
 
-  const handleCommentsClick = async () => {
-    const { value: newComment } = await Swal.fire({
-      title: t('feed.comments', 'Comments'),
-      html: `
-        <div id="swal-comments-container" class="max-h-[400px] overflow-y-auto text-left mb-4">
-          <p class="text-gray-500 text-center py-4">${t('feed.loadingComments', 'Loading comments...')}</p>
-        </div>
-      `,
-      input: 'textarea',
-      inputPlaceholder: t('feed.writeComment', 'Write a comment...'),
-      inputAttributes: {
-        'aria-label': 'Comment',
-        style: 'min-height: 60px; resize: vertical;'
-      },
-      showCancelButton: true,
-      confirmButtonText: t('feed.postComment', 'Post Comment'),
-      cancelButtonText: t('common.close', 'Close'),
-      confirmButtonColor: '#1c76e6',
-      width: '500px',
-      didOpen: async () => {
-        const container = document.getElementById('swal-comments-container');
-        if (container) {
-          // Fetch comments first
-          const { data: commentsData } = await supabase
-            .from('post_comments')
-            .select('id, content, created_at, user_id')
-            .eq('post_id', post.id)
-            .is('parent_comment_id', null)
-            .order('created_at', { ascending: false })
-            .limit(20);
-
-          // Then fetch profiles for comment authors
-          let comments: any[] = [];
-          if (commentsData && commentsData.length > 0) {
-            const userIds = [...new Set(commentsData.map(c => c.user_id))];
-            const { data: profilesData } = await supabase
-              .from('profiles')
-              .select('user_id, display_name, avatar_url')
-              .in('user_id', userIds);
-            
-            const profileMap = new Map(profilesData?.map(p => [p.user_id, p]) || []);
-            comments = commentsData.map(c => ({
-              ...c,
-              profiles: profileMap.get(c.user_id)
-            }));
-          }
-
-          if (comments && comments.length > 0) {
-            container.innerHTML = comments.map((c: any) => `
-              <div class="flex gap-3 p-3 border-b border-gray-200 dark:border-gray-700">
-                <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-medium">
-                  ${c.profiles?.display_name?.[0]?.toUpperCase() || 'U'}
-                </div>
-                <div class="flex-1">
-                  <div class="flex items-center gap-2">
-                    <span class="font-medium text-sm">${c.profiles?.display_name || 'User'}</span>
-                    <span class="text-xs text-gray-500">${formatDistanceToNow(new Date(c.created_at), { addSuffix: true })}</span>
-                  </div>
-                  <p class="text-sm mt-1">${c.content}</p>
-                </div>
-              </div>
-            `).join('');
-          } else {
-            container.innerHTML = `<p class="text-gray-500 text-center py-4">${t('feed.noComments', 'No comments yet. Be the first to comment!')}</p>`;
-          }
-        }
-      },
-      preConfirm: (comment) => {
-        if (!comment?.trim()) {
-          Swal.showValidationMessage(t('feed.commentRequired', 'Please enter a comment'));
-          return false;
-        }
-        return comment.trim();
-      }
-    });
-
-    if (newComment && user) {
-      try {
-        await supabase.from('post_comments').insert({
-          post_id: post.id,
-          user_id: user.id,
-          content: newComment,
-        });
-        setCommentsCount(prev => prev + 1);
-        toast({
-          title: t('feed.commentAdded', 'Comment added'),
-          description: t('feed.commentAddedDesc', 'Your comment has been posted.'),
-        });
-      } catch (error) {
-        console.error('Error adding comment:', error);
-        toast({
-          title: t('common.error', 'Error'),
-          description: t('feed.commentFailed', 'Failed to add comment.'),
-          variant: 'destructive',
-        });
-      }
-    }
+  const handleCommentsClick = () => {
+    setShowComments(!showComments);
   };
 
   const handleShareClick = async () => {
@@ -652,7 +558,7 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
           <Button 
             variant="ghost" 
             size="sm" 
-            className="gap-1 sm:gap-2 text-muted-foreground hover:text-primary"
+            className={`gap-1 sm:gap-2 ${showComments ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}
             onClick={handleCommentsClick}
           >
             <MessageCircle className="h-5 w-5" />
@@ -679,6 +585,14 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
           <Bookmark className={`h-5 w-5 ${isBookmarked ? 'fill-current' : ''}`} />
         </Button>
       </div>
+
+      {/* Comment Section */}
+      {showComments && (
+        <CommentSection 
+          postId={post.id} 
+          onCommentCountChange={(count) => setCommentsCount(count)} 
+        />
+      )}
     </div>
   );
 };
