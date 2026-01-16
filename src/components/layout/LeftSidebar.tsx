@@ -13,7 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
-import { useMemberStats, useUserCreatedGroups, formatCount } from "@/hooks/useMemberStats";
+import { useMemberStats, useUserGroups, formatCount } from "@/hooks/useMemberStats";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
@@ -51,7 +51,7 @@ export const LeftSidebar = () => {
   const { t } = useTranslation();
   const { user, profile } = useAuth();
   const { data: memberStats } = useMemberStats();
-  const { data: userGroups } = useUserCreatedGroups();
+  const { data: userGroups } = useUserGroups();
   const navigate = useNavigate();
   const location = useLocation();
 

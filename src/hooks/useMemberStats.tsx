@@ -59,20 +59,37 @@ export const useMemberStats = () => {
   });
 };
 
-export const useUserCreatedGroups = () => {
+export const useUserGroups = () => {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ["userCreatedGroups", user?.id],
+    queryKey: ["userGroups", user?.id],
     queryFn: async (): Promise<UserGroup[]> => {
       if (!user?.id) {
         return [];
       }
 
+      // Fetch groups where user is a member (includes created groups since creator is auto-added as member)
+      const { data: membershipData, error: membershipError } = await supabase
+        .from("group_members")
+        .select("group_id")
+        .eq("user_id", user.id);
+
+      if (membershipError) {
+        console.error("Error fetching group memberships:", membershipError);
+        return [];
+      }
+
+      if (!membershipData || membershipData.length === 0) {
+        return [];
+      }
+
+      const groupIds = membershipData.map((m) => m.group_id);
+
       const { data, error } = await supabase
         .from("groups")
         .select("id, name, avatar_url, member_count")
-        .eq("creator_id", user.id)
+        .in("id", groupIds)
         .order("created_at", { ascending: false })
         .limit(5);
 
