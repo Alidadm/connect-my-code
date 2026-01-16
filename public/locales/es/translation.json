@@ -44,9 +44,15 @@
   "referrals": {
     "all": "Todos",
     "friends": "Amigos",
+    "friend": "Amigo",
     "nonFriends": "No Amigos",
     "searchPlaceholder": "Buscar referidos...",
     "noReferrals": "No se encontraron referidos",
+    "noReferralsYet": "Aún no tienes referidos. ¡Comparte tu enlace para hacer crecer tu red!",
+    "noFriendsYet": "Aún no tienes amigos en tu red de referidos",
+    "allAreFriends": "¡Todos tus referidos ya son amigos!",
+    "totalReferrals": "Total de Referidos",
+    "manageDescription": "Administra tus referidos y conéctate con ellos como amigos",
     "sendFriendRequest": "Enviar Solicitud de Amistad"
   },
   "profile": {

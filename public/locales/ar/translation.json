@@ -54,9 +54,15 @@
   "referrals": {
     "all": "الكل",
     "friends": "الأصدقاء",
+    "friend": "صديق",
     "nonFriends": "غير الأصدقاء",
     "searchPlaceholder": "البحث عن الإحالات...",
     "noReferrals": "لم يتم العثور على إحالات",
+    "noReferralsYet": "لا توجد إحالات بعد. شارك رابطك لتنمية شبكتك!",
+    "noFriendsYet": "لا يوجد أصدقاء في شبكة الإحالات الخاصة بك بعد",
+    "allAreFriends": "جميع إحالاتك هم أصدقاء بالفعل!",
+    "totalReferrals": "إجمالي الإحالات",
+    "manageDescription": "إدارة إحالاتك والتواصل معهم كأصدقاء",
     "sendFriendRequest": "إرسال طلب صداقة"
   },
   "profile": {

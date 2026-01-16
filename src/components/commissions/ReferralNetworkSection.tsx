@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -44,6 +45,7 @@ interface ReferralNetworkSectionProps {
 const ITEMS_PER_PAGE = 10;
 
 const ReferralNetworkSection = ({ userId }: ReferralNetworkSectionProps) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [referrals, setReferrals] = useState<ReferralUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -216,9 +218,9 @@ const ReferralNetworkSection = ({ userId }: ReferralNetworkSectionProps) => {
             <Users className="h-5 w-5 text-indigo-600" />
           </div>
           <div>
-            <CardTitle className="text-lg">Referral Network</CardTitle>
+            <CardTitle className="text-lg">{t("dashboard.referralNetwork")}</CardTitle>
             <CardDescription>
-              Manage your referrals and connect with them as friends
+              {t("referrals.manageDescription", "Manage your referrals and connect with them as friends")}
             </CardDescription>
           </div>
         </div>
@@ -228,15 +230,15 @@ const ReferralNetworkSection = ({ userId }: ReferralNetworkSectionProps) => {
         <div className="grid grid-cols-3 gap-3">
           <div className="text-center p-3 bg-muted/50 rounded-lg">
             <p className="text-2xl font-bold">{totalReferrals}</p>
-            <p className="text-xs text-muted-foreground">Total Referrals</p>
+            <p className="text-xs text-muted-foreground">{t("referrals.totalReferrals", "Total Referrals")}</p>
           </div>
           <div className="text-center p-3 bg-green-500/10 rounded-lg">
             <p className="text-2xl font-bold text-green-600">{friendCount}</p>
-            <p className="text-xs text-muted-foreground">Friends</p>
+            <p className="text-xs text-muted-foreground">{t("referrals.friends")}</p>
           </div>
           <div className="text-center p-3 bg-orange-500/10 rounded-lg">
             <p className="text-2xl font-bold text-orange-600">{nonFriendCount}</p>
-            <p className="text-xs text-muted-foreground">Non-Friends</p>
+            <p className="text-xs text-muted-foreground">{t("referrals.nonFriends")}</p>
           </div>
         </div>
 
@@ -244,7 +246,7 @@ const ReferralNetworkSection = ({ userId }: ReferralNetworkSectionProps) => {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by name or username..."
+            placeholder={t("referrals.searchPlaceholder")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
@@ -256,15 +258,15 @@ const ReferralNetworkSection = ({ userId }: ReferralNetworkSectionProps) => {
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="all" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
-              All ({totalReferrals})
+              {t("referrals.all")} ({totalReferrals})
             </TabsTrigger>
             <TabsTrigger value="friends" className="flex items-center gap-2">
               <Heart className="h-4 w-4" />
-              Friends ({friendCount})
+              {t("referrals.friends")} ({friendCount})
             </TabsTrigger>
             <TabsTrigger value="non-friends" className="flex items-center gap-2">
               <UserX className="h-4 w-4" />
-              Non-Friends ({nonFriendCount})
+              {t("referrals.nonFriends")} ({nonFriendCount})
             </TabsTrigger>
           </TabsList>
 
@@ -291,12 +293,12 @@ const ReferralNetworkSection = ({ userId }: ReferralNetworkSectionProps) => {
                 </div>
                 <p className="text-muted-foreground text-sm">
                   {referrals.length === 0
-                    ? "No referrals yet. Share your link to grow your network!"
+                    ? t("referrals.noReferralsYet", "No referrals yet. Share your link to grow your network!")
                     : activeTab === "friends"
-                    ? "No friends in your referral network yet"
+                    ? t("referrals.noFriendsYet", "No friends in your referral network yet")
                     : activeTab === "non-friends"
-                    ? "All your referrals are already friends!"
-                    : "No matching referrals found"}
+                    ? t("referrals.allAreFriends", "All your referrals are already friends!")
+                    : t("referrals.noReferrals")}
                 </p>
               </div>
             ) : (
@@ -321,7 +323,7 @@ const ReferralNetworkSection = ({ userId }: ReferralNetworkSectionProps) => {
                             {referral.isFriend && (
                               <Badge className="bg-green-500/10 text-green-600 border-green-500/20 text-xs">
                                 <Heart className="h-3 w-3 mr-1 fill-current" />
-                                Friend
+                                {t("referrals.friend", "Friend")}
                               </Badge>
                             )}
                           </div>
@@ -334,7 +336,7 @@ const ReferralNetworkSection = ({ userId }: ReferralNetworkSectionProps) => {
                         {referral.isFriend ? (
                           <Button variant="outline" size="sm" disabled className="text-green-600">
                             <UserCheck className="h-4 w-4 mr-1" />
-                            Friends
+                            {t("referrals.friends")}
                           </Button>
                         ) : (
                           <Button
@@ -348,7 +350,7 @@ const ReferralNetworkSection = ({ userId }: ReferralNetworkSectionProps) => {
                             ) : (
                               <UserPlus className="h-4 w-4 mr-1" />
                             )}
-                            Add Friend
+                            {t("referrals.sendFriendRequest")}
                           </Button>
                         )}
                       </div>

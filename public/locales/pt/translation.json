@@ -78,9 +78,15 @@
   "referrals": {
     "all": "Todos",
     "friends": "Amigos",
+    "friend": "Amigo",
     "nonFriends": "Não Amigos",
     "searchPlaceholder": "Pesquisar indicações...",
     "noReferrals": "Nenhuma indicação encontrada",
+    "noReferralsYet": "Ainda sem indicações. Compartilhe seu link para crescer sua rede!",
+    "noFriendsYet": "Ainda sem amigos na sua rede de indicações",
+    "allAreFriends": "Todas as suas indicações já são amigos!",
+    "totalReferrals": "Total de Indicações",
+    "manageDescription": "Gerencie suas indicações e conecte-se com elas como amigos",
     "sendFriendRequest": "Enviar Pedido de Amizade"
   },
   "profile": {
