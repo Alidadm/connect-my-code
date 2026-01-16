@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -297,6 +297,30 @@ export const CommentSection = ({ postId, onCommentCountChange }: CommentSectionP
       return [] as Comment[];
     },
   });
+
+  // Real-time subscription for comments
+  useEffect(() => {
+    const channel = supabase
+      .channel(`comments-${postId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'post_comments',
+          filter: `post_id=eq.${postId}`,
+        },
+        () => {
+          // Invalidate and refetch comments when any change occurs
+          queryClient.invalidateQueries({ queryKey: ["comments", postId] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [postId, queryClient]);
 
   // Calculate total comments including replies
   const getTotalCount = () => {
