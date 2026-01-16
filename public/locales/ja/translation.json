@@ -63,7 +63,15 @@
     "allAreFriends": "すべての紹介者がすでに友達です！",
     "totalReferrals": "紹介総数",
     "manageDescription": "紹介を管理し、友達として繋がりましょう",
-    "sendFriendRequest": "友達リクエストを送信"
+    "sendFriendRequest": "友達リクエストを送信",
+    "status": {
+      "pending": "保留中",
+      "paid": "支払済",
+      "cancelled": "キャンセル済",
+      "completed": "完了",
+      "approved": "承認済",
+      "rejected": "却下"
+    }
   },
   "profile": {
     "title": "プロフィール",

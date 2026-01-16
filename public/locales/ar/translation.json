@@ -63,7 +63,15 @@
     "allAreFriends": "جميع إحالاتك هم أصدقاء بالفعل!",
     "totalReferrals": "إجمالي الإحالات",
     "manageDescription": "إدارة إحالاتك والتواصل معهم كأصدقاء",
-    "sendFriendRequest": "إرسال طلب صداقة"
+    "sendFriendRequest": "إرسال طلب صداقة",
+    "status": {
+      "pending": "قيد الانتظار",
+      "paid": "مدفوع",
+      "cancelled": "ملغي",
+      "completed": "مكتمل",
+      "approved": "موافق عليه",
+      "rejected": "مرفوض"
+    }
   },
   "profile": {
     "title": "الملف الشخصي",

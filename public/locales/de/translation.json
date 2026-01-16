@@ -53,7 +53,15 @@
     "allAreFriends": "Alle Ihre Empfehlungen sind bereits Freunde!",
     "totalReferrals": "Gesamt Empfehlungen",
     "manageDescription": "Verwalten Sie Ihre Empfehlungen und verbinden Sie sich mit ihnen als Freunde",
-    "sendFriendRequest": "Freundschaftsanfrage senden"
+    "sendFriendRequest": "Freundschaftsanfrage senden",
+    "status": {
+      "pending": "Ausstehend",
+      "paid": "Bezahlt",
+      "cancelled": "Storniert",
+      "completed": "Abgeschlossen",
+      "approved": "Genehmigt",
+      "rejected": "Abgelehnt"
+    }
   },
   "profile": {
     "title": "Profil",
