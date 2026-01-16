@@ -69,6 +69,7 @@ If 20 people join under you, that's $100 every month (20 × $5).
 As your downline grows, your monthly income grows too — from both existing members and new members.
 
 Start building your network and your income today.
+Join here: {{referral_link}}
 
 See you inside DolphySN.`);
   const [sendingEmail, setSendingEmail] = useState(false);
@@ -107,11 +108,14 @@ See you inside DolphySN.`);
         return;
       }
 
+      // Replace {{referral_link}} placeholder with actual referral URL
+      const processedMessage = emailMessage.replace(/\{\{referral_link\}\}/g, referralUrl);
+
       const response = await supabase.functions.invoke("send-referral-invite", {
         body: {
           recipientEmail: emailTo,
           subject: emailSubject,
-          message: emailMessage,
+          message: processedMessage,
         },
       });
 
@@ -147,6 +151,7 @@ If 20 people join under you, that's $100 every month (20 × $5).
 As your downline grows, your monthly income grows too — from both existing members and new members.
 
 Start building your network and your income today.
+Join here: {{referral_link}}
 
 See you inside DolphySN.`);
   };
