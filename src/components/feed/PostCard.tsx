@@ -325,16 +325,30 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
       didOpen: async () => {
         const container = document.getElementById('swal-comments-container');
         if (container) {
-          const { data: comments } = await supabase
+          // Fetch comments first
+          const { data: commentsData } = await supabase
             .from('post_comments')
-            .select(`
-              id, content, created_at, user_id,
-              profiles:user_id (display_name, avatar_url)
-            `)
+            .select('id, content, created_at, user_id')
             .eq('post_id', post.id)
             .is('parent_comment_id', null)
             .order('created_at', { ascending: false })
             .limit(20);
+
+          // Then fetch profiles for comment authors
+          let comments: any[] = [];
+          if (commentsData && commentsData.length > 0) {
+            const userIds = [...new Set(commentsData.map(c => c.user_id))];
+            const { data: profilesData } = await supabase
+              .from('profiles')
+              .select('user_id, display_name, avatar_url')
+              .in('user_id', userIds);
+            
+            const profileMap = new Map(profilesData?.map(p => [p.user_id, p]) || []);
+            comments = commentsData.map(c => ({
+              ...c,
+              profiles: profileMap.get(c.user_id)
+            }));
+          }
 
           if (comments && comments.length > 0) {
             container.innerHTML = comments.map((c: any) => `
