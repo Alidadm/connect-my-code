@@ -25,7 +25,8 @@ import {
   Send,
   AlertCircle,
   CreditCard,
-  Eye
+  Eye,
+  RotateCcw
 } from "lucide-react";
 import {
   Dialog,
@@ -163,6 +164,14 @@ See you inside DolphySN.`;
 
   const handleCancelEmail = () => {
     setEmailTo("");
+    setEmailSubject(defaultEmailSubject);
+    setEmailMessage(defaultEmailMessage);
+    // Clear localStorage to reset to defaults
+    localStorage.removeItem("referral_email_subject");
+    localStorage.removeItem("referral_email_message");
+  };
+
+  const handleResetToDefault = () => {
     setEmailSubject(defaultEmailSubject);
     setEmailMessage(defaultEmailMessage);
     // Clear localStorage to reset to defaults
@@ -540,6 +549,10 @@ See you inside DolphySN.`;
                   <Send className="h-4 w-4 mr-2" />
                 )}
                 {sendingEmail ? "Sending..." : "Send"}
+              </Button>
+              <Button variant="outline" onClick={handleResetToDefault} disabled={sendingEmail}>
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Reset
               </Button>
               <Button variant="outline" onClick={handleCancelEmail} disabled={sendingEmail}>
                 Cancel
