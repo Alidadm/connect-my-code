@@ -31,15 +31,6 @@ const getNavItems = (t: TFunction) => [
 ];
 
 
-const pagesYouLike = [
-  { name: "UI/UX Community", avatar: "https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=50&h=50&fit=crop", verified: false, color: "bg-orange-500" },
-  { name: "Web Designer", avatar: "https://images.unsplash.com/photo-1618477388954-7852f32655ec?w=50&h=50&fit=crop", verified: false, color: "bg-cyan-500" },
-  { name: "Dribbble Community", avatar: "https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?w=50&h=50&fit=crop", verified: false, color: "bg-pink-500" },
-  { name: "Behance", avatar: "https://images.unsplash.com/photo-1611162618071-b39a2ec055fb?w=50&h=50&fit=crop", verified: true, color: "bg-blue-600" },
-  { name: "Figma Community", avatar: "https://images.unsplash.com/photo-1626785774573-4b799315345d?w=50&h=50&fit=crop", verified: true, color: "bg-purple-500" },
-  { name: "Adobe Creative", avatar: "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=50&h=50&fit=crop", verified: true, color: "bg-red-500" },
-];
-
 // Demo profile for non-logged in users
 const demoProfile = {
   display_name: "Jakob Botosh",
@@ -140,47 +131,40 @@ export const LeftSidebar = () => {
         </nav>
 
         {/* Your Groups - Only show if user has created groups */}
-        {user && userGroups && userGroups.length > 0 && (
+        {user && userGroups?.createdGroups && userGroups.createdGroups.length > 0 && (
           <div className="bg-card rounded-xl p-4 border border-border mb-4">
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
               {t("sidebar.yourGroups")}
             </h3>
             <div className="space-y-2">
-              {userGroups.map((group) => {
-                const isCreator = group.creator_id === user.id;
-                return (
-                  <div 
-                    key={group.id} 
-                    className="flex items-center gap-3 cursor-pointer hover:bg-secondary/50 -mx-2 px-2 py-1.5 rounded-lg transition-colors"
-                    onClick={() => navigate(`/groups/${group.id}`)}
-                  >
-                    <div className="relative">
-                      <Avatar className="h-8 w-8 flex-shrink-0">
-                        <AvatarImage src={group.avatar_url || undefined} />
-                        <AvatarFallback className="bg-primary text-primary-foreground text-xs font-bold">
-                          {group.name.slice(0, 2).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      {isCreator && (
-                        <div className="absolute -bottom-1 -right-1 bg-yellow-500 rounded-full p-0.5">
-                          <Crown className="h-2.5 w-2.5 text-white" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-sm font-medium text-foreground truncate">{group.name}</span>
-                        {isCreator && (
-                          <span className="text-[10px] font-medium bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 px-1.5 py-0.5 rounded-full flex-shrink-0">
-                            Owner
-                          </span>
-                        )}
-                      </div>
-                      <span className="text-xs text-muted-foreground">{(group.member_count || 0).toLocaleString()} members</span>
+              {userGroups.createdGroups.map((group) => (
+                <div 
+                  key={group.id} 
+                  className="flex items-center gap-3 cursor-pointer hover:bg-secondary/50 -mx-2 px-2 py-1.5 rounded-lg transition-colors"
+                  onClick={() => navigate(`/groups/${group.id}`)}
+                >
+                  <div className="relative">
+                    <Avatar className="h-8 w-8 flex-shrink-0">
+                      <AvatarImage src={group.avatar_url || undefined} />
+                      <AvatarFallback className="bg-primary text-primary-foreground text-xs font-bold">
+                        {group.name.slice(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="absolute -bottom-1 -right-1 bg-yellow-500 rounded-full p-0.5">
+                      <Crown className="h-2.5 w-2.5 text-white" />
                     </div>
                   </div>
-                );
-              })}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-sm font-medium text-foreground truncate">{group.name}</span>
+                      <span className="text-[10px] font-medium bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 px-1.5 py-0.5 rounded-full flex-shrink-0">
+                        Owner
+                      </span>
+                    </div>
+                    <span className="text-xs text-muted-foreground">{(group.member_count || 0).toLocaleString()} members</span>
+                  </div>
+                </div>
+              ))}
               <Button 
                 variant="link" 
                 className="text-muted-foreground p-0 h-auto text-sm hover:text-foreground"
@@ -192,33 +176,41 @@ export const LeftSidebar = () => {
           </div>
         )}
 
-        {/* Pages You Like */}
-        <div className="bg-card rounded-xl p-4 border border-border">
-          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-            {t("sidebar.pagesYouLike")}
-          </h3>
-          <div className="space-y-2">
-            {pagesYouLike.map((page, index) => (
-              <div key={index} className="flex items-center gap-3 cursor-pointer hover:bg-secondary/50 -mx-2 px-2 py-1.5 rounded-lg transition-colors">
-                <Avatar className="h-8 w-8 flex-shrink-0">
-                  <AvatarImage src={page.avatar} />
-                  <AvatarFallback className={cn(page.color, "text-white text-xs font-bold")}>
-                    {page.name.slice(0, 2).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <span className="text-sm font-medium text-foreground flex items-center gap-1 truncate min-w-0">
-                  <span className="truncate">{page.name}</span>
-                  {page.verified && (
-                    <BadgeCheck className="h-4 w-4 text-primary flex-shrink-0" />
-                  )}
-                </span>
-              </div>
-            ))}
-            <Button variant="link" className="text-muted-foreground p-0 h-auto text-sm hover:text-foreground">
-              {t("sidebar.viewAll")}
-            </Button>
+        {/* Groups You Like - Only show if user has joined groups */}
+        {user && userGroups?.joinedGroups && userGroups.joinedGroups.length > 0 && (
+          <div className="bg-card rounded-xl p-4 border border-border">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+              {t("sidebar.groupsYouLike", { defaultValue: "Groups You Like" })}
+            </h3>
+            <div className="space-y-2">
+              {userGroups.joinedGroups.map((group) => (
+                <div 
+                  key={group.id} 
+                  className="flex items-center gap-3 cursor-pointer hover:bg-secondary/50 -mx-2 px-2 py-1.5 rounded-lg transition-colors"
+                  onClick={() => navigate(`/groups/${group.id}`)}
+                >
+                  <Avatar className="h-8 w-8 flex-shrink-0">
+                    <AvatarImage src={group.avatar_url || undefined} />
+                    <AvatarFallback className="bg-purple-500 text-white text-xs font-bold">
+                      {group.name.slice(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0 flex-1">
+                    <span className="text-sm font-medium text-foreground truncate block">{group.name}</span>
+                    <span className="text-xs text-muted-foreground">{(group.member_count || 0).toLocaleString()} members</span>
+                  </div>
+                </div>
+              ))}
+              <Button 
+                variant="link" 
+                className="text-muted-foreground p-0 h-auto text-sm hover:text-foreground"
+                onClick={() => navigate("/groups")}
+              >
+                {t("sidebar.viewAll")}
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Footer */}
         <div className="mt-4 px-2 text-xs text-muted-foreground">
