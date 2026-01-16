@@ -5,7 +5,7 @@ import { format, subDays, startOfMonth, endOfMonth, subMonths } from "date-fns";
 import {
   Search, Filter, Download, Upload, Plus, MoreHorizontal,
   ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight,
-  Edit, Trash2, Eye, Mail, Phone, ArrowUpDown, ArrowLeft, Loader2, AtSign, Calendar, X
+  Edit, Trash2, Eye, Mail, Phone, ArrowUpDown, ArrowLeft, Loader2, AtSign, Calendar, X, Shield
 } from "lucide-react";
 
 // Country name to ISO 2-letter code mapping for flag emojis
@@ -1015,11 +1015,25 @@ const UserList = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        <Avatar className="w-8 h-8">
-                          <AvatarImage src={user.avatar} />
-                          <AvatarFallback>{user.firstName?.[0] || 'U'}{user.lastName?.[0] || ''}</AvatarFallback>
-                        </Avatar>
-                        <span className="font-medium text-slate-900">{user.firstName}</span>
+                        <div className="relative">
+                          <Avatar className="w-8 h-8">
+                            <AvatarImage src={user.avatar} />
+                            <AvatarFallback>{user.firstName?.[0] || 'U'}{user.lastName?.[0] || ''}</AvatarFallback>
+                          </Avatar>
+                          {user.isAdmin && (
+                            <div className="absolute -top-1 -right-1 bg-amber-500 rounded-full p-0.5" title="Admin">
+                              <Shield className="w-3 h-3 text-white" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-slate-900">{user.firstName}</span>
+                          {user.isAdmin && (
+                            <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 text-xs px-1.5 py-0">
+                              Admin
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell className="text-slate-700">{user.lastName}</TableCell>
