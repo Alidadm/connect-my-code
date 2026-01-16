@@ -616,14 +616,17 @@ export const AvatarEditor: React.FC<AvatarEditorProps> = ({
 
   const renderGenerateMode = () => (
     <div className="space-y-4">
-      {/* Preview */}
-      <div className="flex justify-center">
-        <div className="w-40 h-40 rounded-full bg-muted overflow-hidden border-4 border-primary/20">
-          <img
-            src={getDiceBearUrl(selectedStyle, generatedSeed)}
-            alt="Generated avatar"
-            className="w-full h-full object-cover"
-          />
+      {/* Preview with circular overlay - matching crop mode */}
+      <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-black flex items-center justify-center">
+        <img
+          src={getDiceBearUrl(selectedStyle, generatedSeed)}
+          alt="Generated avatar"
+          className="w-[280px] h-[280px] object-cover"
+        />
+        
+        {/* Circular crop guide - same as crop mode */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="w-[280px] h-[280px] rounded-full border-4 border-white shadow-[0_0_0_9999px_rgba(0,0,0,0.6)]" />
         </div>
       </div>
       
