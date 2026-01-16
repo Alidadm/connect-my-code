@@ -98,8 +98,24 @@ serve(async (req) => {
         };
       }
 
-      // Map country code to Stripe country (ISO 3166-1 alpha-2)
-      const countryCode = publicProfile?.country || "US";
+      // Map country name to ISO 3166-1 alpha-2 code
+      const countryNameToCode: Record<string, string> = {
+        "United States": "US", "United Kingdom": "GB", "Canada": "CA", "Australia": "AU",
+        "Germany": "DE", "France": "FR", "Spain": "ES", "Italy": "IT", "Netherlands": "NL",
+        "Belgium": "BE", "Austria": "AT", "Switzerland": "CH", "Sweden": "SE", "Norway": "NO",
+        "Denmark": "DK", "Finland": "FI", "Ireland": "IE", "Portugal": "PT", "Poland": "PL",
+        "Brazil": "BR", "Mexico": "MX", "Japan": "JP", "Singapore": "SG", "Hong Kong": "HK",
+        "New Zealand": "NZ", "India": "IN", "Malaysia": "MY", "Thailand": "TH", "Philippines": "PH",
+        "Indonesia": "ID", "South Korea": "KR", "Taiwan": "TW", "Czech Republic": "CZ",
+        "Romania": "RO", "Bulgaria": "BG", "Hungary": "HU", "Greece": "GR", "Cyprus": "CY",
+        "Latvia": "LV", "Lithuania": "LT", "Estonia": "EE", "Slovakia": "SK", "Slovenia": "SI",
+        "Luxembourg": "LU", "Malta": "MT", "Croatia": "HR", "Egypt": "EG", "South Africa": "ZA",
+        "United Arab Emirates": "AE", "Saudi Arabia": "SA", "Israel": "IL", "Turkey": "TR",
+      };
+      
+      const rawCountry = publicProfile?.country || "US";
+      // If already a 2-char code, use it; otherwise try to map
+      const countryCode = rawCountry.length === 2 ? rawCountry : (countryNameToCode[rawCountry] || "US");
 
       const accountParams: any = {
         type: "express",
