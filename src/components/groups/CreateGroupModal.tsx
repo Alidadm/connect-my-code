@@ -31,7 +31,7 @@ interface Category {
 interface CreateGroupModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onGroupCreated?: () => void;
+  onGroupCreated?: (groupId: string) => void;
 }
 
 export const CreateGroupModal = ({ open, onOpenChange, onGroupCreated }: CreateGroupModalProps) => {
@@ -233,9 +233,10 @@ export const CreateGroupModal = ({ open, onOpenChange, onGroupCreated }: CreateG
       }
 
       toast.success("Group created successfully!");
+      const createdGroupId = group.id;
       resetForm();
       onOpenChange(false);
-      onGroupCreated?.();
+      onGroupCreated?.(createdGroupId);
     } catch (error: any) {
       console.error("Error creating group:", error);
       toast.error(error.message || "Failed to create group");

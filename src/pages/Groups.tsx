@@ -526,9 +526,11 @@ const Groups = () => {
       <CreateGroupModal 
         open={showCreateModal} 
         onOpenChange={setShowCreateModal}
-        onGroupCreated={() => {
+        onGroupCreated={(groupId) => {
           fetchUserGroups();
           fetchDiscoverGroups();
+          // Navigate to the newly created group
+          navigate(`/groups/${groupId}`);
         }}
       />
     </MainLayout>
