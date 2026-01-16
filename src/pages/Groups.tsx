@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -44,6 +44,7 @@ const Groups = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [postContent, setPostContent] = useState("");
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
   const [groups, setGroups] = useState<Group[]>([]);
@@ -55,6 +56,16 @@ const Groups = () => {
   const [joiningGroupId, setJoiningGroupId] = useState<string | null>(null);
   const [userJoinedIds, setUserJoinedIds] = useState<Set<string>>(new Set());
   const [pendingRequestIds, setPendingRequestIds] = useState<Set<string>>(new Set());
+
+  // Handle create=true query parameter
+  useEffect(() => {
+    if (searchParams.get("create") === "true") {
+      setShowCreateModal(true);
+      // Remove the query parameter to clean up the URL
+      searchParams.delete("create");
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   useEffect(() => {
     fetchUserGroups();
