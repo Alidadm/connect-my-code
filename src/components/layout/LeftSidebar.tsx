@@ -8,7 +8,8 @@ import {
   BadgeCheck,
   Bookmark,
   Settings,
-  Crown
+  Crown,
+  Plus
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -130,49 +131,65 @@ export const LeftSidebar = () => {
           })}
         </nav>
 
-        {/* Your Groups - Only show if user has created groups */}
-        {user && userGroups?.createdGroups && userGroups.createdGroups.length > 0 && (
+        {/* Your Groups - Show groups or create button */}
+        {user && (
           <div className="bg-card rounded-xl p-4 border border-border mb-4">
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
               {t("sidebar.yourGroups")}
             </h3>
-            <div className="space-y-2">
-              {userGroups.createdGroups.map((group) => (
-                <div 
-                  key={group.id} 
-                  className="flex items-center gap-3 cursor-pointer hover:bg-secondary/50 -mx-2 px-2 py-1.5 rounded-lg transition-colors"
-                  onClick={() => navigate(`/groups/${group.id}`)}
+            {userGroups?.createdGroups && userGroups.createdGroups.length > 0 ? (
+              <div className="space-y-2">
+                {userGroups.createdGroups.map((group) => (
+                  <div 
+                    key={group.id} 
+                    className="flex items-center gap-3 cursor-pointer hover:bg-secondary/50 -mx-2 px-2 py-1.5 rounded-lg transition-colors"
+                    onClick={() => navigate(`/groups/${group.id}`)}
+                  >
+                    <div className="relative">
+                      <Avatar className="h-8 w-8 flex-shrink-0">
+                        <AvatarImage src={group.avatar_url || undefined} />
+                        <AvatarFallback className="bg-primary text-primary-foreground text-xs font-bold">
+                          {group.name.slice(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="absolute -bottom-1 -right-1 bg-yellow-500 rounded-full p-0.5">
+                        <Crown className="h-2.5 w-2.5 text-white" />
+                      </div>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-sm font-medium text-foreground truncate">{group.name}</span>
+                        <span className="text-[10px] font-medium bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 px-1.5 py-0.5 rounded-full flex-shrink-0">
+                          Owner
+                        </span>
+                      </div>
+                      <span className="text-xs text-muted-foreground">{(group.member_count || 0).toLocaleString()} members</span>
+                    </div>
+                  </div>
+                ))}
+                <Button 
+                  variant="link" 
+                  className="text-muted-foreground p-0 h-auto text-sm hover:text-foreground"
+                  onClick={() => navigate("/groups")}
                 >
-                  <div className="relative">
-                    <Avatar className="h-8 w-8 flex-shrink-0">
-                      <AvatarImage src={group.avatar_url || undefined} />
-                      <AvatarFallback className="bg-primary text-primary-foreground text-xs font-bold">
-                        {group.name.slice(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="absolute -bottom-1 -right-1 bg-yellow-500 rounded-full p-0.5">
-                      <Crown className="h-2.5 w-2.5 text-white" />
-                    </div>
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-sm font-medium text-foreground truncate">{group.name}</span>
-                      <span className="text-[10px] font-medium bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 px-1.5 py-0.5 rounded-full flex-shrink-0">
-                        Owner
-                      </span>
-                    </div>
-                    <span className="text-xs text-muted-foreground">{(group.member_count || 0).toLocaleString()} members</span>
-                  </div>
-                </div>
-              ))}
-              <Button 
-                variant="link" 
-                className="text-muted-foreground p-0 h-auto text-sm hover:text-foreground"
-                onClick={() => navigate("/groups")}
-              >
-                {t("sidebar.viewAll")}
-              </Button>
-            </div>
+                  {t("sidebar.viewAll")}
+                </Button>
+              </div>
+            ) : (
+              <div className="text-center py-2">
+                <p className="text-sm text-muted-foreground mb-3">
+                  {t("sidebar.noGroupsYet", { defaultValue: "You haven't created any groups yet" })}
+                </p>
+                <Button 
+                  size="sm" 
+                  className="w-full gap-2"
+                  onClick={() => navigate("/groups?create=true")}
+                >
+                  <Plus className="h-4 w-4" />
+                  {t("sidebar.createGroup", { defaultValue: "Create Group" })}
+                </Button>
+              </div>
+            )}
           </div>
         )}
 
