@@ -129,8 +129,9 @@ serve(async (req) => {
     if (profilesError) throw profilesError;
 
     // Fetch private data for these users
-    const userIds = (profiles || []).map(p => p.user_id);
+  const userIds = (profiles || []).map(p => p.user_id);
     
+    // Fetch private data for these users
     const { data: privateData, error: privateError } = await supabaseAdmin
       .from('profiles_private')
       .select('user_id, email, phone, birthday')
@@ -140,11 +141,24 @@ serve(async (req) => {
       logStep("Warning: Could not fetch private data", { error: privateError.message });
     }
 
-    // Create a map for quick lookup
+    // Fetch admin roles for these users
+    const { data: adminRoles, error: rolesError } = await supabaseAdmin
+      .from('user_roles')
+      .select('user_id, role')
+      .in('user_id', userIds)
+      .eq('role', 'admin');
+
+    if (rolesError) {
+      logStep("Warning: Could not fetch admin roles", { error: rolesError.message });
+    }
+
+    // Create maps for quick lookup
     const privateDataMap = new Map();
     (privateData || []).forEach(pd => {
       privateDataMap.set(pd.user_id, pd);
     });
+
+    const adminUserIds = new Set((adminRoles || []).map(r => r.user_id));
 
     // Combine public and private data
     const users = (profiles || []).map(profile => {
@@ -162,7 +176,8 @@ serve(async (req) => {
           : 'Not set',
         country: profile.country || 'Unknown',
         avatar: profile.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.user_id}`,
-        status: profile.subscription_status === 'active' ? 'active' : 'inactive'
+        status: profile.subscription_status === 'active' ? 'active' : 'inactive',
+        isAdmin: adminUserIds.has(profile.user_id)
       };
     });
 
