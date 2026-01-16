@@ -731,6 +731,7 @@ export const Signup = () => {
                 }}
                 userId={createdUserId || undefined}
                 currentAvatar={avatarUrl || undefined}
+                userName={`${formData.firstName} ${formData.lastName}`.trim() || "User"}
               />
             </>
           ) : (

@@ -328,6 +328,7 @@ const MemberDashboard = () => {
         }}
         userId={user?.id}
         currentAvatar={profile?.avatar_url || undefined}
+        userName={formData.display_name || `${formData.first_name} ${formData.last_name}`.trim() || "User"}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
