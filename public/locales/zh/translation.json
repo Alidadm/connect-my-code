@@ -294,5 +294,35 @@
     "advertising": "广告",
     "cookies": "Cookies",
     "copyright": "平台 © 2024"
+  },
+  "avatar": {
+    "updateAvatar": "更新头像",
+    "takePhoto": "拍照",
+    "upload": "上传",
+    "generate": "生成",
+    "adjustCrop": "调整和裁剪",
+    "generateAvatar": "生成头像",
+    "style": "风格",
+    "randomize": "随机",
+    "save": "保存",
+    "cancel": "取消",
+    "reset": "重置",
+    "chooseMethod": "选择照片、拍摄新照片或生成头像。",
+    "avatarUpdated": "头像更新成功！",
+    "uploadFailed": "上传头像失败",
+    "saveFailed": "保存头像失败",
+    "cameraError": "无法访问摄像头。请检查权限。",
+    "invalidImage": "请选择图片文件",
+    "imageTooLarge": "图片必须小于10MB",
+    "styles": {
+      "initials": "首字母",
+      "avataaars": "卡通",
+      "bottts": "机器人",
+      "lorelei": "艺术",
+      "notionists": "素描",
+      "personas": "人物",
+      "thumbs": "拇指",
+      "funEmoji": "表情"
+    }
   }
 }

@@ -213,5 +213,35 @@
     "privacyTerms": "شروط الخصوصية",
     "advertising": "الإعلان",
     "cookies": "ملفات تعريف الارتباط"
+  },
+  "avatar": {
+    "updateAvatar": "تحديث الصورة الرمزية",
+    "takePhoto": "التقاط صورة",
+    "upload": "رفع",
+    "generate": "إنشاء",
+    "adjustCrop": "ضبط واقتصاص",
+    "generateAvatar": "إنشاء صورة رمزية",
+    "style": "النمط",
+    "randomize": "عشوائي",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "reset": "إعادة تعيين",
+    "chooseMethod": "اختر صورة، التقط صورة جديدة، أو أنشئ صورة رمزية.",
+    "avatarUpdated": "تم تحديث الصورة الرمزية بنجاح!",
+    "uploadFailed": "فشل في رفع الصورة الرمزية",
+    "saveFailed": "فشل في حفظ الصورة الرمزية",
+    "cameraError": "تعذر الوصول إلى الكاميرا. تحقق من الأذونات.",
+    "invalidImage": "الرجاء تحديد ملف صورة",
+    "imageTooLarge": "يجب أن تكون الصورة أقل من 10 ميجابايت",
+    "styles": {
+      "initials": "الأحرف الأولى",
+      "avataaars": "كرتون",
+      "bottts": "روبوت",
+      "lorelei": "فني",
+      "notionists": "رسم",
+      "personas": "شخص",
+      "thumbs": "إبهام",
+      "funEmoji": "إيموجي"
+    }
   }
 }

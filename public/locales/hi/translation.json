@@ -213,5 +213,35 @@
     "privacyTerms": "गोपनीयता शर्तें",
     "advertising": "विज्ञापन",
     "cookies": "कुकीज़"
+  },
+  "avatar": {
+    "updateAvatar": "अवतार अपडेट करें",
+    "takePhoto": "फ़ोटो लें",
+    "upload": "अपलोड करें",
+    "generate": "बनाएं",
+    "adjustCrop": "समायोजित और क्रॉप करें",
+    "generateAvatar": "अवतार बनाएं",
+    "style": "शैली",
+    "randomize": "यादृच्छिक",
+    "save": "सहेजें",
+    "cancel": "रद्द करें",
+    "reset": "रीसेट करें",
+    "chooseMethod": "फ़ोटो चुनें, नई लें, या अवतार बनाएं।",
+    "avatarUpdated": "अवतार सफलतापूर्वक अपडेट हुआ!",
+    "uploadFailed": "अवतार अपलोड करने में विफल",
+    "saveFailed": "अवतार सहेजने में विफल",
+    "cameraError": "कैमरा एक्सेस नहीं हो सका। अनुमतियां जांचें।",
+    "invalidImage": "कृपया एक छवि फ़ाइल चुनें",
+    "imageTooLarge": "छवि 10MB से कम होनी चाहिए",
+    "styles": {
+      "initials": "आद्याक्षर",
+      "avataaars": "कार्टून",
+      "bottts": "रोबोट",
+      "lorelei": "कलात्मक",
+      "notionists": "स्केच",
+      "personas": "व्यक्ति",
+      "thumbs": "अंगूठे",
+      "funEmoji": "इमोजी"
+    }
   }
 }

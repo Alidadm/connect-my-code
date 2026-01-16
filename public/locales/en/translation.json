@@ -381,5 +381,35 @@
     "joinGroup": "Join Group",
     "inviteSent": "Invitation sent!",
     "groupCreated": "Group created successfully!"
+  },
+  "avatar": {
+    "updateAvatar": "Update Avatar",
+    "takePhoto": "Take Photo",
+    "upload": "Upload",
+    "generate": "Generate",
+    "adjustCrop": "Adjust & Crop",
+    "generateAvatar": "Generate Avatar",
+    "style": "Style",
+    "randomize": "Randomize",
+    "save": "Save",
+    "cancel": "Cancel",
+    "reset": "Reset",
+    "chooseMethod": "Choose a photo, take a new one, or generate an avatar.",
+    "avatarUpdated": "Avatar updated successfully!",
+    "uploadFailed": "Failed to upload avatar",
+    "saveFailed": "Failed to save avatar",
+    "cameraError": "Could not access camera. Please check permissions.",
+    "invalidImage": "Please select an image file",
+    "imageTooLarge": "Image must be less than 10MB",
+    "styles": {
+      "initials": "Initials",
+      "avataaars": "Cartoon",
+      "bottts": "Robot",
+      "lorelei": "Artistic",
+      "notionists": "Sketch",
+      "personas": "Person",
+      "thumbs": "Thumbs",
+      "funEmoji": "Emoji"
+    }
   }
 }
