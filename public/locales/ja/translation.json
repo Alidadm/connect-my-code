@@ -213,5 +213,35 @@
     "privacyTerms": "プライバシー規約",
     "advertising": "広告",
     "cookies": "Cookie"
+  },
+  "avatar": {
+    "updateAvatar": "アバターを更新",
+    "takePhoto": "写真を撮る",
+    "upload": "アップロード",
+    "generate": "生成",
+    "adjustCrop": "調整とトリミング",
+    "generateAvatar": "アバターを生成",
+    "style": "スタイル",
+    "randomize": "ランダム",
+    "save": "保存",
+    "cancel": "キャンセル",
+    "reset": "リセット",
+    "chooseMethod": "写真を選択、撮影、またはアバターを生成してください。",
+    "avatarUpdated": "アバターが正常に更新されました！",
+    "uploadFailed": "アバターのアップロードに失敗しました",
+    "saveFailed": "アバターの保存に失敗しました",
+    "cameraError": "カメラにアクセスできませんでした。権限を確認してください。",
+    "invalidImage": "画像ファイルを選択してください",
+    "imageTooLarge": "画像は10MB未満である必要があります",
+    "styles": {
+      "initials": "イニシャル",
+      "avataaars": "カートゥーン",
+      "bottts": "ロボット",
+      "lorelei": "アーティスティック",
+      "notionists": "スケッチ",
+      "personas": "人物",
+      "thumbs": "サムズ",
+      "funEmoji": "絵文字"
+    }
   }
 }

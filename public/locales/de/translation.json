@@ -185,5 +185,35 @@
     "yourGroups": "Ihre Gruppen",
     "posts": "Beiträge",
     "viewAll": "Alle anzeigen"
+  },
+  "avatar": {
+    "updateAvatar": "Avatar aktualisieren",
+    "takePhoto": "Foto aufnehmen",
+    "upload": "Hochladen",
+    "generate": "Generieren",
+    "adjustCrop": "Anpassen & Zuschneiden",
+    "generateAvatar": "Avatar generieren",
+    "style": "Stil",
+    "randomize": "Zufällig",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "reset": "Zurücksetzen",
+    "chooseMethod": "Wählen Sie ein Foto, machen Sie ein neues oder generieren Sie einen Avatar.",
+    "avatarUpdated": "Avatar erfolgreich aktualisiert!",
+    "uploadFailed": "Avatar-Upload fehlgeschlagen",
+    "saveFailed": "Avatar konnte nicht gespeichert werden",
+    "cameraError": "Kamerazugriff nicht möglich. Überprüfen Sie die Berechtigungen.",
+    "invalidImage": "Bitte wählen Sie eine Bilddatei",
+    "imageTooLarge": "Bild muss kleiner als 10 MB sein",
+    "styles": {
+      "initials": "Initialen",
+      "avataaars": "Cartoon",
+      "bottts": "Roboter",
+      "lorelei": "Künstlerisch",
+      "notionists": "Skizze",
+      "personas": "Person",
+      "thumbs": "Daumen",
+      "funEmoji": "Emoji"
+    }
   }
 }

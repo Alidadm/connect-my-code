@@ -294,5 +294,35 @@
     "advertising": "Publicidade",
     "cookies": "Cookies",
     "copyright": "Plataforma © 2024"
+  },
+  "avatar": {
+    "updateAvatar": "Atualizar Avatar",
+    "takePhoto": "Tirar Foto",
+    "upload": "Carregar",
+    "generate": "Gerar",
+    "adjustCrop": "Ajustar e Cortar",
+    "generateAvatar": "Gerar Avatar",
+    "style": "Estilo",
+    "randomize": "Aleatório",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "reset": "Redefinir",
+    "chooseMethod": "Escolha uma foto, tire uma nova ou gere um avatar.",
+    "avatarUpdated": "Avatar atualizado com sucesso!",
+    "uploadFailed": "Falha ao carregar avatar",
+    "saveFailed": "Falha ao salvar avatar",
+    "cameraError": "Não foi possível acessar a câmera. Verifique as permissões.",
+    "invalidImage": "Por favor, selecione um arquivo de imagem",
+    "imageTooLarge": "A imagem deve ter menos de 10MB",
+    "styles": {
+      "initials": "Iniciais",
+      "avataaars": "Desenho",
+      "bottts": "Robô",
+      "lorelei": "Artístico",
+      "notionists": "Esboço",
+      "personas": "Pessoa",
+      "thumbs": "Polegares",
+      "funEmoji": "Emoji"
+    }
   }
 }

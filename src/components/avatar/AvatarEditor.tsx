@@ -6,6 +6,7 @@ import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 interface AvatarEditorProps {
   open: boolean;
@@ -18,16 +19,16 @@ interface AvatarEditorProps {
 
 type Mode = "select" | "camera" | "crop" | "generate";
 
-// DiceBear avatar styles
+// DiceBear avatar styles with translation keys
 const AVATAR_STYLES = [
-  { id: "initials", name: "Initials" },
-  { id: "avataaars", name: "Cartoon" },
-  { id: "bottts", name: "Robot" },
-  { id: "lorelei", name: "Artistic" },
-  { id: "notionists", name: "Sketch" },
-  { id: "personas", name: "Person" },
-  { id: "thumbs", name: "Thumbs" },
-  { id: "fun-emoji", name: "Emoji" },
+  { id: "initials", key: "initials" },
+  { id: "avataaars", key: "avataaars" },
+  { id: "bottts", key: "bottts" },
+  { id: "lorelei", key: "lorelei" },
+  { id: "notionists", key: "notionists" },
+  { id: "personas", key: "personas" },
+  { id: "thumbs", key: "thumbs" },
+  { id: "fun-emoji", key: "funEmoji" },
 ] as const;
 
 export const AvatarEditor: React.FC<AvatarEditorProps> = ({
@@ -38,6 +39,7 @@ export const AvatarEditor: React.FC<AvatarEditorProps> = ({
   currentAvatar,
   userName = "User",
 }) => {
+  const { t } = useTranslation();
   const [mode, setMode] = useState<Mode>("select");
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [zoom, setZoom] = useState(1);
@@ -107,7 +109,7 @@ export const AvatarEditor: React.FC<AvatarEditorProps> = ({
       }, 100);
     } catch (error) {
       console.error("Camera access error:", error);
-      toast.error("Could not access camera. Please check permissions.");
+      toast.error(t("avatar.cameraError"));
     }
   };
 
@@ -171,12 +173,12 @@ export const AvatarEditor: React.FC<AvatarEditorProps> = ({
     if (!file) return;
     
     if (!file.type.startsWith("image/")) {
-      toast.error("Please select an image file");
+      toast.error(t("avatar.invalidImage"));
       return;
     }
     
     if (file.size > 10 * 1024 * 1024) {
-      toast.error("Image must be less than 10MB");
+      toast.error(t("avatar.imageTooLarge"));
       return;
     }
     
@@ -323,12 +325,12 @@ export const AvatarEditor: React.FC<AvatarEditorProps> = ({
       
       if (updateError) throw updateError;
       
-      toast.success("Avatar updated successfully!");
+      toast.success(t("avatar.avatarUpdated"));
       onAvatarSaved(urlData.publicUrl);
       onOpenChange(false);
     } catch (error) {
       console.error("Upload error:", error);
-      toast.error("Failed to upload avatar");
+      toast.error(t("avatar.uploadFailed"));
     } finally {
       setUploading(false);
     }
@@ -401,12 +403,12 @@ export const AvatarEditor: React.FC<AvatarEditorProps> = ({
       
       if (updateError) throw updateError;
       
-      toast.success("Avatar updated successfully!");
+      toast.success(t("avatar.avatarUpdated"));
       onAvatarSaved(urlData.publicUrl);
       onOpenChange(false);
     } catch (error) {
       console.error("Upload error:", error);
-      toast.error("Failed to save avatar");
+      toast.error(t("avatar.saveFailed"));
     } finally {
       setUploading(false);
     }
@@ -431,7 +433,7 @@ export const AvatarEditor: React.FC<AvatarEditorProps> = ({
           onClick={startCamera}
         >
           <Camera className="w-7 h-7" />
-          <span className="text-xs">Take Photo</span>
+          <span className="text-xs">{t("avatar.takePhoto")}</span>
         </Button>
         
         <Button
@@ -440,7 +442,7 @@ export const AvatarEditor: React.FC<AvatarEditorProps> = ({
           onClick={() => fileInputRef.current?.click()}
         >
           <Upload className="w-7 h-7" />
-          <span className="text-xs">Upload</span>
+          <span className="text-xs">{t("avatar.upload")}</span>
         </Button>
         
         <Button
@@ -449,7 +451,7 @@ export const AvatarEditor: React.FC<AvatarEditorProps> = ({
           onClick={() => setMode("generate")}
         >
           <User className="w-7 h-7" />
-          <span className="text-xs">Generate</span>
+          <span className="text-xs">{t("avatar.generate")}</span>
         </Button>
       </div>
       
@@ -462,7 +464,7 @@ export const AvatarEditor: React.FC<AvatarEditorProps> = ({
       />
       
       <p className="text-center text-sm text-muted-foreground">
-        Choose a photo, take a new one, or generate an avatar.
+        {t("avatar.chooseMethod")}
       </p>
     </div>
   );
@@ -586,7 +588,7 @@ export const AvatarEditor: React.FC<AvatarEditorProps> = ({
           }}
         >
           <X className="w-4 h-4 mr-2" />
-          Cancel
+          {t("avatar.cancel")}
         </Button>
         
         <Button
@@ -594,7 +596,7 @@ export const AvatarEditor: React.FC<AvatarEditorProps> = ({
           onClick={resetCrop}
         >
           <RotateCcw className="w-4 h-4 mr-2" />
-          Reset
+          {t("avatar.reset")}
         </Button>
         
         <Button
@@ -606,7 +608,7 @@ export const AvatarEditor: React.FC<AvatarEditorProps> = ({
           ) : (
             <Check className="w-4 h-4 mr-2" />
           )}
-          Save
+          {t("avatar.save")}
         </Button>
       </div>
     </div>
@@ -627,7 +629,7 @@ export const AvatarEditor: React.FC<AvatarEditorProps> = ({
       
       {/* Style selector */}
       <div className="space-y-2">
-        <label className="text-sm font-medium text-muted-foreground">Style</label>
+        <label className="text-sm font-medium text-muted-foreground">{t("avatar.style")}</label>
         <div className="grid grid-cols-4 gap-2">
           {AVATAR_STYLES.map((style) => (
             <Button
@@ -637,7 +639,7 @@ export const AvatarEditor: React.FC<AvatarEditorProps> = ({
               className="text-xs h-9"
               onClick={() => setSelectedStyle(style.id)}
             >
-              {style.name}
+              {t(`avatar.styles.${style.key}`)}
             </Button>
           ))}
         </div>
@@ -650,7 +652,7 @@ export const AvatarEditor: React.FC<AvatarEditorProps> = ({
         onClick={() => setGeneratedSeed(Math.random().toString(36).substring(7))}
       >
         <Shuffle className="w-4 h-4 mr-2" />
-        Randomize
+        {t("avatar.randomize")}
       </Button>
       
       {/* Action buttons */}
@@ -660,7 +662,7 @@ export const AvatarEditor: React.FC<AvatarEditorProps> = ({
           onClick={() => setMode("select")}
         >
           <X className="w-4 h-4 mr-2" />
-          Cancel
+          {t("avatar.cancel")}
         </Button>
         
         <Button
@@ -672,7 +674,7 @@ export const AvatarEditor: React.FC<AvatarEditorProps> = ({
           ) : (
             <Check className="w-4 h-4 mr-2" />
           )}
-          Save
+          {t("avatar.save")}
         </Button>
       </div>
     </div>
@@ -683,10 +685,10 @@ export const AvatarEditor: React.FC<AvatarEditorProps> = ({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>
-            {mode === "select" && "Update Avatar"}
-            {mode === "camera" && "Take Photo"}
-            {mode === "crop" && "Adjust & Crop"}
-            {mode === "generate" && "Generate Avatar"}
+            {mode === "select" && t("avatar.updateAvatar")}
+            {mode === "camera" && t("avatar.takePhoto")}
+            {mode === "crop" && t("avatar.adjustCrop")}
+            {mode === "generate" && t("avatar.generateAvatar")}
           </DialogTitle>
         </DialogHeader>
         

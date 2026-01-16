@@ -185,5 +185,35 @@
     "yourGroups": "Vos Groupes",
     "posts": "Publications",
     "viewAll": "Voir tout"
+  },
+  "avatar": {
+    "updateAvatar": "Modifier l'Avatar",
+    "takePhoto": "Prendre Photo",
+    "upload": "Télécharger",
+    "generate": "Générer",
+    "adjustCrop": "Ajuster et Recadrer",
+    "generateAvatar": "Générer un Avatar",
+    "style": "Style",
+    "randomize": "Aléatoire",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "reset": "Réinitialiser",
+    "chooseMethod": "Choisissez une photo, prenez-en une nouvelle ou générez un avatar.",
+    "avatarUpdated": "Avatar mis à jour avec succès !",
+    "uploadFailed": "Échec du téléchargement de l'avatar",
+    "saveFailed": "Échec de l'enregistrement de l'avatar",
+    "cameraError": "Impossible d'accéder à la caméra. Vérifiez les permissions.",
+    "invalidImage": "Veuillez sélectionner un fichier image",
+    "imageTooLarge": "L'image doit faire moins de 10 Mo",
+    "styles": {
+      "initials": "Initiales",
+      "avataaars": "Cartoon",
+      "bottts": "Robot",
+      "lorelei": "Artistique",
+      "notionists": "Croquis",
+      "personas": "Personne",
+      "thumbs": "Pouces",
+      "funEmoji": "Emoji"
+    }
   }
 }
