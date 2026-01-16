@@ -90,6 +90,7 @@ type User = {
   country: string;
   avatar: string;
   status: string;
+  isAdmin?: boolean;
 };
 
 const UserList = () => {
@@ -554,64 +555,196 @@ const UserList = () => {
   };
 
 
-  // SweetAlert2 Delete User Modal (single user)
-  const handleDeleteUser = (user: User) => {
-    Swal.fire({
-      title: '<span class="text-red-600">Delete User?</span>',
-      html: `
-        <div class="text-center">
-          <img src="${user.avatar}" class="w-20 h-20 rounded-full mx-auto mb-3 border-4 border-red-100" alt="Avatar" />
-          <p class="text-slate-700">Are you sure you want to delete</p>
-          <p class="font-bold text-slate-900">${user.firstName} ${user.lastName}?</p>
-          <p class="text-sm text-red-500 mt-2">This action cannot be undone.</p>
-        </div>
-      `,
-      showCancelButton: true,
-      confirmButtonText: 'Yes, Delete',
-      cancelButtonText: 'Cancel',
-      confirmButtonColor: '#ef4444',
-      cancelButtonColor: '#64748b',
-      width: 380,
-      customClass: {
-        popup: 'rounded-xl',
+  // SweetAlert2 Delete User Modal (single user) - with admin protection
+  const handleDeleteUser = async (user: User) => {
+    // Check if user is an admin
+    const { data: roleData } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.user_id)
+      .eq("role", "admin")
+      .maybeSingle();
+
+    const isAdmin = !!roleData;
+
+    if (isAdmin) {
+      // Admin user - require email confirmation
+      const { value: enteredEmail } = await Swal.fire({
+        title: '<span class="text-red-600">⚠️ Deleting Admin User</span>',
+        html: `
+          <div class="text-center">
+            <img src="${user.avatar}" class="w-20 h-20 rounded-full mx-auto mb-3 border-4 border-red-100" alt="Avatar" />
+            <p class="text-slate-700 mb-2">You are about to delete an <strong class="text-red-600">ADMIN</strong> user:</p>
+            <p class="font-bold text-slate-900">${user.firstName} ${user.lastName}</p>
+            <p class="text-sm text-red-500 mt-2 mb-4">This action cannot be undone.</p>
+            <p class="text-sm text-slate-600">Please type the admin's email address to confirm:</p>
+            <p class="text-xs text-slate-400 mt-1">${user.email}</p>
+          </div>
+        `,
+        input: 'email',
+        inputPlaceholder: 'Enter admin email to confirm',
+        inputAttributes: {
+          autocapitalize: 'off',
+          autocomplete: 'off'
+        },
+        showCancelButton: true,
+        confirmButtonText: 'Delete Admin',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#64748b',
+        width: 420,
+        customClass: {
+          popup: 'rounded-xl',
+        },
+        inputValidator: (value) => {
+          if (!value) {
+            return 'Please enter the email address';
+          }
+          return null;
+        }
+      });
+
+      if (enteredEmail) {
+        if (enteredEmail.toLowerCase() === user.email.toLowerCase()) {
+          performDelete([user.user_id]);
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Email Mismatch',
+            text: 'The email address you entered does not match. Deletion denied.',
+            confirmButtonColor: '#ef4444',
+          });
+        }
       }
-    }).then((result) => {
-      if (result.isConfirmed) {
-        performDelete([user.user_id]);
-      }
-    });
+    } else {
+      // Regular user - normal deletion flow
+      Swal.fire({
+        title: '<span class="text-red-600">Delete User?</span>',
+        html: `
+          <div class="text-center">
+            <img src="${user.avatar}" class="w-20 h-20 rounded-full mx-auto mb-3 border-4 border-red-100" alt="Avatar" />
+            <p class="text-slate-700">Are you sure you want to delete</p>
+            <p class="font-bold text-slate-900">${user.firstName} ${user.lastName}?</p>
+            <p class="text-sm text-red-500 mt-2">This action cannot be undone.</p>
+          </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Yes, Delete',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#64748b',
+        width: 380,
+        customClass: {
+          popup: 'rounded-xl',
+        }
+      }).then((result) => {
+        if (result.isConfirmed) {
+          performDelete([user.user_id]);
+        }
+      });
+    }
   };
 
-  // SweetAlert2 Batch Delete Modal
-  const handleBatchDelete = () => {
+  // SweetAlert2 Batch Delete Modal - with admin protection
+  const handleBatchDelete = async () => {
     if (selectedUsers.size === 0) return;
 
     const selectedUsersList = users.filter(u => selectedUsers.has(u.user_id));
-    const names = selectedUsersList.map(u => `${u.firstName} ${u.lastName}`).join(', ');
+    
+    // Check if any selected users are admins
+    const { data: adminRoles } = await supabase
+      .from("user_roles")
+      .select("user_id")
+      .in("user_id", Array.from(selectedUsers))
+      .eq("role", "admin");
 
-    Swal.fire({
-      title: '<span class="text-red-600">Delete Selected Users?</span>',
-      html: `
-        <div class="text-center">
-          <p class="text-slate-700 mb-2">You are about to delete <strong>${selectedUsers.size}</strong> user(s):</p>
-          <p class="text-sm text-slate-600 max-h-24 overflow-y-auto">${names}</p>
-          <p class="text-sm text-red-500 mt-3">This action cannot be undone.</p>
-        </div>
-      `,
-      showCancelButton: true,
-      confirmButtonText: `Delete ${selectedUsers.size} User(s)`,
-      cancelButtonText: 'Cancel',
-      confirmButtonColor: '#ef4444',
-      cancelButtonColor: '#64748b',
-      width: 420,
-      customClass: {
-        popup: 'rounded-xl',
+    const adminUserIds = new Set(adminRoles?.map(r => r.user_id) || []);
+    const adminUsers = selectedUsersList.filter(u => adminUserIds.has(u.user_id));
+    const regularUsers = selectedUsersList.filter(u => !adminUserIds.has(u.user_id));
+
+    if (adminUsers.length > 0) {
+      // Some selected users are admins - require email confirmation for each
+      const adminEmails = adminUsers.map(u => u.email);
+      const adminNames = adminUsers.map(u => `${u.firstName} ${u.lastName} (${u.email})`).join('<br/>');
+
+      const { value: enteredEmails } = await Swal.fire({
+        title: '<span class="text-red-600">⚠️ Admin Users Selected</span>',
+        html: `
+          <div class="text-center">
+            <p class="text-slate-700 mb-2">You are deleting <strong class="text-red-600">${adminUsers.length} admin user(s)</strong>:</p>
+            <div class="text-sm text-slate-600 max-h-24 overflow-y-auto mb-3">${adminNames}</div>
+            <p class="text-sm text-red-500 mb-4">This action cannot be undone.</p>
+            <p class="text-sm text-slate-600">Enter all admin emails (comma-separated) to confirm:</p>
+          </div>
+        `,
+        input: 'textarea',
+        inputPlaceholder: 'Enter admin emails separated by commas',
+        inputAttributes: {
+          autocapitalize: 'off',
+          autocomplete: 'off'
+        },
+        showCancelButton: true,
+        confirmButtonText: 'Delete All Selected',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#64748b',
+        width: 480,
+        customClass: {
+          popup: 'rounded-xl',
+        },
+        inputValidator: (value) => {
+          if (!value) {
+            return 'Please enter the admin email addresses';
+          }
+          return null;
+        }
+      });
+
+      if (enteredEmails) {
+        const enteredEmailList = enteredEmails.split(',').map((e: string) => e.trim().toLowerCase());
+        const allAdminEmailsMatch = adminEmails.every(email => 
+          enteredEmailList.includes(email.toLowerCase())
+        );
+
+        if (allAdminEmailsMatch) {
+          performDelete(Array.from(selectedUsers));
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Email Mismatch',
+            text: 'Not all admin email addresses match. Deletion denied.',
+            confirmButtonColor: '#ef4444',
+          });
+        }
       }
-    }).then((result) => {
-      if (result.isConfirmed) {
-        performDelete(Array.from(selectedUsers));
-      }
-    });
+    } else {
+      // No admin users - regular batch delete
+      const names = selectedUsersList.map(u => `${u.firstName} ${u.lastName}`).join(', ');
+
+      Swal.fire({
+        title: '<span class="text-red-600">Delete Selected Users?</span>',
+        html: `
+          <div class="text-center">
+            <p class="text-slate-700 mb-2">You are about to delete <strong>${selectedUsers.size}</strong> user(s):</p>
+            <p class="text-sm text-slate-600 max-h-24 overflow-y-auto">${names}</p>
+            <p class="text-sm text-red-500 mt-3">This action cannot be undone.</p>
+          </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: `Delete ${selectedUsers.size} User(s)`,
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#64748b',
+        width: 420,
+        customClass: {
+          popup: 'rounded-xl',
+        }
+      }).then((result) => {
+        if (result.isConfirmed) {
+          performDelete(Array.from(selectedUsers));
+        }
+      });
+    }
   };
 
   // Generate page numbers for pagination
