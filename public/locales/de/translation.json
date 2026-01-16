@@ -44,9 +44,15 @@
   "referrals": {
     "all": "Alle",
     "friends": "Freunde",
+    "friend": "Freund",
     "nonFriends": "Nicht-Freunde",
     "searchPlaceholder": "Empfehlungen suchen...",
     "noReferrals": "Keine Empfehlungen gefunden",
+    "noReferralsYet": "Noch keine Empfehlungen. Teilen Sie Ihren Link, um Ihr Netzwerk auszubauen!",
+    "noFriendsYet": "Noch keine Freunde in Ihrem Empfehlungsnetzwerk",
+    "allAreFriends": "Alle Ihre Empfehlungen sind bereits Freunde!",
+    "totalReferrals": "Gesamt Empfehlungen",
+    "manageDescription": "Verwalten Sie Ihre Empfehlungen und verbinden Sie sich mit ihnen als Freunde",
     "sendFriendRequest": "Freundschaftsanfrage senden"
   },
   "profile": {

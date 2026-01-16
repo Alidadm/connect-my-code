@@ -88,9 +88,15 @@
   "referrals": {
     "all": "All",
     "friends": "Friends",
+    "friend": "Friend",
     "nonFriends": "Non-Friends",
     "searchPlaceholder": "Search referrals...",
     "noReferrals": "No referrals found",
+    "noReferralsYet": "No referrals yet. Share your link to grow your network!",
+    "noFriendsYet": "No friends in your referral network yet",
+    "allAreFriends": "All your referrals are already friends!",
+    "totalReferrals": "Total Referrals",
+    "manageDescription": "Manage your referrals and connect with them as friends",
     "sendFriendRequest": "Send Friend Request"
   },
   "profile": {

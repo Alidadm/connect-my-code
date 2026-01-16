@@ -78,9 +78,15 @@
   "referrals": {
     "all": "全部",
     "friends": "好友",
+    "friend": "好友",
     "nonFriends": "非好友",
     "searchPlaceholder": "搜索推荐...",
     "noReferrals": "未找到推荐",
+    "noReferralsYet": "暂无推荐。分享您的链接来扩大您的网络！",
+    "noFriendsYet": "您的推荐网络中还没有好友",
+    "allAreFriends": "您所有的推荐都已经是好友了！",
+    "totalReferrals": "总推荐数",
+    "manageDescription": "管理您的推荐并与他们成为好友",
     "sendFriendRequest": "发送好友请求"
   },
   "profile": {

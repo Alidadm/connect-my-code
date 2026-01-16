@@ -44,9 +44,15 @@
   "referrals": {
     "all": "Tous",
     "friends": "Amis",
+    "friend": "Ami",
     "nonFriends": "Non-Amis",
     "searchPlaceholder": "Rechercher des filleuls...",
     "noReferrals": "Aucun filleul trouvé",
+    "noReferralsYet": "Pas encore de filleuls. Partagez votre lien pour développer votre réseau!",
+    "noFriendsYet": "Pas encore d'amis dans votre réseau de parrainage",
+    "allAreFriends": "Tous vos filleuls sont déjà amis!",
+    "totalReferrals": "Total des Filleuls",
+    "manageDescription": "Gérez vos filleuls et connectez-vous avec eux en tant qu'amis",
     "sendFriendRequest": "Envoyer une Demande d'Ami"
   },
   "profile": {

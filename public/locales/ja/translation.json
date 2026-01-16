@@ -54,9 +54,15 @@
   "referrals": {
     "all": "すべて",
     "friends": "友達",
+    "friend": "友達",
     "nonFriends": "友達以外",
     "searchPlaceholder": "紹介を検索...",
     "noReferrals": "紹介が見つかりません",
+    "noReferralsYet": "まだ紹介がありません。リンクを共有してネットワークを拡大しましょう！",
+    "noFriendsYet": "紹介ネットワークにはまだ友達がいません",
+    "allAreFriends": "すべての紹介者がすでに友達です！",
+    "totalReferrals": "紹介総数",
+    "manageDescription": "紹介を管理し、友達として繋がりましょう",
     "sendFriendRequest": "友達リクエストを送信"
   },
   "profile": {

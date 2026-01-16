@@ -54,9 +54,15 @@
   "referrals": {
     "all": "सभी",
     "friends": "मित्र",
+    "friend": "मित्र",
     "nonFriends": "गैर-मित्र",
     "searchPlaceholder": "रेफरल खोजें...",
     "noReferrals": "कोई रेफरल नहीं मिला",
+    "noReferralsYet": "अभी तक कोई रेफरल नहीं। अपना नेटवर्क बढ़ाने के लिए अपना लिंक साझा करें!",
+    "noFriendsYet": "आपके रेफरल नेटवर्क में अभी तक कोई मित्र नहीं है",
+    "allAreFriends": "आपके सभी रेफरल पहले से मित्र हैं!",
+    "totalReferrals": "कुल रेफरल",
+    "manageDescription": "अपने रेफरल प्रबंधित करें और उनसे मित्र के रूप में जुड़ें",
     "sendFriendRequest": "मित्र अनुरोध भेजें"
   },
   "profile": {
