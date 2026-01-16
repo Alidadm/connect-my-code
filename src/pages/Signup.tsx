@@ -1,12 +1,13 @@
 import { useState, useCallback, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { Mail, User, ArrowRight, Calendar, Lock, Home, CreditCard, Loader2, Gift } from "lucide-react";
+import { Mail, User, ArrowRight, Calendar, Lock, Home, CreditCard, Loader2, Gift, Camera, SkipForward } from "lucide-react";
 import { isValidPhoneNumber } from 'react-phone-number-input';
 import { SlideAlert } from "@/components/ui/slide-alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PhoneInputField } from "@/components/ui/phone-input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Select,
   SelectContent,
@@ -24,6 +25,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { generateUsername, generateAlternativeUsernames } from "@/lib/username";
+import { AvatarEditor } from "@/components/avatar/AvatarEditor";
 
 // PayPal SVG icon
 const PayPalIcon = () => (
@@ -40,10 +42,12 @@ export const Signup = () => {
   const [paymentLoading, setPaymentLoading] = useState<'stripe' | 'paypal' | null>(null);
   const [alertMessage, setAlertMessage] = useState("");
   const [showAlert, setShowAlert] = useState(false);
-  const [step, setStep] = useState<'form' | 'payment'>('form');
+  const [step, setStep] = useState<'form' | 'avatar' | 'payment'>('form');
   const [createdUserId, setCreatedUserId] = useState<string | null>(null);
   const [referralCode, setReferralCode] = useState("");
   const [referralValidated, setReferralValidated] = useState<boolean | null>(null);
+  const [avatarEditorOpen, setAvatarEditorOpen] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   
   // Get referral code from URL if present
   useEffect(() => {
@@ -348,9 +352,9 @@ export const Signup = () => {
         // Email confirmation will be sent AFTER successful payment via webhook
         // This ensures users only get verification emails after they've actually subscribed
 
-        toast.success("Account created! Choose your payment method to complete signup.");
+        toast.success("Account created! Add a profile photo or continue to payment.");
         setCreatedUserId(data.user.id);
-        setStep('payment');
+        setStep('avatar');
       }
     } catch (err) {
       toast.error("An unexpected error occurred");
@@ -666,6 +670,68 @@ export const Signup = () => {
                   </div>
                 </div>
               </div>
+            </>
+          ) : step === 'avatar' ? (
+            /* Avatar Step (Optional) */
+            <>
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Add Your Photo</h1>
+              <p className="text-muted-foreground mb-6 sm:mb-8">
+                Help others recognize you with a profile picture
+              </p>
+
+              <div className="flex flex-col items-center space-y-6">
+                <div className="relative">
+                  <Avatar className="w-32 h-32 border-4 border-muted shadow-xl">
+                    {avatarUrl ? (
+                      <AvatarImage src={avatarUrl} />
+                    ) : null}
+                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-cyan-500 text-white text-4xl">
+                      {formData.firstName?.charAt(0) || "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                  {avatarUrl && (
+                    <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg">
+                      <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+
+                <div className="w-full space-y-3">
+                  <Button
+                    className="w-full h-12"
+                    onClick={() => setAvatarEditorOpen(true)}
+                  >
+                    <Camera className="h-5 w-5 mr-2" />
+                    {avatarUrl ? "Change Photo" : "Take or Upload Photo"}
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="w-full h-12"
+                    onClick={() => setStep('payment')}
+                  >
+                    <SkipForward className="h-5 w-5 mr-2" />
+                    {avatarUrl ? "Continue to Payment" : "Skip for Now"}
+                  </Button>
+                </div>
+
+                <p className="text-center text-sm text-muted-foreground">
+                  You can always add or change your photo later in settings
+                </p>
+              </div>
+
+              {/* Avatar Editor Modal */}
+              <AvatarEditor
+                open={avatarEditorOpen}
+                onOpenChange={setAvatarEditorOpen}
+                onAvatarSaved={(url) => {
+                  setAvatarUrl(url);
+                }}
+                userId={createdUserId || undefined}
+                currentAvatar={avatarUrl || undefined}
+              />
             </>
           ) : (
             /* Payment Step */

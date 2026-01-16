@@ -6,6 +6,7 @@ import {
   CheckCircle2, XCircle, Loader2, ExternalLink, Languages, UsersRound
 } from "lucide-react";
 import { GroupsManagement } from "@/components/dashboard/GroupsManagement";
+import { AvatarEditor } from "@/components/avatar/AvatarEditor";
 import Swal from "sweetalert2";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -114,6 +115,9 @@ const MemberDashboard = () => {
   const [newPhone, setNewPhone] = useState("");
   const [updatingEmail, setUpdatingEmail] = useState(false);
   const [updatingPhone, setUpdatingPhone] = useState(false);
+  
+  // Avatar editor state
+  const [avatarEditorOpen, setAvatarEditorOpen] = useState(false);
 
   // Fetch pending join requests count
   React.useEffect(() => {
@@ -301,7 +305,10 @@ const MemberDashboard = () => {
               {formData.display_name?.charAt(0) || formData.first_name?.charAt(0) || "U"}
             </AvatarFallback>
           </Avatar>
-          <button className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg hover:from-blue-600 hover:to-cyan-600 transition-all">
+          <button 
+            onClick={() => setAvatarEditorOpen(true)}
+            className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg hover:from-blue-600 hover:to-cyan-600 transition-all"
+          >
             <Camera className="w-4 h-4 text-white" />
           </button>
         </div>
@@ -311,6 +318,17 @@ const MemberDashboard = () => {
           <p className="text-sm text-slate-400 mt-1">Member since {profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : "N/A"}</p>
         </div>
       </div>
+      
+      {/* Avatar Editor Modal */}
+      <AvatarEditor
+        open={avatarEditorOpen}
+        onOpenChange={setAvatarEditorOpen}
+        onAvatarSaved={(url) => {
+          refreshProfile();
+        }}
+        userId={user?.id}
+        currentAvatar={profile?.avatar_url || undefined}
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
