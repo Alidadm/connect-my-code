@@ -50,7 +50,14 @@ const App = () => (
             <Route path="/groups/:groupId/post/:postId" element={<GroupPostView />} />
             <Route path="/groups/:groupId/settings" element={<GroupSettings />} />
             <Route path="/dashboard" element={<MemberDashboard />} />
-            <Route path="/adminindex" element={<AdminIndex />} />
+            <Route
+              path="/adminindex"
+              element={
+                <AdminRouteGuard>
+                  <AdminIndex />
+                </AdminRouteGuard>
+              }
+            />
             <Route
               path="/admin/users/list"
               element={
