@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { 
   Newspaper, 
   Users, 
@@ -9,7 +10,8 @@ import {
   Bookmark,
   Settings,
   Crown,
-  Plus
+  Plus,
+  Loader2
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -47,6 +49,12 @@ export const LeftSidebar = () => {
   const { data: userGroups } = useUserGroups();
   const navigate = useNavigate();
   const location = useLocation();
+  const [isNavigatingToCreate, setIsNavigatingToCreate] = useState(false);
+
+  const handleCreateGroup = () => {
+    setIsNavigatingToCreate(true);
+    navigate("/groups?create=true");
+  };
 
   const displayName = profile?.display_name || demoProfile.display_name;
   const username = profile?.username || user?.email?.split("@")[0] || demoProfile.username;
@@ -183,9 +191,14 @@ export const LeftSidebar = () => {
                 <Button 
                   size="sm" 
                   className="w-full gap-2"
-                  onClick={() => navigate("/groups?create=true")}
+                  disabled={isNavigatingToCreate}
+                  onClick={handleCreateGroup}
                 >
-                  <Plus className="h-4 w-4" />
+                  {isNavigatingToCreate ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Plus className="h-4 w-4" />
+                  )}
                   {t("sidebar.createGroup", { defaultValue: "Create Group" })}
                 </Button>
               </div>
