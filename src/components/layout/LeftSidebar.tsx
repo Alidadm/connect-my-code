@@ -19,14 +19,14 @@ import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 
 const getNavItems = (t: TFunction) => [
-  { icon: Newspaper, label: t("nav.feed"), path: "/", badge: null },
-  { icon: Users, label: t("nav.friends"), path: "/friends", badge: null },
-  { icon: Calendar, label: t("nav.events"), path: "/events", badge: null },
-  { icon: Bookmark, label: t("nav.saved", { defaultValue: "Saved" }), path: "/saved", badge: null },
-  { icon: UsersRound, label: t("nav.groups", { defaultValue: "Groups" }), path: "/groups", badge: null },
-  { icon: Image, label: t("nav.photos"), path: "/photos", badge: null },
-  { icon: Store, label: t("nav.marketplace"), path: "/marketplace", badge: null },
-  { icon: Settings, label: t("nav.settings", { defaultValue: "Settings" }), path: "/dashboard", badge: null },
+  { icon: Newspaper, label: t("nav.feed"), path: "/", badge: null, iconColor: "text-blue-500" },
+  { icon: Users, label: t("nav.friends"), path: "/friends", badge: null, iconColor: "text-green-500" },
+  { icon: Calendar, label: t("nav.events"), path: "/events", badge: null, iconColor: "text-orange-500" },
+  { icon: Bookmark, label: t("nav.saved", { defaultValue: "Saved" }), path: "/saved", badge: null, iconColor: "text-yellow-500" },
+  { icon: UsersRound, label: t("nav.groups", { defaultValue: "Groups" }), path: "/groups", badge: null, iconColor: "text-purple-500" },
+  { icon: Image, label: t("nav.photos"), path: "/photos", badge: null, iconColor: "text-pink-500" },
+  { icon: Store, label: t("nav.marketplace"), path: "/marketplace", badge: null, iconColor: "text-cyan-500" },
+  { icon: Settings, label: t("nav.settings", { defaultValue: "Settings" }), path: "/dashboard", badge: null, iconColor: "text-gray-500" },
 ];
 
 // Demo group for sidebar
@@ -126,7 +126,7 @@ export const LeftSidebar = () => {
                 )}
                 onClick={() => navigate(item.path)}
               >
-                <item.icon className="h-5 w-5" />
+                <item.icon className={cn("h-5 w-5", isActive ? "" : item.iconColor)} />
                 <span className="flex-1 text-left">{item.label}</span>
                 {item.badge && (
                   <span className={cn(
