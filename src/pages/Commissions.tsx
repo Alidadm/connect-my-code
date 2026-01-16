@@ -55,7 +55,7 @@ const Commissions = () => {
   
   // Email form state
   const [emailTo, setEmailTo] = useState("");
-  const [emailSubject, setEmailSubject] = useState("Join me on DolphySN!");
+  const [emailSubject, setEmailSubject] = useState("Build Your Monthly Income with DolphySN");
   const [emailMessage, setEmailMessage] = useState(`Hi everyone,
 
 DolphySN.com is a new social network built for people who want to connect, grow, and earn real monthly income at the same time.
@@ -137,7 +137,7 @@ See you inside DolphySN.`);
 
   const handleCancelEmail = () => {
     setEmailTo("");
-    setEmailSubject("Join me on DolphySN!");
+    setEmailSubject("Build Your Monthly Income with DolphySN");
     setEmailMessage(`Hi everyone,
 
 DolphySN.com is a new social network built for people who want to connect, grow, and earn real monthly income at the same time.
