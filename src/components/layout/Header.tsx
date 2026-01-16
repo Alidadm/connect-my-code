@@ -1,4 +1,4 @@
-import { Search, Bell, Bookmark, ChevronDown, LogOut, Settings, User, ExternalLink, Menu, X, Shield } from "lucide-react";
+import { Search, Bell, Bookmark, ChevronDown, LogOut, Settings, User, ExternalLink, Menu, X, Shield, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -137,10 +137,14 @@ export const Header = () => {
               {user ? (
                 <>
                   <DropdownMenuItem onClick={() => navigate("/dashboard")}>
+                    <LayoutDashboard className="mr-2 h-4 w-4" />
+                    Dashboard
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate(`/${profile?.username || ""}`)}>
                     <User className="mr-2 h-4 w-4" />
                     {t('header.myProfile')}
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/settings")}>
+                  <DropdownMenuItem onClick={() => navigate("/dashboard")}>
                     <Settings className="mr-2 h-4 w-4" />
                     {t('header.settings')}
                   </DropdownMenuItem>
