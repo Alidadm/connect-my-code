@@ -209,7 +209,7 @@ const ReferralNetworkSection = ({ userId }: ReferralNetworkSectionProps) => {
   };
 
   return (
-    <Card className="mb-8">
+    <Card id="referral-network" className="mb-8 scroll-mt-20">
       <CardHeader>
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-full bg-indigo-500/10 flex items-center justify-center">
