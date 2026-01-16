@@ -53,7 +53,15 @@
     "allAreFriends": "¡Todos tus referidos ya son amigos!",
     "totalReferrals": "Total de Referidos",
     "manageDescription": "Administra tus referidos y conéctate con ellos como amigos",
-    "sendFriendRequest": "Enviar Solicitud de Amistad"
+    "sendFriendRequest": "Enviar Solicitud de Amistad",
+    "status": {
+      "pending": "Pendiente",
+      "paid": "Pagado",
+      "cancelled": "Cancelado",
+      "completed": "Completado",
+      "approved": "Aprobado",
+      "rejected": "Rechazado"
+    }
   },
   "profile": {
     "title": "Perfil",

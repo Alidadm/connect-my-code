@@ -53,7 +53,15 @@
     "allAreFriends": "Tous vos filleuls sont déjà amis!",
     "totalReferrals": "Total des Filleuls",
     "manageDescription": "Gérez vos filleuls et connectez-vous avec eux en tant qu'amis",
-    "sendFriendRequest": "Envoyer une Demande d'Ami"
+    "sendFriendRequest": "Envoyer une Demande d'Ami",
+    "status": {
+      "pending": "En attente",
+      "paid": "Payé",
+      "cancelled": "Annulé",
+      "completed": "Terminé",
+      "approved": "Approuvé",
+      "rejected": "Rejeté"
+    }
   },
   "profile": {
     "title": "Profil",

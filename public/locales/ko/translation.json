@@ -63,7 +63,15 @@
     "allAreFriends": "모든 추천이 이미 친구입니다!",
     "totalReferrals": "총 추천 수",
     "manageDescription": "추천을 관리하고 친구로 연결하세요",
-    "sendFriendRequest": "친구 요청 보내기"
+    "sendFriendRequest": "친구 요청 보내기",
+    "status": {
+      "pending": "대기 중",
+      "paid": "지급됨",
+      "cancelled": "취소됨",
+      "completed": "완료됨",
+      "approved": "승인됨",
+      "rejected": "거부됨"
+    }
   },
   "profile": {
     "title": "프로필",

@@ -97,7 +97,15 @@
     "allAreFriends": "All your referrals are already friends!",
     "totalReferrals": "Total Referrals",
     "manageDescription": "Manage your referrals and connect with them as friends",
-    "sendFriendRequest": "Send Friend Request"
+    "sendFriendRequest": "Send Friend Request",
+    "status": {
+      "pending": "Pending",
+      "paid": "Paid",
+      "cancelled": "Cancelled",
+      "completed": "Completed",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    }
   },
   "profile": {
     "title": "Profile",

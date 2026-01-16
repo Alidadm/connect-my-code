@@ -87,7 +87,15 @@
     "allAreFriends": "Todas as suas indicações já são amigos!",
     "totalReferrals": "Total de Indicações",
     "manageDescription": "Gerencie suas indicações e conecte-se com elas como amigos",
-    "sendFriendRequest": "Enviar Pedido de Amizade"
+    "sendFriendRequest": "Enviar Pedido de Amizade",
+    "status": {
+      "pending": "Pendente",
+      "paid": "Pago",
+      "cancelled": "Cancelado",
+      "completed": "Concluído",
+      "approved": "Aprovado",
+      "rejected": "Rejeitado"
+    }
   },
   "profile": {
     "title": "Perfil",

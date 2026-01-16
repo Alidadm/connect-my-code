@@ -87,7 +87,15 @@
     "allAreFriends": "您所有的推荐都已经是好友了！",
     "totalReferrals": "总推荐数",
     "manageDescription": "管理您的推荐并与他们成为好友",
-    "sendFriendRequest": "发送好友请求"
+    "sendFriendRequest": "发送好友请求",
+    "status": {
+      "pending": "待处理",
+      "paid": "已支付",
+      "cancelled": "已取消",
+      "completed": "已完成",
+      "approved": "已批准",
+      "rejected": "已拒绝"
+    }
   },
   "profile": {
     "title": "个人资料",

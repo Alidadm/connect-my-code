@@ -63,7 +63,15 @@
     "allAreFriends": "आपके सभी रेफरल पहले से मित्र हैं!",
     "totalReferrals": "कुल रेफरल",
     "manageDescription": "अपने रेफरल प्रबंधित करें और उनसे मित्र के रूप में जुड़ें",
-    "sendFriendRequest": "मित्र अनुरोध भेजें"
+    "sendFriendRequest": "मित्र अनुरोध भेजें",
+    "status": {
+      "pending": "लंबित",
+      "paid": "भुगतान किया गया",
+      "cancelled": "रद्द",
+      "completed": "पूर्ण",
+      "approved": "स्वीकृत",
+      "rejected": "अस्वीकृत"
+    }
   },
   "profile": {
     "title": "प्रोफ़ाइल",
