@@ -296,7 +296,7 @@ const Commissions = () => {
               </div>
               <div>
                 <CardTitle className="text-lg">Referral</CardTitle>
-                <CardDescription>Invite friends via email. When they subscribe, you earn $5 every month for as long as their subscription stays active</CardDescription>
+                <CardDescription>Invite anyone by email. When they subscribe, you earn $5 every month for as long as their subscription stays active</CardDescription>
               </div>
             </div>
           </CardHeader>
