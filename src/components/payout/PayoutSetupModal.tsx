@@ -201,7 +201,25 @@ export const PayoutSetupModal = ({ userId, onComplete }: PayoutSetupModalProps) 
     if (result.isConfirmed && result.value) {
       await savePayoutSettings(session.access_token, result.value.paypalEmail);
     } else if (result.isDismissed) {
-      // User chose to set up later - mark as not completed but don't block
+      // User chose to set up later - mark as completed in database so modal doesn't show again
+      try {
+        await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/store-private-profile`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${session.access_token}`,
+            },
+            body: JSON.stringify({
+              payout_setup_completed: true,
+            }),
+          }
+        );
+      } catch (error) {
+        console.error("Error saving payout setup status:", error);
+      }
+      
       toast.info("You can set up payouts anytime in your Commissions dashboard");
       onComplete();
     }
