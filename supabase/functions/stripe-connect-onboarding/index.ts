@@ -125,6 +125,12 @@ serve(async (req) => {
           transfers: { requested: true },
         },
         business_type: "individual",
+        business_profile: {
+          // Pre-fill to skip the website/business name step
+          url: "https://dolphysn.com",
+          mcc: "5969", // Direct Marketing - Other (suitable for individual payouts)
+          product_description: "Referral commission payouts from DolphySN social network",
+        },
         metadata: {
           supabase_user_id: user.id,
         },
