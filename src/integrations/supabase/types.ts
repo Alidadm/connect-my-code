@@ -869,6 +869,48 @@ export type Database = {
         }
         Relationships: []
       }
+      pending_commission_notifications: {
+        Row: {
+          amount: number
+          batch_id: string | null
+          created_at: string
+          currency: string | null
+          id: string
+          notification_type: string
+          payment_provider: string | null
+          payout_method: string | null
+          referred_user_name: string | null
+          referrer_id: string
+          sent_at: string | null
+        }
+        Insert: {
+          amount: number
+          batch_id?: string | null
+          created_at?: string
+          currency?: string | null
+          id?: string
+          notification_type: string
+          payment_provider?: string | null
+          payout_method?: string | null
+          referred_user_name?: string | null
+          referrer_id: string
+          sent_at?: string | null
+        }
+        Update: {
+          amount?: number
+          batch_id?: string | null
+          created_at?: string
+          currency?: string | null
+          id?: string
+          notification_type?: string
+          payment_provider?: string | null
+          payout_method?: string | null
+          referred_user_name?: string | null
+          referrer_id?: string
+          sent_at?: string | null
+        }
+        Relationships: []
+      }
       phone_verification_codes: {
         Row: {
           code: string
