@@ -246,5 +246,23 @@
       "thumbs": "अंगूठे",
       "funEmoji": "इमोजी"
     }
+  },
+  "cover": {
+    "updateCover": "कवर फ़ोटो अपडेट करें",
+    "takePhoto": "फ़ोटो लें",
+    "upload": "अपलोड करें",
+    "adjustCrop": "समायोजित और क्रॉप करें",
+    "save": "सहेजें",
+    "cancel": "रद्द करें",
+    "reset": "रीसेट करें",
+    "chooseMethod": "अपने कवर के लिए फ़ोटो चुनें या नई लें।",
+    "coverUpdated": "कवर फ़ोटो सफलतापूर्वक अपडेट हुई!",
+    "uploadFailed": "कवर फ़ोटो अपलोड करने में विफल",
+    "removeCover": "कवर हटाएं",
+    "coverRemoved": "कवर फ़ोटो हटाई गई!",
+    "removeFailed": "हटाने में विफल",
+    "cameraError": "कैमरा एक्सेस नहीं हो सका।",
+    "invalidImage": "कृपया एक छवि चुनें",
+    "imageTooLarge": "छवि 10MB से कम होनी चाहिए"
   }
 }

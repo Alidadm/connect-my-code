@@ -414,5 +414,23 @@
       "thumbs": "Thumbs",
       "funEmoji": "Emoji"
     }
+  },
+  "cover": {
+    "updateCover": "Update Cover Photo",
+    "takePhoto": "Take Photo",
+    "upload": "Upload",
+    "adjustCrop": "Adjust & Crop",
+    "save": "Save",
+    "cancel": "Cancel",
+    "reset": "Reset",
+    "chooseMethod": "Choose a photo or take a new one for your cover.",
+    "coverUpdated": "Cover photo updated successfully!",
+    "uploadFailed": "Failed to upload cover photo",
+    "removeCover": "Remove Cover",
+    "coverRemoved": "Cover photo removed successfully!",
+    "removeFailed": "Failed to remove cover photo",
+    "cameraError": "Could not access camera. Please check permissions.",
+    "invalidImage": "Please select an image file",
+    "imageTooLarge": "Image must be less than 10MB"
   }
 }

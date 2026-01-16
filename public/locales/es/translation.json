@@ -218,5 +218,23 @@
       "thumbs": "Pulgares",
       "funEmoji": "Emoji"
     }
+  },
+  "cover": {
+    "updateCover": "Actualizar Foto de Portada",
+    "takePhoto": "Tomar Foto",
+    "upload": "Subir",
+    "adjustCrop": "Ajustar y Recortar",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "reset": "Restablecer",
+    "chooseMethod": "Elige una foto o toma una nueva para tu portada.",
+    "coverUpdated": "¡Foto de portada actualizada!",
+    "uploadFailed": "Error al subir la foto de portada",
+    "removeCover": "Eliminar Portada",
+    "coverRemoved": "¡Foto de portada eliminada!",
+    "removeFailed": "Error al eliminar la foto de portada",
+    "cameraError": "No se pudo acceder a la cámara.",
+    "invalidImage": "Por favor selecciona una imagen",
+    "imageTooLarge": "La imagen debe ser menor a 10MB"
   }
 }

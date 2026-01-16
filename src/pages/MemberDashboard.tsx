@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { GroupsManagement } from "@/components/dashboard/GroupsManagement";
 import { AvatarEditor } from "@/components/avatar/AvatarEditor";
+import { CoverEditor } from "@/components/cover/CoverEditor";
 import Swal from "sweetalert2";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -118,6 +119,9 @@ const MemberDashboard = () => {
   
   // Avatar editor state
   const [avatarEditorOpen, setAvatarEditorOpen] = useState(false);
+  
+  // Cover editor state
+  const [coverEditorOpen, setCoverEditorOpen] = useState(false);
 
   // Fetch pending join requests count
   React.useEffect(() => {
@@ -297,26 +301,51 @@ const MemberDashboard = () => {
 
   const renderProfileTab = () => (
     <div className="space-y-6">
-      <div className="flex items-center gap-6 pb-6 border-b border-slate-200">
-        <div className="relative">
-          <Avatar className="w-24 h-24 border-4 border-white shadow-xl">
-            <AvatarImage src={profile?.avatar_url || ""} />
-            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-cyan-500 text-white text-2xl">
-              {formData.display_name?.charAt(0) || formData.first_name?.charAt(0) || "U"}
-            </AvatarFallback>
-          </Avatar>
+      {/* Cover Photo Section */}
+      <div className="relative -mx-6 -mt-6 mb-6">
+        <div className="relative h-32 sm:h-40 bg-gradient-to-br from-primary/30 to-primary/10 overflow-hidden">
+          {profile?.cover_url ? (
+            <img 
+              src={profile.cover_url} 
+              alt="Cover" 
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-blue-500/30 to-cyan-500/30" />
+          )}
           <button 
-            onClick={() => setAvatarEditorOpen(true)}
-            className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg hover:from-blue-600 hover:to-cyan-600 transition-all"
+            onClick={() => setCoverEditorOpen(true)}
+            className="absolute bottom-3 right-3 px-3 py-1.5 rounded-full bg-black/50 hover:bg-black/70 flex items-center gap-2 text-white text-sm transition-all"
           >
-            <Camera className="w-4 h-4 text-white" />
+            <Camera className="w-4 h-4" />
+            {t("cover.updateCover")}
           </button>
         </div>
-        <div>
-          <h3 className="text-xl font-bold text-slate-800">{formData.display_name || "Your Name"}</h3>
-          <p className="text-slate-500">@{formData.username || "username"}</p>
-          <p className="text-sm text-slate-400 mt-1">Member since {profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : "N/A"}</p>
+        
+        {/* Avatar overlapping cover */}
+        <div className="absolute -bottom-12 left-6">
+          <div className="relative">
+            <Avatar className="w-24 h-24 border-4 border-white shadow-xl">
+              <AvatarImage src={profile?.avatar_url || ""} />
+              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-cyan-500 text-white text-2xl">
+                {formData.display_name?.charAt(0) || formData.first_name?.charAt(0) || "U"}
+              </AvatarFallback>
+            </Avatar>
+            <button 
+              onClick={() => setAvatarEditorOpen(true)}
+              className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg hover:from-blue-600 hover:to-cyan-600 transition-all"
+            >
+              <Camera className="w-4 h-4 text-white" />
+            </button>
+          </div>
         </div>
+      </div>
+      
+      {/* Profile Info - with spacing for avatar overlap */}
+      <div className="pt-10 pb-6 border-b border-slate-200">
+        <h3 className="text-xl font-bold text-slate-800">{formData.display_name || "Your Name"}</h3>
+        <p className="text-slate-500">@{formData.username || "username"}</p>
+        <p className="text-sm text-slate-400 mt-1">Member since {profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : "N/A"}</p>
       </div>
       
       {/* Avatar Editor Modal */}
@@ -329,6 +358,17 @@ const MemberDashboard = () => {
         userId={user?.id}
         currentAvatar={profile?.avatar_url || undefined}
         userName={formData.display_name || `${formData.first_name} ${formData.last_name}`.trim() || "User"}
+      />
+      
+      {/* Cover Editor Modal */}
+      <CoverEditor
+        open={coverEditorOpen}
+        onOpenChange={setCoverEditorOpen}
+        onCoverSaved={(url) => {
+          refreshProfile();
+        }}
+        userId={user?.id}
+        currentCover={profile?.cover_url || undefined}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

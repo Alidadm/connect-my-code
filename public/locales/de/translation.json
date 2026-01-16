@@ -218,5 +218,23 @@
       "thumbs": "Daumen",
       "funEmoji": "Emoji"
     }
+  },
+  "cover": {
+    "updateCover": "Titelbild Aktualisieren",
+    "takePhoto": "Foto Aufnehmen",
+    "upload": "Hochladen",
+    "adjustCrop": "Anpassen & Zuschneiden",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "reset": "Zurücksetzen",
+    "chooseMethod": "Wählen Sie ein Foto oder machen Sie ein neues für Ihr Titelbild.",
+    "coverUpdated": "Titelbild erfolgreich aktualisiert!",
+    "uploadFailed": "Fehler beim Hochladen des Titelbilds",
+    "removeCover": "Titelbild Entfernen",
+    "coverRemoved": "Titelbild erfolgreich entfernt!",
+    "removeFailed": "Fehler beim Entfernen",
+    "cameraError": "Kamerazugriff nicht möglich.",
+    "invalidImage": "Bitte wählen Sie ein Bild",
+    "imageTooLarge": "Bild muss kleiner als 10 MB sein"
   }
 }
