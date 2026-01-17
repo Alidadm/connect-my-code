@@ -28,6 +28,10 @@ import VerifyEmail from "./pages/VerifyEmail";
 import NotFound from "./pages/NotFound";
 import BusinessProfile from "./pages/BusinessProfile";
 import Friends from "./pages/Friends";
+import Settings from "./pages/Settings";
+import Privacy from "./pages/Privacy";
+import HelpSupport from "./pages/HelpSupport";
+import Feedback from "./pages/Feedback";
 
 const queryClient = new QueryClient();
 
@@ -53,6 +57,10 @@ const App = () => (
             <Route path="/groups/:groupId/post/:postId" element={<GroupPostView />} />
             <Route path="/groups/:groupId/settings" element={<GroupSettings />} />
             <Route path="/dashboard" element={<MemberDashboard />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/help" element={<HelpSupport />} />
+            <Route path="/feedback" element={<Feedback />} />
             <Route
               path="/adminindex"
               element={

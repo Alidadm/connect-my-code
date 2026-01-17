@@ -1,4 +1,4 @@
-import { Search, Bell, Bookmark, ChevronDown, LogOut, Settings, User, ExternalLink, Menu, X, Shield, LayoutDashboard, UserPlus, Check } from "lucide-react";
+import { Search, Bell, Bookmark, ChevronDown, LogOut, Settings, User, ExternalLink, Menu, X, Shield, LayoutDashboard, UserPlus, Check, Lock, HelpCircle, MessageSquarePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -321,15 +321,29 @@ export const Header = () => {
                 <>
                   <DropdownMenuItem onClick={() => navigate("/dashboard")}>
                     <LayoutDashboard className="mr-2 h-4 w-4" />
-                    Dashboard
+                    {t('header.dashboard', { defaultValue: 'Dashboard' })}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate(`/${profile?.username || ""}`)}>
                     <User className="mr-2 h-4 w-4" />
                     {t('header.myProfile')}
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/dashboard")}>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => navigate("/settings")}>
                     <Settings className="mr-2 h-4 w-4" />
                     {t('header.settings')}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/privacy")}>
+                    <Lock className="mr-2 h-4 w-4" />
+                    {t('header.privacy', { defaultValue: 'Privacy Settings' })}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => navigate("/help")}>
+                    <HelpCircle className="mr-2 h-4 w-4" />
+                    {t('header.helpSupport', { defaultValue: 'Help & Support' })}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/feedback")}>
+                    <MessageSquarePlus className="mr-2 h-4 w-4" />
+                    {t('header.giveFeedback', { defaultValue: 'Give Feedback' })}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
