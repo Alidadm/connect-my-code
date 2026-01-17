@@ -1,4 +1,4 @@
-import { Search, MoreVertical, Calendar, Bell, Cake, TrendingUp, MessageCircle, Heart, Users, Circle, Send, PenLine, Settings2, Check } from "lucide-react";
+import { Search, MoreVertical, Calendar, Bell, Cake, TrendingUp, MessageCircle, Heart, Users, Circle, Send, PenLine, Settings2, Check, CalendarClock } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +17,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ScheduleBirthdayWishDialog } from "@/components/birthday/ScheduleBirthdayWishDialog";
 
 interface MessageWithSender {
   id: string;
@@ -112,9 +113,18 @@ export const RightSidebar = () => {
     return saved ? parseInt(saved, 10) : 7; // Default to 7 days
   });
   
+  // Schedule wish dialog state
+  const [scheduleWishDialogOpen, setScheduleWishDialogOpen] = useState(false);
+  const [selectedFriendForWish, setSelectedFriendForWish] = useState<BirthdayReminder | null>(null);
+  
   const handleReminderDaysChange = (days: number) => {
     setBirthdayReminderDays(days);
     localStorage.setItem("birthdayReminderDays", days.toString());
+  };
+  
+  const handleScheduleWish = (friend: BirthdayReminder) => {
+    setSelectedFriendForWish(friend);
+    setScheduleWishDialogOpen(true);
   };
   useEffect(() => {
     if (!user) return;
@@ -576,6 +586,21 @@ export const RightSidebar = () => {
                       <PenLine className="h-3.5 w-3.5" />
                       {t("sidebar.postOnWall", "Post")}
                     </Button>
+                    {/* Schedule wish button for future birthdays */}
+                    {bday.daysUntil > 0 && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8 w-8 p-0 hover:bg-pink-500/10 hover:text-pink-500 hover:border-pink-500/50"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleScheduleWish(bday);
+                        }}
+                        title={t("sidebar.scheduleWish", "Schedule wish")}
+                      >
+                        <CalendarClock className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
                   </div>
                 </div>
               ))}
@@ -803,6 +828,15 @@ export const RightSidebar = () => {
           </div>
         </div>
       </div>
+      
+      {/* Schedule Birthday Wish Dialog */}
+      {selectedFriendForWish && (
+        <ScheduleBirthdayWishDialog
+          open={scheduleWishDialogOpen}
+          onOpenChange={setScheduleWishDialogOpen}
+          friend={selectedFriendForWish}
+        />
+      )}
     </aside>
   );
 };

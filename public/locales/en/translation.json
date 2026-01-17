@@ -296,6 +296,20 @@
     "notifications": "Notifications",
     "profile": "Profile"
   },
+  "birthday": {
+    "scheduleWish": "Schedule Birthday Wish",
+    "scheduleWishDesc": "Your wish will be automatically posted on their birthday",
+    "yourMessage": "Your message",
+    "writeWish": "Write your birthday wish...",
+    "defaultWish": "Happy Birthday, {{name}}! 🎂🎉 Wishing you an amazing day filled with joy and happiness!",
+    "schedule": "Schedule",
+    "wishScheduled": "Birthday wish scheduled!",
+    "wishScheduledDesc": "Your wish will be posted on {{date}}",
+    "wishDeleted": "Scheduled wish deleted",
+    "scheduledWishes": "Scheduled wishes",
+    "today": "Today!",
+    "inDays": "in {{days}} days"
+  },
   "sidebar": {
     "pagesYouLike": "Pages You Like",
     "yourGroups": "Your Groups",
