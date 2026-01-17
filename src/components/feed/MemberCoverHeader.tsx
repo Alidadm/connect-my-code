@@ -51,7 +51,7 @@ export const MemberCoverHeader = () => {
           <div 
             className="rounded-full p-1"
             style={{
-              backgroundImage: 'linear-gradient(to bottom right, #ff3cac, #562b7c, #2b86c5)'
+              backgroundImage: 'linear-gradient(to top left, #ff3cac, #562b7c, #2b86c5)'
             }}
           >
             <Avatar className="h-20 w-20 ring-2 ring-card">
