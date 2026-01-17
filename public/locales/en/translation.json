@@ -144,7 +144,12 @@
     "isMutualFriend": "is a mutual friend",
     "areMutualFriends": "are mutual friends",
     "andOthersMutual": "and {{count}} other mutual friends",
-    "noMutualFriends": "No mutual friends"
+    "noMutualFriends": "No mutual friends",
+    "mutualFriends": "Mutual Friends",
+    "noMutualFriendsDesc": "You don't have any friends in common with this person yet.",
+    "mutualFriendsCount": "{{count}} mutual friends with {{name}}",
+    "noPostsYet": "No posts yet",
+    "noPhotosYet": "No photos yet"
   },
   "account": {
     "title": "Account",
