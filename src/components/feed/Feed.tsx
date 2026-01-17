@@ -98,8 +98,39 @@ export const Feed = () => {
   const [hasMore, setHasMore] = useState(true);
   const [filter, setFilter] = useState<FilterType>("recent");
   const [activeTab, setActiveTab] = useState("feed");
+  const [blockedUserIds, setBlockedUserIds] = useState<Set<string>>(new Set());
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
+
+  // Fetch blocked and muted user IDs
+  const fetchBlockedUsers = useCallback(async () => {
+    if (!user) {
+      setBlockedUserIds(new Set());
+      return;
+    }
+
+    const [blockedResult, mutedResult] = await Promise.all([
+      supabase
+        .from("blocked_users")
+        .select("blocked_user_id")
+        .eq("user_id", user.id),
+      supabase
+        .from("muted_users")
+        .select("muted_user_id")
+        .eq("user_id", user.id),
+    ]);
+
+    const blockedIds = new Set<string>([
+      ...(blockedResult.data?.map(b => b.blocked_user_id) || []),
+      ...(mutedResult.data?.map(m => m.muted_user_id) || []),
+    ]);
+
+    setBlockedUserIds(blockedIds);
+  }, [user]);
+
+  useEffect(() => {
+    fetchBlockedUsers();
+  }, [fetchBlockedUsers]);
 
   const fetchPostsWithProfiles = async (postsData: any[]) => {
     const userIds = [...new Set(postsData.map(p => p.user_id))];
@@ -212,8 +243,13 @@ export const Feed = () => {
       // Check if we have more posts to load
       setHasMore(postsData.length === POSTS_PER_PAGE);
 
+      // Filter out blocked/muted users
+      const filteredPosts = postsData.filter(
+        (post) => !blockedUserIds.has(post.user_id)
+      );
+
       // Fetch profiles and update state
-      const postsWithProfiles = await fetchPostsWithProfiles(postsData);
+      const postsWithProfiles = await fetchPostsWithProfiles(filteredPosts);
       
       if (append) {
         setPosts(prev => {
@@ -279,6 +315,9 @@ export const Feed = () => {
         { event: "INSERT", schema: "public", table: "posts" },
         async (payload) => {
           const newPost = payload.new as any;
+          // Skip posts from blocked/muted users
+          if (blockedUserIds.has(newPost.user_id)) return;
+          
           if (newPost.visibility === "public" || newPost.user_id === user?.id) {
             const postsWithProfiles = await fetchPostsWithProfiles([newPost]);
             setPosts(prev => [postsWithProfiles[0], ...prev]);
@@ -290,7 +329,7 @@ export const Feed = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [filter, user?.id]);
+  }, [filter, user?.id, blockedUserIds]);
 
   const getFilterLabel = () => {
     switch (filter) {
