@@ -115,10 +115,13 @@ const MemberDashboard = () => {
   // Account tab editing state (moved to top level for hooks rules)
   const [editingEmail, setEditingEmail] = useState(false);
   const [editingPhone, setEditingPhone] = useState(false);
+  const [editingBirthday, setEditingBirthday] = useState(false);
   const [newEmail, setNewEmail] = useState("");
   const [newPhone, setNewPhone] = useState("");
+  const [newBirthday, setNewBirthday] = useState("");
   const [updatingEmail, setUpdatingEmail] = useState(false);
   const [updatingPhone, setUpdatingPhone] = useState(false);
+  const [updatingBirthday, setUpdatingBirthday] = useState(false);
   
   // Avatar editor state
   const [avatarEditorOpen, setAvatarEditorOpen] = useState(false);
@@ -506,6 +509,41 @@ const MemberDashboard = () => {
       }
     };
 
+    const handleUpdateBirthday = async () => {
+      if (!newBirthday || newBirthday === privateProfile?.birthday) {
+        setEditingBirthday(false);
+        return;
+      }
+      setUpdatingBirthday(true);
+      try {
+        const { error } = await supabase.functions.invoke('store-private-profile', {
+          body: { birthday: newBirthday }
+        });
+        if (error) throw error;
+        
+        const { data } = await supabase.functions.invoke('get-my-private-profile');
+        if (data?.data) setPrivateProfile(data.data);
+        
+        toast.success("Birthday updated successfully!");
+        setEditingBirthday(false);
+      } catch (error) {
+        console.error("Error updating birthday:", error);
+        toast.error("Failed to update birthday");
+      } finally {
+        setUpdatingBirthday(false);
+      }
+    };
+
+    const formatBirthdayDisplay = (birthday: string | null) => {
+      if (!birthday) return "Not set";
+      try {
+        const date = new Date(birthday);
+        return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+      } catch {
+        return birthday;
+      }
+    };
+
     const handleChangePassword = async () => {
       const { value: formValues } = await Swal.fire({
         title: 'Change Password',
@@ -831,6 +869,53 @@ const MemberDashboard = () => {
               </Button>
             )}
           </div>
+        </div>
+
+        <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center">
+              <Calendar className="w-5 h-5 text-white" />
+            </div>
+            <div className="flex-1">
+              <h4 className="font-medium text-slate-800">Birthday</h4>
+              {editingBirthday ? (
+                <Input
+                  type="date"
+                  value={newBirthday}
+                  onChange={(e) => setNewBirthday(e.target.value)}
+                  className="mt-1 max-w-xs"
+                  max={new Date().toISOString().split('T')[0]}
+                />
+              ) : (
+                <p className="text-sm text-slate-500">{formatBirthdayDisplay(privateProfile?.birthday)}</p>
+              )}
+            </div>
+            {editingBirthday ? (
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setEditingBirthday(false)}
+                  disabled={updatingBirthday}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  size="sm" 
+                  onClick={handleUpdateBirthday}
+                  disabled={updatingBirthday}
+                  className="bg-gradient-to-r from-pink-500 to-rose-500"
+                >
+                  {updatingBirthday ? "Saving..." : "Save"}
+                </Button>
+              </div>
+            ) : (
+              <Button variant="outline" size="sm" onClick={() => { setNewBirthday(privateProfile?.birthday || ""); setEditingBirthday(true); }}>
+                Update
+              </Button>
+            )}
+          </div>
+          <p className="text-xs text-slate-400 mt-2 ml-13">Your birthday is used for birthday celebrations and reminders to friends.</p>
         </div>
 
         <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
