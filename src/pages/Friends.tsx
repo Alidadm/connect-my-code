@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Check, X, UserPlus, Users, Clock, Sparkles, Search } from "lucide-react";
+import { Check, X, UserPlus, Users, Clock, Sparkles, Search, Send } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +17,20 @@ import { Badge } from "@/components/ui/badge";
 interface FriendRequest {
   id: string;
   requester_id: string;
+  created_at: string;
+  profile: {
+    user_id: string;
+    display_name: string | null;
+    first_name: string | null;
+    last_name: string | null;
+    avatar_url: string | null;
+    username: string | null;
+  } | null;
+}
+
+interface SentRequest {
+  id: string;
+  addressee_id: string;
   created_at: string;
   profile: {
     user_id: string;
@@ -60,6 +74,7 @@ const Friends = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [pendingRequests, setPendingRequests] = useState<FriendRequest[]>([]);
+  const [sentRequests, setSentRequests] = useState<SentRequest[]>([]);
   const [friends, setFriends] = useState<Friend[]>([]);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [loading, setLoading] = useState(true);
@@ -87,6 +102,15 @@ const Friends = () => {
 
   // Filter pending requests based on search query
   const filteredPendingRequests = pendingRequests.filter((request) => {
+    if (!searchQuery.trim()) return true;
+    const query = searchQuery.toLowerCase();
+    const name = getDisplayName(request.profile).toLowerCase();
+    const username = request.profile?.username?.toLowerCase() || "";
+    return name.includes(query) || username.includes(query);
+  });
+
+  // Filter sent requests based on search query
+  const filteredSentRequests = sentRequests.filter((request) => {
     if (!searchQuery.trim()) return true;
     const query = searchQuery.toLowerCase();
     const name = getDisplayName(request.profile).toLowerCase();
@@ -130,6 +154,32 @@ const Friends = () => {
         setPendingRequests(requestsWithProfiles);
       } else {
         setPendingRequests([]);
+      }
+
+      // Fetch sent friend requests (where current user is the requester)
+      const { data: sentData, error: sentError } = await supabase
+        .from("friendships")
+        .select("id, addressee_id, created_at")
+        .eq("requester_id", user.id)
+        .eq("status", "pending");
+
+      if (sentError) throw sentError;
+
+      // Get profiles for sent requests
+      if (sentData && sentData.length > 0) {
+        const addresseeIds = sentData.map(r => r.addressee_id);
+        const { data: profiles } = await supabase
+          .from("safe_profiles")
+          .select("user_id, display_name, first_name, last_name, avatar_url, username")
+          .in("user_id", addresseeIds);
+
+        const sentWithProfiles = sentData.map(request => ({
+          ...request,
+          profile: profiles?.find(p => p.user_id === request.addressee_id) || null
+        }));
+        setSentRequests(sentWithProfiles);
+      } else {
+        setSentRequests([]);
       }
 
       // Fetch accepted friendships
@@ -380,6 +430,31 @@ const Friends = () => {
     }
   };
 
+  const handleCancelSentRequest = async (requestId: string) => {
+    setProcessingIds(prev => new Set(prev).add(requestId));
+    
+    try {
+      const { error } = await supabase
+        .from("friendships")
+        .delete()
+        .eq("id", requestId);
+
+      if (error) throw error;
+
+      toast.success(t("friends.requestCanceled", { defaultValue: "Friend request canceled" }));
+      setSentRequests(prev => prev.filter(r => r.id !== requestId));
+    } catch (error) {
+      console.error("Error canceling friend request:", error);
+      toast.error(t("friends.cancelFailed", { defaultValue: "Failed to cancel request" }));
+    } finally {
+      setProcessingIds(prev => {
+        const next = new Set(prev);
+        next.delete(requestId);
+        return next;
+      });
+    }
+  };
+
   const handleRemoveFriend = async (friendshipId: string) => {
     setProcessingIds(prev => new Set(prev).add(friendshipId));
     
@@ -457,19 +532,29 @@ const Friends = () => {
         </div>
 
         <Tabs defaultValue="requests" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="requests" className="flex items-center gap-2">
               <Clock className="h-4 w-4" />
-              {t("friends.pendingRequests", { defaultValue: "Pending Requests" })}
+              <span className="hidden sm:inline">{t("friends.pendingRequests", { defaultValue: "Pending" })}</span>
+              <span className="sm:hidden">{t("friends.pending", { defaultValue: "Pending" })}</span>
               {pendingRequests.length > 0 && (
                 <span className="bg-primary text-primary-foreground text-xs rounded-full px-2 py-0.5">
                   {pendingRequests.length}
                 </span>
               )}
             </TabsTrigger>
+            <TabsTrigger value="sent" className="flex items-center gap-2">
+              <Send className="h-4 w-4" />
+              <span className="hidden sm:inline">{t("friends.sentRequests", { defaultValue: "Sent" })}</span>
+              <span className="sm:hidden">{t("friends.sent", { defaultValue: "Sent" })}</span>
+              {sentRequests.length > 0 && (
+                <span className="text-muted-foreground text-xs">({sentRequests.length})</span>
+              )}
+            </TabsTrigger>
             <TabsTrigger value="friends" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
-              {t("friends.myFriends", { defaultValue: "My Friends" })}
+              <span className="hidden sm:inline">{t("friends.myFriends", { defaultValue: "Friends" })}</span>
+              <span className="sm:hidden">{t("friends.friends", { defaultValue: "Friends" })}</span>
               <span className="text-muted-foreground text-xs">({friends.length})</span>
             </TabsTrigger>
           </TabsList>
@@ -626,6 +711,81 @@ const Friends = () => {
                         >
                           <X className="h-4 w-4 mr-1" />
                           {t("friends.remove", { defaultValue: "Remove" })}
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="sent" className="mt-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Send className="h-5 w-5" />
+                  {t("friends.sentRequests", { defaultValue: "Sent Requests" })}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="flex items-center gap-4">
+                        <Skeleton className="h-12 w-12 rounded-full" />
+                        <div className="flex-1 space-y-2">
+                          <Skeleton className="h-4 w-32" />
+                          <Skeleton className="h-3 w-24" />
+                        </div>
+                        <Skeleton className="h-9 w-20" />
+                      </div>
+                    ))}
+                  </div>
+                ) : filteredSentRequests.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Send className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>{searchQuery.trim() 
+                      ? t("friends.noSearchResults", { defaultValue: "No results found" })
+                      : t("friends.noSentRequests", { defaultValue: "No pending sent requests" })
+                    }</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {filteredSentRequests.map((request) => (
+                      <div 
+                        key={request.id} 
+                        className="flex items-center gap-4 p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+                      >
+                        <Avatar 
+                          className="h-12 w-12 cursor-pointer"
+                          onClick={() => navigateToProfile(request.profile?.username)}
+                        >
+                          <AvatarImage src={request.profile?.avatar_url || undefined} />
+                          <AvatarFallback>{getInitials(request.profile)}</AvatarFallback>
+                        </Avatar>
+                        
+                        <div 
+                          className="flex-1 min-w-0 cursor-pointer"
+                          onClick={() => navigateToProfile(request.profile?.username)}
+                        >
+                          <p className="font-semibold truncate hover:underline">
+                            {getDisplayName(request.profile)}
+                          </p>
+                          {request.profile?.username && (
+                            <p className="text-sm text-muted-foreground">@{request.profile.username}</p>
+                          )}
+                        </div>
+
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleCancelSentRequest(request.id)}
+                          disabled={processingIds.has(request.id)}
+                          className="gap-1"
+                        >
+                          <X className="h-4 w-4" />
+                          {t("friends.cancel", { defaultValue: "Cancel" })}
                         </Button>
                       </div>
                     ))}
