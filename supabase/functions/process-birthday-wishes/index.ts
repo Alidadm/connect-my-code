@@ -28,47 +28,34 @@ async function generateBirthdayImage(
     const imageBase64 = btoa(String.fromCharCode(...new Uint8Array(imageArrayBuffer)));
     
     // Create SVG with the name overlaid using "Milly" style gradient
-    // Coral/salmon pink gradient with golden swoosh underline
     const svgWidth = 1080;
     const svgHeight = 1080;
-    const nameYPosition = 700; // Position in center below "Birthday"
-    const swooshYPosition = 730; // Golden swoosh below the name
+    const nameYPosition = 700;
+    const swooshYPosition = 730;
     
-    // Clean and prepare the name
     const displayName = friendFirstName || "Friend";
-    
-    // Calculate swoosh width based on name length (approximate)
     const swooshWidth = Math.min(displayName.length * 45, 400);
     const swooshStartX = (svgWidth / 2) - (swooshWidth / 2);
     
     const svg = `
       <svg xmlns="http://www.w3.org/2000/svg" width="${svgWidth}" height="${svgHeight}">
         <defs>
-          <!-- Coral/Salmon pink gradient like "Milly" text -->
           <linearGradient id="nameGradient" x1="0%" y1="0%" x2="0%" y2="100%">
             <stop offset="0%" style="stop-color:#E8707A;stop-opacity:1" />
             <stop offset="50%" style="stop-color:#E88A7A;stop-opacity:1" />
             <stop offset="100%" style="stop-color:#D4756E;stop-opacity:1" />
           </linearGradient>
-          
-          <!-- Golden/yellow gradient for the swoosh underline -->
           <linearGradient id="swooshGradient" x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" style="stop-color:#FFD700;stop-opacity:0.3" />
             <stop offset="30%" style="stop-color:#FFA500;stop-opacity:1" />
             <stop offset="70%" style="stop-color:#FFD700;stop-opacity:1" />
             <stop offset="100%" style="stop-color:#FFD700;stop-opacity:0.3" />
           </linearGradient>
-          
-          <!-- Subtle shadow for depth -->
           <filter id="textShadow" x="-20%" y="-20%" width="140%" height="140%">
             <feDropShadow dx="1" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.15)"/>
           </filter>
         </defs>
-        
-        <!-- Base birthday template image -->
         <image href="data:image/jpeg;base64,${imageBase64}" width="${svgWidth}" height="${svgHeight}"/>
-        
-        <!-- Friend's name with Milly-style coral/salmon gradient -->
         <text 
           x="50%" 
           y="${nameYPosition}" 
@@ -79,8 +66,6 @@ async function generateBirthdayImage(
           fill="url(#nameGradient)"
           filter="url(#textShadow)"
         >${displayName}</text>
-        
-        <!-- Golden swoosh/underline decoration -->
         <path 
           d="M${swooshStartX},${swooshYPosition} 
              Q${svgWidth/2},${swooshYPosition + 25} 
@@ -96,13 +81,11 @@ async function generateBirthdayImage(
     const svgBlob = new Blob([svg], { type: 'image/svg+xml' });
     const svgArrayBuffer = await svgBlob.arrayBuffer();
     
-    // Generate unique filename
     const timestamp = Date.now();
     const randomId = crypto.randomUUID().substring(0, 8);
     const fileName = `birthday-wishes/${timestamp}-${randomId}.svg`;
     
-    // Upload to Supabase storage
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { error: uploadError } = await supabase.storage
       .from("post-media")
       .upload(fileName, svgArrayBuffer, {
         contentType: "image/svg+xml",
@@ -115,7 +98,6 @@ async function generateBirthdayImage(
       return null;
     }
     
-    // Get public URL
     const { data: { publicUrl } } = supabase.storage
       .from("post-media")
       .getPublicUrl(fileName);
@@ -130,7 +112,6 @@ async function generateBirthdayImage(
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -141,136 +122,115 @@ serve(async (req) => {
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get today's date in YYYY-MM-DD format
+    // Get today's month and day for birthday matching
     const today = new Date();
-    const todayStr = today.toISOString().split("T")[0];
+    const todayMonth = String(today.getMonth() + 1).padStart(2, '0');
+    const todayDay = String(today.getDate()).padStart(2, '0');
+    const birthdayPattern = `%-${todayMonth}-${todayDay}`;
 
-    console.log(`Processing birthday wishes for date: ${todayStr}`);
+    console.log(`Processing automatic birthday wishes for: ${todayMonth}-${todayDay}`);
 
-    // Fetch all pending wishes scheduled for today
-    const { data: pendingWishes, error: fetchError } = await supabase
-      .from("scheduled_birthday_wishes")
-      .select("*")
-      .eq("scheduled_date", todayStr)
-      .eq("status", "pending");
+    // Find all members whose birthday is today (checking month-day from birthday field)
+    const { data: birthdayMembers, error: fetchError } = await supabase
+      .from("profiles_private")
+      .select("user_id, birthday")
+      .like("birthday", birthdayPattern);
 
     if (fetchError) {
-      console.error("Error fetching pending wishes:", fetchError);
+      console.error("Error fetching birthday members:", fetchError);
       throw fetchError;
     }
 
-    console.log(`Found ${pendingWishes?.length || 0} pending wishes to process`);
+    console.log(`Found ${birthdayMembers?.length || 0} members with birthdays today`);
 
-    if (!pendingWishes || pendingWishes.length === 0) {
+    if (!birthdayMembers || birthdayMembers.length === 0) {
       return new Response(
-        JSON.stringify({ success: true, processed: 0 }),
+        JSON.stringify({ success: true, processed: 0, message: "No birthdays today" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Template image URL (clean version without name - hosted in public folder)
     const siteUrl = Deno.env.get("SITE_URL") || "https://id-preview--7da6d8d7-03a1-4436-af31-faa165a6dce0.lovable.app";
     const templateImageUrl = `${siteUrl}/images/birthday-template.jpeg`;
 
     let processedCount = 0;
     let errorCount = 0;
 
-    for (const wish of pendingWishes) {
+    for (const member of birthdayMembers) {
       try {
-        console.log(`Processing wish ${wish.id} from user ${wish.user_id} to ${wish.friend_user_id}`);
+        console.log(`Processing birthday for member: ${member.user_id}`);
 
-        // Get friend's profile to get their first name
-        const { data: friendProfile } = await supabase
+        // Get member's profile for their name
+        const { data: memberProfile } = await supabase
           .from("profiles")
-          .select("display_name, first_name")
-          .eq("user_id", wish.friend_user_id)
+          .select("display_name, first_name, user_id")
+          .eq("user_id", member.user_id)
           .single();
 
-        // Use first_name if available, otherwise extract from display_name
-        const friendFirstName = friendProfile?.first_name || 
-          (friendProfile?.display_name?.split(" ")[0]) || 
+        if (!memberProfile) {
+          console.log(`No profile found for user ${member.user_id}`);
+          continue;
+        }
+
+        // Get the first name
+        const firstName = memberProfile.first_name || 
+          (memberProfile.display_name?.split(" ")[0]) || 
           "Friend";
 
-        // Generate personalized birthday image with friend's name (Milly-style)
+        // Generate personalized birthday image
         const birthdayImageUrl = await generateBirthdayImage(
           supabase,
-          friendFirstName,
+          firstName,
           templateImageUrl
         );
 
-        // Prepare media URLs array if image was generated
-        const mediaUrls = birthdayImageUrl ? [birthdayImageUrl] : null;
+        // Create the birthday message from Dolphysn
+        const birthdayMessage = `🎂🎉 Happy Birthday, ${firstName}! 🎉🎂\n\nWishing you a fantastic day filled with joy, laughter, and wonderful memories!\n\nWith love,\n💙 The Dolphysn Team`;
 
-        // Create a post on behalf of the user with the personalized image
+        // Create a special birthday post (public so friends can see it)
         const { data: post, error: postError } = await supabase
           .from("posts")
           .insert({
-            user_id: wish.user_id,
-            content: wish.message,
-            visibility: "friends", // Post visible to friends
-            media_urls: mediaUrls,
+            user_id: member.user_id,
+            content: birthdayMessage,
+            visibility: "public",
+            media_urls: birthdayImageUrl ? [birthdayImageUrl] : null,
           })
           .select()
           .single();
 
         if (postError) {
-          console.error(`Error creating post for wish ${wish.id}:`, postError);
-          
-          // Mark as failed
-          await supabase
-            .from("scheduled_birthday_wishes")
-            .update({ status: "failed" })
-            .eq("id", wish.id);
-          
+          console.error(`Error creating birthday post for ${member.user_id}:`, postError);
           errorCount++;
           continue;
         }
 
-        // Update the wish status to completed
-        const { error: updateError } = await supabase
-          .from("scheduled_birthday_wishes")
-          .update({
-            status: "completed",
-            posted_post_id: post.id,
-          })
-          .eq("id", wish.id);
-
-        if (updateError) {
-          console.error(`Error updating wish ${wish.id} status:`, updateError);
-        }
-
-        // Get sender's display name for notification
-        const { data: senderProfile } = await supabase
-          .from("profiles")
-          .select("display_name")
-          .eq("user_id", wish.user_id)
-          .single();
-
-        // Send a notification message to the friend
+        // Also send a direct message notification
         await supabase
           .from("messages")
           .insert({
-            sender_id: wish.user_id,
-            receiver_id: wish.friend_user_id,
-            content: `🎂 ${senderProfile?.display_name || "Someone"} posted a birthday wish for you with a personalized card! Check your feed!`,
+            sender_id: member.user_id, // Self-message as notification
+            receiver_id: member.user_id,
+            content: `🎂 Happy Birthday from Dolphysn! We've posted a special birthday card on your profile. Check it out! 🎉`,
           });
 
         processedCount++;
-        console.log(`Successfully processed wish ${wish.id} with personalized image for ${friendFirstName}`);
+        console.log(`Successfully sent birthday wish to ${firstName} (${member.user_id})`);
+        
       } catch (error) {
-        console.error(`Error processing wish ${wish.id}:`, error);
+        console.error(`Error processing birthday for ${member.user_id}:`, error);
         errorCount++;
       }
     }
 
-    console.log(`Processed ${processedCount} wishes, ${errorCount} errors`);
+    console.log(`Processed ${processedCount} birthday wishes, ${errorCount} errors`);
 
     return new Response(
       JSON.stringify({
         success: true,
         processed: processedCount,
         errors: errorCount,
-        total: pendingWishes.length,
+        total: birthdayMembers.length,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
