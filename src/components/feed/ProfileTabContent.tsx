@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserPhotos, useUserVideos, useUserFriends } from "@/hooks/useProfileTabs";
 import { Video, ImageOff, VideoOff, UserX, BadgeCheck } from "lucide-react";
@@ -6,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MasonryPhotoGrid } from "./MasonryPhotoGrid";
-
+import { VideoLightbox } from "./VideoLightbox";
 export interface ProfileTabContentProps {
   activeTab: string;
   userId?: string; // Optional - defaults to current auth user
@@ -67,6 +68,13 @@ const PhotosGrid = ({ userId }: PhotosGridProps) => {
 const VideosGrid = ({ userId }: VideosGridProps) => {
   const { t } = useTranslation();
   const { data: videos, isLoading } = useUserVideos(userId, true);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [selectedVideoIndex, setSelectedVideoIndex] = useState(0);
+
+  const handleVideoClick = (index: number) => {
+    setSelectedVideoIndex(index);
+    setLightboxOpen(true);
+  };
 
   if (isLoading) {
     return (
@@ -87,25 +95,37 @@ const VideosGrid = ({ userId }: VideosGridProps) => {
     );
   }
 
+  const videoUrls = videos.map((v) => v.url);
+
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-4">
-      {videos.map((video) => (
-        <div
-          key={video.id}
-          className="aspect-video rounded-lg overflow-hidden bg-muted cursor-pointer hover:opacity-90 transition-opacity relative group"
-        >
-          <video
-            src={video.url}
-            className="w-full h-full object-cover"
-            muted
-            preload="metadata"
-          />
-          <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity">
-            <Video className="h-8 w-8 text-white" />
+    <>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-4">
+        {videos.map((video, index) => (
+          <div
+            key={video.id}
+            onClick={() => handleVideoClick(index)}
+            className="aspect-video rounded-lg overflow-hidden bg-muted cursor-pointer hover:opacity-90 transition-opacity relative group"
+          >
+            <video
+              src={video.url}
+              className="w-full h-full object-cover"
+              muted
+              preload="metadata"
+            />
+            <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity">
+              <Video className="h-8 w-8 text-white" />
+            </div>
           </div>
-        </div>
-      ))}
-    </div>
+        ))}
+      </div>
+
+      <VideoLightbox
+        videos={videoUrls}
+        initialIndex={selectedVideoIndex}
+        isOpen={lightboxOpen}
+        onClose={() => setLightboxOpen(false)}
+      />
+    </>
   );
 };
 
