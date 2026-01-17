@@ -49,6 +49,10 @@ export const VideoLightbox = ({
   const [isPiPSupported, setIsPiPSupported] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const [showSpeedMenu, setShowSpeedMenu] = useState(false);
+  
+  const playbackSpeeds = [0.5, 0.75, 1, 1.25, 1.5, 2];
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -180,6 +184,13 @@ export const VideoLightbox = ({
     }
   }, [volume]);
 
+  // Apply playback speed
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.playbackRate = playbackSpeed;
+    }
+  }, [playbackSpeed]);
+
   const togglePlay = () => {
     if (videoRef.current) {
       if (isPlaying) {
@@ -245,6 +256,12 @@ export const VideoLightbox = ({
     } catch (err) {
       console.error("PiP error:", err);
     }
+  };
+
+  const cyclePlaybackSpeed = () => {
+    const currentIdx = playbackSpeeds.indexOf(playbackSpeed);
+    const nextIdx = (currentIdx + 1) % playbackSpeeds.length;
+    setPlaybackSpeed(playbackSpeeds[nextIdx]);
   };
 
   const goToPrevious = () => {
@@ -479,6 +496,40 @@ export const VideoLightbox = ({
             </div>
 
             <div className="flex items-center gap-2">
+              {/* Playback Speed */}
+              <div className="relative">
+                <Button
+                  variant="ghost"
+                  onClick={() => setShowSpeedMenu(!showSpeedMenu)}
+                  className="text-white hover:bg-white/20 h-9 px-2 text-sm font-medium min-w-[50px]"
+                  title="Playback Speed"
+                >
+                  {playbackSpeed}x
+                </Button>
+                {showSpeedMenu && (
+                  <div 
+                    className="absolute bottom-full mb-2 right-0 bg-black/90 backdrop-blur-sm rounded-lg py-1 min-w-[80px] border border-white/10"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {playbackSpeeds.map((speed) => (
+                      <button
+                        key={speed}
+                        onClick={() => {
+                          setPlaybackSpeed(speed);
+                          setShowSpeedMenu(false);
+                        }}
+                        className={cn(
+                          "w-full px-3 py-1.5 text-sm text-left hover:bg-white/20 transition-colors",
+                          playbackSpeed === speed ? "text-primary font-medium" : "text-white"
+                        )}
+                      >
+                        {speed}x
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               {/* Picture-in-Picture */}
               {isPiPSupported && (
                 <Button
