@@ -3,19 +3,27 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { 
   MapPin, Calendar, Users, 
   MessageCircle, UserPlus, MoreHorizontal, ArrowLeft,
-  CheckCircle2, Camera, UserCheck, Clock, UserMinus
+  CheckCircle2, Camera, UserCheck, Clock, UserMinus, Ban, VolumeX, Volume2, UserX
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { CoverEditor } from "@/components/cover/CoverEditor";
 import { AvatarEditor } from "@/components/avatar/AvatarEditor";
 import { ProfileTabContent } from "@/components/feed/ProfileTabContent";
 import { PostCard } from "@/components/feed/PostCard";
+import { useBlockMute } from "@/hooks/useBlockMute";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
@@ -83,7 +91,8 @@ const UserProfile = () => {
   const [loadingMutualFriends, setLoadingMutualFriends] = useState(false);
   const [activeTab, setActiveTab] = useState<ProfileTab>("posts");
 
-  // Fetch user posts when on posts tab
+  // Block/Mute hook
+  const { isBlocked, isMuted, blockUser, muteUser, loading: blockMuteLoading } = useBlockMute(profile?.user_id);
   const { data: userPosts = [], isLoading: loadingPosts } = useQuery({
     queryKey: ["user-posts", profile?.user_id],
     queryFn: async () => {
@@ -624,9 +633,53 @@ const UserProfile = () => {
                   <Button variant="outline" size="icon" title={t("profile.message", { defaultValue: "Message" })}>
                     <MessageCircle className="w-4 h-4" />
                   </Button>
-                  <Button variant="outline" size="icon" title={t("profile.more", { defaultValue: "More options" })}>
-                    <MoreHorizontal className="w-4 h-4" />
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="icon" title={t("profile.more", { defaultValue: "More options" })}>
+                        <MoreHorizontal className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48 bg-popover">
+                      <DropdownMenuItem 
+                        onClick={muteUser} 
+                        className="cursor-pointer"
+                        disabled={blockMuteLoading}
+                      >
+                        {isMuted ? (
+                          <>
+                            <Volume2 className="h-4 w-4 mr-2" />
+                            {t('privacy.unmute', 'Unmute user')}
+                          </>
+                        ) : (
+                          <>
+                            <VolumeX className="h-4 w-4 mr-2" />
+                            {t('privacy.mute', 'Mute user')}
+                          </>
+                        )}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={blockUser} 
+                        className="cursor-pointer text-destructive focus:text-destructive"
+                        disabled={blockMuteLoading}
+                      >
+                        {isBlocked ? (
+                          <>
+                            <UserX className="h-4 w-4 mr-2" />
+                            {t('privacy.unblock', 'Unblock user')}
+                          </>
+                        ) : (
+                          <>
+                            <Ban className="h-4 w-4 mr-2" />
+                            {t('privacy.block', 'Block user')}
+                          </>
+                        )}
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem className="cursor-pointer text-muted-foreground">
+                        {t('profile.reportUser', 'Report user')}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </>
               )}
             </div>

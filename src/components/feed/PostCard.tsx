@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { MessageCircle, Share2, MoreVertical, Bookmark, FileText, Music, Pencil, Trash2, Copy, Facebook, Twitter, Link2, Check } from "lucide-react";
+import { MessageCircle, Share2, MoreVertical, Bookmark, FileText, Music, Pencil, Trash2, Copy, Facebook, Twitter, Link2, Check, Ban, VolumeX, Volume2, UserX } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,6 +17,7 @@ import { toast } from "@/hooks/use-toast";
 import { CommentSection } from "./CommentSection";
 import { ReactionPicker } from "./ReactionPicker";
 import { MasonryPhotoGrid } from "./MasonryPhotoGrid";
+import { useBlockMute } from "@/hooks/useBlockMute";
 import Swal from "sweetalert2";
 import ReactDOMServer from "react-dom/server";
 
@@ -51,6 +52,7 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
   const [showComments, setShowComments] = useState(false);
 
   const isOwner = user?.id === post.user_id;
+  const { isBlocked, isMuted, blockUser, muteUser, loading: blockMuteLoading } = useBlockMute(post.user_id);
 
   // Check if user has bookmarked this post
   useEffect(() => {
@@ -500,7 +502,49 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
                 </DropdownMenuItem>
               </>
             )}
-            {!isOwner && (
+            {!isOwner && user && (
+              <>
+                <DropdownMenuItem 
+                  onClick={muteUser} 
+                  className="cursor-pointer"
+                  disabled={blockMuteLoading}
+                >
+                  {isMuted ? (
+                    <>
+                      <Volume2 className="h-4 w-4 mr-2" />
+                      {t('privacy.unmute', 'Unmute user')}
+                    </>
+                  ) : (
+                    <>
+                      <VolumeX className="h-4 w-4 mr-2" />
+                      {t('privacy.mute', 'Mute user')}
+                    </>
+                  )}
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={blockUser} 
+                  className="cursor-pointer text-destructive focus:text-destructive"
+                  disabled={blockMuteLoading}
+                >
+                  {isBlocked ? (
+                    <>
+                      <UserX className="h-4 w-4 mr-2" />
+                      {t('privacy.unblock', 'Unblock user')}
+                    </>
+                  ) : (
+                    <>
+                      <Ban className="h-4 w-4 mr-2" />
+                      {t('privacy.block', 'Block user')}
+                    </>
+                  )}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="cursor-pointer text-muted-foreground">
+                  {t('feed.reportPost', 'Report post')}
+                </DropdownMenuItem>
+              </>
+            )}
+            {!isOwner && !user && (
               <DropdownMenuItem className="cursor-pointer text-muted-foreground">
                 {t('feed.reportPost', 'Report post')}
               </DropdownMenuItem>
