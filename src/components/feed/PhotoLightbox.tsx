@@ -9,16 +9,48 @@ interface PhotoLightboxProps {
   onClose: () => void;
 }
 
+interface TouchPoint {
+  x: number;
+  y: number;
+}
+
+const getDistance = (touch1: React.Touch, touch2: React.Touch): number => {
+  const dx = touch1.clientX - touch2.clientX;
+  const dy = touch1.clientY - touch2.clientY;
+  return Math.sqrt(dx * dx + dy * dy);
+};
+
+const getMidpoint = (touch1: React.Touch, touch2: React.Touch): TouchPoint => ({
+  x: (touch1.clientX + touch2.clientX) / 2,
+  y: (touch1.clientY + touch2.clientY) / 2,
+});
+
 export const PhotoLightbox = ({ images, initialIndex, isOpen, onClose }: PhotoLightboxProps) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
-  const [isZoomed, setIsZoomed] = useState(false);
+  const [zoomScale, setZoomScale] = useState(1);
+  const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
+  
+  // Swipe state
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const [swipeOffset, setSwipeOffset] = useState(0);
+  
+  // Pinch zoom state
+  const [initialPinchDistance, setInitialPinchDistance] = useState<number | null>(null);
+  const [initialZoomScale, setInitialZoomScale] = useState(1);
+  
+  // Pan state (when zoomed)
+  const [isPanning, setIsPanning] = useState(false);
+  const [lastPanPoint, setLastPanPoint] = useState<TouchPoint | null>(null);
+  
   const containerRef = useRef<HTMLDivElement>(null);
+  const imageContainerRef = useRef<HTMLDivElement>(null);
 
-  // Minimum swipe distance to trigger navigation (in pixels)
   const minSwipeDistance = 50;
+  const minZoom = 1;
+  const maxZoom = 4;
+
+  const isZoomed = zoomScale > 1;
 
   useEffect(() => {
     setCurrentIndex(initialIndex);
@@ -35,62 +67,130 @@ export const PhotoLightbox = ({ images, initialIndex, isOpen, onClose }: PhotoLi
     };
   }, [isOpen]);
 
+  // Reset zoom when changing images
+  useEffect(() => {
+    setZoomScale(1);
+    setPanOffset({ x: 0, y: 0 });
+  }, [currentIndex]);
+
   // Keyboard navigation
   useEffect(() => {
     if (!isOpen) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        onClose();
-      } else if (e.key === "ArrowLeft") {
+        if (isZoomed) {
+          resetZoom();
+        } else {
+          onClose();
+        }
+      } else if (e.key === "ArrowLeft" && !isZoomed) {
         goToPrevious();
-      } else if (e.key === "ArrowRight") {
+      } else if (e.key === "ArrowRight" && !isZoomed) {
         goToNext();
       }
     };
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, currentIndex]);
+  }, [isOpen, currentIndex, isZoomed]);
+
+  const resetZoom = useCallback(() => {
+    setZoomScale(1);
+    setPanOffset({ x: 0, y: 0 });
+  }, []);
 
   const goToPrevious = useCallback(() => {
     if (currentIndex > 0) {
       setCurrentIndex(currentIndex - 1);
-      setIsZoomed(false);
     }
   }, [currentIndex]);
 
   const goToNext = useCallback(() => {
     if (currentIndex < images.length - 1) {
       setCurrentIndex(currentIndex + 1);
-      setIsZoomed(false);
     }
   }, [currentIndex, images.length]);
 
-  // Touch handlers for swipe gestures
+  // Touch handlers
   const onTouchStart = (e: React.TouchEvent) => {
-    if (isZoomed) return;
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
+    const touches = e.touches;
+    
+    if (touches.length === 2) {
+      // Pinch zoom start
+      e.preventDefault();
+      const distance = getDistance(touches[0], touches[1]);
+      setInitialPinchDistance(distance);
+      setInitialZoomScale(zoomScale);
+      setIsPanning(false);
+    } else if (touches.length === 1) {
+      if (isZoomed) {
+        // Start panning when zoomed
+        setIsPanning(true);
+        setLastPanPoint({ x: touches[0].clientX, y: touches[0].clientY });
+      } else {
+        // Start swipe gesture
+        setTouchEnd(null);
+        setTouchStart(touches[0].clientX);
+      }
+    }
   };
 
   const onTouchMove = (e: React.TouchEvent) => {
-    if (isZoomed || touchStart === null) return;
-    const currentTouch = e.targetTouches[0].clientX;
-    setTouchEnd(currentTouch);
+    const touches = e.touches;
     
-    // Calculate swipe offset for visual feedback
-    const diff = currentTouch - touchStart;
-    // Limit the offset to prevent over-swiping
-    const maxOffset = window.innerWidth * 0.4;
-    const clampedOffset = Math.max(-maxOffset, Math.min(maxOffset, diff));
-    setSwipeOffset(clampedOffset);
+    if (touches.length === 2 && initialPinchDistance !== null) {
+      // Pinch zoom
+      e.preventDefault();
+      const currentDistance = getDistance(touches[0], touches[1]);
+      const scale = (currentDistance / initialPinchDistance) * initialZoomScale;
+      const clampedScale = Math.min(Math.max(scale, minZoom), maxZoom);
+      setZoomScale(clampedScale);
+      
+      // Reset pan if zooming out to 1x
+      if (clampedScale <= 1) {
+        setPanOffset({ x: 0, y: 0 });
+      }
+    } else if (touches.length === 1) {
+      if (isZoomed && isPanning && lastPanPoint) {
+        // Pan the zoomed image
+        e.preventDefault();
+        const deltaX = touches[0].clientX - lastPanPoint.x;
+        const deltaY = touches[0].clientY - lastPanPoint.y;
+        
+        setPanOffset(prev => ({
+          x: prev.x + deltaX,
+          y: prev.y + deltaY,
+        }));
+        setLastPanPoint({ x: touches[0].clientX, y: touches[0].clientY });
+      } else if (!isZoomed && touchStart !== null) {
+        // Swipe gesture
+        const currentTouch = touches[0].clientX;
+        setTouchEnd(currentTouch);
+        
+        const diff = currentTouch - touchStart;
+        const maxOffset = window.innerWidth * 0.4;
+        const clampedOffset = Math.max(-maxOffset, Math.min(maxOffset, diff));
+        setSwipeOffset(clampedOffset);
+      }
+    }
   };
 
-  const onTouchEnd = () => {
-    if (isZoomed) return;
+  const onTouchEnd = (e: React.TouchEvent) => {
+    // Reset pinch state
+    if (initialPinchDistance !== null) {
+      setInitialPinchDistance(null);
+      return;
+    }
     
-    // Reset swipe offset with animation
+    // Reset pan state
+    if (isPanning) {
+      setIsPanning(false);
+      setLastPanPoint(null);
+      return;
+    }
+    
+    // Handle swipe
     setSwipeOffset(0);
     
     if (!touchStart || !touchEnd) return;
@@ -110,13 +210,30 @@ export const PhotoLightbox = ({ images, initialIndex, isOpen, onClose }: PhotoLi
   };
 
   const toggleZoom = () => {
-    setIsZoomed(!isZoomed);
+    if (isZoomed) {
+      resetZoom();
+    } else {
+      setZoomScale(2);
+    }
   };
 
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === containerRef.current) {
       onClose();
     }
+  };
+
+  // Double-tap to zoom
+  const lastTapRef = useRef<number>(0);
+  const handleDoubleTap = (e: React.TouchEvent) => {
+    const now = Date.now();
+    const DOUBLE_TAP_DELAY = 300;
+    
+    if (now - lastTapRef.current < DOUBLE_TAP_DELAY) {
+      e.preventDefault();
+      toggleZoom();
+    }
+    lastTapRef.current = now;
   };
 
   if (!isOpen) return null;
@@ -127,7 +244,7 @@ export const PhotoLightbox = ({ images, initialIndex, isOpen, onClose }: PhotoLi
   return (
     <div
       ref={containerRef}
-      className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
+      className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center touch-none"
       onClick={handleBackdropClick}
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
@@ -153,8 +270,15 @@ export const PhotoLightbox = ({ images, initialIndex, isOpen, onClose }: PhotoLi
         {isZoomed ? <ZoomOut className="h-5 w-5" /> : <ZoomIn className="h-5 w-5" />}
       </Button>
 
+      {/* Zoom level indicator */}
+      {isZoomed && (
+        <div className="absolute top-4 left-4 z-50 px-3 py-1.5 rounded-full bg-black/60 text-white text-sm font-medium">
+          {Math.round(zoomScale * 100)}%
+        </div>
+      )}
+
       {/* Previous button */}
-      {hasPrevious && (
+      {hasPrevious && !isZoomed && (
         <Button
           variant="ghost"
           size="icon"
@@ -169,7 +293,7 @@ export const PhotoLightbox = ({ images, initialIndex, isOpen, onClose }: PhotoLi
       )}
 
       {/* Next button */}
-      {hasNext && (
+      {hasNext && !isZoomed && (
         <Button
           variant="ghost"
           size="icon"
@@ -185,18 +309,24 @@ export const PhotoLightbox = ({ images, initialIndex, isOpen, onClose }: PhotoLi
 
       {/* Image container with swipe animation */}
       <div
+        ref={imageContainerRef}
         className="flex items-center justify-center w-full h-full px-12 sm:px-20 transition-transform duration-200 ease-out"
         style={{
-          transform: `translateX(${swipeOffset}px)`,
+          transform: isZoomed 
+            ? `translate(${panOffset.x}px, ${panOffset.y}px)` 
+            : `translateX(${swipeOffset}px)`,
         }}
         onClick={(e) => e.stopPropagation()}
+        onTouchEnd={handleDoubleTap}
       >
         <img
           src={images[currentIndex]}
           alt={`Photo ${currentIndex + 1}`}
-          className={`max-w-full max-h-[85vh] object-contain select-none transition-transform duration-200 ${
-            isZoomed ? "scale-150 cursor-zoom-out" : "cursor-zoom-in"
-          }`}
+          className="max-w-full max-h-[85vh] object-contain select-none transition-transform duration-200"
+          style={{
+            transform: `scale(${zoomScale})`,
+            cursor: isZoomed ? "grab" : "zoom-in",
+          }}
           onClick={toggleZoom}
           draggable={false}
         />
@@ -210,7 +340,7 @@ export const PhotoLightbox = ({ images, initialIndex, isOpen, onClose }: PhotoLi
       )}
 
       {/* Dot indicators for mobile */}
-      {images.length > 1 && images.length <= 10 && (
+      {images.length > 1 && images.length <= 10 && !isZoomed && (
         <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex gap-1.5 sm:hidden">
           {images.map((_, index) => (
             <button
@@ -227,10 +357,12 @@ export const PhotoLightbox = ({ images, initialIndex, isOpen, onClose }: PhotoLi
         </div>
       )}
 
-      {/* Swipe hint for mobile (shown briefly) */}
-      <div className="absolute bottom-20 left-1/2 -translate-x-1/2 text-white/60 text-xs sm:hidden animate-pulse">
-        Swipe to navigate
-      </div>
+      {/* Swipe/pinch hint for mobile */}
+      {!isZoomed && (
+        <div className="absolute bottom-20 left-1/2 -translate-x-1/2 text-white/60 text-xs sm:hidden animate-pulse">
+          Swipe to navigate • Pinch to zoom
+        </div>
+      )}
     </div>
   );
 };
