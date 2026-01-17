@@ -281,15 +281,15 @@ export const CreateGroupModal = ({ open, onOpenChange, onGroupCreated }: CreateG
             {/* Step indicator */}
             <div className="flex items-center justify-center gap-2 mb-6">
               <div 
-                className={`w-3 h-3 rounded-full transition-colors ${step >= 1 ? "bg-primary" : "bg-muted"}`} 
+                className={`w-3 h-3 rounded-full transition-colors ${step >= 1 ? "bg-foreground" : "bg-muted"}`} 
               />
               <div className="w-12 h-0.5 bg-muted" />
               <div 
-                className={`w-3 h-3 rounded-full transition-colors ${step >= 2 ? "bg-primary" : "bg-muted"}`} 
+                className={`w-3 h-3 rounded-full transition-colors ${step >= 2 ? "bg-foreground" : "bg-muted"}`} 
               />
               <div className="w-12 h-0.5 bg-muted" />
               <div 
-                className={`w-3 h-3 rounded-full transition-colors ${step >= 3 ? "bg-primary" : "bg-muted"}`} 
+                className={`w-3 h-3 rounded-full transition-colors ${step >= 3 ? "bg-foreground" : "bg-muted"}`} 
               />
             </div>
 
