@@ -1,4 +1,4 @@
-import { Search, MoreVertical, Calendar, Bell, Cake, TrendingUp, MessageCircle, Heart, Users, Circle, Send, PenLine } from "lucide-react";
+import { Search, MoreVertical, Calendar, Bell, Cake, TrendingUp, MessageCircle, Heart, Users, Circle, Send, PenLine, Settings2, Check } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +10,13 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { formatDistanceToNow, format, isToday, isTomorrow, addDays, isSameDay } from "date-fns";
+import { formatDistanceToNow, format, isToday, isTomorrow, addDays, isSameDay, differenceInDays } from "date-fns";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface MessageWithSender {
   id: string;
@@ -40,7 +46,17 @@ interface BirthdayReminder {
   birthday: Date;
   isToday: boolean;
   isTomorrow: boolean;
+  daysUntil: number;
 }
+
+const BIRTHDAY_REMINDER_OPTIONS = [
+  { value: 0, label: "sidebar.birthdayReminder.sameDay", fallback: "Same day only" },
+  { value: 1, label: "sidebar.birthdayReminder.1day", fallback: "1 day before" },
+  { value: 3, label: "sidebar.birthdayReminder.3days", fallback: "3 days before" },
+  { value: 7, label: "sidebar.birthdayReminder.7days", fallback: "7 days before" },
+  { value: 14, label: "sidebar.birthdayReminder.14days", fallback: "14 days before" },
+  { value: 30, label: "sidebar.birthdayReminder.30days", fallback: "30 days before" },
+];
 
 interface TrendingPost {
   id: string;
@@ -89,7 +105,17 @@ export const RightSidebar = () => {
   const [onlineFriends, setOnlineFriends] = useState<OnlineFriend[]>([]);
   const [birthdays, setBirthdays] = useState<BirthdayReminder[]>([]);
   const [trendingPosts, setTrendingPosts] = useState<TrendingPost[]>([]);
-
+  
+  // Birthday reminder settings - stored in localStorage
+  const [birthdayReminderDays, setBirthdayReminderDays] = useState<number>(() => {
+    const saved = localStorage.getItem("birthdayReminderDays");
+    return saved ? parseInt(saved, 10) : 7; // Default to 7 days
+  });
+  
+  const handleReminderDaysChange = (days: number) => {
+    setBirthdayReminderDays(days);
+    localStorage.setItem("birthdayReminderDays", days.toString());
+  };
   useEffect(() => {
     if (!user) return;
 
@@ -305,8 +331,9 @@ export const RightSidebar = () => {
               .in("user_id", privateProfiles.map(p => p.user_id));
 
             const today = new Date();
+            today.setHours(0, 0, 0, 0);
             const tomorrow = addDays(today, 1);
-            const nextWeek = addDays(today, 7);
+            const reminderEndDate = addDays(today, birthdayReminderDays);
 
             const birthdayReminders: BirthdayReminder[] = [];
 
@@ -315,12 +342,20 @@ export const RightSidebar = () => {
               
               const birthday = new Date(pp.birthday);
               // Normalize birthday to this year
-              const thisYearBday = new Date(today.getFullYear(), birthday.getMonth(), birthday.getDate());
+              let thisYearBday = new Date(today.getFullYear(), birthday.getMonth(), birthday.getDate());
               
-              // Check if birthday is within next 7 days
-              if (thisYearBday >= today && thisYearBday <= nextWeek) {
+              // If birthday has passed this year, check next year
+              if (thisYearBday < today) {
+                thisYearBday = new Date(today.getFullYear() + 1, birthday.getMonth(), birthday.getDate());
+              }
+              
+              // Calculate days until birthday
+              const daysUntil = differenceInDays(thisYearBday, today);
+              
+              // Check if birthday is within the reminder window
+              if (daysUntil >= 0 && daysUntil <= birthdayReminderDays) {
                 const publicProfile = publicProfiles?.find(p => p.user_id === pp.user_id);
-                const isBirthdayToday = isSameDay(thisYearBday, today);
+                const isBirthdayToday = daysUntil === 0;
                 
                 birthdayReminders.push({
                   user_id: pp.user_id,
@@ -328,7 +363,8 @@ export const RightSidebar = () => {
                   avatar_url: publicProfile?.avatar_url || null,
                   birthday: thisYearBday,
                   isToday: isBirthdayToday,
-                  isTomorrow: isSameDay(thisYearBday, tomorrow)
+                  isTomorrow: daysUntil === 1,
+                  daysUntil
                 });
 
                 // Show toast notification for today's birthdays (once per session)
@@ -357,8 +393,8 @@ export const RightSidebar = () => {
               }
             });
 
-            // Sort by date, today first
-            birthdayReminders.sort((a, b) => a.birthday.getTime() - b.birthday.getTime());
+            // Sort by days until birthday (today first)
+            birthdayReminders.sort((a, b) => a.daysUntil - b.daysUntil);
             setBirthdays(birthdayReminders.slice(0, 5));
           }
         }
@@ -368,7 +404,7 @@ export const RightSidebar = () => {
     };
 
     fetchBirthdays();
-  }, [user, playBirthdayConfetti, playBirthdaySound, navigate, t]);
+  }, [user, playBirthdayConfetti, playBirthdaySound, navigate, t, birthdayReminderDays]);
 
   // Fetch trending posts
   useEffect(() => {
@@ -444,9 +480,35 @@ export const RightSidebar = () => {
         {/* Birthday Reminders */}
         {birthdays.length > 0 && (
           <div className="bg-card rounded-xl p-4 mb-4 border border-border">
-            <div className="flex items-center gap-2 mb-3">
-              <Cake className="h-5 w-5 text-pink-500" />
-              <h3 className="font-semibold text-foreground">{t("sidebar.birthdays", "Birthdays")}</h3>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Cake className="h-5 w-5 text-pink-500" />
+                <h3 className="font-semibold text-foreground">{t("sidebar.birthdays", "Birthdays")}</h3>
+              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground">
+                    <Settings2 className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48 bg-popover border border-border">
+                  <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
+                    {t("sidebar.birthdayReminder.title", "Remind me")}
+                  </div>
+                  {BIRTHDAY_REMINDER_OPTIONS.map((option) => (
+                    <DropdownMenuItem
+                      key={option.value}
+                      onClick={() => handleReminderDaysChange(option.value)}
+                      className="flex items-center justify-between cursor-pointer"
+                    >
+                      <span>{t(option.label, option.fallback)}</span>
+                      {birthdayReminderDays === option.value && (
+                        <Check className="h-4 w-4 text-pink-500" />
+                      )}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
             <div className="space-y-3">
               {birthdays.map((bday) => (
@@ -481,7 +543,9 @@ export const RightSidebar = () => {
                           ? t("sidebar.birthdayToday", "🎂 Birthday today!") 
                           : bday.isTomorrow 
                             ? t("sidebar.birthdayTomorrow", "Tomorrow")
-                            : format(bday.birthday, "MMM d")}
+                            : bday.daysUntil <= 7 
+                              ? t("sidebar.birthdayInDays", "In {{days}} days", { days: bday.daysUntil })
+                              : format(bday.birthday, "MMM d")}
                       </p>
                     </div>
                   </div>
