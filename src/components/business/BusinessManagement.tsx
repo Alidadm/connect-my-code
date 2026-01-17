@@ -191,13 +191,6 @@ export const BusinessManagement = () => {
           </div>
         </div>
 
-        {/* Business Icon */}
-        <div className="absolute left-4 bottom-0 translate-y-1/2">
-          <div className="h-16 w-16 rounded-xl bg-card border-4 border-background shadow-lg flex items-center justify-center">
-            <Building2 className="h-8 w-8 text-primary" />
-          </div>
-        </div>
-
         {/* Toggle */}
         <div className="absolute right-4 top-4">
           <div className="flex items-center gap-2 bg-background/80 backdrop-blur-sm rounded-full px-3 py-1.5">
@@ -214,7 +207,7 @@ export const BusinessManagement = () => {
         </div>
 
         {/* Title area */}
-        <div className="pt-12 pb-4 px-4">
+        <div className="pt-4 pb-4 px-4">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-semibold text-lg text-foreground">
