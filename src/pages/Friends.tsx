@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
@@ -9,10 +9,34 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Check, X, UserPlus, Users, Clock, Sparkles, Search, Send } from "lucide-react";
+import { Check, X, UserPlus, Users, Clock, Sparkles, Search, Send, Bell } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+
+// Notification sound using Web Audio API
+const playNotificationSound = () => {
+  try {
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+    oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
+    oscillator.frequency.setValueAtTime(800, audioContext.currentTime + 0.2);
+    
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.3);
+  } catch (error) {
+    console.log('Could not play notification sound:', error);
+  }
+};
 
 interface FriendRequest {
   id: string;
@@ -81,6 +105,9 @@ const Friends = () => {
   const [suggestionsLoading, setSuggestionsLoading] = useState(true);
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState("");
+  const [newRequestAnimation, setNewRequestAnimation] = useState(false);
+  const previousPendingCountRef = useRef<number>(0);
+  const isInitialLoadRef = useRef(true);
 
   // Filter friends based on search query
   const filteredFriends = friends.filter((friend) => {
@@ -118,6 +145,28 @@ const Friends = () => {
     return name.includes(query) || username.includes(query);
   });
 
+  // Handle new friend request notification
+  const handleNewFriendRequest = useCallback((requesterName: string) => {
+    // Play notification sound
+    playNotificationSound();
+    
+    // Show toast with animation
+    toast.success(
+      t("friends.newRequest", { 
+        name: requesterName,
+        defaultValue: `${requesterName} sent you a friend request!` 
+      }),
+      {
+        icon: <Bell className="h-4 w-4 text-primary animate-bounce" />,
+        duration: 5000,
+      }
+    );
+    
+    // Trigger visual animation
+    setNewRequestAnimation(true);
+    setTimeout(() => setNewRequestAnimation(false), 2000);
+  }, [t]);
+
   useEffect(() => {
     if (user) {
       fetchData();
@@ -129,14 +178,59 @@ const Friends = () => {
         .on(
           'postgres_changes',
           {
-            event: '*',
+            event: 'INSERT',
+            schema: 'public',
+            table: 'friendships',
+            filter: `addressee_id=eq.${user.id}`
+          },
+          async (payload) => {
+            console.log('New friend request received:', payload);
+            
+            // Fetch the requester's profile to show their name in notification
+            if (payload.new && (payload.new as any).status === 'pending') {
+              const requesterId = (payload.new as any).requester_id;
+              const { data: profile } = await supabase
+                .from('safe_profiles')
+                .select('display_name, first_name, last_name')
+                .eq('user_id', requesterId)
+                .single();
+              
+              const name = profile?.display_name || 
+                (profile?.first_name && profile?.last_name 
+                  ? `${profile.first_name} ${profile.last_name}` 
+                  : profile?.first_name) || 
+                'Someone';
+              
+              handleNewFriendRequest(name);
+            }
+            
+            fetchData();
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
             schema: 'public',
             table: 'friendships',
             filter: `addressee_id=eq.${user.id}`
           },
           (payload) => {
-            console.log('Friendship change (addressee):', payload);
-            fetchData(); // Refresh data on any change
+            console.log('Friendship updated (addressee):', payload);
+            fetchData();
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'DELETE',
+            schema: 'public',
+            table: 'friendships',
+            filter: `addressee_id=eq.${user.id}`
+          },
+          (payload) => {
+            console.log('Friendship deleted (addressee):', payload);
+            fetchData();
           }
         )
         .on(
@@ -149,7 +243,7 @@ const Friends = () => {
           },
           (payload) => {
             console.log('Friendship change (requester):', payload);
-            fetchData(); // Refresh data on any change
+            fetchData();
           }
         )
         .subscribe();
@@ -158,7 +252,7 @@ const Friends = () => {
         supabase.removeChannel(channel);
       };
     }
-  }, [user]);
+  }, [user, handleNewFriendRequest]);
 
   const fetchData = async () => {
     if (!user) return;
@@ -568,13 +662,19 @@ const Friends = () => {
 
         <Tabs defaultValue="requests" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="requests" className="flex items-center gap-2">
-              <Clock className="h-4 w-4" />
+            <TabsTrigger value="requests" className="flex items-center gap-2 relative">
+              <Clock className={`h-4 w-4 ${newRequestAnimation ? 'animate-bounce text-primary' : ''}`} />
               <span className="hidden sm:inline">{t("friends.pendingRequests", { defaultValue: "Pending" })}</span>
               <span className="sm:hidden">{t("friends.pending", { defaultValue: "Pending" })}</span>
               {pendingRequests.length > 0 && (
-                <span className="bg-primary text-primary-foreground text-xs rounded-full px-2 py-0.5">
+                <span className={`bg-primary text-primary-foreground text-xs rounded-full px-2 py-0.5 transition-all duration-300 ${newRequestAnimation ? 'animate-pulse scale-110 ring-2 ring-primary ring-offset-2' : ''}`}>
                   {pendingRequests.length}
+                </span>
+              )}
+              {newRequestAnimation && (
+                <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
                 </span>
               )}
             </TabsTrigger>
