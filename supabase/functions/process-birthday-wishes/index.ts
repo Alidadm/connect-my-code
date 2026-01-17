@@ -7,6 +7,7 @@ const corsHeaders = {
 };
 
 // Function to generate personalized birthday image with name overlay
+// Styled like the "Milly" example - coral/salmon pink gradient with golden swoosh
 async function generateBirthdayImage(
   supabase: any,
   friendFirstName: string,
@@ -26,47 +27,72 @@ async function generateBirthdayImage(
     const imageArrayBuffer = await imageBlob.arrayBuffer();
     const imageBase64 = btoa(String.fromCharCode(...new Uint8Array(imageArrayBuffer)));
     
-    // Create SVG with the name overlaid using gradient text
-    // The template image is 1080x1080 based on the uploaded image
+    // Create SVG with the name overlaid using "Milly" style gradient
+    // Coral/salmon pink gradient with golden swoosh underline
     const svgWidth = 1080;
     const svgHeight = 1080;
-    const nameYPosition = 720; // Position below "Birthday" text
+    const nameYPosition = 700; // Position in center below "Birthday"
+    const swooshYPosition = 730; // Golden swoosh below the name
     
     // Clean and prepare the name
     const displayName = friendFirstName || "Friend";
     
+    // Calculate swoosh width based on name length (approximate)
+    const swooshWidth = Math.min(displayName.length * 45, 400);
+    const swooshStartX = (svgWidth / 2) - (swooshWidth / 2);
+    
     const svg = `
       <svg xmlns="http://www.w3.org/2000/svg" width="${svgWidth}" height="${svgHeight}">
         <defs>
-          <linearGradient id="nameGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" style="stop-color:#FF6B9D;stop-opacity:1" />
-            <stop offset="25%" style="stop-color:#C44BE8;stop-opacity:1" />
-            <stop offset="50%" style="stop-color:#7B4FE0;stop-opacity:1" />
-            <stop offset="75%" style="stop-color:#4F8FE0;stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#4FDCE0;stop-opacity:1" />
+          <!-- Coral/Salmon pink gradient like "Milly" text -->
+          <linearGradient id="nameGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" style="stop-color:#E8707A;stop-opacity:1" />
+            <stop offset="50%" style="stop-color:#E88A7A;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#D4756E;stop-opacity:1" />
           </linearGradient>
-          <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-            <feDropShadow dx="2" dy="4" stdDeviation="3" flood-color="rgba(0,0,0,0.3)"/>
+          
+          <!-- Golden/yellow gradient for the swoosh underline -->
+          <linearGradient id="swooshGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style="stop-color:#FFD700;stop-opacity:0.3" />
+            <stop offset="30%" style="stop-color:#FFA500;stop-opacity:1" />
+            <stop offset="70%" style="stop-color:#FFD700;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#FFD700;stop-opacity:0.3" />
+          </linearGradient>
+          
+          <!-- Subtle shadow for depth -->
+          <filter id="textShadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="1" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.15)"/>
           </filter>
         </defs>
+        
+        <!-- Base birthday template image -->
         <image href="data:image/jpeg;base64,${imageBase64}" width="${svgWidth}" height="${svgHeight}"/>
+        
+        <!-- Friend's name with Milly-style coral/salmon gradient -->
         <text 
           x="50%" 
           y="${nameYPosition}" 
           text-anchor="middle" 
-          font-family="Arial, sans-serif" 
-          font-size="72" 
-          font-weight="bold"
-          font-style="italic"
+          font-family="'Lobster', 'Pacifico', 'Cookie', cursive, Arial" 
+          font-size="90" 
+          font-weight="normal"
           fill="url(#nameGradient)"
-          filter="url(#shadow)"
+          filter="url(#textShadow)"
         >${displayName}</text>
+        
+        <!-- Golden swoosh/underline decoration -->
+        <path 
+          d="M${swooshStartX},${swooshYPosition} 
+             Q${svgWidth/2},${swooshYPosition + 25} 
+             ${swooshStartX + swooshWidth},${swooshYPosition}"
+          stroke="url(#swooshGradient)"
+          stroke-width="4"
+          fill="none"
+          stroke-linecap="round"
+        />
       </svg>
     `;
     
-    // Convert SVG to PNG using a canvas-like approach
-    // For Deno edge functions, we'll store the SVG and use it as the image
-    // Modern browsers and social platforms render SVG well
     const svgBlob = new Blob([svg], { type: 'image/svg+xml' });
     const svgArrayBuffer = await svgBlob.arrayBuffer();
     
@@ -142,7 +168,7 @@ serve(async (req) => {
       );
     }
 
-    // Template image URL (hosted in public folder)
+    // Template image URL (clean version without name - hosted in public folder)
     const siteUrl = Deno.env.get("SITE_URL") || "https://id-preview--7da6d8d7-03a1-4436-af31-faa165a6dce0.lovable.app";
     const templateImageUrl = `${siteUrl}/images/birthday-template.jpeg`;
 
@@ -165,7 +191,7 @@ serve(async (req) => {
           (friendProfile?.display_name?.split(" ")[0]) || 
           "Friend";
 
-        // Generate personalized birthday image with friend's name
+        // Generate personalized birthday image with friend's name (Milly-style)
         const birthdayImageUrl = await generateBirthdayImage(
           supabase,
           friendFirstName,
