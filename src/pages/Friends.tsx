@@ -9,8 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Check, X, UserPlus, Users, Clock } from "lucide-react";
+import { Check, X, UserPlus, Users, Clock, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 
 interface FriendRequest {
   id: string;
@@ -39,18 +40,35 @@ interface Friend {
   } | null;
 }
 
+interface Suggestion {
+  user_id: string;
+  profile: {
+    user_id: string;
+    display_name: string | null;
+    first_name: string | null;
+    last_name: string | null;
+    avatar_url: string | null;
+    username: string | null;
+  };
+  mutualFriendsCount: number;
+  mutualFriendNames: string[];
+}
+
 const Friends = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [pendingRequests, setPendingRequests] = useState<FriendRequest[]>([]);
   const [friends, setFriends] = useState<Friend[]>([]);
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [loading, setLoading] = useState(true);
+  const [suggestionsLoading, setSuggestionsLoading] = useState(true);
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (user) {
       fetchData();
+      fetchSuggestions();
     }
   }, [user]);
 
@@ -147,6 +165,162 @@ const Friends = () => {
       setProcessingIds(prev => {
         const next = new Set(prev);
         next.delete(requestId);
+        return next;
+      });
+    }
+  };
+
+  const fetchSuggestions = async () => {
+    if (!user) return;
+    setSuggestionsLoading(true);
+
+    try {
+      // Get current user's friends
+      const { data: myFriendships, error: myFriendsError } = await supabase
+        .from("friendships")
+        .select("requester_id, addressee_id")
+        .eq("status", "accepted")
+        .or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`);
+
+      if (myFriendsError) throw myFriendsError;
+
+      const myFriendIds = (myFriendships || []).map(f => 
+        f.requester_id === user.id ? f.addressee_id : f.requester_id
+      );
+
+      if (myFriendIds.length === 0) {
+        setSuggestions([]);
+        setSuggestionsLoading(false);
+        return;
+      }
+
+      // Get friends of friends
+      const { data: fofData, error: fofError } = await supabase
+        .from("friendships")
+        .select("requester_id, addressee_id")
+        .eq("status", "accepted")
+        .or(myFriendIds.map(id => `requester_id.eq.${id},addressee_id.eq.${id}`).join(","));
+
+      if (fofError) throw fofError;
+
+      // Get pending requests (to exclude them from suggestions)
+      const { data: pendingData } = await supabase
+        .from("friendships")
+        .select("requester_id, addressee_id")
+        .eq("status", "pending")
+        .or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`);
+
+      const pendingUserIds = new Set(
+        (pendingData || []).flatMap(p => [p.requester_id, p.addressee_id])
+      );
+
+      // Count mutual friends for each potential suggestion
+      const mutualFriendsMap = new Map<string, string[]>();
+      
+      (fofData || []).forEach(friendship => {
+        const friendId = myFriendIds.includes(friendship.requester_id) 
+          ? friendship.requester_id 
+          : friendship.addressee_id;
+        const suggestedId = friendship.requester_id === friendId 
+          ? friendship.addressee_id 
+          : friendship.requester_id;
+
+        // Skip if it's the current user, already a friend, or has pending request
+        if (
+          suggestedId === user.id || 
+          myFriendIds.includes(suggestedId) ||
+          pendingUserIds.has(suggestedId)
+        ) {
+          return;
+        }
+
+        if (!mutualFriendsMap.has(suggestedId)) {
+          mutualFriendsMap.set(suggestedId, []);
+        }
+        mutualFriendsMap.get(suggestedId)!.push(friendId);
+      });
+
+      // Get unique suggested user IDs, sorted by mutual friend count
+      const suggestedUserIds = Array.from(mutualFriendsMap.keys())
+        .sort((a, b) => mutualFriendsMap.get(b)!.length - mutualFriendsMap.get(a)!.length)
+        .slice(0, 10); // Limit to top 10
+
+      if (suggestedUserIds.length === 0) {
+        setSuggestions([]);
+        setSuggestionsLoading(false);
+        return;
+      }
+
+      // Fetch profiles for suggested users
+      const { data: suggestedProfiles } = await supabase
+        .from("safe_profiles")
+        .select("user_id, display_name, first_name, last_name, avatar_url, username")
+        .in("user_id", suggestedUserIds);
+
+      // Fetch profiles for mutual friends (to show names)
+      const allMutualFriendIds = [...new Set(Array.from(mutualFriendsMap.values()).flat())];
+      const { data: mutualFriendProfiles } = await supabase
+        .from("safe_profiles")
+        .select("user_id, display_name, first_name, last_name")
+        .in("user_id", allMutualFriendIds);
+
+      const getMutualFriendName = (userId: string) => {
+        const profile = mutualFriendProfiles?.find(p => p.user_id === userId);
+        if (!profile) return "Unknown";
+        return profile.display_name || 
+          (profile.first_name && profile.last_name ? `${profile.first_name} ${profile.last_name}` : profile.first_name) || 
+          "Unknown";
+      };
+
+      const suggestionsWithProfiles: Suggestion[] = suggestedUserIds
+        .map(userId => {
+          const profile = suggestedProfiles?.find(p => p.user_id === userId);
+          if (!profile) return null;
+          
+          const mutualFriendIds = mutualFriendsMap.get(userId) || [];
+          return {
+            user_id: userId,
+            profile,
+            mutualFriendsCount: mutualFriendIds.length,
+            mutualFriendNames: mutualFriendIds.slice(0, 3).map(getMutualFriendName),
+          };
+        })
+        .filter((s): s is Suggestion => s !== null);
+
+      setSuggestions(suggestionsWithProfiles);
+    } catch (error) {
+      console.error("Error fetching suggestions:", error);
+    } finally {
+      setSuggestionsLoading(false);
+    }
+  };
+
+  const handleSendFriendRequest = async (userId: string) => {
+    if (!user) return;
+    
+    setProcessingIds(prev => new Set(prev).add(userId));
+    
+    try {
+      const { error } = await supabase
+        .from("friendships")
+        .insert({
+          requester_id: user.id,
+          addressee_id: userId,
+          status: "pending",
+        });
+
+      if (error) throw error;
+
+      toast.success(t("friends.requestSent", { defaultValue: "Friend request sent!" }));
+      // Remove from suggestions
+      setSuggestions(prev => prev.filter(s => s.user_id !== userId));
+    } catch (error) {
+      console.error("Error sending friend request:", error);
+      toast.error(t("friends.sendFailed", { defaultValue: "Failed to send friend request" }));
+    } finally {
+      setProcessingIds(prev => {
+        const next = new Set(prev);
+        next.delete(userId);
         return next;
       });
     }
@@ -415,6 +589,85 @@ const Friends = () => {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* People You May Know Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-amber-500" />
+              {t("friends.peopleYouMayKnow", { defaultValue: "People You May Know" })}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {suggestionsLoading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="flex items-center gap-4 p-4 rounded-lg border">
+                    <Skeleton className="h-12 w-12 rounded-full" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-3 w-24" />
+                    </div>
+                    <Skeleton className="h-9 w-24" />
+                  </div>
+                ))}
+              </div>
+            ) : suggestions.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <Sparkles className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>{t("friends.noSuggestions", { defaultValue: "No suggestions yet. Add more friends to discover new connections!" })}</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {suggestions.map((suggestion) => (
+                  <div 
+                    key={suggestion.user_id} 
+                    className="flex items-center gap-4 p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+                  >
+                    <Avatar 
+                      className="h-12 w-12 cursor-pointer"
+                      onClick={() => navigateToProfile(suggestion.profile.username)}
+                    >
+                      <AvatarImage src={suggestion.profile.avatar_url || undefined} />
+                      <AvatarFallback>{getInitials(suggestion.profile)}</AvatarFallback>
+                    </Avatar>
+                    
+                    <div 
+                      className="flex-1 min-w-0 cursor-pointer"
+                      onClick={() => navigateToProfile(suggestion.profile.username)}
+                    >
+                      <p className="font-semibold truncate hover:underline">
+                        {getDisplayName(suggestion.profile)}
+                      </p>
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Users className="h-3 w-3" />
+                        <span>
+                          {suggestion.mutualFriendsCount} {t("friends.mutualFriends", { defaultValue: "mutual friends" })}
+                        </span>
+                      </div>
+                      {suggestion.mutualFriendNames.length > 0 && (
+                        <p className="text-xs text-muted-foreground truncate mt-0.5">
+                          {suggestion.mutualFriendNames.join(", ")}
+                          {suggestion.mutualFriendsCount > 3 && ` +${suggestion.mutualFriendsCount - 3}`}
+                        </p>
+                      )}
+                    </div>
+
+                    <Button
+                      size="sm"
+                      onClick={() => handleSendFriendRequest(suggestion.user_id)}
+                      disabled={processingIds.has(suggestion.user_id)}
+                      className="gap-1"
+                    >
+                      <UserPlus className="h-4 w-4" />
+                      {t("friends.add", { defaultValue: "Add" })}
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </MainLayout>
   );
