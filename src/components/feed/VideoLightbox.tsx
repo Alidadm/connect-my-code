@@ -51,12 +51,18 @@ export const VideoLightbox = ({
   const [isLoading, setIsLoading] = useState(true);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
+  const [hoverTime, setHoverTime] = useState<number | null>(null);
+  const [hoverPosition, setHoverPosition] = useState(0);
+  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
   
   const playbackSpeeds = [0.5, 0.75, 1, 1.25, 1.5, 2];
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const progressBarRef = useRef<HTMLDivElement>(null);
+  const thumbnailVideoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     setCurrentIndex(initialIndex);
@@ -282,6 +288,69 @@ export const VideoLightbox = ({
     setPlaybackSpeed(playbackSpeeds[nextIdx]);
   };
 
+  // Generate thumbnail for hover preview
+  const generateThumbnail = useCallback((time: number) => {
+    const thumbnailVideo = thumbnailVideoRef.current;
+    const canvas = canvasRef.current;
+    
+    if (!thumbnailVideo || !canvas || !duration) return;
+    
+    thumbnailVideo.currentTime = time;
+  }, [duration]);
+
+  // Handle thumbnail video seek completion
+  useEffect(() => {
+    const thumbnailVideo = thumbnailVideoRef.current;
+    const canvas = canvasRef.current;
+    
+    if (!thumbnailVideo || !canvas) return;
+    
+    const handleSeeked = () => {
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      
+      // Set canvas size (thumbnail dimensions)
+      const aspectRatio = thumbnailVideo.videoWidth / thumbnailVideo.videoHeight;
+      const thumbWidth = 160;
+      const thumbHeight = thumbWidth / aspectRatio;
+      
+      canvas.width = thumbWidth;
+      canvas.height = thumbHeight || 90;
+      
+      ctx.drawImage(thumbnailVideo, 0, 0, canvas.width, canvas.height);
+      setThumbnailUrl(canvas.toDataURL('image/jpeg', 0.7));
+    };
+    
+    thumbnailVideo.addEventListener('seeked', handleSeeked);
+    return () => thumbnailVideo.removeEventListener('seeked', handleSeeked);
+  }, [currentIndex]);
+
+  const handleProgressMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const position = (e.clientX - rect.left) / rect.width;
+    const time = position * duration;
+    
+    setHoverPosition(e.clientX - rect.left);
+    setHoverTime(time);
+    generateThumbnail(time);
+  };
+
+  const handleProgressMouseLeave = () => {
+    setHoverTime(null);
+    setThumbnailUrl(null);
+  };
+
+  const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const position = (e.clientX - rect.left) / rect.width;
+    const time = position * duration;
+    
+    if (videoRef.current) {
+      videoRef.current.currentTime = time;
+      setCurrentTime(time);
+    }
+  };
+
   const goToPrevious = () => {
     if (currentIndex > 0) {
       setCurrentIndex(currentIndex - 1);
@@ -410,6 +479,18 @@ export const VideoLightbox = ({
             playsInline
           />
 
+          {/* Hidden video for thumbnail generation */}
+          <video
+            ref={thumbnailVideoRef}
+            src={currentVideo}
+            className="hidden"
+            muted
+            preload="metadata"
+          />
+          
+          {/* Hidden canvas for thumbnail capture */}
+          <canvas ref={canvasRef} className="hidden" />
+
           {/* Center play button overlay */}
           {!isPlaying && !isLoading && (
             <div
@@ -433,15 +514,54 @@ export const VideoLightbox = ({
           )}
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Progress bar */}
-          <div className="mb-3">
-            <Slider
-              value={[currentTime]}
-              max={duration || 100}
-              step={0.1}
-              onValueChange={handleSeek}
-              className="cursor-pointer [&_[role=slider]]:h-3 [&_[role=slider]]:w-3 [&_[role=slider]]:bg-white [&_.bg-primary]:bg-white"
-            />
+          {/* Progress bar with thumbnail preview */}
+          <div className="mb-3 relative">
+            <div
+              ref={progressBarRef}
+              className="relative h-1 bg-white/30 rounded-full cursor-pointer group hover:h-1.5 transition-all"
+              onMouseMove={handleProgressMouseMove}
+              onMouseLeave={handleProgressMouseLeave}
+              onClick={handleProgressClick}
+            >
+              {/* Buffered bar could go here */}
+              
+              {/* Progress fill */}
+              <div
+                className="absolute left-0 top-0 h-full bg-white rounded-full"
+                style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%` }}
+              />
+              
+              {/* Seek handle */}
+              <div
+                className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                style={{ left: `calc(${duration ? (currentTime / duration) * 100 : 0}% - 6px)` }}
+              />
+
+              {/* Thumbnail preview on hover */}
+              {hoverTime !== null && (
+                <div
+                  className="absolute bottom-full mb-3 -translate-x-1/2 pointer-events-none"
+                  style={{ left: hoverPosition }}
+                >
+                  <div className="bg-black/90 rounded-lg overflow-hidden shadow-xl border border-white/20">
+                    {thumbnailUrl ? (
+                      <img
+                        src={thumbnailUrl}
+                        alt="Preview"
+                        className="w-40 h-auto"
+                      />
+                    ) : (
+                      <div className="w-40 h-[90px] bg-black/50 flex items-center justify-center">
+                        <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      </div>
+                    )}
+                    <div className="px-2 py-1 text-center text-white text-xs font-medium bg-black/80">
+                      {formatTime(hoverTime)}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Control buttons */}
