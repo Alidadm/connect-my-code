@@ -2,27 +2,33 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import { Settings as SettingsIcon, Bell, Eye, Moon, Sun, Globe, Volume2 } from "lucide-react";
+import { Settings as SettingsIcon, Bell, Sun, Globe, Volume2, Loader2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTranslation } from "react-i18next";
 import { Separator } from "@/components/ui/separator";
+import { useUserSettings } from "@/hooks/useUserSettings";
 
 const Settings = () => {
-  const { user, loading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
+  const { settings, loading: settingsLoading, saving, updateSetting } = useUserSettings();
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!authLoading && !user) {
       navigate("/login");
     }
-  }, [user, loading, navigate]);
+  }, [user, authLoading, navigate]);
 
-  if (loading) {
+  const handleLanguageChange = (value: string) => {
+    i18n.changeLanguage(value);
+    updateSetting("language", value);
+  };
+
+  if (authLoading || settingsLoading) {
     return (
       <MainLayout>
         <div className="flex items-center justify-center min-h-[60vh]">
@@ -39,10 +45,16 @@ const Settings = () => {
           <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-dolphy-purple flex items-center justify-center">
             <SettingsIcon className="w-6 h-6 text-white" />
           </div>
-          <div>
+          <div className="flex-1">
             <h1 className="text-2xl font-bold text-foreground">{t("settings.title", { defaultValue: "Settings" })}</h1>
             <p className="text-muted-foreground">{t("settings.subtitle", { defaultValue: "Manage your app preferences" })}</p>
           </div>
+          {saving && (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span className="text-sm">{t("common.saving", { defaultValue: "Saving..." })}</span>
+            </div>
+          )}
         </div>
 
         {/* Appearance */}
@@ -60,7 +72,10 @@ const Settings = () => {
                 <Label>{t("settings.darkMode", { defaultValue: "Dark Mode" })}</Label>
                 <p className="text-sm text-muted-foreground">{t("settings.darkModeDesc", { defaultValue: "Toggle dark theme" })}</p>
               </div>
-              <Switch />
+              <Switch 
+                checked={settings.dark_mode}
+                onCheckedChange={(checked) => updateSetting("dark_mode", checked)}
+              />
             </div>
             <Separator />
             <div className="flex items-center justify-between">
@@ -68,7 +83,10 @@ const Settings = () => {
                 <Label>{t("settings.compactMode", { defaultValue: "Compact Mode" })}</Label>
                 <p className="text-sm text-muted-foreground">{t("settings.compactModeDesc", { defaultValue: "Show more content with less spacing" })}</p>
               </div>
-              <Switch />
+              <Switch 
+                checked={settings.compact_mode}
+                onCheckedChange={(checked) => updateSetting("compact_mode", checked)}
+              />
             </div>
           </CardContent>
         </Card>
@@ -88,7 +106,10 @@ const Settings = () => {
                 <Label>{t("settings.pushNotifications", { defaultValue: "Push Notifications" })}</Label>
                 <p className="text-sm text-muted-foreground">{t("settings.pushNotificationsDesc", { defaultValue: "Receive notifications on your device" })}</p>
               </div>
-              <Switch defaultChecked />
+              <Switch 
+                checked={settings.push_notifications}
+                onCheckedChange={(checked) => updateSetting("push_notifications", checked)}
+              />
             </div>
             <Separator />
             <div className="flex items-center justify-between">
@@ -96,7 +117,10 @@ const Settings = () => {
                 <Label>{t("settings.emailNotifications", { defaultValue: "Email Notifications" })}</Label>
                 <p className="text-sm text-muted-foreground">{t("settings.emailNotificationsDesc", { defaultValue: "Receive updates via email" })}</p>
               </div>
-              <Switch defaultChecked />
+              <Switch 
+                checked={settings.email_notifications}
+                onCheckedChange={(checked) => updateSetting("email_notifications", checked)}
+              />
             </div>
             <Separator />
             <div className="flex items-center justify-between">
@@ -104,7 +128,10 @@ const Settings = () => {
                 <Label>{t("settings.friendRequests", { defaultValue: "Friend Requests" })}</Label>
                 <p className="text-sm text-muted-foreground">{t("settings.friendRequestsDesc", { defaultValue: "Notify when someone sends a friend request" })}</p>
               </div>
-              <Switch defaultChecked />
+              <Switch 
+                checked={settings.friend_request_notifications}
+                onCheckedChange={(checked) => updateSetting("friend_request_notifications", checked)}
+              />
             </div>
             <Separator />
             <div className="flex items-center justify-between">
@@ -112,7 +139,10 @@ const Settings = () => {
                 <Label>{t("settings.birthdayReminders", { defaultValue: "Birthday Reminders" })}</Label>
                 <p className="text-sm text-muted-foreground">{t("settings.birthdayRemindersDesc", { defaultValue: "Get notified about friends' birthdays" })}</p>
               </div>
-              <Switch defaultChecked />
+              <Switch 
+                checked={settings.birthday_reminders}
+                onCheckedChange={(checked) => updateSetting("birthday_reminders", checked)}
+              />
             </div>
           </CardContent>
         </Card>
@@ -132,7 +162,10 @@ const Settings = () => {
                 <Label>{t("settings.notificationSound", { defaultValue: "Notification Sound" })}</Label>
                 <p className="text-sm text-muted-foreground">{t("settings.notificationSoundDesc", { defaultValue: "Play sound for notifications" })}</p>
               </div>
-              <Switch defaultChecked />
+              <Switch 
+                checked={settings.notification_sound}
+                onCheckedChange={(checked) => updateSetting("notification_sound", checked)}
+              />
             </div>
             <Separator />
             <div className="flex items-center justify-between">
@@ -140,7 +173,10 @@ const Settings = () => {
                 <Label>{t("settings.messageSound", { defaultValue: "Message Sound" })}</Label>
                 <p className="text-sm text-muted-foreground">{t("settings.messageSoundDesc", { defaultValue: "Play sound for new messages" })}</p>
               </div>
-              <Switch defaultChecked />
+              <Switch 
+                checked={settings.message_sound}
+                onCheckedChange={(checked) => updateSetting("message_sound", checked)}
+              />
             </div>
           </CardContent>
         </Card>
@@ -155,7 +191,7 @@ const Settings = () => {
             <CardDescription>{t("settings.languageDesc", { defaultValue: "Choose your preferred language" })}</CardDescription>
           </CardHeader>
           <CardContent>
-            <Select value={i18n.language} onValueChange={(value) => i18n.changeLanguage(value)}>
+            <Select value={settings.language} onValueChange={handleLanguageChange}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select language" />
               </SelectTrigger>

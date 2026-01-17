@@ -2,7 +2,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { Shield, Eye, UserX, Download, Activity, Lock } from "lucide-react";
+import { Shield, Eye, UserX, Download, Activity, Lock, Loader2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -11,18 +11,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useTranslation } from "react-i18next";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
+import { usePrivacySettings } from "@/hooks/usePrivacySettings";
 
 const Privacy = () => {
-  const { user, loading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [downloading, setDownloading] = useState(false);
+  const { settings, loading: settingsLoading, saving, updateSetting } = usePrivacySettings();
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!authLoading && !user) {
       navigate("/login");
     }
-  }, [user, loading, navigate]);
+  }, [user, authLoading, navigate]);
 
   const handleDownloadData = async () => {
     setDownloading(true);
@@ -33,7 +35,7 @@ const Privacy = () => {
     }, 2000);
   };
 
-  if (loading) {
+  if (authLoading || settingsLoading) {
     return (
       <MainLayout>
         <div className="flex items-center justify-center min-h-[60vh]">
@@ -50,10 +52,16 @@ const Privacy = () => {
           <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
             <Shield className="w-6 h-6 text-white" />
           </div>
-          <div>
+          <div className="flex-1">
             <h1 className="text-2xl font-bold text-foreground">{t("privacy.title", { defaultValue: "Privacy Settings" })}</h1>
             <p className="text-muted-foreground">{t("privacy.subtitle", { defaultValue: "Control who can see your information" })}</p>
           </div>
+          {saving && (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span className="text-sm">{t("common.saving", { defaultValue: "Saving..." })}</span>
+            </div>
+          )}
         </div>
 
         {/* Profile Visibility */}
@@ -71,7 +79,10 @@ const Privacy = () => {
                 <Label>{t("privacy.whoCanSeeProfile", { defaultValue: "Who can see my profile" })}</Label>
                 <p className="text-sm text-muted-foreground">{t("privacy.whoCanSeeProfileDesc", { defaultValue: "Control profile visibility" })}</p>
               </div>
-              <Select defaultValue="everyone">
+              <Select 
+                value={settings.profile_visibility}
+                onValueChange={(value) => updateSetting("profile_visibility", value)}
+              >
                 <SelectTrigger className="w-[140px]">
                   <SelectValue />
                 </SelectTrigger>
@@ -88,7 +99,10 @@ const Privacy = () => {
                 <Label>{t("privacy.whoCanSeePosts", { defaultValue: "Who can see my posts" })}</Label>
                 <p className="text-sm text-muted-foreground">{t("privacy.whoCanSeePostsDesc", { defaultValue: "Default visibility for new posts" })}</p>
               </div>
-              <Select defaultValue="friends">
+              <Select 
+                value={settings.post_visibility}
+                onValueChange={(value) => updateSetting("post_visibility", value)}
+              >
                 <SelectTrigger className="w-[140px]">
                   <SelectValue />
                 </SelectTrigger>
@@ -105,7 +119,10 @@ const Privacy = () => {
                 <Label>{t("privacy.showOnlineStatus", { defaultValue: "Show Online Status" })}</Label>
                 <p className="text-sm text-muted-foreground">{t("privacy.showOnlineStatusDesc", { defaultValue: "Let others see when you're online" })}</p>
               </div>
-              <Switch defaultChecked />
+              <Switch 
+                checked={settings.show_online_status}
+                onCheckedChange={(checked) => updateSetting("show_online_status", checked)}
+              />
             </div>
             <Separator />
             <div className="flex items-center justify-between">
@@ -113,7 +130,10 @@ const Privacy = () => {
                 <Label>{t("privacy.showLastSeen", { defaultValue: "Show Last Seen" })}</Label>
                 <p className="text-sm text-muted-foreground">{t("privacy.showLastSeenDesc", { defaultValue: "Let others see when you were last active" })}</p>
               </div>
-              <Switch defaultChecked />
+              <Switch 
+                checked={settings.show_last_seen}
+                onCheckedChange={(checked) => updateSetting("show_last_seen", checked)}
+              />
             </div>
           </CardContent>
         </Card>
@@ -153,7 +173,10 @@ const Privacy = () => {
                 <Label>{t("privacy.hideFromSearch", { defaultValue: "Hide from Search" })}</Label>
                 <p className="text-sm text-muted-foreground">{t("privacy.hideFromSearchDesc", { defaultValue: "Don't show me in search results" })}</p>
               </div>
-              <Switch />
+              <Switch 
+                checked={settings.hide_from_search}
+                onCheckedChange={(checked) => updateSetting("hide_from_search", checked)}
+              />
             </div>
           </CardContent>
         </Card>
@@ -173,7 +196,10 @@ const Privacy = () => {
                 <Label>{t("privacy.readReceipts", { defaultValue: "Read Receipts" })}</Label>
                 <p className="text-sm text-muted-foreground">{t("privacy.readReceiptsDesc", { defaultValue: "Show when you've read messages" })}</p>
               </div>
-              <Switch defaultChecked />
+              <Switch 
+                checked={settings.read_receipts}
+                onCheckedChange={(checked) => updateSetting("read_receipts", checked)}
+              />
             </div>
             <Separator />
             <div className="flex items-center justify-between">
@@ -181,7 +207,10 @@ const Privacy = () => {
                 <Label>{t("privacy.typingIndicator", { defaultValue: "Typing Indicator" })}</Label>
                 <p className="text-sm text-muted-foreground">{t("privacy.typingIndicatorDesc", { defaultValue: "Show when you're typing" })}</p>
               </div>
-              <Switch defaultChecked />
+              <Switch 
+                checked={settings.typing_indicator}
+                onCheckedChange={(checked) => updateSetting("typing_indicator", checked)}
+              />
             </div>
             <Separator />
             <div className="flex items-center justify-between">
@@ -227,7 +256,10 @@ const Privacy = () => {
                 <Label>{t("privacy.loginAlerts", { defaultValue: "Login Alerts" })}</Label>
                 <p className="text-sm text-muted-foreground">{t("privacy.loginAlertsDesc", { defaultValue: "Get notified about new logins" })}</p>
               </div>
-              <Switch defaultChecked />
+              <Switch 
+                checked={settings.login_alerts}
+                onCheckedChange={(checked) => updateSetting("login_alerts", checked)}
+              />
             </div>
           </CardContent>
         </Card>
