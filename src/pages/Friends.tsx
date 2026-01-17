@@ -9,7 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Check, X, UserPlus, Users, Clock, Sparkles } from "lucide-react";
+import { Check, X, UserPlus, Users, Clock, Sparkles, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 
@@ -64,6 +65,34 @@ const Friends = () => {
   const [loading, setLoading] = useState(true);
   const [suggestionsLoading, setSuggestionsLoading] = useState(true);
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Filter friends based on search query
+  const filteredFriends = friends.filter((friend) => {
+    if (!searchQuery.trim()) return true;
+    const query = searchQuery.toLowerCase();
+    const name = getDisplayName(friend.profile).toLowerCase();
+    const username = friend.profile?.username?.toLowerCase() || "";
+    return name.includes(query) || username.includes(query);
+  });
+
+  // Filter suggestions based on search query
+  const filteredSuggestions = suggestions.filter((suggestion) => {
+    if (!searchQuery.trim()) return true;
+    const query = searchQuery.toLowerCase();
+    const name = getDisplayName(suggestion.profile).toLowerCase();
+    const username = suggestion.profile?.username?.toLowerCase() || "";
+    return name.includes(query) || username.includes(query);
+  });
+
+  // Filter pending requests based on search query
+  const filteredPendingRequests = pendingRequests.filter((request) => {
+    if (!searchQuery.trim()) return true;
+    const query = searchQuery.toLowerCase();
+    const name = getDisplayName(request.profile).toLowerCase();
+    const username = request.profile?.username?.toLowerCase() || "";
+    return name.includes(query) || username.includes(query);
+  });
 
   useEffect(() => {
     if (user) {
@@ -411,9 +440,20 @@ const Friends = () => {
   return (
     <MainLayout>
       <div className="max-w-4xl mx-auto p-4 space-y-6">
-        <div className="flex items-center gap-3">
-          <Users className="h-8 w-8 text-primary" />
-          <h1 className="text-2xl font-bold">{t("nav.friends", { defaultValue: "Friends" })}</h1>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <Users className="h-8 w-8 text-primary" />
+            <h1 className="text-2xl font-bold">{t("nav.friends", { defaultValue: "Friends" })}</h1>
+          </div>
+          <div className="relative w-full sm:w-64">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder={t("friends.searchPlaceholder", { defaultValue: "Search friends..." })}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9"
+            />
+          </div>
         </div>
 
         <Tabs defaultValue="requests" className="w-full">
@@ -457,14 +497,17 @@ const Friends = () => {
                       </div>
                     ))}
                   </div>
-                ) : pendingRequests.length === 0 ? (
+                ) : filteredPendingRequests.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     <UserPlus className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>{t("friends.noPendingRequests", { defaultValue: "No pending friend requests" })}</p>
+                    <p>{searchQuery.trim() 
+                      ? t("friends.noSearchResults", { defaultValue: "No results found" })
+                      : t("friends.noPendingRequests", { defaultValue: "No pending friend requests" })
+                    }</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {pendingRequests.map((request) => (
+                    {filteredPendingRequests.map((request) => (
                       <div 
                         key={request.id} 
                         className="flex items-center gap-4 p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
@@ -539,14 +582,17 @@ const Friends = () => {
                       </div>
                     ))}
                   </div>
-                ) : friends.length === 0 ? (
+                ) : filteredFriends.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>{t("friends.noFriends", { defaultValue: "No friends yet. Start connecting!" })}</p>
+                    <p>{searchQuery.trim() 
+                      ? t("friends.noSearchResults", { defaultValue: "No results found" })
+                      : t("friends.noFriends", { defaultValue: "No friends yet. Start connecting!" })
+                    }</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {friends.map((friend) => (
+                    {filteredFriends.map((friend) => (
                       <div 
                         key={friend.id} 
                         className="flex items-center gap-4 p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
@@ -612,14 +658,17 @@ const Friends = () => {
                   </div>
                 ))}
               </div>
-            ) : suggestions.length === 0 ? (
+            ) : filteredSuggestions.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <Sparkles className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>{t("friends.noSuggestions", { defaultValue: "No suggestions yet. Add more friends to discover new connections!" })}</p>
+                <p>{searchQuery.trim() 
+                  ? t("friends.noSearchResults", { defaultValue: "No results found" })
+                  : t("friends.noSuggestions", { defaultValue: "No suggestions yet. Add more friends to discover new connections!" })
+                }</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {suggestions.map((suggestion) => (
+                {filteredSuggestions.map((suggestion) => (
                   <div 
                     key={suggestion.user_id} 
                     className="flex items-center gap-4 p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
