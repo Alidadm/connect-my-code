@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { StoriesRow } from "./StoriesRow";
+import { MemberCoverHeader } from "./MemberCoverHeader";
 import { PostCreator } from "./PostCreator";
 import { DemoPostCreator } from "./DemoPostCreator";
 import { PostCard } from "./PostCard";
@@ -330,7 +330,7 @@ export const Feed = () => {
         threshold={80}
       />
 
-      <StoriesRow />
+      <MemberCoverHeader />
       {user ? <PostCreator onPostCreated={() => fetchPosts(0, false)} /> : <DemoPostCreator />}
 
       {/* Filter tabs */}
