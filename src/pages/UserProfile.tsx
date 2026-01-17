@@ -746,10 +746,21 @@ const UserProfile = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="posts" className="px-4 py-4">
-          <TabsList className="w-full justify-start bg-muted/50">
-            <TabsTrigger value="posts">Posts</TabsTrigger>
-            <TabsTrigger value="photos">Photos</TabsTrigger>
-            <TabsTrigger value="friends">Friends</TabsTrigger>
+          <TabsList className="w-full justify-start bg-muted/50 flex-wrap">
+            <TabsTrigger value="posts">{t("feed.posts", { defaultValue: "Posts" })}</TabsTrigger>
+            <TabsTrigger value="photos">{t("feed.photos", { defaultValue: "Photos" })}</TabsTrigger>
+            <TabsTrigger value="friends">{t("nav.friends", { defaultValue: "Friends" })}</TabsTrigger>
+            {!isOwnProfile && user && (
+              <TabsTrigger value="mutual" className="flex items-center gap-1.5">
+                <Users className="w-4 h-4" />
+                {t("profile.mutualFriends", { defaultValue: "Mutual Friends" })}
+                {mutualFriends.length > 0 && (
+                  <span className="bg-primary text-primary-foreground text-xs rounded-full px-1.5 py-0.5 min-w-[1.25rem]">
+                    {mutualFriends.length}
+                  </span>
+                )}
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="posts" className="mt-4">
@@ -757,7 +768,7 @@ const UserProfile = () => {
               <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
                 <MessageCircle className="w-8 h-8" />
               </div>
-              <p>No posts yet</p>
+              <p>{t("profile.noPostsYet", { defaultValue: "No posts yet" })}</p>
             </div>
           </TabsContent>
 
@@ -766,7 +777,7 @@ const UserProfile = () => {
               <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
                 <ImageIcon className="w-8 h-8" />
               </div>
-              <p>No photos yet</p>
+              <p>{t("profile.noPhotosYet", { defaultValue: "No photos yet" })}</p>
             </div>
           </TabsContent>
 
@@ -775,9 +786,77 @@ const UserProfile = () => {
               <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
                 <Users className="w-8 h-8" />
               </div>
-              <p>No friends to show</p>
+              <p>{t("friends.noFriends", { defaultValue: "No friends to show" })}</p>
             </div>
           </TabsContent>
+
+          {/* Mutual Friends Tab - Only visible when viewing someone else's profile */}
+          {!isOwnProfile && user && (
+            <TabsContent value="mutual" className="mt-4">
+              {loadingMutualFriends ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="flex items-center gap-3 p-3 rounded-lg border bg-card">
+                      <Skeleton className="w-12 h-12 rounded-full" />
+                      <div className="space-y-2 flex-1">
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-3 w-24" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : mutualFriends.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+                    <Users className="w-8 h-8" />
+                  </div>
+                  <p>{t("profile.noMutualFriends", { defaultValue: "No mutual friends" })}</p>
+                  <p className="text-sm mt-2">
+                    {t("profile.noMutualFriendsDesc", { defaultValue: "You don't have any friends in common with this person yet." })}
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    {t("profile.mutualFriendsCount", { 
+                      defaultValue: "{{count}} mutual friends with {{name}}",
+                      count: mutualFriends.length,
+                      name: profile?.display_name || profile?.username || "this person"
+                    })}
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {mutualFriends.map((friend) => (
+                      <button
+                        key={friend.user_id}
+                        onClick={() => navigate(`/user/${friend.username}`)}
+                        className="flex items-center gap-3 p-3 rounded-lg border bg-card hover:bg-accent transition-colors text-left"
+                      >
+                        <Avatar className="w-12 h-12">
+                          <AvatarImage src={friend.avatar_url || ""} />
+                          <AvatarFallback className="bg-gradient-to-br from-primary to-primary/70 text-primary-foreground">
+                            {friend.display_name?.charAt(0) || friend.username?.charAt(0) || "U"}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1">
+                            <span className="font-medium truncate">
+                              {friend.display_name || friend.username || "Unknown"}
+                            </span>
+                            {friend.is_verified && (
+                              <CheckCircle2 className="w-4 h-4 text-primary fill-primary/20 flex-shrink-0" />
+                            )}
+                          </div>
+                          <span className="text-sm text-muted-foreground truncate block">
+                            @{friend.username}
+                          </span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </TabsContent>
+          )}
         </Tabs>
 
         {/* Friends List Modal */}
