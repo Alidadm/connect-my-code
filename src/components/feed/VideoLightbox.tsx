@@ -54,6 +54,7 @@ export const VideoLightbox = ({
   const [hoverTime, setHoverTime] = useState<number | null>(null);
   const [hoverPosition, setHoverPosition] = useState(0);
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
+  const [bufferedProgress, setBufferedProgress] = useState(0);
   
   const playbackSpeeds = [0.5, 0.75, 1, 1.25, 1.5, 2];
   
@@ -369,6 +370,17 @@ export const VideoLightbox = ({
     }
   };
 
+  const handleProgress = () => {
+    if (videoRef.current && videoRef.current.buffered.length > 0) {
+      const buffered = videoRef.current.buffered;
+      const bufferedEnd = buffered.end(buffered.length - 1);
+      const videoDuration = videoRef.current.duration;
+      if (videoDuration > 0) {
+        setBufferedProgress((bufferedEnd / videoDuration) * 100);
+      }
+    }
+  };
+
   const handleLoadedMetadata = () => {
     if (videoRef.current) {
       setDuration(videoRef.current.duration);
@@ -472,6 +484,7 @@ export const VideoLightbox = ({
             className="max-w-full max-h-full object-contain"
             onTimeUpdate={handleTimeUpdate}
             onLoadedMetadata={handleLoadedMetadata}
+            onProgress={handleProgress}
             onEnded={handleVideoEnd}
             onPlay={() => setIsPlaying(true)}
             onPause={() => setIsPlaying(false)}
@@ -523,7 +536,11 @@ export const VideoLightbox = ({
               onMouseLeave={handleProgressMouseLeave}
               onClick={handleProgressClick}
             >
-              {/* Buffered bar could go here */}
+              {/* Buffered progress bar */}
+              <div
+                className="absolute left-0 top-0 h-full bg-white/50 rounded-full transition-all"
+                style={{ width: `${bufferedProgress}%` }}
+              />
               
               {/* Progress fill */}
               <div
