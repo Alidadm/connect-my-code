@@ -235,10 +235,10 @@ export const CommentSection = ({ postId, onCommentCountChange }: CommentSectionP
         const userIds = [...new Set(commentsData.map(c => c.user_id))];
         const commentIds = commentsData.map(c => c.id);
 
-        // Fetch profiles and likes in parallel
+        // Fetch profiles using safe_profiles view (publicly accessible) and likes in parallel
         const [profilesResult, likesCountResult, userLikesResult] = await Promise.all([
           supabase
-            .from("profiles")
+            .from("safe_profiles")
             .select("user_id, display_name, avatar_url, username")
             .in("user_id", userIds),
           supabase
@@ -291,8 +291,27 @@ export const CommentSection = ({ postId, onCommentCountChange }: CommentSectionP
           parent.replies = replyMap.get(parent.id) || [];
         });
 
+        // Sync comment count to post if different
+        const totalCount = commentsData.length;
+        supabase
+          .from("posts")
+          .update({ comments_count: totalCount })
+          .eq("id", postId)
+          .then(() => {
+            onCommentCountChange?.(totalCount);
+          });
+
         return parentComments;
       }
+
+      // If no comments, ensure count is synced to 0
+      supabase
+        .from("posts")
+        .update({ comments_count: 0 })
+        .eq("id", postId)
+        .then(() => {
+          onCommentCountChange?.(0);
+        });
 
       return [] as Comment[];
     },
