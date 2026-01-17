@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Newspaper, 
   Users, 
@@ -57,6 +57,11 @@ export const LeftSidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isNavigatingToCreate, setIsNavigatingToCreate] = useState(false);
+
+  // Reset loading state when location changes (user navigated or modal closed)
+  useEffect(() => {
+    setIsNavigatingToCreate(false);
+  }, [location.pathname, location.search]);
 
   const handleCreateGroup = () => {
     setIsNavigatingToCreate(true);
