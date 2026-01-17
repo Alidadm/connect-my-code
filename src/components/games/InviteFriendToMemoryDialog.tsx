@@ -13,6 +13,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Loader2, UserPlus } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { MemoryDifficultySelector, MemoryDifficulty } from "./MemoryDifficultySelector";
 
 interface Friend {
   user_id: string;
@@ -37,6 +38,7 @@ export const InviteFriendToMemoryDialog = ({
   const [friends, setFriends] = useState<Friend[]>([]);
   const [loading, setLoading] = useState(true);
   const [inviting, setInviting] = useState<string | null>(null);
+  const [difficulty, setDifficulty] = useState<MemoryDifficulty>("medium");
 
   useEffect(() => {
     if (open && user) {
@@ -100,6 +102,7 @@ export const InviteFriendToMemoryDialog = ({
           player_2: friendId,
           current_turn: user.id,
           status: "pending",
+          difficulty: difficulty,
         })
         .select()
         .single();
@@ -126,6 +129,8 @@ export const InviteFriendToMemoryDialog = ({
             {t("games.inviteToMemory", { defaultValue: "Invite to Memory Match" })}
           </DialogTitle>
         </DialogHeader>
+
+        <MemoryDifficultySelector value={difficulty} onChange={setDifficulty} />
 
         {loading ? (
           <div className="flex justify-center py-8">
