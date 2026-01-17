@@ -1,4 +1,4 @@
-import { Search, MoreVertical, Calendar, Bell } from "lucide-react";
+import { Search, MoreVertical, Calendar, Bell, Cloud, Sun, CloudRain, Cake, TrendingUp, MessageCircle, Heart, Users, Circle } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, format, isToday, isTomorrow, addDays, isSameDay } from "date-fns";
 
 interface MessageWithSender {
   id: string;
@@ -20,6 +20,34 @@ interface MessageWithSender {
     display_name: string | null;
     avatar_url: string | null;
     username: string | null;
+  };
+}
+
+interface OnlineFriend {
+  user_id: string;
+  display_name: string | null;
+  avatar_url: string | null;
+  username: string | null;
+  isOnline: boolean;
+}
+
+interface BirthdayReminder {
+  user_id: string;
+  display_name: string | null;
+  avatar_url: string | null;
+  birthday: Date;
+  isToday: boolean;
+  isTomorrow: boolean;
+}
+
+interface TrendingPost {
+  id: string;
+  content: string;
+  likes_count: number;
+  comments_count: number;
+  author: {
+    display_name: string | null;
+    avatar_url: string | null;
   };
 }
 
@@ -46,6 +74,34 @@ const events = [
   },
 ];
 
+// Mock weather data - in production, this would come from a weather API
+const getWeatherData = () => {
+  const conditions = ['sunny', 'cloudy', 'rainy'] as const;
+  const condition = conditions[Math.floor(Math.random() * conditions.length)];
+  return {
+    temperature: Math.floor(Math.random() * 20) + 15,
+    condition,
+    location: "Your Location",
+    humidity: Math.floor(Math.random() * 40) + 40,
+    forecast: [
+      { day: "Mon", temp: Math.floor(Math.random() * 10) + 18, condition: "sunny" },
+      { day: "Tue", temp: Math.floor(Math.random() * 10) + 16, condition: "cloudy" },
+      { day: "Wed", temp: Math.floor(Math.random() * 10) + 14, condition: "rainy" },
+    ]
+  };
+};
+
+const WeatherIcon = ({ condition, className }: { condition: string; className?: string }) => {
+  switch (condition) {
+    case 'sunny':
+      return <Sun className={cn("text-yellow-500", className)} />;
+    case 'rainy':
+      return <CloudRain className={cn("text-blue-400", className)} />;
+    default:
+      return <Cloud className={cn("text-gray-400", className)} />;
+  }
+};
+
 export const RightSidebar = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -54,6 +110,10 @@ export const RightSidebar = () => {
   const [messages, setMessages] = useState<MessageWithSender[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [weather] = useState(getWeatherData);
+  const [onlineFriends, setOnlineFriends] = useState<OnlineFriend[]>([]);
+  const [birthdays, setBirthdays] = useState<BirthdayReminder[]>([]);
+  const [trendingPosts, setTrendingPosts] = useState<TrendingPost[]>([]);
 
   useEffect(() => {
     if (!user) return;
@@ -122,6 +182,159 @@ export const RightSidebar = () => {
     };
   }, [user]);
 
+  // Fetch online friends (friends with recent activity)
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchOnlineFriends = async () => {
+      try {
+        // Get accepted friendships
+        const { data: friendships } = await supabase
+          .from("friendships")
+          .select("requester_id, addressee_id")
+          .or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`)
+          .eq("status", "accepted")
+          .limit(10);
+
+        if (friendships && friendships.length > 0) {
+          const friendIds = friendships.map(f => 
+            f.requester_id === user.id ? f.addressee_id : f.requester_id
+          );
+
+          const { data: profiles } = await supabase
+            .from("profiles")
+            .select("user_id, display_name, avatar_url, username, updated_at")
+            .in("user_id", friendIds);
+
+          if (profiles) {
+            // Consider users "online" if updated in last 15 minutes
+            const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
+            const onlineProfiles = profiles.map(p => ({
+              user_id: p.user_id,
+              display_name: p.display_name,
+              avatar_url: p.avatar_url,
+              username: p.username,
+              isOnline: new Date(p.updated_at) > fifteenMinutesAgo
+            })).sort((a, b) => (b.isOnline ? 1 : 0) - (a.isOnline ? 1 : 0));
+
+            setOnlineFriends(onlineProfiles.slice(0, 8));
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching online friends:", error);
+      }
+    };
+
+    fetchOnlineFriends();
+  }, [user]);
+
+  // Fetch birthday reminders
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchBirthdays = async () => {
+      try {
+        // Get accepted friendships
+        const { data: friendships } = await supabase
+          .from("friendships")
+          .select("requester_id, addressee_id")
+          .or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`)
+          .eq("status", "accepted");
+
+        if (friendships && friendships.length > 0) {
+          const friendIds = friendships.map(f => 
+            f.requester_id === user.id ? f.addressee_id : f.requester_id
+          );
+
+          // Get private profiles with birthdays
+          const { data: privateProfiles } = await supabase
+            .from("profiles_private")
+            .select("user_id, birthday")
+            .in("user_id", friendIds)
+            .not("birthday", "is", null);
+
+          if (privateProfiles && privateProfiles.length > 0) {
+            const { data: publicProfiles } = await supabase
+              .from("profiles")
+              .select("user_id, display_name, avatar_url")
+              .in("user_id", privateProfiles.map(p => p.user_id));
+
+            const today = new Date();
+            const tomorrow = addDays(today, 1);
+            const nextWeek = addDays(today, 7);
+
+            const birthdayReminders: BirthdayReminder[] = [];
+
+            privateProfiles.forEach(pp => {
+              if (!pp.birthday) return;
+              
+              const birthday = new Date(pp.birthday);
+              // Normalize birthday to this year
+              const thisYearBday = new Date(today.getFullYear(), birthday.getMonth(), birthday.getDate());
+              
+              // Check if birthday is within next 7 days
+              if (thisYearBday >= today && thisYearBday <= nextWeek) {
+                const publicProfile = publicProfiles?.find(p => p.user_id === pp.user_id);
+                birthdayReminders.push({
+                  user_id: pp.user_id,
+                  display_name: publicProfile?.display_name || null,
+                  avatar_url: publicProfile?.avatar_url || null,
+                  birthday: thisYearBday,
+                  isToday: isSameDay(thisYearBday, today),
+                  isTomorrow: isSameDay(thisYearBday, tomorrow)
+                });
+              }
+            });
+
+            // Sort by date, today first
+            birthdayReminders.sort((a, b) => a.birthday.getTime() - b.birthday.getTime());
+            setBirthdays(birthdayReminders.slice(0, 5));
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching birthdays:", error);
+      }
+    };
+
+    fetchBirthdays();
+  }, [user]);
+
+  // Fetch trending posts
+  useEffect(() => {
+    const fetchTrendingPosts = async () => {
+      try {
+        const { data: posts } = await supabase
+          .from("posts")
+          .select("id, content, likes_count, comments_count, user_id")
+          .eq("visibility", "public")
+          .order("likes_count", { ascending: false })
+          .limit(5);
+
+        if (posts && posts.length > 0) {
+          const userIds = [...new Set(posts.map(p => p.user_id))];
+          const { data: profiles } = await supabase
+            .from("profiles")
+            .select("user_id, display_name, avatar_url")
+            .in("user_id", userIds);
+
+          const trending = posts.map(post => ({
+            id: post.id,
+            content: post.content || "",
+            likes_count: post.likes_count || 0,
+            comments_count: post.comments_count || 0,
+            author: profiles?.find(p => p.user_id === post.user_id) || { display_name: null, avatar_url: null }
+          }));
+
+          setTrendingPosts(trending);
+        }
+      } catch (error) {
+        console.error("Error fetching trending posts:", error);
+      }
+    };
+
+    fetchTrendingPosts();
+  }, []);
+
   // Filter messages based on tab
   const filteredMessages = messages.filter(msg => {
     const matchesSearch = searchQuery === "" || 
@@ -151,10 +364,167 @@ export const RightSidebar = () => {
   };
 
   const unreadCount = messages.filter(m => m.read_at === null).length;
+  const onlineCount = onlineFriends.filter(f => f.isOnline).length;
 
   return (
     <aside className="w-[320px] flex-shrink-0 hidden xl:block">
       <div className="fixed w-[320px] h-[calc(100vh-64px)] overflow-y-auto scrollbar-hide pt-4 pb-8 pl-2">
+        {/* Weather Widget */}
+        <div className="bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-xl p-4 mb-4 border border-border relative overflow-hidden">
+          <div className="absolute top-2 right-2 opacity-20">
+            <WeatherIcon condition={weather.condition} className="h-16 w-16" />
+          </div>
+          <div className="relative z-10">
+            <div className="flex items-center gap-2 mb-2">
+              <WeatherIcon condition={weather.condition} className="h-5 w-5" />
+              <span className="text-xs text-muted-foreground">{weather.location}</span>
+            </div>
+            <div className="flex items-baseline gap-1 mb-1">
+              <span className="text-4xl font-bold text-foreground">{weather.temperature}°</span>
+              <span className="text-sm text-muted-foreground">C</span>
+            </div>
+            <p className="text-sm text-muted-foreground capitalize mb-3">{weather.condition}</p>
+            
+            <div className="flex justify-between pt-2 border-t border-border/50">
+              {weather.forecast.map((day, i) => (
+                <div key={i} className="text-center">
+                  <span className="text-xs text-muted-foreground block">{day.day}</span>
+                  <WeatherIcon condition={day.condition} className="h-4 w-4 mx-auto my-1" />
+                  <span className="text-xs font-medium text-foreground">{day.temp}°</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Birthday Reminders */}
+        {birthdays.length > 0 && (
+          <div className="bg-card rounded-xl p-4 mb-4 border border-border">
+            <div className="flex items-center gap-2 mb-3">
+              <Cake className="h-5 w-5 text-pink-500" />
+              <h3 className="font-semibold text-foreground">{t("sidebar.birthdays", "Birthdays")}</h3>
+            </div>
+            <div className="space-y-2">
+              {birthdays.map((bday) => (
+                <div
+                  key={bday.user_id}
+                  onClick={() => navigate(`/profile/${bday.user_id}`)}
+                  className={cn(
+                    "flex items-center gap-3 p-2 -mx-2 rounded-lg cursor-pointer transition-colors",
+                    bday.isToday 
+                      ? "bg-pink-500/10 hover:bg-pink-500/20" 
+                      : "hover:bg-secondary/50"
+                  )}
+                >
+                  <Avatar className="h-9 w-9">
+                    <AvatarImage src={bday.avatar_url || undefined} />
+                    <AvatarFallback className="bg-gradient-to-br from-pink-400 to-pink-600 text-white text-xs">
+                      {bday.display_name?.split(" ").map(n => n[0]).join("") || "?"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">
+                      {bday.display_name || t("common.unknown", "Unknown")}
+                    </p>
+                    <p className={cn(
+                      "text-xs",
+                      bday.isToday ? "text-pink-500 font-medium" : "text-muted-foreground"
+                    )}>
+                      {bday.isToday 
+                        ? t("sidebar.birthdayToday", "🎂 Birthday today!") 
+                        : bday.isTomorrow 
+                          ? t("sidebar.birthdayTomorrow", "Tomorrow")
+                          : format(bday.birthday, "MMM d")}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Online Friends */}
+        {onlineFriends.length > 0 && (
+          <div className="bg-card rounded-xl p-4 mb-4 border border-border">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Users className="h-5 w-5 text-green-500" />
+                <h3 className="font-semibold text-foreground">{t("sidebar.onlineFriends", "Friends")}</h3>
+              </div>
+              {onlineCount > 0 && (
+                <span className="text-xs bg-green-500/20 text-green-500 px-2 py-0.5 rounded-full">
+                  {onlineCount} {t("sidebar.online", "online")}
+                </span>
+              )}
+            </div>
+            <div className="grid grid-cols-4 gap-2">
+              {onlineFriends.map((friend) => (
+                <div
+                  key={friend.user_id}
+                  onClick={() => navigate(`/profile/${friend.user_id}`)}
+                  className="flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-secondary/50 cursor-pointer transition-colors"
+                >
+                  <div className="relative">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={friend.avatar_url || undefined} />
+                      <AvatarFallback className="bg-gradient-to-br from-primary to-weshare-purple text-primary-foreground text-xs">
+                        {friend.display_name?.split(" ").map(n => n[0]).join("") || "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <Circle 
+                      className={cn(
+                        "absolute bottom-0 right-0 h-3 w-3 fill-current border-2 border-card rounded-full",
+                        friend.isOnline ? "text-green-500" : "text-gray-400"
+                      )} 
+                    />
+                  </div>
+                  <span className="text-[10px] text-muted-foreground truncate max-w-full text-center">
+                    {friend.display_name?.split(" ")[0] || "User"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Trending Posts */}
+        {trendingPosts.length > 0 && (
+          <div className="bg-card rounded-xl p-4 mb-4 border border-border">
+            <div className="flex items-center gap-2 mb-3">
+              <TrendingUp className="h-5 w-5 text-orange-500" />
+              <h3 className="font-semibold text-foreground">{t("sidebar.trending", "Trending")}</h3>
+            </div>
+            <div className="space-y-2">
+              {trendingPosts.slice(0, 4).map((post, index) => (
+                <div
+                  key={post.id}
+                  onClick={() => navigate(`/?post=${post.id}`)}
+                  className="flex items-start gap-3 p-2 -mx-2 rounded-lg hover:bg-secondary/50 cursor-pointer transition-colors"
+                >
+                  <span className="text-lg font-bold text-muted-foreground w-5">
+                    {index + 1}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-foreground line-clamp-2">
+                      {truncateMessage(post.content, 60)}
+                    </p>
+                    <div className="flex items-center gap-3 mt-1">
+                      <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Heart className="h-3 w-3" />
+                        {post.likes_count}
+                      </span>
+                      <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <MessageCircle className="h-3 w-3" />
+                        {post.comments_count}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Notifications */}
         <div className="bg-card rounded-xl p-4 mb-4 border border-border">
           <div className="flex items-center justify-between mb-3">
@@ -210,7 +580,7 @@ export const RightSidebar = () => {
                   : t("notifications.noUnread", "No unread messages")}
               </div>
             ) : (
-              filteredMessages.slice(0, 8).map((msg) => (
+              filteredMessages.slice(0, 5).map((msg) => (
                 <div
                   key={msg.id}
                   onClick={() => handleMessageClick(msg)}
@@ -220,14 +590,14 @@ export const RightSidebar = () => {
                   )}
                 >
                   <div className="relative flex-shrink-0">
-                    <Avatar className="h-10 w-10">
+                    <Avatar className="h-9 w-9">
                       <AvatarImage src={msg.sender?.avatar_url || undefined} />
-                      <AvatarFallback className="bg-gradient-to-br from-primary to-weshare-purple text-primary-foreground text-sm">
+                      <AvatarFallback className="bg-gradient-to-br from-primary to-weshare-purple text-primary-foreground text-xs">
                         {msg.sender?.display_name?.split(" ").map(n => n[0]).join("") || "?"}
                       </AvatarFallback>
                     </Avatar>
                     {!msg.read_at && (
-                      <div className="absolute top-0 right-0 h-2.5 w-2.5 bg-primary rounded-full border-2 border-card" />
+                      <div className="absolute top-0 right-0 h-2 w-2 bg-primary rounded-full border-2 border-card" />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -252,7 +622,7 @@ export const RightSidebar = () => {
                 </div>
               ))
             )}
-            {filteredMessages.length > 8 && (
+            {filteredMessages.length > 5 && (
               <Button 
                 variant="link" 
                 className="text-muted-foreground p-0 h-auto text-sm hover:text-foreground"
