@@ -136,6 +136,24 @@ export const VideoLightbox = ({
         case "p":
           togglePiP();
           break;
+        case ",":
+        case "<":
+          // Decrease playback speed
+          setPlaybackSpeed((current) => {
+            const currentIdx = playbackSpeeds.indexOf(current);
+            const prevIdx = currentIdx > 0 ? currentIdx - 1 : 0;
+            return playbackSpeeds[prevIdx];
+          });
+          break;
+        case ".":
+        case ">":
+          // Increase playback speed
+          setPlaybackSpeed((current) => {
+            const currentIdx = playbackSpeeds.indexOf(current);
+            const nextIdx = currentIdx < playbackSpeeds.length - 1 ? currentIdx + 1 : playbackSpeeds.length - 1;
+            return playbackSpeeds[nextIdx];
+          });
+          break;
         case "Escape":
           if (isFullscreen) {
             exitFullscreen();
