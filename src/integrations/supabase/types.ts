@@ -1472,6 +1472,42 @@ export type Database = {
         }
         Relationships: []
       }
+      scheduled_birthday_wishes: {
+        Row: {
+          created_at: string
+          friend_user_id: string
+          id: string
+          message: string
+          posted_post_id: string | null
+          scheduled_date: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          friend_user_id: string
+          id?: string
+          message: string
+          posted_post_id?: string | null
+          scheduled_date: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          friend_user_id?: string
+          id?: string
+          message?: string
+          posted_post_id?: string | null
+          scheduled_date?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       stories: {
         Row: {
           created_at: string
