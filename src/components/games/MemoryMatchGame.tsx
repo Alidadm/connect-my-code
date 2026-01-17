@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { ArrowLeft, Loader2, Trophy, Clock, Check, X, RotateCcw } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import { useGameSounds } from "@/hooks/useGameSounds";
 
 interface Player {
   user_id: string;
@@ -26,6 +27,7 @@ export const MemoryMatchGame = ({ gameId, onBack }: MemoryMatchGameProps) => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { playFlip, playMatch, playNoMatch, playWin, playLose, playDraw, playGameStart } = useGameSounds();
   const [game, setGame] = useState<any>(null);
   const [player1, setPlayer1] = useState<Player | null>(null);
   const [player2, setPlayer2] = useState<Player | null>(null);
@@ -33,6 +35,7 @@ export const MemoryMatchGame = ({ gameId, onBack }: MemoryMatchGameProps) => {
   const [flipping, setFlipping] = useState(false);
   const [flippedCards, setFlippedCards] = useState<number[]>([]);
   const [creatingRematch, setCreatingRematch] = useState(false);
+  const previousStatusRef = useRef<string | null>(null);
 
   const fetchGame = useCallback(async () => {
     const { data, error } = await supabase
@@ -119,6 +122,7 @@ export const MemoryMatchGame = ({ gameId, onBack }: MemoryMatchGameProps) => {
     if (error) {
       toast.error(t("games.acceptError", { defaultValue: "Failed to accept invite" }));
     } else {
+      playGameStart();
       toast.success(t("games.gameStarted", { defaultValue: "Game started!" }));
     }
   };
@@ -142,6 +146,9 @@ export const MemoryMatchGame = ({ gameId, onBack }: MemoryMatchGameProps) => {
     if (game.current_turn !== user.id) return;
     if (game.matched[index] === "matched") return;
     if (flippedCards.includes(index)) return;
+
+    // Play flip sound
+    playFlip();
 
     const newFlipped = [...flippedCards, index];
     setFlippedCards(newFlipped);
@@ -167,9 +174,11 @@ export const MemoryMatchGame = ({ gameId, onBack }: MemoryMatchGameProps) => {
         } else {
           newPlayer2Score++;
         }
+        playMatch();
         toast.success(t("games.matchFound", { defaultValue: "Match found! +1 point" }));
       } else {
         // Switch turn on no match
+        playNoMatch();
         newCurrentTurn = game.current_turn === game.player_1 ? game.player_2 : game.player_1;
       }
 
@@ -185,6 +194,15 @@ export const MemoryMatchGame = ({ gameId, onBack }: MemoryMatchGameProps) => {
           winner = game.player_1;
         } else if (newPlayer2Score > newPlayer1Score) {
           winner = game.player_2;
+        }
+        
+        // Play game end sound
+        if (newStatus === "draw") {
+          playDraw();
+        } else if (winner === user.id) {
+          playWin();
+        } else {
+          playLose();
         }
       }
 
