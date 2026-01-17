@@ -6,6 +6,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 
+interface MemberCoverHeaderProps {
+  activeTab?: string;
+  onTabChange?: (tab: string) => void;
+}
+
 const demoProfile = {
   display_name: "Dolphy Member",
   username: "member",
@@ -22,12 +27,15 @@ interface ProfileStats {
   postsCount: number;
 }
 
-export const MemberCoverHeader = () => {
+export const MemberCoverHeader = ({ activeTab: externalActiveTab, onTabChange }: MemberCoverHeaderProps = {}) => {
   const { t } = useTranslation();
   const { user, profile } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("feed");
+  const [internalActiveTab, setInternalActiveTab] = useState("feed");
   const [stats, setStats] = useState<ProfileStats>({ friendsCount: 0, postsCount: 0 });
+
+  // Use external tab if provided, otherwise use internal state
+  const activeTab = externalActiveTab ?? internalActiveTab;
 
   const displayName =
     profile?.display_name ||
@@ -84,12 +92,13 @@ export const MemberCoverHeader = () => {
   ];
 
   const handleTabClick = (tabId: string) => {
-    setActiveTab(tabId);
-    if (tabId === "friends") {
-      navigate("/friends");
-    } else if (user && username) {
-      navigate(`/user/${username}`);
+    // If external control is provided, use it
+    if (onTabChange) {
+      onTabChange(tabId);
+    } else {
+      setInternalActiveTab(tabId);
     }
+    // Note: We no longer navigate away - content changes in-place
   };
 
   return (

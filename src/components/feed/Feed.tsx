@@ -5,6 +5,7 @@ import { DemoPostCreator } from "./DemoPostCreator";
 import { PostCard } from "./PostCard";
 import { DemoPostCard } from "./DemoPostCard";
 import { PullToRefreshIndicator } from "./PullToRefreshIndicator";
+import { ProfileTabContent } from "./ProfileTabContent";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, ChevronDown, Check } from "lucide-react";
@@ -95,6 +96,7 @@ export const Feed = () => {
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [filter, setFilter] = useState<FilterType>("recent");
+  const [activeTab, setActiveTab] = useState("feed");
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
@@ -330,76 +332,87 @@ export const Feed = () => {
         threshold={80}
       />
 
-      <MemberCoverHeader />
-      {user ? <PostCreator onPostCreated={() => fetchPosts(0, false)} /> : <DemoPostCreator />}
-
-      {/* Filter tabs */}
-      <div className="flex items-center justify-end mb-4 gap-2">
-        <span className="text-sm text-muted-foreground">{t("feed.sortBy")}:</span>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm" className="gap-1 text-foreground font-medium">
-              {getFilterLabel()}
-              <ChevronDown className="h-4 w-4 text-muted-foreground" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-40">
-            {filterOptions.map((option) => (
-              <DropdownMenuItem
-                key={option.value}
-                onClick={() => handleFilterChange(option.value)}
-                className="flex items-center justify-between cursor-pointer"
-              >
-                {option.label}
-                {filter === option.value && (
-                  <Check className="h-4 w-4 text-primary" />
-                )}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-
-      {/* Posts */}
-      {loading && !isRefreshing ? (
-        <div className="flex justify-center py-8">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      ) : (
+      <MemberCoverHeader activeTab={activeTab} onTabChange={setActiveTab} />
+      
+      {/* Show tab content based on active tab */}
+      {activeTab === "feed" || activeTab === "posts" ? (
         <>
-          {/* Show real posts if user is logged in or has posts */}
-          {posts.map((post) => (
-            <PostCard key={post.id} post={post} onLikeChange={() => fetchPosts(0, false)} />
-          ))}
-          
-          {/* Only show demo posts when user is not logged in AND has no real posts */}
-          {!user && posts.length === 0 && demoPosts.map((post) => (
-            <DemoPostCard key={post.id} post={post} />
-          ))}
+          {user ? <PostCreator onPostCreated={() => fetchPosts(0, false)} /> : <DemoPostCreator />}
 
-          {/* Infinite scroll trigger / Load more */}
-          {hasMore && posts.length > 0 && (
-            <div ref={loadMoreRef} className="flex justify-center py-6">
-              {loadingMore ? (
-                <Loader2 className="h-6 w-6 animate-spin text-primary" />
-              ) : (
-                <Button 
-                  variant="outline" 
-                  onClick={loadMore}
-                  className="text-muted-foreground"
-                >
-                  {t("feed.loadMore", "Load More")}
+          {/* Filter tabs */}
+          <div className="flex items-center justify-end mb-4 gap-2">
+            <span className="text-sm text-muted-foreground">{t("feed.sortBy")}:</span>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="gap-1 text-foreground font-medium">
+                  {getFilterLabel()}
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
                 </Button>
-              )}
-            </div>
-          )}
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-40">
+                {filterOptions.map((option) => (
+                  <DropdownMenuItem
+                    key={option.value}
+                    onClick={() => handleFilterChange(option.value)}
+                    className="flex items-center justify-between cursor-pointer"
+                  >
+                    {option.label}
+                    {filter === option.value && (
+                      <Check className="h-4 w-4 text-primary" />
+                    )}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
 
-          {!hasMore && posts.length > 0 && (
-            <div className="text-center py-6 text-sm text-muted-foreground">
-              {t("feed.noMorePosts", "You've reached the end")}
+          {/* Posts */}
+          {loading && !isRefreshing ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
+          ) : (
+            <>
+              {/* Show real posts if user is logged in or has posts */}
+              {posts.map((post) => (
+                <PostCard key={post.id} post={post} onLikeChange={() => fetchPosts(0, false)} />
+              ))}
+              
+              {/* Only show demo posts when user is not logged in AND has no real posts */}
+              {!user && posts.length === 0 && demoPosts.map((post) => (
+                <DemoPostCard key={post.id} post={post} />
+              ))}
+
+              {/* Infinite scroll trigger / Load more */}
+              {hasMore && posts.length > 0 && (
+                <div ref={loadMoreRef} className="flex justify-center py-6">
+                  {loadingMore ? (
+                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                  ) : (
+                    <Button 
+                      variant="outline" 
+                      onClick={loadMore}
+                      className="text-muted-foreground"
+                    >
+                      {t("feed.loadMore", "Load More")}
+                    </Button>
+                  )}
+                </div>
+              )}
+
+              {!hasMore && posts.length > 0 && (
+                <div className="text-center py-6 text-sm text-muted-foreground">
+                  {t("feed.noMorePosts", "You've reached the end")}
+                </div>
+              )}
+            </>
           )}
         </>
+      ) : (
+        /* Show Photos, Videos, or Friends content */
+        <div className="bg-card rounded-xl shadow-sm mt-4">
+          <ProfileTabContent activeTab={activeTab} />
+        </div>
       )}
     </div>
   );

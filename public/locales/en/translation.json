@@ -149,7 +149,18 @@
     "noMutualFriendsDesc": "You don't have any friends in common with this person yet.",
     "mutualFriendsCount": "{{count}} mutual friends with {{name}}",
     "noPostsYet": "No posts yet",
-    "noPhotosYet": "No photos yet"
+    "noPhotosYet": "No photos yet",
+    "noPhotos": "No photos yet",
+    "noVideos": "No videos yet",
+    "noFriends": "No friends yet",
+    "findFriends": "Find friends",
+    "feed": "Feed",
+    "photos": "Photos",
+    "videos": "Videos",
+    "posts": "Posts",
+    "addFriend": "Add Friend",
+    "favorite": "Favorite",
+    "message": "Message"
   },
   "account": {
     "title": "Account",
