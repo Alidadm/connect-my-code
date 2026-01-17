@@ -16,6 +16,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "@/hooks/use-toast";
 import { CommentSection } from "./CommentSection";
 import { ReactionPicker } from "./ReactionPicker";
+import { MasonryPhotoGrid } from "./MasonryPhotoGrid";
 import Swal from "sweetalert2";
 import ReactDOMServer from "react-dom/server";
 
@@ -518,18 +519,13 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
       {/* Media */}
       {post.media_urls && post.media_urls.length > 0 && (
         <div className="space-y-2 px-4 pb-3">
-          {/* Images Grid */}
-          {post.media_urls.filter(url => getMediaType(url) === "image").length > 0 && (
-            <div className={`grid gap-1 rounded-lg overflow-hidden ${
-              post.media_urls.filter(url => getMediaType(url) === "image").length === 1 
-                ? 'grid-cols-1' 
-                : 'grid-cols-2'
-            }`}>
-              {post.media_urls
-                .filter(url => getMediaType(url) === "image")
-                .slice(0, 4)
-                .map((url, index) => renderMedia(url, index))}
-            </div>
+          {/* Images - Masonry Grid */}
+          {allImages.length > 0 && (
+            <MasonryPhotoGrid 
+              images={allImages} 
+              variant="feed" 
+              maxDisplay={5}
+            />
           )}
           
           {/* Videos */}

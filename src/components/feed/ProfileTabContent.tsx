@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
+import { MasonryPhotoGrid } from "./MasonryPhotoGrid";
 
 interface ProfileTabContentProps {
   activeTab: string;
@@ -17,9 +18,13 @@ const PhotosGrid = () => {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-3 gap-2 p-4">
-        {[...Array(6)].map((_, i) => (
-          <Skeleton key={i} className="aspect-square rounded-lg" />
+      <div className="columns-2 sm:columns-3 md:columns-4 gap-2 p-4">
+        {[...Array(8)].map((_, i) => (
+          <Skeleton 
+            key={i} 
+            className="mb-2 rounded-lg" 
+            style={{ height: `${150 + Math.random() * 100}px` }}
+          />
         ))}
       </div>
     );
@@ -34,21 +39,15 @@ const PhotosGrid = () => {
     );
   }
 
+  const imageUrls = photos.map(photo => photo.url);
+
   return (
-    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 p-4">
-      {photos.map((photo) => (
-        <div
-          key={photo.id}
-          className="aspect-square rounded-lg overflow-hidden bg-muted cursor-pointer hover:opacity-90 transition-opacity"
-        >
-          <img
-            src={photo.url}
-            alt=""
-            loading="lazy"
-            className="w-full h-full object-cover"
-          />
-        </div>
-      ))}
+    <div className="p-4">
+      <MasonryPhotoGrid 
+        images={imageUrls} 
+        variant="gallery" 
+        maxDisplay={100}
+      />
     </div>
   );
 };
