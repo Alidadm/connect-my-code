@@ -12,6 +12,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { CoverEditor } from "@/components/cover/CoverEditor";
+import { AvatarEditor } from "@/components/avatar/AvatarEditor";
+
 interface PublicProfile {
   user_id: string;
   username: string | null;
@@ -49,6 +51,7 @@ const UserProfile = () => {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [showCoverEditor, setShowCoverEditor] = useState(false);
+  const [showAvatarEditor, setShowAvatarEditor] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -132,6 +135,11 @@ const UserProfile = () => {
     setShowCoverEditor(false);
   };
 
+  const handleAvatarSaved = (newAvatarUrl: string) => {
+    setProfile(prev => prev ? { ...prev, avatar_url: newAvatarUrl || null } : null);
+    setShowAvatarEditor(false);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto">
@@ -178,16 +186,37 @@ const UserProfile = () => {
           onCoverSaved={handleCoverSaved}
         />
 
+        {/* Avatar Editor Modal */}
+        <AvatarEditor
+          open={showAvatarEditor}
+          onOpenChange={setShowAvatarEditor}
+          userId={user?.id || ""}
+          currentAvatar={profile?.avatar_url || undefined}
+          onAvatarSaved={handleAvatarSaved}
+        />
+
         {/* Profile Header */}
         <div className="px-4 pb-4 bg-card border-b">
           <div className="flex flex-col sm:flex-row sm:items-end gap-4 -mt-16 sm:-mt-20">
             {/* Avatar */}
-            <Avatar className="w-32 h-32 border-4 border-background shadow-xl">
-              <AvatarImage src={profile?.avatar_url || ""} />
-              <AvatarFallback className="text-4xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground">
-                {profile?.display_name?.charAt(0) || profile?.username?.charAt(0) || "U"}
-              </AvatarFallback>
-            </Avatar>
+            <div className="relative group/avatar">
+              <Avatar className="w-32 h-32 border-4 border-background shadow-xl">
+                <AvatarImage src={profile?.avatar_url || ""} />
+                <AvatarFallback className="text-4xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground">
+                  {profile?.display_name?.charAt(0) || profile?.username?.charAt(0) || "U"}
+                </AvatarFallback>
+              </Avatar>
+              {isOwnProfile && (
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  className="absolute bottom-0 right-0 w-8 h-8 rounded-full shadow-lg opacity-0 group-hover/avatar:opacity-100 transition-opacity"
+                  onClick={() => setShowAvatarEditor(true)}
+                >
+                  <Camera className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
 
             {/* Profile Info */}
             <div className="flex-1 pt-2 sm:pt-0">
