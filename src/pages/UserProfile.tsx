@@ -617,6 +617,12 @@ const UserProfile = () => {
                 {profile?.is_verified && (
                   <CheckCircle2 className="w-5 h-5 text-primary fill-primary/20" />
                 )}
+                {isMuted && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-muted text-muted-foreground" title={t('privacy.mutedUser', 'You have muted this user')}>
+                    <VolumeX className="h-3 w-3" />
+                    {t('privacy.muted', 'Muted')}
+                  </span>
+                )}
               </div>
               <p className="text-muted-foreground">@{profile?.username}</p>
             </div>
