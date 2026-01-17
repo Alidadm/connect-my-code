@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { 
   MapPin, Calendar, Users, Link as LinkIcon, 
   MessageCircle, UserPlus, MoreHorizontal, ArrowLeft,
-  CheckCircle2, Image as ImageIcon, Camera
+  CheckCircle2, Image as ImageIcon, Camera, UserCheck, Clock, UserMinus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -13,6 +13,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { CoverEditor } from "@/components/cover/CoverEditor";
 import { AvatarEditor } from "@/components/avatar/AvatarEditor";
+import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
+
+type FriendshipStatus = "none" | "pending_sent" | "pending_received" | "accepted";
 
 interface PublicProfile {
   user_id: string;
@@ -47,11 +51,15 @@ const countryNames: Record<string, string> = {
 const UserProfile = () => {
   const { username } = useParams<{ username: string }>();
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [profile, setProfile] = useState<PublicProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [showCoverEditor, setShowCoverEditor] = useState(false);
   const [showAvatarEditor, setShowAvatarEditor] = useState(false);
+  const [friendshipStatus, setFriendshipStatus] = useState<FriendshipStatus>("none");
+  const [friendshipId, setFriendshipId] = useState<string | null>(null);
+  const [friendActionLoading, setFriendActionLoading] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -86,6 +94,200 @@ const UserProfile = () => {
 
     fetchProfile();
   }, [username]);
+
+  // Check friendship status
+  useEffect(() => {
+    const checkFriendshipStatus = async () => {
+      if (!user || !profile || user.id === profile.user_id) {
+        setFriendshipStatus("none");
+        setFriendshipId(null);
+        return;
+      }
+
+      // Check if there's any friendship record between the two users
+      const { data, error } = await supabase
+        .from("friendships")
+        .select("id, requester_id, addressee_id, status")
+        .or(`and(requester_id.eq.${user.id},addressee_id.eq.${profile.user_id}),and(requester_id.eq.${profile.user_id},addressee_id.eq.${user.id})`)
+        .maybeSingle();
+
+      if (error || !data) {
+        setFriendshipStatus("none");
+        setFriendshipId(null);
+        return;
+      }
+
+      setFriendshipId(data.id);
+
+      if (data.status === "accepted") {
+        setFriendshipStatus("accepted");
+      } else if (data.status === "pending") {
+        if (data.requester_id === user.id) {
+          setFriendshipStatus("pending_sent");
+        } else {
+          setFriendshipStatus("pending_received");
+        }
+      } else {
+        setFriendshipStatus("none");
+        setFriendshipId(null);
+      }
+    };
+
+    checkFriendshipStatus();
+  }, [user, profile]);
+
+  const handleSendFriendRequest = async () => {
+    if (!user || !profile) return;
+
+    setFriendActionLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("friendships")
+        .insert({
+          requester_id: user.id,
+          addressee_id: profile.user_id,
+          status: "pending",
+        })
+        .select("id")
+        .single();
+
+      if (error) {
+        toast.error(t("friends.errorSending", { defaultValue: "Failed to send friend request" }));
+      } else {
+        setFriendshipStatus("pending_sent");
+        setFriendshipId(data.id);
+        toast.success(t("friends.requestSent", { defaultValue: "Friend request sent!" }));
+      }
+    } finally {
+      setFriendActionLoading(false);
+    }
+  };
+
+  const handleCancelFriendRequest = async () => {
+    if (!friendshipId) return;
+
+    setFriendActionLoading(true);
+    try {
+      const { error } = await supabase
+        .from("friendships")
+        .delete()
+        .eq("id", friendshipId);
+
+      if (error) {
+        toast.error(t("friends.errorCanceling", { defaultValue: "Failed to cancel request" }));
+      } else {
+        setFriendshipStatus("none");
+        setFriendshipId(null);
+        toast.success(t("friends.requestCanceled", { defaultValue: "Friend request canceled" }));
+      }
+    } finally {
+      setFriendActionLoading(false);
+    }
+  };
+
+  const handleAcceptFriendRequest = async () => {
+    if (!friendshipId) return;
+
+    setFriendActionLoading(true);
+    try {
+      const { error } = await supabase
+        .from("friendships")
+        .update({ status: "accepted", updated_at: new Date().toISOString() })
+        .eq("id", friendshipId);
+
+      if (error) {
+        toast.error(t("friends.errorAccepting", { defaultValue: "Failed to accept request" }));
+      } else {
+        setFriendshipStatus("accepted");
+        toast.success(t("friends.requestAccepted", { defaultValue: "Friend request accepted!" }));
+      }
+    } finally {
+      setFriendActionLoading(false);
+    }
+  };
+
+  const handleUnfriend = async () => {
+    if (!friendshipId) return;
+
+    setFriendActionLoading(true);
+    try {
+      const { error } = await supabase
+        .from("friendships")
+        .delete()
+        .eq("id", friendshipId);
+
+      if (error) {
+        toast.error(t("friends.errorUnfriending", { defaultValue: "Failed to unfriend" }));
+      } else {
+        setFriendshipStatus("none");
+        setFriendshipId(null);
+        toast.success(t("friends.unfriended", { defaultValue: "Unfriended successfully" }));
+      }
+    } finally {
+      setFriendActionLoading(false);
+    }
+  };
+
+  const renderFriendButton = () => {
+    if (!user) {
+      return (
+        <Link to="/login">
+          <Button className="dolphy-gradient">
+            <UserPlus className="w-4 h-4 mr-2" />
+            {t("friends.addFriend", { defaultValue: "Add Friend" })}
+          </Button>
+        </Link>
+      );
+    }
+
+    switch (friendshipStatus) {
+      case "accepted":
+        return (
+          <Button 
+            variant="outline" 
+            onClick={handleUnfriend}
+            disabled={friendActionLoading}
+            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+          >
+            <UserMinus className="w-4 h-4 mr-2" />
+            {t("friends.unfriend", { defaultValue: "Unfriend" })}
+          </Button>
+        );
+      case "pending_sent":
+        return (
+          <Button 
+            variant="outline" 
+            onClick={handleCancelFriendRequest}
+            disabled={friendActionLoading}
+          >
+            <Clock className="w-4 h-4 mr-2" />
+            {t("friends.pendingRequest", { defaultValue: "Request Sent" })}
+          </Button>
+        );
+      case "pending_received":
+        return (
+          <Button 
+            className="dolphy-gradient"
+            onClick={handleAcceptFriendRequest}
+            disabled={friendActionLoading}
+          >
+            <UserCheck className="w-4 h-4 mr-2" />
+            {t("friends.acceptRequest", { defaultValue: "Accept Request" })}
+          </Button>
+        );
+      default:
+        return (
+          <Button 
+            className="dolphy-gradient"
+            onClick={handleSendFriendRequest}
+            disabled={friendActionLoading}
+          >
+            <UserPlus className="w-4 h-4 mr-2" />
+            {t("friends.addFriend", { defaultValue: "Add Friend" })}
+          </Button>
+        );
+    }
+  };
 
   if (loading) {
     return (
@@ -235,18 +437,15 @@ const UserProfile = () => {
             <div className="flex gap-2 pt-2 sm:pt-0">
               {isOwnProfile ? (
                 <Link to="/dashboard">
-                  <Button variant="outline">Edit Profile</Button>
+                  <Button variant="outline">{t("profile.editProfile", { defaultValue: "Edit Profile" })}</Button>
                 </Link>
               ) : (
                 <>
-                  <Button className="weshare-gradient">
-                    <UserPlus className="w-4 h-4 mr-2" />
-                    Add Friend
-                  </Button>
-                  <Button variant="outline" size="icon">
+                  {renderFriendButton()}
+                  <Button variant="outline" size="icon" title={t("profile.message", { defaultValue: "Message" })}>
                     <MessageCircle className="w-4 h-4" />
                   </Button>
-                  <Button variant="outline" size="icon">
+                  <Button variant="outline" size="icon" title={t("profile.more", { defaultValue: "More options" })}>
                     <MoreHorizontal className="w-4 h-4" />
                   </Button>
                 </>
