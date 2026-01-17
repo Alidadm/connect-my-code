@@ -12,12 +12,16 @@ import { useTranslation } from "react-i18next";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { usePrivacySettings } from "@/hooks/usePrivacySettings";
+import { BlockedUsersModal } from "@/components/privacy/BlockedUsersModal";
+import { MutedUsersModal } from "@/components/privacy/MutedUsersModal";
 
 const Privacy = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [downloading, setDownloading] = useState(false);
+  const [blockedModalOpen, setBlockedModalOpen] = useState(false);
+  const [mutedModalOpen, setMutedModalOpen] = useState(false);
   const { settings, loading: settingsLoading, saving, updateSetting } = usePrivacySettings();
 
   useEffect(() => {
@@ -28,7 +32,6 @@ const Privacy = () => {
 
   const handleDownloadData = async () => {
     setDownloading(true);
-    // Simulate data download
     setTimeout(() => {
       setDownloading(false);
       toast.success(t("privacy.dataDownloadStarted", { defaultValue: "Your data download has been started. You'll receive an email when it's ready." }));
@@ -153,7 +156,7 @@ const Privacy = () => {
                 <Label>{t("privacy.blockedUsers", { defaultValue: "Blocked Users" })}</Label>
                 <p className="text-sm text-muted-foreground">{t("privacy.blockedUsersDesc", { defaultValue: "Manage users you've blocked" })}</p>
               </div>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={() => setBlockedModalOpen(true)}>
                 {t("privacy.manage", { defaultValue: "Manage" })}
               </Button>
             </div>
@@ -163,7 +166,7 @@ const Privacy = () => {
                 <Label>{t("privacy.mutedAccounts", { defaultValue: "Muted Accounts" })}</Label>
                 <p className="text-sm text-muted-foreground">{t("privacy.mutedAccountsDesc", { defaultValue: "Manage accounts you've muted" })}</p>
               </div>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={() => setMutedModalOpen(true)}>
                 {t("privacy.manage", { defaultValue: "Manage" })}
               </Button>
             </div>
@@ -264,6 +267,9 @@ const Privacy = () => {
           </CardContent>
         </Card>
       </div>
+
+      <BlockedUsersModal open={blockedModalOpen} onOpenChange={setBlockedModalOpen} />
+      <MutedUsersModal open={mutedModalOpen} onOpenChange={setMutedModalOpen} />
     </MainLayout>
   );
 };
