@@ -301,75 +301,10 @@ const MemberDashboard = () => {
 
   const renderProfileTab = () => (
     <div className="space-y-6">
-      {/* Cover Photo Section */}
-      <div className="relative -mx-6 -mt-6 mb-6">
-        <div className="relative h-32 sm:h-40 bg-gradient-to-br from-primary/30 to-primary/10 overflow-hidden">
-          {profile?.cover_url ? (
-            <img 
-              src={profile.cover_url} 
-              alt="Cover" 
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full bg-gradient-to-br from-blue-500/30 to-cyan-500/30" />
-          )}
-          <button 
-            onClick={() => setCoverEditorOpen(true)}
-            className="absolute bottom-3 right-3 px-3 py-1.5 rounded-full bg-black/50 hover:bg-black/70 flex items-center gap-2 text-white text-sm transition-all"
-          >
-            <Camera className="w-4 h-4" />
-            {t("cover.updateCover")}
-          </button>
-        </div>
-        
-        {/* Avatar overlapping cover */}
-        <div className="absolute -bottom-12 left-6">
-          <div className="relative">
-            <Avatar className="w-24 h-24 border-4 border-white shadow-xl">
-              <AvatarImage src={profile?.avatar_url || ""} />
-              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-cyan-500 text-white text-2xl">
-                {formData.display_name?.charAt(0) || formData.first_name?.charAt(0) || "U"}
-              </AvatarFallback>
-            </Avatar>
-            <button 
-              onClick={() => setAvatarEditorOpen(true)}
-              className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg hover:from-blue-600 hover:to-cyan-600 transition-all"
-            >
-              <Camera className="w-4 h-4 text-white" />
-            </button>
-          </div>
-        </div>
+      {/* Member Since Info */}
+      <div className="pb-4 border-b border-slate-200">
+        <p className="text-sm text-slate-400">Member since {profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : "N/A"}</p>
       </div>
-      
-      {/* Profile Info - with spacing for avatar overlap */}
-      <div className="pt-10 pb-6 border-b border-slate-200">
-        <h3 className="text-xl font-bold text-slate-800">{formData.display_name || "Your Name"}</h3>
-        <p className="text-slate-500">@{formData.username || "username"}</p>
-        <p className="text-sm text-slate-400 mt-1">Member since {profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : "N/A"}</p>
-      </div>
-      
-      {/* Avatar Editor Modal */}
-      <AvatarEditor
-        open={avatarEditorOpen}
-        onOpenChange={setAvatarEditorOpen}
-        onAvatarSaved={(url) => {
-          refreshProfile();
-        }}
-        userId={user?.id}
-        currentAvatar={profile?.avatar_url || undefined}
-        userName={formData.display_name || `${formData.first_name} ${formData.last_name}`.trim() || "User"}
-      />
-      
-      {/* Cover Editor Modal */}
-      <CoverEditor
-        open={coverEditorOpen}
-        onOpenChange={setCoverEditorOpen}
-        onCoverSaved={(url) => {
-          refreshProfile();
-        }}
-        userId={user?.id}
-        currentCover={profile?.cover_url || undefined}
-      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
@@ -1185,34 +1120,91 @@ const MemberDashboard = () => {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top Bar */}
-        <div className="bg-white border-b border-slate-200 px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold text-slate-800">
-                {getMenuItems(t).find(item => item.id === activeTab)?.label}
-              </h2>
-              <p className="text-slate-500 mt-1">
-                {getMenuItems(t).find(item => item.id === activeTab)?.description}
-              </p>
-            </div>
+        {/* Cover Photo with Avatar Header */}
+        <div className="relative">
+          {/* Cover Photo */}
+          <div className="relative h-32 sm:h-40 bg-gradient-to-br from-primary/30 to-primary/10 overflow-hidden group">
+            {profile?.cover_url ? (
+              <img 
+                src={profile.cover_url} 
+                alt="Cover" 
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-blue-500/30 to-cyan-500/30" />
+            )}
+            <button 
+              onClick={() => setCoverEditorOpen(true)}
+              className="absolute bottom-3 right-3 px-3 py-1.5 rounded-full bg-black/50 hover:bg-black/70 flex items-center gap-2 text-white text-sm transition-all opacity-0 group-hover:opacity-100"
+            >
+              <Camera className="w-4 h-4" />
+              {t("cover.updateCover")}
+            </button>
+          </div>
+          
+          {/* Avatar overlapping cover */}
+          <div className="absolute -bottom-12 left-8">
             <button
               onClick={() => setAvatarEditorOpen(true)}
-              className="relative group"
+              className="relative group/avatar"
               title="Edit Avatar"
             >
-              <Avatar className="w-10 h-10 border-2 border-slate-200 group-hover:border-primary transition-colors">
+              <Avatar className="w-24 h-24 border-4 border-white shadow-xl">
                 <AvatarImage src={profile?.avatar_url || ""} />
-                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-cyan-500 text-white">
-                  {formData.display_name?.charAt(0) || "U"}
+                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-cyan-500 text-white text-2xl">
+                  {formData.display_name?.charAt(0) || formData.first_name?.charAt(0) || "U"}
                 </AvatarFallback>
               </Avatar>
-              <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <div className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg opacity-0 group-hover/avatar:opacity-100 transition-opacity">
                 <Camera className="w-4 h-4 text-white" />
               </div>
             </button>
           </div>
+          
+          {/* Profile Info next to avatar */}
+          <div className="absolute -bottom-12 left-36 flex items-end gap-4">
+            <div>
+              <h2 className="text-xl font-bold text-slate-800">{formData.display_name || "Your Name"}</h2>
+              <p className="text-sm text-slate-500">@{formData.username || "username"}</p>
+            </div>
+          </div>
+          
+          {/* Tab Title on the right */}
+          <div className="absolute -bottom-12 right-8 text-right">
+            <h3 className="text-lg font-semibold text-slate-700">
+              {getMenuItems(t).find(item => item.id === activeTab)?.label}
+            </h3>
+            <p className="text-xs text-slate-400">
+              {getMenuItems(t).find(item => item.id === activeTab)?.description}
+            </p>
+          </div>
         </div>
+        
+        {/* Spacer for avatar overlap */}
+        <div className="h-16 bg-white border-b border-slate-200" />
+
+        {/* Avatar Editor Modal */}
+        <AvatarEditor
+          open={avatarEditorOpen}
+          onOpenChange={setAvatarEditorOpen}
+          onAvatarSaved={(url) => {
+            refreshProfile();
+          }}
+          userId={user?.id}
+          currentAvatar={profile?.avatar_url || undefined}
+          userName={formData.display_name || `${formData.first_name} ${formData.last_name}`.trim() || "User"}
+        />
+        
+        {/* Cover Editor Modal */}
+        <CoverEditor
+          open={coverEditorOpen}
+          onOpenChange={setCoverEditorOpen}
+          onCoverSaved={(url) => {
+            refreshProfile();
+          }}
+          userId={user?.id}
+          currentCover={profile?.cover_url || undefined}
+        />
 
         {/* Content Area */}
         <ScrollArea className="flex-1 p-8">
