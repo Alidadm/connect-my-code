@@ -1,11 +1,13 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { 
   User, Settings, Bell, Shield, Palette, Layout, Camera, Save,
   ChevronRight, Eye, EyeOff, Lock, Mail, Phone, Globe, Calendar,
   Home, CreditCard, Users, Heart, MessageCircle, LogOut, Clock,
-  CheckCircle2, XCircle, Loader2, ExternalLink, Languages, UsersRound
+  CheckCircle2, XCircle, Loader2, ExternalLink, Languages, UsersRound,
+  Building2
 } from "lucide-react";
 import { GroupsManagement } from "@/components/dashboard/GroupsManagement";
+import { BusinessManagement } from "@/components/business/BusinessManagement";
 import { AvatarEditor } from "@/components/avatar/AvatarEditor";
 import { CoverEditor } from "@/components/cover/CoverEditor";
 import Swal from "sweetalert2";
@@ -26,7 +28,7 @@ import { validateUsername } from "@/lib/username";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
-type TabType = "profile" | "account" | "privacy" | "notifications" | "appearance" | "groups";
+type TabType = "profile" | "account" | "privacy" | "notifications" | "appearance" | "groups" | "business";
 
 // Country code to name mapping
 const countryNames: Record<string, string> = {
@@ -49,6 +51,7 @@ const countryNames: Record<string, string> = {
 const getMenuItems = (t: (key: string) => string) => [
   { id: "profile" as TabType, label: t("profile.title"), icon: User, description: t("profile.description") },
   { id: "account" as TabType, label: t("account.title"), icon: Settings, description: t("account.description") },
+  { id: "business" as TabType, label: "Business", icon: Building2, description: "Manage your business profile" },
   { id: "groups" as TabType, label: t("nav.groups"), icon: UsersRound, description: t("groups.manageGroups") },
   { id: "privacy" as TabType, label: t("privacy.title"), icon: Shield, description: t("privacy.description") },
   { id: "notifications" as TabType, label: t("notifications.title"), icon: Bell, description: t("notifications.description") },
@@ -1008,6 +1011,8 @@ const MemberDashboard = () => {
         return renderProfileTab();
       case "account":
         return renderAccountTab();
+      case "business":
+        return <BusinessManagement />;
       case "groups":
         return <GroupsManagement />;
       case "privacy":
