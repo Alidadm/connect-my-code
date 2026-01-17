@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { 
   MapPin, Calendar, Users, Link as LinkIcon, 
   MessageCircle, UserPlus, MoreHorizontal, ArrowLeft,
-  CheckCircle2, Image as ImageIcon, Camera, UserCheck, Clock, UserMinus
+  CheckCircle2, Image as ImageIcon, Camera, UserCheck, Clock, UserMinus, X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { CoverEditor } from "@/components/cover/CoverEditor";
@@ -29,6 +31,14 @@ interface PublicProfile {
   country: string | null;
   is_verified: boolean | null;
   created_at: string;
+}
+
+interface FriendProfile {
+  user_id: string;
+  username: string | null;
+  display_name: string | null;
+  avatar_url: string | null;
+  is_verified: boolean | null;
 }
 
 // Country code to name mapping
@@ -52,6 +62,7 @@ const UserProfile = () => {
   const { username } = useParams<{ username: string }>();
   const { user } = useAuth();
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState<PublicProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -62,6 +73,9 @@ const UserProfile = () => {
   const [friendActionLoading, setFriendActionLoading] = useState(false);
   const [friendsCount, setFriendsCount] = useState(0);
   const [postsCount, setPostsCount] = useState(0);
+  const [showFriendsModal, setShowFriendsModal] = useState(false);
+  const [friendsList, setFriendsList] = useState<FriendProfile[]>([]);
+  const [loadingFriends, setLoadingFriends] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -315,6 +329,58 @@ const UserProfile = () => {
     }
   };
 
+  const handleOpenFriendsModal = async () => {
+    if (!profile) return;
+    setShowFriendsModal(true);
+    setLoadingFriends(true);
+
+    try {
+      // Fetch all accepted friendships for this user
+      const { data: friendships, error } = await supabase
+        .from("friendships")
+        .select("requester_id, addressee_id")
+        .eq("status", "accepted")
+        .or(`requester_id.eq.${profile.user_id},addressee_id.eq.${profile.user_id}`);
+
+      if (error) {
+        console.error("Error fetching friendships:", error);
+        return;
+      }
+
+      // Get friend user IDs (the other party in each friendship)
+      const friendIds = friendships.map(f => 
+        f.requester_id === profile.user_id ? f.addressee_id : f.requester_id
+      );
+
+      if (friendIds.length === 0) {
+        setFriendsList([]);
+        return;
+      }
+
+      // Fetch profiles for all friends
+      const { data: profiles, error: profilesError } = await supabase
+        .from("profiles")
+        .select("user_id, username, display_name, avatar_url, is_verified")
+        .in("user_id", friendIds);
+
+      if (profilesError) {
+        console.error("Error fetching friend profiles:", profilesError);
+        return;
+      }
+
+      setFriendsList(profiles || []);
+    } finally {
+      setLoadingFriends(false);
+    }
+  };
+
+  const handleFriendClick = (friendUsername: string | null) => {
+    if (friendUsername) {
+      setShowFriendsModal(false);
+      navigate(`/user/${friendUsername}`);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -508,7 +574,11 @@ const UserProfile = () => {
 
             {/* Stats */}
             <div className="flex gap-6 pt-2">
-              <button className="hover:underline">
+              <button 
+                className="hover:underline"
+                onClick={handleOpenFriendsModal}
+                disabled={friendsCount === 0}
+              >
                 <span className="font-bold">{friendsCount}</span>{" "}
                 <span className="text-muted-foreground">{friendsCount === 1 ? t("friends.friend", { defaultValue: "Friend" }) : t("nav.friends", { defaultValue: "Friends" })}</span>
               </button>
@@ -555,6 +625,68 @@ const UserProfile = () => {
             </div>
           </TabsContent>
         </Tabs>
+
+        {/* Friends List Modal */}
+        <Dialog open={showFriendsModal} onOpenChange={setShowFriendsModal}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Users className="w-5 h-5" />
+                {t("nav.friends", { defaultValue: "Friends" })} ({friendsCount})
+              </DialogTitle>
+            </DialogHeader>
+            <ScrollArea className="max-h-[60vh]">
+              {loadingFriends ? (
+                <div className="space-y-3 p-2">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="flex items-center gap-3">
+                      <Skeleton className="w-12 h-12 rounded-full" />
+                      <div className="space-y-2">
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-3 w-24" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : friendsList.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Users className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                  <p>{t("friends.noFriends", { defaultValue: "No friends yet" })}</p>
+                </div>
+              ) : (
+                <div className="space-y-1 p-2">
+                  {friendsList.map((friend) => (
+                    <button
+                      key={friend.user_id}
+                      onClick={() => handleFriendClick(friend.username)}
+                      className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-muted transition-colors text-left"
+                    >
+                      <Avatar className="w-12 h-12">
+                        <AvatarImage src={friend.avatar_url || ""} />
+                        <AvatarFallback className="bg-gradient-to-br from-primary to-primary/70 text-primary-foreground">
+                          {friend.display_name?.charAt(0) || friend.username?.charAt(0) || "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1">
+                          <span className="font-medium truncate">
+                            {friend.display_name || friend.username || "Unknown"}
+                          </span>
+                          {friend.is_verified && (
+                            <CheckCircle2 className="w-4 h-4 text-primary fill-primary/20 flex-shrink-0" />
+                          )}
+                        </div>
+                        <span className="text-sm text-muted-foreground truncate block">
+                          @{friend.username}
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </ScrollArea>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
