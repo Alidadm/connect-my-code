@@ -1,14 +1,15 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { ArrowLeft, Loader2, Trophy, Clock, Check, X, RotateCcw } from "lucide-react";
+import { ArrowLeft, Loader2, Trophy, Clock, Check, X, RotateCcw, Brain, Sparkles, Zap } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useGameSounds } from "@/hooks/useGameSounds";
+import { DIFFICULTY_CONFIG, MemoryDifficulty } from "./MemoryDifficultySelector";
 
 interface Player {
   user_id: string;
@@ -21,7 +22,7 @@ interface MemoryMatchGameProps {
   onBack: () => void;
 }
 
-const CARD_EMOJIS = ["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐨", "🐯", "🦁", "🐮"];
+const CARD_EMOJIS = ["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐨", "🐯", "🦁", "🐮", "🐸", "🐵", "🦄", "🦋"];
 
 export const MemoryMatchGame = ({ gameId, onBack }: MemoryMatchGameProps) => {
   const { t } = useTranslation();
@@ -93,9 +94,12 @@ export const MemoryMatchGame = ({ gameId, onBack }: MemoryMatchGameProps) => {
     };
   }, [gameId, fetchGame]);
 
-  const generateCards = () => {
-    // Create pairs of cards (12 pairs = 24 cards for a 6x4 grid)
-    const selectedEmojis = CARD_EMOJIS.slice(0, 8);
+  const gameDifficulty = (game?.difficulty as MemoryDifficulty) || "medium";
+  const difficultyConfig = DIFFICULTY_CONFIG[gameDifficulty];
+
+  const generateCards = useCallback((difficulty: MemoryDifficulty = "medium") => {
+    const config = DIFFICULTY_CONFIG[difficulty];
+    const selectedEmojis = CARD_EMOJIS.slice(0, config.pairs);
     const pairs = [...selectedEmojis, ...selectedEmojis];
     // Shuffle
     for (let i = pairs.length - 1; i > 0; i--) {
@@ -103,12 +107,12 @@ export const MemoryMatchGame = ({ gameId, onBack }: MemoryMatchGameProps) => {
       [pairs[i], pairs[j]] = [pairs[j], pairs[i]];
     }
     return pairs;
-  };
+  }, []);
 
   const handleAcceptInvite = async () => {
-    if (!user) return;
+    if (!user || !game) return;
     
-    const cards = generateCards();
+    const cards = generateCards(gameDifficulty);
     const { error } = await supabase
       .from("memory_match_games")
       .update({
@@ -242,6 +246,7 @@ export const MemoryMatchGame = ({ gameId, onBack }: MemoryMatchGameProps) => {
           player_2: opponentId,
           current_turn: user.id,
           status: "pending",
+          difficulty: gameDifficulty,
         })
         .select()
         .single();
@@ -300,7 +305,15 @@ export const MemoryMatchGame = ({ gameId, onBack }: MemoryMatchGameProps) => {
             <ArrowLeft className="w-4 h-4 mr-2" />
             {t("games.back", { defaultValue: "Back" })}
           </Button>
-          <CardTitle className="text-lg">{t("games.memoryMatch", { defaultValue: "Memory Match" })}</CardTitle>
+          <div className="flex items-center gap-2">
+            <CardTitle className="text-lg">{t("games.memoryMatch", { defaultValue: "Memory Match" })}</CardTitle>
+            <span className="text-xs px-2 py-1 rounded-full bg-muted flex items-center gap-1">
+              {gameDifficulty === "easy" && <Sparkles className="w-3 h-3" />}
+              {gameDifficulty === "medium" && <Brain className="w-3 h-3" />}
+              {gameDifficulty === "hard" && <Zap className="w-3 h-3" />}
+              {t(`games.difficulty.${gameDifficulty}`, { defaultValue: difficultyConfig.label })}
+            </span>
+          </div>
           <div className="w-16" />
         </div>
       </CardHeader>
@@ -372,7 +385,7 @@ export const MemoryMatchGame = ({ gameId, onBack }: MemoryMatchGameProps) => {
                 <p className="text-muted-foreground">{t("games.opponentTurn", { defaultValue: "Waiting for opponent..." })}</p>
               )}
             </div>
-            <div className="grid grid-cols-4 gap-2">
+            <div className={`grid gap-2 ${difficultyConfig.cols === 3 ? "grid-cols-3" : "grid-cols-4"}`}>
               {game.cards.map((emoji: string, index: number) => {
                 const isMatched = game.matched[index] === "matched";
                 const isFlipped = flippedCards.includes(index);

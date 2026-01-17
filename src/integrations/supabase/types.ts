@@ -841,6 +841,7 @@ export type Database = {
           cards: string[]
           created_at: string
           current_turn: string
+          difficulty: string | null
           id: string
           matched: string[]
           player_1: string
@@ -856,6 +857,7 @@ export type Database = {
           cards?: string[]
           created_at?: string
           current_turn: string
+          difficulty?: string | null
           id?: string
           matched?: string[]
           player_1: string
@@ -871,6 +873,7 @@ export type Database = {
           cards?: string[]
           created_at?: string
           current_turn?: string
+          difficulty?: string | null
           id?: string
           matched?: string[]
           player_1?: string
