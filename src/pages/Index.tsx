@@ -2,6 +2,7 @@ import { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Feed } from "@/components/feed/Feed";
 import { PayoutSetupModal } from "@/components/payout/PayoutSetupModal";
+import { BirthdayCelebration } from "@/components/birthday/BirthdayCelebration";
 import { useAuth } from "@/hooks/useAuth";
 
 const Index = () => {
@@ -16,6 +17,8 @@ const Index = () => {
           onComplete={() => setPayoutSetupComplete(true)} 
         />
       )}
+      {/* Birthday celebration modal - shows on user's birthday */}
+      <BirthdayCelebration />
       <Feed />
     </MainLayout>
   );
