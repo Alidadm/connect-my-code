@@ -6,20 +6,23 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const logStep = (step: string, details?: any) => {
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+  console.log(`[BIRTHDAY-WISHES] ${step}${detailsStr}`);
+};
+
 // Function to generate personalized birthday image with name overlay
-// Styled like the "Milly" example - coral/salmon pink gradient with golden swoosh
 async function generateBirthdayImage(
   supabase: any,
   friendFirstName: string,
   templateImageUrl: string
 ): Promise<string | null> {
   try {
-    console.log(`Generating birthday image for: ${friendFirstName}`);
+    logStep("Generating birthday image", { name: friendFirstName });
     
-    // Fetch the template image
     const imageResponse = await fetch(templateImageUrl);
     if (!imageResponse.ok) {
-      console.error("Failed to fetch template image");
+      logStep("Failed to fetch template image");
       return null;
     }
     
@@ -27,7 +30,6 @@ async function generateBirthdayImage(
     const imageArrayBuffer = await imageBlob.arrayBuffer();
     const imageBase64 = btoa(String.fromCharCode(...new Uint8Array(imageArrayBuffer)));
     
-    // Create SVG with the name overlaid using "Milly" style gradient
     const svgWidth = 1080;
     const svgHeight = 1080;
     const nameYPosition = 700;
@@ -94,7 +96,7 @@ async function generateBirthdayImage(
       });
     
     if (uploadError) {
-      console.error("Error uploading birthday image:", uploadError);
+      logStep("Error uploading birthday image", { error: uploadError.message });
       return null;
     }
     
@@ -102,12 +104,84 @@ async function generateBirthdayImage(
       .from("post-media")
       .getPublicUrl(fileName);
     
-    console.log(`Birthday image uploaded: ${publicUrl}`);
+    logStep("Birthday image uploaded", { url: publicUrl });
     return publicUrl;
     
   } catch (error) {
-    console.error("Error generating birthday image:", error);
+    logStep("Error generating birthday image", { error: String(error) });
     return null;
+  }
+}
+
+// Function to send birthday notification email to a friend
+async function sendBirthdayEmailToFriend(
+  resendApiKey: string,
+  friendEmail: string,
+  friendName: string,
+  birthdayPersonName: string,
+  birthdayPersonProfileUrl: string
+): Promise<boolean> {
+  try {
+    const htmlBody = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff;">
+        <div style="background: linear-gradient(135deg, #ec4899 0%, #f97316 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+          <span style="font-size: 48px;">🎂</span>
+          <h1 style="color: white; margin: 10px 0 0 0; font-size: 24px;">Birthday Alert!</h1>
+        </div>
+        
+        <div style="padding: 30px; background: #fef7f0;">
+          <div style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <p style="color: #4b5563; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
+              Hey ${friendName}! 👋
+            </p>
+            
+            <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 12px; padding: 25px; text-align: center; margin: 20px 0;">
+              <p style="color: #92400e; font-size: 18px; margin: 0;">
+                🎉 Today is <strong>${birthdayPersonName}</strong>'s birthday! 🎉
+              </p>
+            </div>
+            
+            <p style="color: #4b5563; font-size: 16px; line-height: 1.6; margin: 20px 0;">
+              Don't forget to wish them a happy birthday! A simple message can brighten their special day. 💝
+            </p>
+            
+            <div style="text-align: center; margin-top: 25px;">
+              <a href="${birthdayPersonProfileUrl}" style="background: linear-gradient(135deg, #ec4899 0%, #f97316 100%); color: white; padding: 14px 35px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block; font-size: 16px;">
+                🎁 Send Birthday Wishes
+              </a>
+            </div>
+          </div>
+        </div>
+        
+        <div style="padding: 20px; text-align: center; background: #1f2937; border-radius: 0 0 10px 10px;">
+          <p style="color: #9ca3af; font-size: 12px; margin: 0;">
+            © ${new Date().getFullYear()} DolphySN. All rights reserved.
+          </p>
+          <p style="color: #6b7280; font-size: 11px; margin: 10px 0 0 0;">
+            You're receiving this because ${birthdayPersonName} is your friend on DolphySN.
+          </p>
+        </div>
+      </div>
+    `;
+
+    const emailResponse = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${resendApiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: "DolphySN <noreply@dolphysn.com>",
+        to: [friendEmail],
+        subject: `🎂 It's ${birthdayPersonName}'s Birthday Today! - DolphySN`,
+        html: htmlBody,
+      }),
+    });
+
+    return emailResponse.ok;
+  } catch (error) {
+    logStep("Error sending birthday email", { error: String(error) });
+    return false;
   }
 }
 
@@ -119,6 +193,7 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const resendApiKey = Deno.env.get("RESEND_API_KEY");
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
@@ -128,20 +203,20 @@ serve(async (req) => {
     const todayDay = String(today.getDate()).padStart(2, '0');
     const birthdayPattern = `%-${todayMonth}-${todayDay}`;
 
-    console.log(`Processing automatic birthday wishes for: ${todayMonth}-${todayDay}`);
+    logStep("Processing birthday wishes", { date: `${todayMonth}-${todayDay}` });
 
-    // Find all members whose birthday is today (checking month-day from birthday field)
+    // Find all members whose birthday is today
     const { data: birthdayMembers, error: fetchError } = await supabase
       .from("profiles_private")
       .select("user_id, birthday")
       .like("birthday", birthdayPattern);
 
     if (fetchError) {
-      console.error("Error fetching birthday members:", fetchError);
+      logStep("Error fetching birthday members", { error: fetchError.message });
       throw fetchError;
     }
 
-    console.log(`Found ${birthdayMembers?.length || 0} members with birthdays today`);
+    logStep("Found birthday members", { count: birthdayMembers?.length || 0 });
 
     if (!birthdayMembers || birthdayMembers.length === 0) {
       return new Response(
@@ -150,32 +225,36 @@ serve(async (req) => {
       );
     }
 
-    const siteUrl = Deno.env.get("SITE_URL") || "https://id-preview--7da6d8d7-03a1-4436-af31-faa165a6dce0.lovable.app";
+    const siteUrl = Deno.env.get("SITE_URL") || "https://dolphysn.com";
     const templateImageUrl = `${siteUrl}/images/birthday-template.jpeg`;
 
     let processedCount = 0;
+    let friendsNotifiedCount = 0;
+    let emailsSentCount = 0;
     let errorCount = 0;
 
     for (const member of birthdayMembers) {
       try {
-        console.log(`Processing birthday for member: ${member.user_id}`);
+        logStep("Processing birthday", { userId: member.user_id.slice(0, 8) + "..." });
 
-        // Get member's profile for their name
+        // Get member's profile
         const { data: memberProfile } = await supabase
           .from("profiles")
-          .select("display_name, first_name, user_id")
+          .select("display_name, first_name, user_id, username")
           .eq("user_id", member.user_id)
           .single();
 
         if (!memberProfile) {
-          console.log(`No profile found for user ${member.user_id}`);
+          logStep("No profile found", { userId: member.user_id });
           continue;
         }
 
-        // Get the first name
         const firstName = memberProfile.first_name || 
           (memberProfile.display_name?.split(" ")[0]) || 
           "Friend";
+        
+        const displayName = memberProfile.display_name || firstName;
+        const profileUrl = `${siteUrl}/profile/${member.user_id}`;
 
         // Generate personalized birthday image
         const birthdayImageUrl = await generateBirthdayImage(
@@ -184,10 +263,10 @@ serve(async (req) => {
           templateImageUrl
         );
 
-        // Create the birthday message from Dolphysn
+        // Create birthday message from Dolphysn
         const birthdayMessage = `🎂🎉 Happy Birthday, ${firstName}! 🎉🎂\n\nWishing you a fantastic day filled with joy, laughter, and wonderful memories!\n\nWith love,\n💙 The Dolphysn Team`;
 
-        // Create a special birthday post (public so friends can see it)
+        // Create birthday post
         const { data: post, error: postError } = await supabase
           .from("posts")
           .insert({
@@ -200,42 +279,125 @@ serve(async (req) => {
           .single();
 
         if (postError) {
-          console.error(`Error creating birthday post for ${member.user_id}:`, postError);
+          logStep("Error creating birthday post", { error: postError.message });
           errorCount++;
           continue;
         }
 
-        // Also send a direct message notification
+        // Self-notification about the birthday card
         await supabase
           .from("messages")
           .insert({
-            sender_id: member.user_id, // Self-message as notification
+            sender_id: member.user_id,
             receiver_id: member.user_id,
             content: `🎂 Happy Birthday from Dolphysn! We've posted a special birthday card on your profile. Check it out! 🎉`,
           });
 
         processedCount++;
-        console.log(`Successfully sent birthday wish to ${firstName} (${member.user_id})`);
+
+        // === NOTIFY ALL FRIENDS ===
+        // Get all accepted friendships for this member
+        const { data: friendships } = await supabase
+          .from("friendships")
+          .select("requester_id, addressee_id")
+          .or(`requester_id.eq.${member.user_id},addressee_id.eq.${member.user_id}`)
+          .eq("status", "accepted");
+
+        if (friendships && friendships.length > 0) {
+          logStep("Notifying friends", { count: friendships.length });
+
+          // Get all friend user IDs
+          const friendUserIds = friendships.map(f => 
+            f.requester_id === member.user_id ? f.addressee_id : f.requester_id
+          );
+
+          // Get friend profiles with emails
+          const { data: friendProfiles } = await supabase
+            .from("profiles")
+            .select("user_id, display_name, first_name")
+            .in("user_id", friendUserIds);
+
+          const { data: friendPrivateProfiles } = await supabase
+            .from("profiles_private")
+            .select("user_id, email")
+            .in("user_id", friendUserIds);
+
+          // Create a map of emails
+          const emailMap = new Map(
+            friendPrivateProfiles?.map(p => [p.user_id, p.email]) || []
+          );
+
+          // Send in-app notification to each friend
+          const messageInserts = friendUserIds.map(friendId => ({
+            sender_id: member.user_id,
+            receiver_id: friendId,
+            content: `🎂 Today is ${displayName}'s birthday! Don't forget to wish them a happy birthday! 🎉`,
+          }));
+
+          const { error: messageError } = await supabase
+            .from("messages")
+            .insert(messageInserts);
+
+          if (!messageError) {
+            friendsNotifiedCount += friendUserIds.length;
+            logStep("In-app notifications sent", { count: friendUserIds.length });
+          }
+
+          // Send email notifications to each friend (if Resend is configured)
+          if (resendApiKey) {
+            for (const friendId of friendUserIds) {
+              const friendEmail = emailMap.get(friendId);
+              const friendProfile = friendProfiles?.find(p => p.user_id === friendId);
+              const friendName = friendProfile?.first_name || 
+                friendProfile?.display_name?.split(" ")[0] || 
+                "Friend";
+
+              if (friendEmail) {
+                const emailSent = await sendBirthdayEmailToFriend(
+                  resendApiKey,
+                  friendEmail,
+                  friendName,
+                  displayName,
+                  profileUrl
+                );
+                
+                if (emailSent) {
+                  emailsSentCount++;
+                }
+              }
+            }
+            logStep("Email notifications sent", { count: emailsSentCount });
+          }
+        }
+
+        logStep("Birthday processed successfully", { name: firstName });
         
       } catch (error) {
-        console.error(`Error processing birthday for ${member.user_id}:`, error);
+        logStep("Error processing birthday", { error: String(error) });
         errorCount++;
       }
     }
 
-    console.log(`Processed ${processedCount} birthday wishes, ${errorCount} errors`);
+    logStep("Processing complete", { 
+      processed: processedCount, 
+      friendsNotified: friendsNotifiedCount,
+      emailsSent: emailsSentCount,
+      errors: errorCount 
+    });
 
     return new Response(
       JSON.stringify({
         success: true,
         processed: processedCount,
+        friends_notified: friendsNotifiedCount,
+        emails_sent: emailsSentCount,
         errors: errorCount,
         total: birthdayMembers.length,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: any) {
-    console.error("Error in process-birthday-wishes:", error);
+    logStep("ERROR", { message: error.message });
     return new Response(
       JSON.stringify({ error: error.message }),
       {
