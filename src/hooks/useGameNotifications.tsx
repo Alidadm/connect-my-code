@@ -11,20 +11,30 @@ export const useGameNotifications = () => {
     queryFn: async () => {
       if (!user?.id) return 0;
 
-      // Fetch games where it's the current user's turn
-      const { data, error } = await supabase
+      // Fetch Tic Tac Toe games where it's the current user's turn
+      const { data: ticTacToeGames, error: ticTacToeError } = await supabase
         .from("tic_tac_toe_games")
         .select("id, player_x, player_o, current_turn, status")
         .or(`player_x.eq.${user.id},player_o.eq.${user.id}`)
         .eq("status", "active");
 
-      if (error) {
-        console.error("Error fetching game notifications:", error);
-        return 0;
+      if (ticTacToeError) {
+        console.error("Error fetching tic tac toe notifications:", ticTacToeError);
       }
 
-      // Count games where it's the user's turn
-      const count = data.filter((game) => {
+      // Fetch Memory Match games where it's the current user's turn
+      const { data: memoryGames, error: memoryError } = await supabase
+        .from("memory_match_games")
+        .select("id, player_1, player_2, current_turn, status")
+        .or(`player_1.eq.${user.id},player_2.eq.${user.id}`)
+        .eq("status", "active");
+
+      if (memoryError) {
+        console.error("Error fetching memory match notifications:", memoryError);
+      }
+
+      // Count Tic Tac Toe games where it's the user's turn
+      const ticTacToeCount = (ticTacToeGames || []).filter((game) => {
         const isPlayerX = game.player_x === user.id;
         const isPlayerO = game.player_o === user.id;
         const isMyTurn =
@@ -33,7 +43,12 @@ export const useGameNotifications = () => {
         return isMyTurn;
       }).length;
 
-      return count;
+      // Count Memory Match games where it's the user's turn
+      const memoryCount = (memoryGames || []).filter((game) => {
+        return game.current_turn === user.id;
+      }).length;
+
+      return ticTacToeCount + memoryCount;
     },
     enabled: !!user?.id,
     staleTime: 30000, // Cache for 30 seconds
@@ -43,8 +58,8 @@ export const useGameNotifications = () => {
   useEffect(() => {
     if (!user?.id) return;
 
-    const channel = supabase
-      .channel("game-notifications")
+    const ticTacToeChannel = supabase
+      .channel("tictactoe-notifications")
       .on(
         "postgres_changes",
         {
@@ -58,8 +73,24 @@ export const useGameNotifications = () => {
       )
       .subscribe();
 
+    const memoryChannel = supabase
+      .channel("memory-notifications")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "memory_match_games",
+        },
+        () => {
+          refetch();
+        }
+      )
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(ticTacToeChannel);
+      supabase.removeChannel(memoryChannel);
     };
   }, [user?.id, refetch]);
 
