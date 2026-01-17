@@ -77,6 +77,7 @@ const UserProfile = () => {
   const [profile, setProfile] = useState<PublicProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [blockedByOwner, setBlockedByOwner] = useState(false);
   const [showCoverEditor, setShowCoverEditor] = useState(false);
   const [showAvatarEditor, setShowAvatarEditor] = useState(false);
   const [friendshipStatus, setFriendshipStatus] = useState<FriendshipStatus>("none");
@@ -132,6 +133,10 @@ const UserProfile = () => {
         } else {
           setProfile(data);
           fetchUserStats(data.user_id);
+          // Check if profile owner has blocked the current user
+          if (user && user.id !== data.user_id) {
+            checkIfBlockedByOwner(data.user_id);
+          }
         }
       } catch (err) {
         console.error("Error:", err);
@@ -139,6 +144,19 @@ const UserProfile = () => {
       } finally {
         setLoading(false);
       }
+    };
+
+    const checkIfBlockedByOwner = async (profileOwnerId: string) => {
+      if (!user) return;
+      
+      const { data } = await supabase
+        .from("blocked_users")
+        .select("id")
+        .eq("user_id", profileOwnerId)
+        .eq("blocked_user_id", user.id)
+        .maybeSingle();
+      
+      setBlockedByOwner(!!data);
     };
 
     const fetchUserStats = async (userId: string) => {
@@ -163,7 +181,7 @@ const UserProfile = () => {
     };
 
     fetchProfile();
-  }, [username]);
+  }, [username, user]);
 
   // Fetch mutual friends when viewing someone else's profile
   useEffect(() => {
@@ -513,6 +531,31 @@ const UserProfile = () => {
             <Button>
               <ArrowLeft className="w-4 h-4 mr-2" />
               Go Home
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Show blocked screen if the profile owner has blocked the current user
+  if (blockedByOwner) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center p-8">
+          <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+            <Ban className="w-12 h-12 text-muted-foreground" />
+          </div>
+          <h1 className="text-2xl font-bold mb-2">
+            {t("privacy.profileUnavailable", { defaultValue: "Profile Unavailable" })}
+          </h1>
+          <p className="text-muted-foreground mb-6">
+            {t("privacy.cannotViewProfile", { defaultValue: "You cannot view this profile." })}
+          </p>
+          <Link to="/">
+            <Button>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              {t("common.goHome", { defaultValue: "Go Home" })}
             </Button>
           </Link>
         </div>
