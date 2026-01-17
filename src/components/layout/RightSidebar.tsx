@@ -3,7 +3,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -201,6 +202,44 @@ export const RightSidebar = () => {
     fetchOnlineFriends();
   }, [user]);
 
+  // Play birthday chime sound
+  const playBirthdaySound = useCallback(() => {
+    try {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      
+      // Create a cheerful birthday melody
+      const playNote = (frequency: number, startTime: number, duration: number) => {
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.value = frequency;
+        oscillator.type = 'sine';
+        
+        gainNode.gain.setValueAtTime(0, startTime);
+        gainNode.gain.linearRampToValueAtTime(0.3, startTime + 0.05);
+        gainNode.gain.linearRampToValueAtTime(0, startTime + duration);
+        
+        oscillator.start(startTime);
+        oscillator.stop(startTime + duration);
+      };
+
+      // Play a celebratory tune (C-E-G-C pattern)
+      const now = audioContext.currentTime;
+      playNote(523.25, now, 0.15);       // C5
+      playNote(659.25, now + 0.15, 0.15); // E5
+      playNote(783.99, now + 0.30, 0.15); // G5
+      playNote(1046.50, now + 0.45, 0.3); // C6
+    } catch (error) {
+      console.log('Could not play birthday sound');
+    }
+  }, []);
+
+  // Track if birthday notification was shown this session
+  const birthdayNotificationShown = useRef<Set<string>>(new Set());
+
   // Fetch birthday reminders
   useEffect(() => {
     if (!user) return;
@@ -248,14 +287,39 @@ export const RightSidebar = () => {
               // Check if birthday is within next 7 days
               if (thisYearBday >= today && thisYearBday <= nextWeek) {
                 const publicProfile = publicProfiles?.find(p => p.user_id === pp.user_id);
+                const isBirthdayToday = isSameDay(thisYearBday, today);
+                
                 birthdayReminders.push({
                   user_id: pp.user_id,
                   display_name: publicProfile?.display_name || null,
                   avatar_url: publicProfile?.avatar_url || null,
                   birthday: thisYearBday,
-                  isToday: isSameDay(thisYearBday, today),
+                  isToday: isBirthdayToday,
                   isTomorrow: isSameDay(thisYearBday, tomorrow)
                 });
+
+                // Show toast notification for today's birthdays (once per session)
+                if (isBirthdayToday && !birthdayNotificationShown.current.has(pp.user_id)) {
+                  birthdayNotificationShown.current.add(pp.user_id);
+                  
+                  // Delay to ensure UI is ready
+                  setTimeout(() => {
+                    playBirthdaySound();
+                    toast.success(
+                      t("sidebar.birthdayNotification", "🎂 It's {{name}}'s birthday today!", {
+                        name: publicProfile?.display_name || t("common.friend", "a friend")
+                      }),
+                      {
+                        description: t("sidebar.birthdayNotificationDesc", "Don't forget to wish them a happy birthday!"),
+                        duration: 8000,
+                        action: {
+                          label: t("sidebar.sendWish", "Send Wish"),
+                          onClick: () => navigate(`/profile/${pp.user_id}?action=post&message=${encodeURIComponent(t("sidebar.birthdayWallPost", "Happy Birthday! 🎂🎉"))}`)
+                        }
+                      }
+                    );
+                  }, 1500);
+                }
               }
             });
 
@@ -270,7 +334,7 @@ export const RightSidebar = () => {
     };
 
     fetchBirthdays();
-  }, [user]);
+  }, [user, playBirthdaySound, navigate, t]);
 
   // Fetch trending posts
   useEffect(() => {
