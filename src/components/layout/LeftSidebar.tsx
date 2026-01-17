@@ -152,7 +152,7 @@ export const LeftSidebar = () => {
         {user && userBusiness?.is_enabled && (
           <div 
             className="bg-card rounded-xl overflow-hidden border border-border mb-4 cursor-pointer hover:border-primary/50 transition-colors"
-            onClick={() => navigate("/dashboard?tab=business")}
+            onClick={() => navigate(`/business/${userBusiness.id}`)}
           >
             {/* Cover */}
             <div className={cn(

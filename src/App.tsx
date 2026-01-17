@@ -26,6 +26,7 @@ import UserProfile from "./pages/UserProfile";
 import ConfirmEmail from "./pages/ConfirmEmail";
 import VerifyEmail from "./pages/VerifyEmail";
 import NotFound from "./pages/NotFound";
+import BusinessProfile from "./pages/BusinessProfile";
 
 const queryClient = new QueryClient();
 
@@ -84,6 +85,8 @@ const App = () => (
             />
             <Route path="/confirm-email" element={<ConfirmEmail />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
+            {/* Public business profile route */}
+            <Route path="/business/:businessId" element={<BusinessProfile />} />
             {/* Public profile route - must be BEFORE the catch-all */}
             <Route path="/:username" element={<UserProfile />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
