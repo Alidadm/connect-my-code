@@ -1,4 +1,4 @@
-import { Search, MoreVertical, Calendar, Bell, Cake, TrendingUp, MessageCircle, Heart, Users, Circle } from "lucide-react";
+import { Search, MoreVertical, Calendar, Bell, Cake, TrendingUp, MessageCircle, Heart, Users, Circle, Send, PenLine } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -350,38 +350,70 @@ export const RightSidebar = () => {
               <Cake className="h-5 w-5 text-pink-500" />
               <h3 className="font-semibold text-foreground">{t("sidebar.birthdays", "Birthdays")}</h3>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {birthdays.map((bday) => (
                 <div
                   key={bday.user_id}
-                  onClick={() => navigate(`/profile/${bday.user_id}`)}
                   className={cn(
-                    "flex items-center gap-3 p-2 -mx-2 rounded-lg cursor-pointer transition-colors",
+                    "p-3 -mx-1 rounded-lg transition-colors",
                     bday.isToday 
-                      ? "bg-pink-500/10 hover:bg-pink-500/20" 
-                      : "hover:bg-secondary/50"
+                      ? "bg-pink-500/10" 
+                      : "bg-secondary/30"
                   )}
                 >
-                  <Avatar className="h-9 w-9">
-                    <AvatarImage src={bday.avatar_url || undefined} />
-                    <AvatarFallback className="bg-gradient-to-br from-pink-400 to-pink-600 text-white text-xs">
-                      {bday.display_name?.split(" ").map(n => n[0]).join("") || "?"}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">
-                      {bday.display_name || t("common.unknown", "Unknown")}
-                    </p>
-                    <p className={cn(
-                      "text-xs",
-                      bday.isToday ? "text-pink-500 font-medium" : "text-muted-foreground"
-                    )}>
-                      {bday.isToday 
-                        ? t("sidebar.birthdayToday", "🎂 Birthday today!") 
-                        : bday.isTomorrow 
-                          ? t("sidebar.birthdayTomorrow", "Tomorrow")
-                          : format(bday.birthday, "MMM d")}
-                    </p>
+                  <div 
+                    onClick={() => navigate(`/profile/${bday.user_id}`)}
+                    className="flex items-center gap-3 cursor-pointer"
+                  >
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={bday.avatar_url || undefined} />
+                      <AvatarFallback className="bg-gradient-to-br from-pink-400 to-pink-600 text-white text-xs">
+                        {bday.display_name?.split(" ").map(n => n[0]).join("") || "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">
+                        {bday.display_name || t("common.unknown", "Unknown")}
+                      </p>
+                      <p className={cn(
+                        "text-xs",
+                        bday.isToday ? "text-pink-500 font-medium" : "text-muted-foreground"
+                      )}>
+                        {bday.isToday 
+                          ? t("sidebar.birthdayToday", "🎂 Birthday today!") 
+                          : bday.isTomorrow 
+                            ? t("sidebar.birthdayTomorrow", "Tomorrow")
+                            : format(bday.birthday, "MMM d")}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* Quick Actions */}
+                  <div className="flex gap-2 mt-3">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1 h-8 text-xs gap-1.5 hover:bg-pink-500/10 hover:text-pink-500 hover:border-pink-500/50"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/dashboard?tab=messages&recipient=${bday.user_id}&message=${encodeURIComponent(t("sidebar.birthdayMessage", "Happy Birthday! 🎂🎉 Wishing you an amazing day!"))}`);
+                      }}
+                    >
+                      <Send className="h-3.5 w-3.5" />
+                      {t("sidebar.sendMessage", "Message")}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1 h-8 text-xs gap-1.5 hover:bg-pink-500/10 hover:text-pink-500 hover:border-pink-500/50"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/profile/${bday.user_id}?action=post&message=${encodeURIComponent(t("sidebar.birthdayWallPost", "Happy Birthday! 🎂🎉"))}`);
+                      }}
+                    >
+                      <PenLine className="h-3.5 w-3.5" />
+                      {t("sidebar.postOnWall", "Post")}
+                    </Button>
                   </div>
                 </div>
               ))}
