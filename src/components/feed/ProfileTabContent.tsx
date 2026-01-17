@@ -1,20 +1,32 @@
 import { useAuth } from "@/hooks/useAuth";
 import { useUserPhotos, useUserVideos, useUserFriends } from "@/hooks/useProfileTabs";
-import { Loader2, Image, Video, Users, ImageOff, VideoOff, UserX, BadgeCheck } from "lucide-react";
+import { Video, ImageOff, VideoOff, UserX, BadgeCheck } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MasonryPhotoGrid } from "./MasonryPhotoGrid";
 
-interface ProfileTabContentProps {
+export interface ProfileTabContentProps {
   activeTab: string;
+  userId?: string; // Optional - defaults to current auth user
 }
 
-const PhotosGrid = () => {
+interface PhotosGridProps {
+  userId: string | undefined;
+}
+
+interface VideosGridProps {
+  userId: string | undefined;
+}
+
+interface FriendsListProps {
+  userId: string | undefined;
+}
+
+const PhotosGrid = ({ userId }: PhotosGridProps) => {
   const { t } = useTranslation();
-  const { user } = useAuth();
-  const { data: photos, isLoading } = useUserPhotos(user?.id, true);
+  const { data: photos, isLoading } = useUserPhotos(userId, true);
 
   if (isLoading) {
     return (
@@ -52,10 +64,9 @@ const PhotosGrid = () => {
   );
 };
 
-const VideosGrid = () => {
+const VideosGrid = ({ userId }: VideosGridProps) => {
   const { t } = useTranslation();
-  const { user } = useAuth();
-  const { data: videos, isLoading } = useUserVideos(user?.id, true);
+  const { data: videos, isLoading } = useUserVideos(userId, true);
 
   if (isLoading) {
     return (
@@ -98,10 +109,12 @@ const VideosGrid = () => {
   );
 };
 
-const FriendsList = () => {
+const FriendsList = ({ userId }: FriendsListProps) => {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const { data: friends, isLoading } = useUserFriends(user?.id, true);
+  const { data: friends, isLoading } = useUserFriends(userId, true);
+  
+  const isOwnProfile = user?.id === userId;
 
   if (isLoading) {
     return (
@@ -124,9 +137,11 @@ const FriendsList = () => {
       <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
         <UserX className="h-12 w-12 mb-3" />
         <p className="text-sm">{t("profile.noFriends", "No friends yet")}</p>
-        <Link to="/friends" className="mt-3 text-primary text-sm hover:underline">
-          {t("profile.findFriends", "Find friends")}
-        </Link>
+        {isOwnProfile && (
+          <Link to="/friends" className="mt-3 text-primary text-sm hover:underline">
+            {t("profile.findFriends", "Find friends")}
+          </Link>
+        )}
       </div>
     );
   }
@@ -164,14 +179,17 @@ const FriendsList = () => {
   );
 };
 
-export const ProfileTabContent = ({ activeTab }: ProfileTabContentProps) => {
+export const ProfileTabContent = ({ activeTab, userId }: ProfileTabContentProps) => {
+  const { user } = useAuth();
+  const targetUserId = userId || user?.id;
+
   switch (activeTab) {
     case "photos":
-      return <PhotosGrid />;
+      return <PhotosGrid userId={targetUserId} />;
     case "videos":
-      return <VideosGrid />;
+      return <VideosGrid userId={targetUserId} />;
     case "friends":
-      return <FriendsList />;
+      return <FriendsList userId={targetUserId} />;
     default:
       return null; // Feed is handled separately
   }
