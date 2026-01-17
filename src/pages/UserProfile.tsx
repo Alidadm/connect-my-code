@@ -60,6 +60,8 @@ const UserProfile = () => {
   const [friendshipStatus, setFriendshipStatus] = useState<FriendshipStatus>("none");
   const [friendshipId, setFriendshipId] = useState<string | null>(null);
   const [friendActionLoading, setFriendActionLoading] = useState(false);
+  const [friendsCount, setFriendsCount] = useState(0);
+  const [postsCount, setPostsCount] = useState(0);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -83,12 +85,36 @@ const UserProfile = () => {
           setNotFound(true);
         } else {
           setProfile(data);
+          // Fetch friends count and posts count
+          fetchUserStats(data.user_id);
         }
       } catch (err) {
         console.error("Error:", err);
         setNotFound(true);
       } finally {
         setLoading(false);
+      }
+    };
+
+    const fetchUserStats = async (userId: string) => {
+      // Fetch friends count (accepted friendships where user is either requester or addressee)
+      const [friendsResult, postsResult] = await Promise.all([
+        supabase
+          .from("friendships")
+          .select("id", { count: "exact", head: true })
+          .eq("status", "accepted")
+          .or(`requester_id.eq.${userId},addressee_id.eq.${userId}`),
+        supabase
+          .from("posts")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", userId)
+      ]);
+
+      if (friendsResult.count !== null) {
+        setFriendsCount(friendsResult.count);
+      }
+      if (postsResult.count !== null) {
+        setPostsCount(postsResult.count);
       }
     };
 
@@ -483,12 +509,12 @@ const UserProfile = () => {
             {/* Stats */}
             <div className="flex gap-6 pt-2">
               <button className="hover:underline">
-                <span className="font-bold">0</span>{" "}
-                <span className="text-muted-foreground">Friends</span>
+                <span className="font-bold">{friendsCount}</span>{" "}
+                <span className="text-muted-foreground">{friendsCount === 1 ? t("friends.friend", { defaultValue: "Friend" }) : t("nav.friends", { defaultValue: "Friends" })}</span>
               </button>
               <button className="hover:underline">
-                <span className="font-bold">0</span>{" "}
-                <span className="text-muted-foreground">Posts</span>
+                <span className="font-bold">{postsCount}</span>{" "}
+                <span className="text-muted-foreground">{postsCount === 1 ? t("feed.post", { defaultValue: "Post" }) : t("feed.posts", { defaultValue: "Posts" })}</span>
               </button>
             </div>
           </div>
