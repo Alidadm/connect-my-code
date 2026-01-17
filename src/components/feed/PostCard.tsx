@@ -472,8 +472,13 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
             </AvatarFallback>
           </Avatar>
           <div>
-            <div className="font-semibold text-foreground">
+            <div className="flex items-center gap-1.5 font-semibold text-foreground">
               {profile?.display_name || "Unknown User"}
+              {isMuted && (
+                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs bg-muted text-muted-foreground" title={t('privacy.mutedUser', 'Muted user')}>
+                  <VolumeX className="h-3 w-3" />
+                </span>
+              )}
             </div>
             <div className="text-xs text-muted-foreground">{timeAgo}</div>
           </div>
