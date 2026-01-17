@@ -22,7 +22,8 @@
     "sortBy": "Sort by",
     "following": "Following",
     "trending": "Trending",
-    "recent": "Recent"
+    "recent": "Recent",
+    "and": "and"
   },
   "header": {
     "myProfile": "My Profile",
@@ -139,7 +140,11 @@
     "saving": "Saving...",
     "profileUpdated": "Profile updated successfully!",
     "updateFailed": "Failed to update profile",
-    "enterCity": "Enter your city. Country is detected automatically."
+    "enterCity": "Enter your city. Country is detected automatically.",
+    "isMutualFriend": "is a mutual friend",
+    "areMutualFriends": "are mutual friends",
+    "andOthersMutual": "and {{count}} other mutual friends",
+    "noMutualFriends": "No mutual friends"
   },
   "account": {
     "title": "Account",
