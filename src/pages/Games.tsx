@@ -13,7 +13,8 @@ import { InviteFriendToGameDialog } from "@/components/games/InviteFriendToGameD
 import { InviteFriendToMemoryDialog } from "@/components/games/InviteFriendToMemoryDialog";
 import { GameStats } from "@/components/games/GameStats";
 import { MemoryMatchStats } from "@/components/games/MemoryMatchStats";
-import { Gamepad2, Plus, Clock, Trophy, Users, Loader2, History, Grid3X3, LayoutGrid } from "lucide-react";
+import { GameSoundSettingsProvider, useGameSoundSettings } from "@/hooks/useGameSoundSettings";
+import { Gamepad2, Plus, Clock, Trophy, Users, Loader2, History, Grid3X3, LayoutGrid, Volume2, VolumeX } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
@@ -45,10 +46,11 @@ interface MemoryGameWithPlayers {
   player_2_profile?: { display_name: string | null; avatar_url: string | null };
 }
 
-const Games = () => {
+const GamesContent = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { isMuted, toggleMute } = useGameSoundSettings();
   const [searchParams] = useSearchParams();
   
   // Tic Tac Toe state
@@ -396,6 +398,14 @@ const Games = () => {
               {t("games.subtitle", { defaultValue: "Play games with your friends!" })}
             </p>
           </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleMute}
+            title={isMuted ? t("games.unmute", { defaultValue: "Unmute sounds" }) : t("games.mute", { defaultValue: "Mute sounds" })}
+          >
+            {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+          </Button>
         </div>
 
         {/* Game Type Selector */}
@@ -542,5 +552,12 @@ const Games = () => {
     </MainLayout>
   );
 };
+
+// Wrap with provider
+const Games = () => (
+  <GameSoundSettingsProvider>
+    <GamesContent />
+  </GameSoundSettingsProvider>
+);
 
 export default Games;
