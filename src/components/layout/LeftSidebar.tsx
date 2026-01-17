@@ -25,14 +25,15 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useMemberStats, useUserGroups, formatCount } from "@/hooks/useMemberStats";
 import { useUserBusiness } from "@/hooks/useBusiness";
+import { useGameNotifications } from "@/hooks/useGameNotifications";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 
-const getNavItems = (t: TFunction) => [
+const getNavItems = (t: TFunction, gameBadge: number | null) => [
   { icon: Newspaper, label: t("nav.feed"), path: "/", badge: null, iconColor: "text-blue-500" },
   { icon: Users, label: t("nav.friends"), path: "/friends", badge: null, iconColor: "text-green-500" },
-  { icon: Gamepad2, label: t("nav.games", { defaultValue: "Games" }), path: "/games", badge: null, iconColor: "text-red-500" },
+  { icon: Gamepad2, label: t("nav.games", { defaultValue: "Games" }), path: "/games", badge: gameBadge, iconColor: "text-red-500" },
   { icon: Calendar, label: t("nav.events"), path: "/events", badge: null, iconColor: "text-orange-500" },
   { icon: Bookmark, label: t("nav.saved", { defaultValue: "Saved" }), path: "/saved", badge: null, iconColor: "text-yellow-500" },
   { icon: UsersRound, label: t("nav.groups", { defaultValue: "Groups" }), path: "/groups", badge: null, iconColor: "text-purple-500" },
@@ -56,6 +57,7 @@ export const LeftSidebar = () => {
   const { data: memberStats } = useMemberStats();
   const { data: userGroups } = useUserGroups();
   const { data: userBusiness } = useUserBusiness();
+  const { pendingTurnCount } = useGameNotifications();
   const navigate = useNavigate();
   const location = useLocation();
   const [isNavigatingToCreate, setIsNavigatingToCreate] = useState(false);
@@ -80,7 +82,8 @@ export const LeftSidebar = () => {
   const following = user ? formatCount(memberStats?.following || 0) : "235";
   const posts = user ? formatCount(memberStats?.posts || 0) : "80";
 
-  const navItems = getNavItems(t);
+  const gameBadge = pendingTurnCount > 0 ? pendingTurnCount : null;
+  const navItems = getNavItems(t, gameBadge);
 
   return (
     <aside className="w-[280px] flex-shrink-0 hidden lg:block">
