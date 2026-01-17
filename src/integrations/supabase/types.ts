@@ -1699,6 +1699,42 @@ export type Database = {
         }
         Relationships: []
       }
+      tic_tac_toe_games: {
+        Row: {
+          board: string[]
+          created_at: string
+          current_turn: string
+          id: string
+          player_o: string | null
+          player_x: string
+          status: string
+          updated_at: string
+          winner: string | null
+        }
+        Insert: {
+          board?: string[]
+          created_at?: string
+          current_turn?: string
+          id?: string
+          player_o?: string | null
+          player_x: string
+          status?: string
+          updated_at?: string
+          winner?: string | null
+        }
+        Update: {
+          board?: string[]
+          created_at?: string
+          current_turn?: string
+          id?: string
+          player_o?: string | null
+          player_x?: string
+          status?: string
+          updated_at?: string
+          winner?: string | null
+        }
+        Relationships: []
+      }
       topics: {
         Row: {
           color: string | null
