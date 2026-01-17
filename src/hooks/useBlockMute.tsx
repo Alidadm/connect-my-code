@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import Swal from "sweetalert2";
 
 export const useBlockMute = (targetUserId?: string) => {
   const { user } = useAuth();
@@ -39,11 +40,11 @@ export const useBlockMute = (targetUserId?: string) => {
 
   const blockUser = async () => {
     if (!user || !targetUserId) return;
-    setLoading(true);
 
-    try {
-      if (isBlocked) {
-        // Unblock
+    // If already blocked, just unblock without confirmation
+    if (isBlocked) {
+      setLoading(true);
+      try {
         await supabase
           .from("blocked_users")
           .delete()
@@ -52,18 +53,40 @@ export const useBlockMute = (targetUserId?: string) => {
 
         setIsBlocked(false);
         toast.success(t("privacy.userUnblocked", { defaultValue: "User unblocked" }));
-      } else {
-        // Block
-        await supabase.from("blocked_users").insert({
-          user_id: user.id,
-          blocked_user_id: targetUserId,
-        });
-
-        setIsBlocked(true);
-        toast.success(t("privacy.userBlocked", { defaultValue: "User blocked" }));
+      } catch (error) {
+        console.error("Error unblocking:", error);
+        toast.error(t("common.error", { defaultValue: "An error occurred" }));
+      } finally {
+        setLoading(false);
       }
+      return;
+    }
+
+    // Show confirmation dialog before blocking
+    const result = await Swal.fire({
+      title: t("privacy.confirmBlockTitle", { defaultValue: "Block this user?" }),
+      text: t("privacy.confirmBlockText", { defaultValue: "They won't be able to see your posts or contact you. You can unblock them anytime." }),
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: t("privacy.blockUser", { defaultValue: "Block" }),
+      cancelButtonText: t("common.cancel", { defaultValue: "Cancel" }),
+    });
+
+    if (!result.isConfirmed) return;
+
+    setLoading(true);
+    try {
+      await supabase.from("blocked_users").insert({
+        user_id: user.id,
+        blocked_user_id: targetUserId,
+      });
+
+      setIsBlocked(true);
+      toast.success(t("privacy.userBlocked", { defaultValue: "User blocked" }));
     } catch (error) {
-      console.error("Error toggling block:", error);
+      console.error("Error blocking:", error);
       toast.error(t("common.error", { defaultValue: "An error occurred" }));
     } finally {
       setLoading(false);
