@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { ArrowLeft, Loader2, Trophy, Clock, Check, X, RotateCcw } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import { useGameSounds } from "@/hooks/useGameSounds";
 
 interface Player {
   user_id: string;
@@ -32,6 +33,7 @@ export const TicTacToeGame = ({ gameId, onBack }: TicTacToeGameProps) => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { playFlip, playMatch, playNoMatch, playWin, playLose, playDraw, playGameStart } = useGameSounds();
   const [game, setGame] = useState<any>(null);
   const [playerX, setPlayerX] = useState<Player | null>(null);
   const [playerO, setPlayerO] = useState<Player | null>(null);
@@ -97,11 +99,14 @@ export const TicTacToeGame = ({ gameId, onBack }: TicTacToeGameProps) => {
             const cells = findWinningCells(payload.new.board);
             setWinningCells(cells);
             if (payload.new.winner === user?.id) {
+              playWin();
               toast.success(t("games.youWon", { defaultValue: "🎉 You won!" }));
             } else {
+              playLose();
               toast.info(t("games.youLost", { defaultValue: "You lost. Better luck next time!" }));
             }
           } else if (payload.new.status === "draw") {
+            playDraw();
             toast.info(t("games.draw", { defaultValue: "It's a draw!" }));
           } else if (payload.new.current_turn !== game?.current_turn) {
             toast.info(t("games.opponentMoved", { defaultValue: "Your opponent made a move!" }));
@@ -113,7 +118,7 @@ export const TicTacToeGame = ({ gameId, onBack }: TicTacToeGameProps) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [gameId, fetchGame, user?.id, game?.current_turn, t]);
+  }, [gameId, fetchGame, user?.id, game?.current_turn, t, playWin, playLose, playDraw]);
 
   const findWinningCells = (board: string[]): number[] => {
     for (const combo of WINNING_COMBOS) {
@@ -143,6 +148,9 @@ export const TicTacToeGame = ({ gameId, onBack }: TicTacToeGameProps) => {
     const isMyTurn = (isPlayerX && game.current_turn === 'x') || (isPlayerO && game.current_turn === 'o');
 
     if (!isMyTurn || game.board[index] !== '' || game.status !== 'active') return;
+
+    // Play move sound
+    playFlip();
 
     setMaking(true);
     const newBoard = [...game.board];
@@ -186,6 +194,7 @@ export const TicTacToeGame = ({ gameId, onBack }: TicTacToeGameProps) => {
         .eq("id", gameId);
 
       if (error) throw error;
+      playGameStart();
       toast.success(t("games.gameStarted", { defaultValue: "Game started!" }));
     } catch (error) {
       console.error("Error accepting game:", error);
