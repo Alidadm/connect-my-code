@@ -48,12 +48,19 @@ export const MemberCoverHeader = () => {
 
       <div className="relative px-4 pb-4">
         <div className="absolute -top-10 left-4">
-          <Avatar className="h-20 w-20 ring-4 ring-card">
-            <AvatarImage src={avatarUrl || undefined} alt={`${displayName}'s avatar`} />
-            <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
-              {(displayName?.[0] || "U").toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
+          <div 
+            className="rounded-full p-1"
+            style={{
+              backgroundImage: 'linear-gradient(to bottom right, #ff3cac, #562b7c, #2b86c5)'
+            }}
+          >
+            <Avatar className="h-20 w-20 ring-2 ring-card">
+              <AvatarImage src={avatarUrl || undefined} alt={`${displayName}'s avatar`} />
+              <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
+                {(displayName?.[0] || "U").toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+          </div>
         </div>
 
         <div className="pt-12 sm:pt-14">
