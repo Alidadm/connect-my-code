@@ -11,13 +11,19 @@ import {
   Settings,
   Crown,
   Plus,
-  Loader2
+  Loader2,
+  Building2,
+  Phone,
+  Mail,
+  Globe,
+  MapPin
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useMemberStats, useUserGroups, formatCount } from "@/hooks/useMemberStats";
+import { useUserBusiness } from "@/hooks/useBusiness";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
@@ -47,6 +53,7 @@ export const LeftSidebar = () => {
   const { user, profile } = useAuth();
   const { data: memberStats } = useMemberStats();
   const { data: userGroups } = useUserGroups();
+  const { data: userBusiness } = useUserBusiness();
   const navigate = useNavigate();
   const location = useLocation();
   const [isNavigatingToCreate, setIsNavigatingToCreate] = useState(false);
@@ -140,6 +147,74 @@ export const LeftSidebar = () => {
             );
           })}
         </nav>
+
+        {/* Business Card - Show only if user has enabled business */}
+        {user && userBusiness?.is_enabled && (
+          <div 
+            className="bg-card rounded-xl overflow-hidden border border-border mb-4 cursor-pointer hover:border-primary/50 transition-colors"
+            onClick={() => navigate("/dashboard?tab=business")}
+          >
+            {/* Cover */}
+            <div className={cn(
+              "h-16 bg-gradient-to-br from-primary/30 via-primary/20 to-primary/10 relative",
+              userBusiness.cover_url && "bg-none"
+            )}>
+              {userBusiness.cover_url && (
+                <img
+                  src={userBusiness.cover_url}
+                  alt="Business cover"
+                  className="w-full h-full object-cover"
+                />
+              )}
+              {/* Business Icon overlay */}
+              <div className="absolute -bottom-4 left-3">
+                <div className="h-10 w-10 rounded-lg bg-card border-2 border-background shadow flex items-center justify-center">
+                  <Building2 className="h-5 w-5 text-primary" />
+                </div>
+              </div>
+            </div>
+            
+            {/* Business Info */}
+            <div className="pt-6 pb-3 px-3">
+              <h4 className="font-semibold text-sm text-foreground truncate">
+                {userBusiness.name}
+              </h4>
+              {userBusiness.category && (
+                <span className="text-xs text-muted-foreground">
+                  {userBusiness.category.name}
+                </span>
+              )}
+              
+              {/* Contact Info */}
+              <div className="mt-2 space-y-1">
+                {userBusiness.phone && (
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Phone className="h-3 w-3" />
+                    <span className="truncate">{userBusiness.phone}</span>
+                  </div>
+                )}
+                {userBusiness.email && (
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Mail className="h-3 w-3" />
+                    <span className="truncate">{userBusiness.email}</span>
+                  </div>
+                )}
+                {userBusiness.website_url && (
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Globe className="h-3 w-3" />
+                    <span className="truncate">{userBusiness.website_url.replace(/^https?:\/\//, '')}</span>
+                  </div>
+                )}
+                {userBusiness.address && (
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <MapPin className="h-3 w-3" />
+                    <span className="truncate">{userBusiness.address}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Your Groups - Show groups or create button */}
         {user && (

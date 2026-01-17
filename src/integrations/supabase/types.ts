@@ -83,6 +83,86 @@ export type Database = {
           },
         ]
       }
+      business_categories: {
+        Row: {
+          created_at: string
+          icon: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          icon?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          icon?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      businesses: {
+        Row: {
+          address: string | null
+          business_card_url: string | null
+          category_id: string | null
+          cover_url: string | null
+          created_at: string
+          custom_category: string | null
+          email: string | null
+          id: string
+          is_enabled: boolean
+          name: string
+          phone: string | null
+          updated_at: string
+          user_id: string
+          website_url: string | null
+        }
+        Insert: {
+          address?: string | null
+          business_card_url?: string | null
+          category_id?: string | null
+          cover_url?: string | null
+          created_at?: string
+          custom_category?: string | null
+          email?: string | null
+          id?: string
+          is_enabled?: boolean
+          name: string
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+          website_url?: string | null
+        }
+        Update: {
+          address?: string | null
+          business_card_url?: string | null
+          category_id?: string | null
+          cover_url?: string | null
+          created_at?: string
+          custom_category?: string | null
+          email?: string | null
+          id?: string
+          is_enabled?: boolean
+          name?: string
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+          website_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "businesses_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "business_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       commissions: {
         Row: {
           amount: number
