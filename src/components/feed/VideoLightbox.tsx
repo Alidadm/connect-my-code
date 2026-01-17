@@ -14,6 +14,8 @@ import {
   ChevronRight,
   SkipBack,
   SkipForward,
+  PictureInPicture2,
+  PictureInPictureIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -43,6 +45,8 @@ export const VideoLightbox = ({
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isPiP, setIsPiP] = useState(false);
+  const [isPiPSupported, setIsPiPSupported] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   
@@ -59,6 +63,8 @@ export const VideoLightbox = ({
       setIsPlaying(false);
       setCurrentTime(0);
       setIsLoading(true);
+      // Check PiP support
+      setIsPiPSupported(document.pictureInPictureEnabled ?? false);
     }
   }, [isOpen, currentIndex]);
 
@@ -123,6 +129,9 @@ export const VideoLightbox = ({
         case "f":
           toggleFullscreen();
           break;
+        case "p":
+          togglePiP();
+          break;
         case "Escape":
           if (isFullscreen) {
             exitFullscreen();
@@ -145,6 +154,23 @@ export const VideoLightbox = ({
 
     document.addEventListener("fullscreenchange", handleFullscreenChange);
     return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
+  }, []);
+
+  // PiP change listener
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const handleEnterPiP = () => setIsPiP(true);
+    const handleLeavePiP = () => setIsPiP(false);
+
+    video.addEventListener("enterpictureinpicture", handleEnterPiP);
+    video.addEventListener("leavepictureinpicture", handleLeavePiP);
+
+    return () => {
+      video.removeEventListener("enterpictureinpicture", handleEnterPiP);
+      video.removeEventListener("leavepictureinpicture", handleLeavePiP);
+    };
   }, []);
 
   // Apply volume
@@ -204,6 +230,20 @@ export const VideoLightbox = ({
       } catch (err) {
         console.error("Exit fullscreen error:", err);
       }
+    }
+  };
+
+  const togglePiP = async () => {
+    if (!videoRef.current) return;
+
+    try {
+      if (document.pictureInPictureElement) {
+        await document.exitPictureInPicture();
+      } else if (document.pictureInPictureEnabled) {
+        await videoRef.current.requestPictureInPicture();
+      }
+    } catch (err) {
+      console.error("PiP error:", err);
     }
   };
 
@@ -439,12 +479,30 @@ export const VideoLightbox = ({
             </div>
 
             <div className="flex items-center gap-2">
+              {/* Picture-in-Picture */}
+              {isPiPSupported && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={togglePiP}
+                  className="text-white hover:bg-white/20 h-9 w-9"
+                  title="Picture-in-Picture (P)"
+                >
+                  {isPiP ? (
+                    <PictureInPictureIcon className="h-5 w-5" />
+                  ) : (
+                    <PictureInPicture2 className="h-5 w-5" />
+                  )}
+                </Button>
+              )}
+
               {/* Fullscreen */}
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={toggleFullscreen}
                 className="text-white hover:bg-white/20 h-9 w-9"
+                title="Fullscreen (F)"
               >
                 {isFullscreen ? (
                   <Minimize className="h-5 w-5" />
