@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { toast } from "sonner";
+import confetti from "canvas-confetti";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -202,6 +203,38 @@ export const RightSidebar = () => {
     fetchOnlineFriends();
   }, [user]);
 
+  // Play birthday confetti animation
+  const playBirthdayConfetti = useCallback(() => {
+    // First burst - from left
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { x: 0.1, y: 0.6 },
+      colors: ['#ff69b4', '#ff1493', '#ffb6c1', '#ffd700', '#ff6347']
+    });
+
+    // Second burst - from right (slight delay)
+    setTimeout(() => {
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { x: 0.9, y: 0.6 },
+        colors: ['#ff69b4', '#ff1493', '#ffb6c1', '#ffd700', '#ff6347']
+      });
+    }, 200);
+
+    // Center burst with stars
+    setTimeout(() => {
+      confetti({
+        particleCount: 50,
+        spread: 100,
+        origin: { x: 0.5, y: 0.5 },
+        shapes: ['star'],
+        colors: ['#ffd700', '#ffec8b', '#fffacd']
+      });
+    }, 400);
+  }, []);
+
   // Play birthday chime sound
   const playBirthdaySound = useCallback(() => {
     try {
@@ -304,6 +337,7 @@ export const RightSidebar = () => {
                   
                   // Delay to ensure UI is ready
                   setTimeout(() => {
+                    playBirthdayConfetti();
                     playBirthdaySound();
                     toast.success(
                       t("sidebar.birthdayNotification", "🎂 It's {{name}}'s birthday today!", {
@@ -334,7 +368,7 @@ export const RightSidebar = () => {
     };
 
     fetchBirthdays();
-  }, [user, playBirthdaySound, navigate, t]);
+  }, [user, playBirthdayConfetti, playBirthdaySound, navigate, t]);
 
   // Fetch trending posts
   useEffect(() => {
