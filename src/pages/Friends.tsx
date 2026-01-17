@@ -122,6 +122,41 @@ const Friends = () => {
     if (user) {
       fetchData();
       fetchSuggestions();
+
+      // Subscribe to real-time friendship changes
+      const channel = supabase
+        .channel('friendships-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'friendships',
+            filter: `addressee_id=eq.${user.id}`
+          },
+          (payload) => {
+            console.log('Friendship change (addressee):', payload);
+            fetchData(); // Refresh data on any change
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'friendships',
+            filter: `requester_id=eq.${user.id}`
+          },
+          (payload) => {
+            console.log('Friendship change (requester):', payload);
+            fetchData(); // Refresh data on any change
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [user]);
 
