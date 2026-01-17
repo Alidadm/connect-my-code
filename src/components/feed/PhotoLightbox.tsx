@@ -19,16 +19,32 @@ interface Velocity {
   y: number;
 }
 
+interface Bounds {
+  minX: number;
+  maxX: number;
+  minY: number;
+  maxY: number;
+}
+
 const getDistance = (touch1: React.Touch, touch2: React.Touch): number => {
   const dx = touch1.clientX - touch2.clientX;
   const dy = touch1.clientY - touch2.clientY;
   return Math.sqrt(dx * dx + dy * dy);
 };
 
+// Rubber band effect - resistance increases as you pull further
+const rubberBand = (offset: number, limit: number, elasticity: number = 0.55): number => {
+  const sign = offset < 0 ? -1 : 1;
+  const absOffset = Math.abs(offset);
+  // Diminishing returns formula for elastic feel
+  return sign * limit * (1 - Math.exp(-absOffset / limit / elasticity));
+};
+
 export const PhotoLightbox = ({ images, initialIndex, isOpen, onClose }: PhotoLightboxProps) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [zoomScale, setZoomScale] = useState(1);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
+  const [isSpringBack, setIsSpringBack] = useState(false);
   
   // Swipe state
   const [touchStart, setTouchStart] = useState<number | null>(null);
@@ -43,37 +59,168 @@ export const PhotoLightbox = ({ images, initialIndex, isOpen, onClose }: PhotoLi
   const [isPanning, setIsPanning] = useState(false);
   const [lastPanPoint, setLastPanPoint] = useState<TouchPoint | null>(null);
   
+  // Image dimensions for boundary calculation
+  const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
+  
   // Momentum state
   const velocityRef = useRef<Velocity>({ x: 0, y: 0 });
   const lastMoveTimeRef = useRef<number>(0);
   const animationFrameRef = useRef<number | null>(null);
   
   const containerRef = useRef<HTMLDivElement>(null);
-  const imageContainerRef = useRef<HTMLDivElement>(null);
+  const imageRef = useRef<HTMLImageElement>(null);
 
   const minSwipeDistance = 50;
   const minZoom = 1;
   const maxZoom = 4;
-  const friction = 0.92; // Decay factor for momentum
-  const minVelocity = 0.5; // Stop animation when velocity is below this
+  const friction = 0.92;
+  const minVelocity = 0.5;
+  const springTension = 0.15; // How fast spring animates back
+  const springFriction = 0.75; // Damping for spring animation
 
   const isZoomed = zoomScale > 1;
 
-  // Cancel any ongoing momentum animation
-  const cancelMomentum = useCallback(() => {
+  // Calculate pan boundaries based on zoom level
+  const getBounds = useCallback((): Bounds => {
+    if (!containerRef.current || imageDimensions.width === 0) {
+      return { minX: 0, maxX: 0, minY: 0, maxY: 0 };
+    }
+
+    const containerWidth = window.innerWidth;
+    const containerHeight = window.innerHeight;
+    
+    // Calculate the scaled image dimensions
+    const scaledWidth = imageDimensions.width * zoomScale;
+    const scaledHeight = imageDimensions.height * zoomScale;
+    
+    // Calculate how much the image exceeds the container
+    const overflowX = Math.max(0, (scaledWidth - containerWidth) / 2);
+    const overflowY = Math.max(0, (scaledHeight - containerHeight) / 2);
+    
+    return {
+      minX: -overflowX,
+      maxX: overflowX,
+      minY: -overflowY,
+      maxY: overflowY,
+    };
+  }, [imageDimensions, zoomScale]);
+
+  // Clamp value to bounds
+  const clampToBounds = useCallback((offset: TouchPoint, bounds: Bounds): TouchPoint => {
+    return {
+      x: Math.max(bounds.minX, Math.min(bounds.maxX, offset.x)),
+      y: Math.max(bounds.minY, Math.min(bounds.maxY, offset.y)),
+    };
+  }, []);
+
+  // Check if offset is out of bounds
+  const isOutOfBounds = useCallback((offset: TouchPoint, bounds: Bounds): boolean => {
+    return (
+      offset.x < bounds.minX ||
+      offset.x > bounds.maxX ||
+      offset.y < bounds.minY ||
+      offset.y > bounds.maxY
+    );
+  }, []);
+
+  // Apply elastic resistance when panning beyond bounds
+  const applyElasticOffset = useCallback((offset: TouchPoint, bounds: Bounds): TouchPoint => {
+    const maxElastic = 100; // Maximum elastic stretch in pixels
+    let elasticX = offset.x;
+    let elasticY = offset.y;
+
+    if (offset.x < bounds.minX) {
+      elasticX = bounds.minX + rubberBand(offset.x - bounds.minX, maxElastic);
+    } else if (offset.x > bounds.maxX) {
+      elasticX = bounds.maxX + rubberBand(offset.x - bounds.maxX, maxElastic);
+    }
+
+    if (offset.y < bounds.minY) {
+      elasticY = bounds.minY + rubberBand(offset.y - bounds.minY, maxElastic);
+    } else if (offset.y > bounds.maxY) {
+      elasticY = bounds.maxY + rubberBand(offset.y - bounds.maxY, maxElastic);
+    }
+
+    return { x: elasticX, y: elasticY };
+  }, []);
+
+  // Cancel any ongoing animation
+  const cancelAnimation = useCallback(() => {
     if (animationFrameRef.current !== null) {
       cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = null;
     }
   }, []);
 
-  // Apply momentum animation
+  // Spring back animation to bounds
+  const springBackToBounds = useCallback(() => {
+    const bounds = getBounds();
+    setIsSpringBack(true);
+    
+    const animate = () => {
+      setPanOffset((prev) => {
+        const target = clampToBounds(prev, bounds);
+        const dx = target.x - prev.x;
+        const dy = target.y - prev.y;
+        
+        // Apply spring physics
+        velocityRef.current = {
+          x: (velocityRef.current.x + dx * springTension) * springFriction,
+          y: (velocityRef.current.y + dy * springTension) * springFriction,
+        };
+        
+        const newOffset = {
+          x: prev.x + velocityRef.current.x,
+          y: prev.y + velocityRef.current.y,
+        };
+        
+        // Check if we've settled
+        const settled = 
+          Math.abs(dx) < 0.5 && 
+          Math.abs(dy) < 0.5 && 
+          Math.abs(velocityRef.current.x) < 0.5 && 
+          Math.abs(velocityRef.current.y) < 0.5;
+        
+        if (settled) {
+          animationFrameRef.current = null;
+          setIsSpringBack(false);
+          return target;
+        }
+        
+        animationFrameRef.current = requestAnimationFrame(animate);
+        return newOffset;
+      });
+    };
+    
+    animationFrameRef.current = requestAnimationFrame(animate);
+  }, [getBounds, clampToBounds]);
+
+  // Apply momentum animation with boundary awareness
   const applyMomentum = useCallback(() => {
+    const bounds = getBounds();
+    
     const animate = () => {
       velocityRef.current = {
         x: velocityRef.current.x * friction,
         y: velocityRef.current.y * friction,
       };
+
+      setPanOffset((prev) => {
+        const newOffset = {
+          x: prev.x + velocityRef.current.x,
+          y: prev.y + velocityRef.current.y,
+        };
+        
+        // Check if we've hit bounds - slow down faster and prepare for spring back
+        if (isOutOfBounds(newOffset, bounds)) {
+          velocityRef.current = {
+            x: velocityRef.current.x * 0.5,
+            y: velocityRef.current.y * 0.5,
+          };
+        }
+        
+        return newOffset;
+      });
 
       // Stop when velocity is very small
       if (
@@ -81,19 +228,31 @@ export const PhotoLightbox = ({ images, initialIndex, isOpen, onClose }: PhotoLi
         Math.abs(velocityRef.current.y) < minVelocity
       ) {
         animationFrameRef.current = null;
+        // Check if we need to spring back
+        setPanOffset((prev) => {
+          if (isOutOfBounds(prev, bounds)) {
+            springBackToBounds();
+          }
+          return prev;
+        });
         return;
       }
-
-      setPanOffset((prev) => ({
-        x: prev.x + velocityRef.current.x,
-        y: prev.y + velocityRef.current.y,
-      }));
 
       animationFrameRef.current = requestAnimationFrame(animate);
     };
 
     animationFrameRef.current = requestAnimationFrame(animate);
-  }, []);
+  }, [getBounds, isOutOfBounds, springBackToBounds]);
+
+  // Handle image load to get dimensions
+  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    // Get the displayed size (respecting max-width/max-height constraints)
+    setImageDimensions({
+      width: img.clientWidth,
+      height: img.clientHeight,
+    });
+  };
 
   useEffect(() => {
     setCurrentIndex(initialIndex);
@@ -112,16 +271,17 @@ export const PhotoLightbox = ({ images, initialIndex, isOpen, onClose }: PhotoLi
 
   // Reset zoom when changing images
   useEffect(() => {
-    cancelMomentum();
+    cancelAnimation();
     setZoomScale(1);
     setPanOffset({ x: 0, y: 0 });
+    setIsSpringBack(false);
     velocityRef.current = { x: 0, y: 0 };
-  }, [currentIndex, cancelMomentum]);
+  }, [currentIndex, cancelAnimation]);
 
   // Cleanup on unmount
   useEffect(() => {
-    return () => cancelMomentum();
-  }, [cancelMomentum]);
+    return () => cancelAnimation();
+  }, [cancelAnimation]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -146,11 +306,12 @@ export const PhotoLightbox = ({ images, initialIndex, isOpen, onClose }: PhotoLi
   }, [isOpen, currentIndex, isZoomed]);
 
   const resetZoom = useCallback(() => {
-    cancelMomentum();
+    cancelAnimation();
     setZoomScale(1);
     setPanOffset({ x: 0, y: 0 });
+    setIsSpringBack(false);
     velocityRef.current = { x: 0, y: 0 };
-  }, [cancelMomentum]);
+  }, [cancelAnimation]);
 
   const goToPrevious = useCallback(() => {
     if (currentIndex > 0) {
@@ -167,10 +328,10 @@ export const PhotoLightbox = ({ images, initialIndex, isOpen, onClose }: PhotoLi
   // Touch handlers
   const onTouchStart = (e: React.TouchEvent) => {
     const touches = e.touches;
-    cancelMomentum();
+    cancelAnimation();
+    setIsSpringBack(false);
     
     if (touches.length === 2) {
-      // Pinch zoom start
       e.preventDefault();
       const distance = getDistance(touches[0], touches[1]);
       setInitialPinchDistance(distance);
@@ -178,14 +339,12 @@ export const PhotoLightbox = ({ images, initialIndex, isOpen, onClose }: PhotoLi
       setIsPanning(false);
     } else if (touches.length === 1) {
       if (isZoomed) {
-        // Start panning when zoomed
         setIsPanning(true);
         const point = { x: touches[0].clientX, y: touches[0].clientY };
         setLastPanPoint(point);
         lastMoveTimeRef.current = Date.now();
         velocityRef.current = { x: 0, y: 0 };
       } else {
-        // Start swipe gesture
         setTouchEnd(null);
         setTouchStart(touches[0].clientX);
       }
@@ -196,20 +355,17 @@ export const PhotoLightbox = ({ images, initialIndex, isOpen, onClose }: PhotoLi
     const touches = e.touches;
     
     if (touches.length === 2 && initialPinchDistance !== null) {
-      // Pinch zoom
       e.preventDefault();
       const currentDistance = getDistance(touches[0], touches[1]);
       const scale = (currentDistance / initialPinchDistance) * initialZoomScale;
       const clampedScale = Math.min(Math.max(scale, minZoom), maxZoom);
       setZoomScale(clampedScale);
       
-      // Reset pan if zooming out to 1x
       if (clampedScale <= 1) {
         setPanOffset({ x: 0, y: 0 });
       }
     } else if (touches.length === 1) {
       if (isZoomed && isPanning && lastPanPoint) {
-        // Pan the zoomed image
         e.preventDefault();
         const currentPoint = { x: touches[0].clientX, y: touches[0].clientY };
         const deltaX = currentPoint.x - lastPanPoint.x;
@@ -219,8 +375,7 @@ export const PhotoLightbox = ({ images, initialIndex, isOpen, onClose }: PhotoLi
         const now = Date.now();
         const dt = now - lastMoveTimeRef.current;
         if (dt > 0) {
-          // Smooth velocity calculation with averaging
-          const newVelocityX = deltaX / (dt / 16); // Normalize to ~60fps
+          const newVelocityX = deltaX / (dt / 16);
           const newVelocityY = deltaY / (dt / 16);
           velocityRef.current = {
             x: newVelocityX * 0.4 + velocityRef.current.x * 0.6,
@@ -229,13 +384,14 @@ export const PhotoLightbox = ({ images, initialIndex, isOpen, onClose }: PhotoLi
         }
         lastMoveTimeRef.current = now;
         
-        setPanOffset(prev => ({
-          x: prev.x + deltaX,
-          y: prev.y + deltaY,
-        }));
+        // Apply elastic resistance when beyond bounds
+        const bounds = getBounds();
+        setPanOffset(prev => {
+          const rawOffset = { x: prev.x + deltaX, y: prev.y + deltaY };
+          return applyElasticOffset(rawOffset, bounds);
+        });
         setLastPanPoint(currentPoint);
       } else if (!isZoomed && touchStart !== null) {
-        // Swipe gesture
         const currentTouch = touches[0].clientX;
         setTouchEnd(currentTouch);
         
@@ -247,29 +403,37 @@ export const PhotoLightbox = ({ images, initialIndex, isOpen, onClose }: PhotoLi
     }
   };
 
-  const onTouchEnd = (e: React.TouchEvent) => {
-    // Reset pinch state
+  const onTouchEnd = () => {
     if (initialPinchDistance !== null) {
       setInitialPinchDistance(null);
+      // Check if we need to spring back after pinch
+      const bounds = getBounds();
+      if (isOutOfBounds(panOffset, bounds)) {
+        springBackToBounds();
+      }
       return;
     }
     
-    // Handle pan end with momentum
     if (isPanning) {
       setIsPanning(false);
       setLastPanPoint(null);
       
-      // Apply momentum if there's sufficient velocity
-      if (
+      const bounds = getBounds();
+      const outOfBounds = isOutOfBounds(panOffset, bounds);
+      
+      // If out of bounds, spring back immediately
+      if (outOfBounds) {
+        springBackToBounds();
+      } else if (
         Math.abs(velocityRef.current.x) > minVelocity ||
         Math.abs(velocityRef.current.y) > minVelocity
       ) {
+        // Otherwise apply momentum
         applyMomentum();
       }
       return;
     }
     
-    // Handle swipe
     setSwipeOffset(0);
     
     if (!touchStart || !touchEnd) return;
@@ -386,29 +550,30 @@ export const PhotoLightbox = ({ images, initialIndex, isOpen, onClose }: PhotoLi
         </Button>
       )}
 
-      {/* Image container with swipe animation */}
+      {/* Image container */}
       <div
-        ref={imageContainerRef}
         className="flex items-center justify-center w-full h-full px-12 sm:px-20"
         style={{
           transform: isZoomed 
             ? `translate(${panOffset.x}px, ${panOffset.y}px)` 
             : `translateX(${swipeOffset}px)`,
-          transition: isPanning || initialPinchDistance !== null ? 'none' : 'transform 0.2s ease-out',
+          transition: isSpringBack ? 'none' : (isPanning || initialPinchDistance !== null ? 'none' : 'transform 0.2s ease-out'),
         }}
         onClick={(e) => e.stopPropagation()}
         onTouchEnd={handleDoubleTap}
       >
         <img
+          ref={imageRef}
           src={images[currentIndex]}
           alt={`Photo ${currentIndex + 1}`}
           className="max-w-full max-h-[85vh] object-contain select-none"
           style={{
             transform: `scale(${zoomScale})`,
             transition: initialPinchDistance !== null ? 'none' : 'transform 0.2s ease-out',
-            cursor: isZoomed ? "grab" : "zoom-in",
+            cursor: isZoomed ? (isPanning ? "grabbing" : "grab") : "zoom-in",
           }}
           onClick={toggleZoom}
+          onLoad={handleImageLoad}
           draggable={false}
         />
       </div>
