@@ -1,4 +1,4 @@
-import { Search, MoreVertical, Calendar, Bell, Cloud, Sun, CloudRain, Cake, TrendingUp, MessageCircle, Heart, Users, Circle } from "lucide-react";
+import { Search, MoreVertical, Calendar, Bell, Cake, TrendingUp, MessageCircle, Heart, Users, Circle } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -74,33 +74,6 @@ const events = [
   },
 ];
 
-// Mock weather data - in production, this would come from a weather API
-const getWeatherData = () => {
-  const conditions = ['sunny', 'cloudy', 'rainy'] as const;
-  const condition = conditions[Math.floor(Math.random() * conditions.length)];
-  return {
-    temperature: Math.floor(Math.random() * 20) + 15,
-    condition,
-    location: "Your Location",
-    humidity: Math.floor(Math.random() * 40) + 40,
-    forecast: [
-      { day: "Mon", temp: Math.floor(Math.random() * 10) + 18, condition: "sunny" },
-      { day: "Tue", temp: Math.floor(Math.random() * 10) + 16, condition: "cloudy" },
-      { day: "Wed", temp: Math.floor(Math.random() * 10) + 14, condition: "rainy" },
-    ]
-  };
-};
-
-const WeatherIcon = ({ condition, className }: { condition: string; className?: string }) => {
-  switch (condition) {
-    case 'sunny':
-      return <Sun className={cn("text-yellow-500", className)} />;
-    case 'rainy':
-      return <CloudRain className={cn("text-blue-400", className)} />;
-    default:
-      return <Cloud className={cn("text-gray-400", className)} />;
-  }
-};
 
 export const RightSidebar = () => {
   const { t } = useTranslation();
@@ -110,7 +83,7 @@ export const RightSidebar = () => {
   const [messages, setMessages] = useState<MessageWithSender[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [weather] = useState(getWeatherData);
+  
   const [onlineFriends, setOnlineFriends] = useState<OnlineFriend[]>([]);
   const [birthdays, setBirthdays] = useState<BirthdayReminder[]>([]);
   const [trendingPosts, setTrendingPosts] = useState<TrendingPost[]>([]);
@@ -369,33 +342,6 @@ export const RightSidebar = () => {
   return (
     <aside className="w-[320px] flex-shrink-0 hidden xl:block">
       <div className="fixed w-[320px] h-[calc(100vh-64px)] overflow-y-auto scrollbar-hide pt-4 pb-8 pl-2">
-        {/* Weather Widget */}
-        <div className="bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-xl p-4 mb-4 border border-border relative overflow-hidden">
-          <div className="absolute top-2 right-2 opacity-20">
-            <WeatherIcon condition={weather.condition} className="h-16 w-16" />
-          </div>
-          <div className="relative z-10">
-            <div className="flex items-center gap-2 mb-2">
-              <WeatherIcon condition={weather.condition} className="h-5 w-5" />
-              <span className="text-xs text-muted-foreground">{weather.location}</span>
-            </div>
-            <div className="flex items-baseline gap-1 mb-1">
-              <span className="text-4xl font-bold text-foreground">{weather.temperature}°</span>
-              <span className="text-sm text-muted-foreground">C</span>
-            </div>
-            <p className="text-sm text-muted-foreground capitalize mb-3">{weather.condition}</p>
-            
-            <div className="flex justify-between pt-2 border-t border-border/50">
-              {weather.forecast.map((day, i) => (
-                <div key={i} className="text-center">
-                  <span className="text-xs text-muted-foreground block">{day.day}</span>
-                  <WeatherIcon condition={day.condition} className="h-4 w-4 mx-auto my-1" />
-                  <span className="text-xs font-medium text-foreground">{day.temp}°</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
 
         {/* Birthday Reminders */}
         {birthdays.length > 0 && (
