@@ -1340,6 +1340,51 @@ export type Database = {
         }
         Relationships: []
       }
+      privacy_settings: {
+        Row: {
+          created_at: string
+          hide_from_search: boolean | null
+          id: string
+          login_alerts: boolean | null
+          post_visibility: string | null
+          profile_visibility: string | null
+          read_receipts: boolean | null
+          show_last_seen: boolean | null
+          show_online_status: boolean | null
+          typing_indicator: boolean | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          hide_from_search?: boolean | null
+          id?: string
+          login_alerts?: boolean | null
+          post_visibility?: string | null
+          profile_visibility?: string | null
+          read_receipts?: boolean | null
+          show_last_seen?: boolean | null
+          show_online_status?: boolean | null
+          typing_indicator?: boolean | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          hide_from_search?: boolean | null
+          id?: string
+          login_alerts?: boolean | null
+          post_visibility?: string | null
+          profile_visibility?: string | null
+          read_receipts?: boolean | null
+          show_last_seen?: boolean | null
+          show_online_status?: boolean | null
+          typing_indicator?: boolean | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -1697,6 +1742,54 @@ export type Database = {
           created_at?: string
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_settings: {
+        Row: {
+          birthday_reminders: boolean | null
+          compact_mode: boolean | null
+          created_at: string
+          dark_mode: boolean | null
+          email_notifications: boolean | null
+          friend_request_notifications: boolean | null
+          id: string
+          language: string | null
+          message_sound: boolean | null
+          notification_sound: boolean | null
+          push_notifications: boolean | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          birthday_reminders?: boolean | null
+          compact_mode?: boolean | null
+          created_at?: string
+          dark_mode?: boolean | null
+          email_notifications?: boolean | null
+          friend_request_notifications?: boolean | null
+          id?: string
+          language?: string | null
+          message_sound?: boolean | null
+          notification_sound?: boolean | null
+          push_notifications?: boolean | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          birthday_reminders?: boolean | null
+          compact_mode?: boolean | null
+          created_at?: string
+          dark_mode?: boolean | null
+          email_notifications?: boolean | null
+          friend_request_notifications?: boolean | null
+          id?: string
+          language?: string | null
+          message_sound?: boolean | null
+          notification_sound?: boolean | null
+          push_notifications?: boolean | null
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
