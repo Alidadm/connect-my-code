@@ -76,6 +76,8 @@ const UserProfile = () => {
   const [showFriendsModal, setShowFriendsModal] = useState(false);
   const [friendsList, setFriendsList] = useState<FriendProfile[]>([]);
   const [loadingFriends, setLoadingFriends] = useState(false);
+  const [mutualFriends, setMutualFriends] = useState<FriendProfile[]>([]);
+  const [loadingMutualFriends, setLoadingMutualFriends] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -134,6 +136,71 @@ const UserProfile = () => {
 
     fetchProfile();
   }, [username]);
+
+  // Fetch mutual friends when viewing someone else's profile
+  useEffect(() => {
+    const fetchMutualFriends = async () => {
+      if (!user || !profile || user.id === profile.user_id) {
+        setMutualFriends([]);
+        return;
+      }
+
+      setLoadingMutualFriends(true);
+      try {
+        // Get current user's friends
+        const { data: myFriendships } = await supabase
+          .from("friendships")
+          .select("requester_id, addressee_id")
+          .eq("status", "accepted")
+          .or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`);
+
+        // Get profile user's friends
+        const { data: theirFriendships } = await supabase
+          .from("friendships")
+          .select("requester_id, addressee_id")
+          .eq("status", "accepted")
+          .or(`requester_id.eq.${profile.user_id},addressee_id.eq.${profile.user_id}`);
+
+        if (!myFriendships || !theirFriendships) {
+          setMutualFriends([]);
+          return;
+        }
+
+        // Extract friend IDs for current user
+        const myFriendIds = new Set(
+          myFriendships.map(f => f.requester_id === user.id ? f.addressee_id : f.requester_id)
+        );
+
+        // Extract friend IDs for profile user
+        const theirFriendIds = theirFriendships.map(f => 
+          f.requester_id === profile.user_id ? f.addressee_id : f.requester_id
+        );
+
+        // Find intersection (mutual friends)
+        const mutualFriendIds = theirFriendIds.filter(id => myFriendIds.has(id));
+
+        if (mutualFriendIds.length === 0) {
+          setMutualFriends([]);
+          return;
+        }
+
+        // Fetch profiles for mutual friends
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("user_id, username, display_name, avatar_url, is_verified")
+          .in("user_id", mutualFriendIds);
+
+        setMutualFriends(profiles || []);
+      } catch (error) {
+        console.error("Error fetching mutual friends:", error);
+        setMutualFriends([]);
+      } finally {
+        setLoadingMutualFriends(false);
+      }
+    };
+
+    fetchMutualFriends();
+  }, [user, profile]);
 
   // Check friendship status
   useEffect(() => {
@@ -587,6 +654,93 @@ const UserProfile = () => {
                 <span className="text-muted-foreground">{postsCount === 1 ? t("feed.post", { defaultValue: "Post" }) : t("feed.posts", { defaultValue: "Posts" })}</span>
               </button>
             </div>
+
+            {/* Mutual Friends Section - Only show when viewing someone else's profile */}
+            {!isOwnProfile && user && (
+              <div className="pt-3">
+                {loadingMutualFriends ? (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <div className="flex -space-x-2">
+                      {[1, 2, 3].map((i) => (
+                        <Skeleton key={i} className="w-8 h-8 rounded-full border-2 border-background" />
+                      ))}
+                    </div>
+                    <span>{t("common.loading", { defaultValue: "Loading..." })}</span>
+                  </div>
+                ) : mutualFriends.length > 0 ? (
+                  <div className="flex items-center gap-2">
+                    <div className="flex -space-x-2">
+                      {mutualFriends.slice(0, 5).map((friend) => (
+                        <Avatar 
+                          key={friend.user_id} 
+                          className="w-8 h-8 border-2 border-background cursor-pointer hover:z-10 transition-transform hover:scale-110"
+                          onClick={() => navigate(`/user/${friend.username}`)}
+                        >
+                          <AvatarImage src={friend.avatar_url || ""} />
+                          <AvatarFallback className="text-xs bg-gradient-to-br from-primary to-primary/70 text-primary-foreground">
+                            {friend.display_name?.charAt(0) || friend.username?.charAt(0) || "U"}
+                          </AvatarFallback>
+                        </Avatar>
+                      ))}
+                    </div>
+                    <span className="text-sm text-muted-foreground">
+                      {mutualFriends.length === 1 ? (
+                        <>
+                          <button 
+                            className="font-medium text-foreground hover:underline"
+                            onClick={() => navigate(`/user/${mutualFriends[0].username}`)}
+                          >
+                            {mutualFriends[0].display_name || mutualFriends[0].username}
+                          </button>
+                          {" "}{t("profile.isMutualFriend", { defaultValue: "is a mutual friend" })}
+                        </>
+                      ) : mutualFriends.length === 2 ? (
+                        <>
+                          <button 
+                            className="font-medium text-foreground hover:underline"
+                            onClick={() => navigate(`/user/${mutualFriends[0].username}`)}
+                          >
+                            {mutualFriends[0].display_name || mutualFriends[0].username}
+                          </button>
+                          {" "}{t("common.and", { defaultValue: "and" })}{" "}
+                          <button 
+                            className="font-medium text-foreground hover:underline"
+                            onClick={() => navigate(`/user/${mutualFriends[1].username}`)}
+                          >
+                            {mutualFriends[1].display_name || mutualFriends[1].username}
+                          </button>
+                          {" "}{t("profile.areMutualFriends", { defaultValue: "are mutual friends" })}
+                        </>
+                      ) : (
+                        <>
+                          <button 
+                            className="font-medium text-foreground hover:underline"
+                            onClick={() => navigate(`/user/${mutualFriends[0].username}`)}
+                          >
+                            {mutualFriends[0].display_name || mutualFriends[0].username}
+                          </button>
+                          {", "}
+                          <button 
+                            className="font-medium text-foreground hover:underline"
+                            onClick={() => navigate(`/user/${mutualFriends[1].username}`)}
+                          >
+                            {mutualFriends[1].display_name || mutualFriends[1].username}
+                          </button>
+                          {" "}{t("profile.andOthersMutual", { 
+                            defaultValue: "and {{count}} other mutual friends",
+                            count: mutualFriends.length - 2
+                          })}
+                        </>
+                      )}
+                    </span>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    {t("profile.noMutualFriends", { defaultValue: "No mutual friends" })}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
