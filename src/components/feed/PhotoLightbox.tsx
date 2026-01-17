@@ -14,16 +14,16 @@ interface TouchPoint {
   y: number;
 }
 
+interface Velocity {
+  x: number;
+  y: number;
+}
+
 const getDistance = (touch1: React.Touch, touch2: React.Touch): number => {
   const dx = touch1.clientX - touch2.clientX;
   const dy = touch1.clientY - touch2.clientY;
   return Math.sqrt(dx * dx + dy * dy);
 };
-
-const getMidpoint = (touch1: React.Touch, touch2: React.Touch): TouchPoint => ({
-  x: (touch1.clientX + touch2.clientX) / 2,
-  y: (touch1.clientY + touch2.clientY) / 2,
-});
 
 export const PhotoLightbox = ({ images, initialIndex, isOpen, onClose }: PhotoLightboxProps) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
@@ -43,14 +43,57 @@ export const PhotoLightbox = ({ images, initialIndex, isOpen, onClose }: PhotoLi
   const [isPanning, setIsPanning] = useState(false);
   const [lastPanPoint, setLastPanPoint] = useState<TouchPoint | null>(null);
   
+  // Momentum state
+  const velocityRef = useRef<Velocity>({ x: 0, y: 0 });
+  const lastMoveTimeRef = useRef<number>(0);
+  const animationFrameRef = useRef<number | null>(null);
+  
   const containerRef = useRef<HTMLDivElement>(null);
   const imageContainerRef = useRef<HTMLDivElement>(null);
 
   const minSwipeDistance = 50;
   const minZoom = 1;
   const maxZoom = 4;
+  const friction = 0.92; // Decay factor for momentum
+  const minVelocity = 0.5; // Stop animation when velocity is below this
 
   const isZoomed = zoomScale > 1;
+
+  // Cancel any ongoing momentum animation
+  const cancelMomentum = useCallback(() => {
+    if (animationFrameRef.current !== null) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+  }, []);
+
+  // Apply momentum animation
+  const applyMomentum = useCallback(() => {
+    const animate = () => {
+      velocityRef.current = {
+        x: velocityRef.current.x * friction,
+        y: velocityRef.current.y * friction,
+      };
+
+      // Stop when velocity is very small
+      if (
+        Math.abs(velocityRef.current.x) < minVelocity &&
+        Math.abs(velocityRef.current.y) < minVelocity
+      ) {
+        animationFrameRef.current = null;
+        return;
+      }
+
+      setPanOffset((prev) => ({
+        x: prev.x + velocityRef.current.x,
+        y: prev.y + velocityRef.current.y,
+      }));
+
+      animationFrameRef.current = requestAnimationFrame(animate);
+    };
+
+    animationFrameRef.current = requestAnimationFrame(animate);
+  }, []);
 
   useEffect(() => {
     setCurrentIndex(initialIndex);
@@ -69,9 +112,16 @@ export const PhotoLightbox = ({ images, initialIndex, isOpen, onClose }: PhotoLi
 
   // Reset zoom when changing images
   useEffect(() => {
+    cancelMomentum();
     setZoomScale(1);
     setPanOffset({ x: 0, y: 0 });
-  }, [currentIndex]);
+    velocityRef.current = { x: 0, y: 0 };
+  }, [currentIndex, cancelMomentum]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => cancelMomentum();
+  }, [cancelMomentum]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -96,9 +146,11 @@ export const PhotoLightbox = ({ images, initialIndex, isOpen, onClose }: PhotoLi
   }, [isOpen, currentIndex, isZoomed]);
 
   const resetZoom = useCallback(() => {
+    cancelMomentum();
     setZoomScale(1);
     setPanOffset({ x: 0, y: 0 });
-  }, []);
+    velocityRef.current = { x: 0, y: 0 };
+  }, [cancelMomentum]);
 
   const goToPrevious = useCallback(() => {
     if (currentIndex > 0) {
@@ -115,6 +167,7 @@ export const PhotoLightbox = ({ images, initialIndex, isOpen, onClose }: PhotoLi
   // Touch handlers
   const onTouchStart = (e: React.TouchEvent) => {
     const touches = e.touches;
+    cancelMomentum();
     
     if (touches.length === 2) {
       // Pinch zoom start
@@ -127,7 +180,10 @@ export const PhotoLightbox = ({ images, initialIndex, isOpen, onClose }: PhotoLi
       if (isZoomed) {
         // Start panning when zoomed
         setIsPanning(true);
-        setLastPanPoint({ x: touches[0].clientX, y: touches[0].clientY });
+        const point = { x: touches[0].clientX, y: touches[0].clientY };
+        setLastPanPoint(point);
+        lastMoveTimeRef.current = Date.now();
+        velocityRef.current = { x: 0, y: 0 };
       } else {
         // Start swipe gesture
         setTouchEnd(null);
@@ -155,14 +211,29 @@ export const PhotoLightbox = ({ images, initialIndex, isOpen, onClose }: PhotoLi
       if (isZoomed && isPanning && lastPanPoint) {
         // Pan the zoomed image
         e.preventDefault();
-        const deltaX = touches[0].clientX - lastPanPoint.x;
-        const deltaY = touches[0].clientY - lastPanPoint.y;
+        const currentPoint = { x: touches[0].clientX, y: touches[0].clientY };
+        const deltaX = currentPoint.x - lastPanPoint.x;
+        const deltaY = currentPoint.y - lastPanPoint.y;
+        
+        // Calculate velocity for momentum
+        const now = Date.now();
+        const dt = now - lastMoveTimeRef.current;
+        if (dt > 0) {
+          // Smooth velocity calculation with averaging
+          const newVelocityX = deltaX / (dt / 16); // Normalize to ~60fps
+          const newVelocityY = deltaY / (dt / 16);
+          velocityRef.current = {
+            x: newVelocityX * 0.4 + velocityRef.current.x * 0.6,
+            y: newVelocityY * 0.4 + velocityRef.current.y * 0.6,
+          };
+        }
+        lastMoveTimeRef.current = now;
         
         setPanOffset(prev => ({
           x: prev.x + deltaX,
           y: prev.y + deltaY,
         }));
-        setLastPanPoint({ x: touches[0].clientX, y: touches[0].clientY });
+        setLastPanPoint(currentPoint);
       } else if (!isZoomed && touchStart !== null) {
         // Swipe gesture
         const currentTouch = touches[0].clientX;
@@ -183,10 +254,18 @@ export const PhotoLightbox = ({ images, initialIndex, isOpen, onClose }: PhotoLi
       return;
     }
     
-    // Reset pan state
+    // Handle pan end with momentum
     if (isPanning) {
       setIsPanning(false);
       setLastPanPoint(null);
+      
+      // Apply momentum if there's sufficient velocity
+      if (
+        Math.abs(velocityRef.current.x) > minVelocity ||
+        Math.abs(velocityRef.current.y) > minVelocity
+      ) {
+        applyMomentum();
+      }
       return;
     }
     
@@ -310,11 +389,12 @@ export const PhotoLightbox = ({ images, initialIndex, isOpen, onClose }: PhotoLi
       {/* Image container with swipe animation */}
       <div
         ref={imageContainerRef}
-        className="flex items-center justify-center w-full h-full px-12 sm:px-20 transition-transform duration-200 ease-out"
+        className="flex items-center justify-center w-full h-full px-12 sm:px-20"
         style={{
           transform: isZoomed 
             ? `translate(${panOffset.x}px, ${panOffset.y}px)` 
             : `translateX(${swipeOffset}px)`,
+          transition: isPanning || initialPinchDistance !== null ? 'none' : 'transform 0.2s ease-out',
         }}
         onClick={(e) => e.stopPropagation()}
         onTouchEnd={handleDoubleTap}
@@ -322,9 +402,10 @@ export const PhotoLightbox = ({ images, initialIndex, isOpen, onClose }: PhotoLi
         <img
           src={images[currentIndex]}
           alt={`Photo ${currentIndex + 1}`}
-          className="max-w-full max-h-[85vh] object-contain select-none transition-transform duration-200"
+          className="max-w-full max-h-[85vh] object-contain select-none"
           style={{
             transform: `scale(${zoomScale})`,
+            transition: initialPinchDistance !== null ? 'none' : 'transform 0.2s ease-out',
             cursor: isZoomed ? "grab" : "zoom-in",
           }}
           onClick={toggleZoom}
