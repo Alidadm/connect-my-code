@@ -7,8 +7,9 @@ import { TicTacToeBoard } from "./TicTacToeBoard";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { ArrowLeft, Loader2, Trophy, Clock, Check, X } from "lucide-react";
+import { ArrowLeft, Loader2, Trophy, Clock, Check, X, RotateCcw } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 
 interface Player {
   user_id: string;
@@ -30,12 +31,14 @@ const WINNING_COMBOS = [
 export const TicTacToeGame = ({ gameId, onBack }: TicTacToeGameProps) => {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [game, setGame] = useState<any>(null);
   const [playerX, setPlayerX] = useState<Player | null>(null);
   const [playerO, setPlayerO] = useState<Player | null>(null);
   const [loading, setLoading] = useState(true);
   const [making, setMaking] = useState(false);
   const [winningCells, setWinningCells] = useState<number[]>([]);
+  const [creatingRematch, setCreatingRematch] = useState(false);
 
   const fetchGame = useCallback(async () => {
     const { data, error } = await supabase
@@ -204,6 +207,40 @@ export const TicTacToeGame = ({ gameId, onBack }: TicTacToeGameProps) => {
     }
   };
 
+  const handleRematch = async () => {
+    if (!user || !game) return;
+    
+    setCreatingRematch(true);
+    
+    // Determine opponent - swap roles (loser/drawer gets to go first as X)
+    const opponentId = game.player_x === user.id ? game.player_o : game.player_x;
+    
+    try {
+      // Create new game with swapped player positions
+      const { data, error } = await supabase
+        .from("tic_tac_toe_games")
+        .insert({
+          player_x: user.id,
+          player_o: opponentId,
+          status: "pending",
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      toast.success(t("games.rematchCreated", { defaultValue: "Rematch created! Waiting for opponent..." }));
+      navigate(`/games?game=${data.id}`, { replace: true });
+      // The parent will handle the game change via URL params
+      window.location.reload();
+    } catch (error) {
+      console.error("Error creating rematch:", error);
+      toast.error(t("games.rematchError", { defaultValue: "Failed to create rematch" }));
+    } finally {
+      setCreatingRematch(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -334,6 +371,24 @@ export const TicTacToeGame = ({ gameId, onBack }: TicTacToeGameProps) => {
                 : t("games.waitingMove", { defaultValue: "Waiting for opponent's move..." })
               }
             </p>
+          </div>
+        )}
+
+        {/* Rematch button when game is over */}
+        {isGameOver && (
+          <div className="pt-2 border-t">
+            <Button 
+              onClick={handleRematch} 
+              className="w-full gap-2"
+              disabled={creatingRematch}
+            >
+              {creatingRematch ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <RotateCcw className="w-4 h-4" />
+              )}
+              {t("games.rematch", { defaultValue: "Rematch" })}
+            </Button>
           </div>
         )}
       </CardContent>
