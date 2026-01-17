@@ -16,7 +16,8 @@ import {
   Phone,
   Mail,
   Globe,
-  MapPin
+  MapPin,
+  Gamepad2
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -31,6 +32,7 @@ import type { TFunction } from "i18next";
 const getNavItems = (t: TFunction) => [
   { icon: Newspaper, label: t("nav.feed"), path: "/", badge: null, iconColor: "text-blue-500" },
   { icon: Users, label: t("nav.friends"), path: "/friends", badge: null, iconColor: "text-green-500" },
+  { icon: Gamepad2, label: t("nav.games", { defaultValue: "Games" }), path: "/games", badge: null, iconColor: "text-red-500" },
   { icon: Calendar, label: t("nav.events"), path: "/events", badge: null, iconColor: "text-orange-500" },
   { icon: Bookmark, label: t("nav.saved", { defaultValue: "Saved" }), path: "/saved", badge: null, iconColor: "text-yellow-500" },
   { icon: UsersRound, label: t("nav.groups", { defaultValue: "Groups" }), path: "/groups", badge: null, iconColor: "text-purple-500" },

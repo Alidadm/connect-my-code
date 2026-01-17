@@ -32,6 +32,7 @@ import Settings from "./pages/Settings";
 import Privacy from "./pages/Privacy";
 import HelpSupport from "./pages/HelpSupport";
 import Feedback from "./pages/Feedback";
+import Games from "./pages/Games";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +53,7 @@ const App = () => (
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/commissions" element={<Commissions />} />
             <Route path="/saved" element={<Saved />} />
+            <Route path="/games" element={<Games />} />
             <Route path="/groups" element={<Groups />} />
             <Route path="/groups/:groupId" element={<GroupDetail />} />
             <Route path="/groups/:groupId/post/:postId" element={<GroupPostView />} />
