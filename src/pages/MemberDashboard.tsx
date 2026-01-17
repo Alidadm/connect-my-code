@@ -1196,12 +1196,21 @@ const MemberDashboard = () => {
                 {getMenuItems(t).find(item => item.id === activeTab)?.description}
               </p>
             </div>
-            <Avatar className="w-10 h-10 border-2 border-slate-200">
-              <AvatarImage src={profile?.avatar_url || ""} />
-              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-cyan-500 text-white">
-                {formData.display_name?.charAt(0) || "U"}
-              </AvatarFallback>
-            </Avatar>
+            <button
+              onClick={() => setAvatarEditorOpen(true)}
+              className="relative group"
+              title="Edit Avatar"
+            >
+              <Avatar className="w-10 h-10 border-2 border-slate-200 group-hover:border-primary transition-colors">
+                <AvatarImage src={profile?.avatar_url || ""} />
+                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-cyan-500 text-white">
+                  {formData.display_name?.charAt(0) || "U"}
+                </AvatarFallback>
+              </Avatar>
+              <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <Camera className="w-4 h-4 text-white" />
+              </div>
+            </button>
           </div>
         </div>
 
