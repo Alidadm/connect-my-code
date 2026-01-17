@@ -11,8 +11,7 @@ import {
   Settings,
   Crown,
   Plus,
-  Loader2,
-  Camera
+  Loader2
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -22,8 +21,6 @@ import { useMemberStats, useUserGroups, formatCount } from "@/hooks/useMemberSta
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
-import { AvatarEditor } from "@/components/avatar/AvatarEditor";
-import { CoverEditor } from "@/components/cover/CoverEditor";
 
 const getNavItems = (t: TFunction) => [
   { icon: Newspaper, label: t("nav.feed"), path: "/", badge: null, iconColor: "text-blue-500" },
@@ -42,20 +39,17 @@ const demoProfile = {
   display_name: "Jakob Botosh",
   username: "jakobbtsh",
   avatar_url: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop",
-  cover_url: "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=400&h=150&fit=crop",
   is_verified: true,
 };
 
 export const LeftSidebar = () => {
   const { t } = useTranslation();
-  const { user, profile, refreshProfile } = useAuth();
+  const { user, profile } = useAuth();
   const { data: memberStats } = useMemberStats();
   const { data: userGroups } = useUserGroups();
   const navigate = useNavigate();
   const location = useLocation();
   const [isNavigatingToCreate, setIsNavigatingToCreate] = useState(false);
-  const [avatarEditorOpen, setAvatarEditorOpen] = useState(false);
-  const [coverEditorOpen, setCoverEditorOpen] = useState(false);
 
   const handleCreateGroup = () => {
     setIsNavigatingToCreate(true);
@@ -65,7 +59,6 @@ export const LeftSidebar = () => {
   const displayName = profile?.display_name || demoProfile.display_name;
   const username = profile?.username || user?.email?.split("@")[0] || demoProfile.username;
   const avatarUrl = profile?.avatar_url || demoProfile.avatar_url;
-  const coverUrl = profile?.cover_url || demoProfile.cover_url;
   const isVerified = profile?.is_verified ?? demoProfile.is_verified;
 
   // Use real stats for logged-in users, demo stats for guests
@@ -78,54 +71,16 @@ export const LeftSidebar = () => {
   return (
     <aside className="w-[280px] flex-shrink-0 hidden lg:block">
       <div className="fixed w-[280px] h-[calc(100vh-64px)] overflow-y-auto scrollbar-hide pt-4 pb-8 pr-2">
-        {/* Profile Card with Cover Photo */}
-        <div className="bg-card rounded-xl mb-4 border border-border overflow-hidden">
-          {/* Cover Photo */}
-          <div className="relative h-20 bg-gradient-to-br from-primary/30 to-primary/10 group">
-            {coverUrl ? (
-              <img 
-                src={coverUrl} 
-                alt="Cover" 
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full bg-gradient-to-br from-blue-500/30 to-cyan-500/30" />
-            )}
-            {user && (
-              <button 
-                onClick={() => setCoverEditorOpen(true)}
-                className="absolute bottom-2 right-2 p-1.5 rounded-full bg-black/50 hover:bg-black/70 text-white transition-all opacity-0 group-hover:opacity-100"
-                title="Edit Cover"
-              >
-                <Camera className="w-3 h-3" />
-              </button>
-            )}
-          </div>
-          
-          {/* Avatar overlapping cover */}
-          <div className="relative px-4 pb-3">
-            <div className="absolute -top-8 left-4">
-              <div className="relative group/avatar">
-                <Avatar className="h-14 w-14 ring-4 ring-card">
-                  <AvatarImage src={avatarUrl} />
-                  <AvatarFallback className="bg-gradient-to-br from-primary to-weshare-purple text-primary-foreground">
-                    {displayName?.[0]?.toUpperCase() || "U"}
-                  </AvatarFallback>
-                </Avatar>
-                {user && (
-                  <button 
-                    onClick={() => setAvatarEditorOpen(true)}
-                    className="absolute bottom-0 right-0 w-5 h-5 rounded-full bg-primary flex items-center justify-center shadow-lg opacity-0 group-hover/avatar:opacity-100 transition-opacity"
-                    title="Edit Avatar"
-                  >
-                    <Camera className="w-2.5 h-2.5 text-white" />
-                  </button>
-                )}
-              </div>
-            </div>
-            
-            {/* Profile Info */}
-            <div className="pt-8">
+        {/* Profile Card */}
+        <div className="bg-card rounded-xl p-4 mb-4 border border-border">
+          <div className="flex items-center gap-3 mb-4">
+            <Avatar className="h-12 w-12">
+              <AvatarImage src={avatarUrl} />
+              <AvatarFallback className="bg-gradient-to-br from-primary to-weshare-purple text-primary-foreground">
+                {displayName?.[0]?.toUpperCase() || "U"}
+              </AvatarFallback>
+            </Avatar>
+            <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1">
                 <span className="font-semibold text-foreground truncate">
                   {displayName}
@@ -141,7 +96,7 @@ export const LeftSidebar = () => {
           </div>
           
           {/* Stats */}
-          <div className="flex justify-between text-center border-t border-border px-4 py-3">
+          <div className="flex justify-between text-center border-t border-border pt-3">
             <div className="flex-1">
               <div className="font-bold text-foreground">{followers}</div>
               <div className="text-xs text-muted-foreground">{t("friends.followers")}</div>
@@ -156,29 +111,6 @@ export const LeftSidebar = () => {
             </div>
           </div>
         </div>
-
-        {/* Avatar Editor Modal */}
-        {user && (
-          <AvatarEditor
-            open={avatarEditorOpen}
-            onOpenChange={setAvatarEditorOpen}
-            onAvatarSaved={() => refreshProfile()}
-            userId={user.id}
-            currentAvatar={profile?.avatar_url || undefined}
-            userName={displayName}
-          />
-        )}
-        
-        {/* Cover Editor Modal */}
-        {user && (
-          <CoverEditor
-            open={coverEditorOpen}
-            onOpenChange={setCoverEditorOpen}
-            onCoverSaved={() => refreshProfile()}
-            userId={user.id}
-            currentCover={profile?.cover_url || undefined}
-          />
-        )}
 
         {/* Navigation */}
         <nav className="bg-card rounded-xl p-2 mb-4 border border-border">
