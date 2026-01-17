@@ -836,6 +836,54 @@ export type Database = {
         }
         Relationships: []
       }
+      memory_match_games: {
+        Row: {
+          cards: string[]
+          created_at: string
+          current_turn: string
+          id: string
+          matched: string[]
+          player_1: string
+          player_1_score: number
+          player_2: string | null
+          player_2_score: number
+          revealed: string[]
+          status: string
+          updated_at: string
+          winner: string | null
+        }
+        Insert: {
+          cards?: string[]
+          created_at?: string
+          current_turn: string
+          id?: string
+          matched?: string[]
+          player_1: string
+          player_1_score?: number
+          player_2?: string | null
+          player_2_score?: number
+          revealed?: string[]
+          status?: string
+          updated_at?: string
+          winner?: string | null
+        }
+        Update: {
+          cards?: string[]
+          created_at?: string
+          current_turn?: string
+          id?: string
+          matched?: string[]
+          player_1?: string
+          player_1_score?: number
+          player_2?: string | null
+          player_2_score?: number
+          revealed?: string[]
+          status?: string
+          updated_at?: string
+          winner?: string | null
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           content: string
