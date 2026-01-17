@@ -6,6 +6,7 @@ import { PostCard } from "./PostCard";
 import { DemoPostCard } from "./DemoPostCard";
 import { PullToRefreshIndicator } from "./PullToRefreshIndicator";
 import { ProfileTabContent } from "./ProfileTabContent";
+import { TodaysBirthdays } from "./TodaysBirthdays";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, ChevronDown, Check } from "lucide-react";
@@ -337,6 +338,9 @@ export const Feed = () => {
       {/* Show tab content based on active tab */}
       {activeTab === "feed" || activeTab === "posts" ? (
         <>
+          {/* Today's Birthdays section */}
+          <TodaysBirthdays />
+
           {user ? <PostCreator onPostCreated={() => fetchPosts(0, false)} /> : <DemoPostCreator />}
 
           {/* Filter tabs */}
