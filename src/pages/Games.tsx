@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { MainLayout } from "@/components/layout/MainLayout";
@@ -9,7 +9,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TicTacToeGame } from "@/components/games/TicTacToeGame";
 import { InviteFriendToGameDialog } from "@/components/games/InviteFriendToGameDialog";
-import { Gamepad2, Plus, Clock, Trophy, Users, Loader2 } from "lucide-react";
+import { GameStats } from "@/components/games/GameStats";
+import { Gamepad2, Plus, Clock, Trophy, Users, Loader2, History } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
@@ -162,6 +163,15 @@ const Games = () => {
     }
   };
 
+  // Calculate stats
+  const stats = useMemo(() => {
+    const completedGames = games.filter(g => g.status === 'completed' || g.status === 'draw');
+    const wins = completedGames.filter(g => g.winner === user?.id).length;
+    const losses = completedGames.filter(g => g.status === 'completed' && g.winner && g.winner !== user?.id).length;
+    const draws = completedGames.filter(g => g.status === 'draw').length;
+    return { wins, losses, draws };
+  }, [games, user?.id]);
+
   if (!user) {
     return (
       <MainLayout>
@@ -214,6 +224,9 @@ const Games = () => {
           </Button>
         </div>
 
+        {/* Stats Card */}
+        <GameStats wins={stats.wins} losses={stats.losses} draws={stats.draws} />
+
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -243,8 +256,14 @@ const Games = () => {
                     </Badge>
                   )}
                 </TabsTrigger>
-                <TabsTrigger value="completed">
-                  {t("games.completedGames", { defaultValue: "Completed" })}
+                <TabsTrigger value="completed" className="gap-1">
+                  <History className="w-4 h-4" />
+                  {t("games.history", { defaultValue: "History" })}
+                  {filterGames("completed").length > 0 && (
+                    <Badge variant="outline" className="ml-1">
+                      {filterGames("completed").length}
+                    </Badge>
+                  )}
                 </TabsTrigger>
               </TabsList>
 
