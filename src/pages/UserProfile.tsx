@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { 
-  MapPin, Calendar, Users, Link as LinkIcon, 
+  MapPin, Calendar, Users, 
   MessageCircle, UserPlus, MoreHorizontal, ArrowLeft,
-  CheckCircle2, Image as ImageIcon, Camera, UserCheck, Clock, UserMinus, X
+  CheckCircle2, Camera, UserCheck, Clock, UserMinus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -15,10 +14,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { CoverEditor } from "@/components/cover/CoverEditor";
 import { AvatarEditor } from "@/components/avatar/AvatarEditor";
+import { ProfileTabContent } from "@/components/feed/ProfileTabContent";
+import { PostCard } from "@/components/feed/PostCard";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { useQuery } from "@tanstack/react-query";
 
 type FriendshipStatus = "none" | "pending_sent" | "pending_received" | "accepted";
+type ProfileTab = "posts" | "photos" | "videos" | "friends" | "mutual";
 
 interface PublicProfile {
   user_id: string;
@@ -78,6 +81,24 @@ const UserProfile = () => {
   const [loadingFriends, setLoadingFriends] = useState(false);
   const [mutualFriends, setMutualFriends] = useState<FriendProfile[]>([]);
   const [loadingMutualFriends, setLoadingMutualFriends] = useState(false);
+  const [activeTab, setActiveTab] = useState<ProfileTab>("posts");
+
+  // Fetch user posts when on posts tab
+  const { data: userPosts = [], isLoading: loadingPosts } = useQuery({
+    queryKey: ["user-posts", profile?.user_id],
+    queryFn: async () => {
+      if (!profile?.user_id) return [];
+      const { data, error } = await supabase
+        .from("posts")
+        .select("*")
+        .eq("user_id", profile.user_id)
+        .order("created_at", { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!profile?.user_id && activeTab === "posts",
+  });
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -101,7 +122,6 @@ const UserProfile = () => {
           setNotFound(true);
         } else {
           setProfile(data);
-          // Fetch friends count and posts count
           fetchUserStats(data.user_id);
         }
       } catch (err) {
@@ -113,7 +133,6 @@ const UserProfile = () => {
     };
 
     const fetchUserStats = async (userId: string) => {
-      // Fetch friends count (accepted friendships where user is either requester or addressee)
       const [friendsResult, postsResult] = await Promise.all([
         supabase
           .from("friendships")
@@ -147,14 +166,12 @@ const UserProfile = () => {
 
       setLoadingMutualFriends(true);
       try {
-        // Get current user's friends
         const { data: myFriendships } = await supabase
           .from("friendships")
           .select("requester_id, addressee_id")
           .eq("status", "accepted")
           .or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`);
 
-        // Get profile user's friends
         const { data: theirFriendships } = await supabase
           .from("friendships")
           .select("requester_id, addressee_id")
@@ -166,17 +183,14 @@ const UserProfile = () => {
           return;
         }
 
-        // Extract friend IDs for current user
         const myFriendIds = new Set(
           myFriendships.map(f => f.requester_id === user.id ? f.addressee_id : f.requester_id)
         );
 
-        // Extract friend IDs for profile user
         const theirFriendIds = theirFriendships.map(f => 
           f.requester_id === profile.user_id ? f.addressee_id : f.requester_id
         );
 
-        // Find intersection (mutual friends)
         const mutualFriendIds = theirFriendIds.filter(id => myFriendIds.has(id));
 
         if (mutualFriendIds.length === 0) {
@@ -184,7 +198,6 @@ const UserProfile = () => {
           return;
         }
 
-        // Fetch profiles for mutual friends
         const { data: profiles } = await supabase
           .from("profiles")
           .select("user_id, username, display_name, avatar_url, is_verified")
@@ -211,7 +224,6 @@ const UserProfile = () => {
         return;
       }
 
-      // Check if there's any friendship record between the two users
       const { data, error } = await supabase
         .from("friendships")
         .select("id, requester_id, addressee_id, status")
@@ -402,7 +414,6 @@ const UserProfile = () => {
     setLoadingFriends(true);
 
     try {
-      // Fetch all accepted friendships for this user
       const { data: friendships, error } = await supabase
         .from("friendships")
         .select("requester_id, addressee_id")
@@ -414,7 +425,6 @@ const UserProfile = () => {
         return;
       }
 
-      // Get friend user IDs (the other party in each friendship)
       const friendIds = friendships.map(f => 
         f.requester_id === profile.user_id ? f.addressee_id : f.requester_id
       );
@@ -424,7 +434,6 @@ const UserProfile = () => {
         return;
       }
 
-      // Fetch profiles for all friends
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
         .select("user_id, username, display_name, avatar_url, is_verified")
@@ -447,6 +456,19 @@ const UserProfile = () => {
       navigate(`/user/${friendUsername}`);
     }
   };
+
+  const tabs: { id: ProfileTab; label: string }[] = [
+    { id: "posts", label: t("feed.posts", { defaultValue: "Posts" }) },
+    { id: "photos", label: t("feed.photos", { defaultValue: "Photos" }) },
+    { id: "videos", label: t("feed.videos", { defaultValue: "Videos" }) },
+    { id: "friends", label: t("nav.friends", { defaultValue: "Friends" }) },
+  ];
+
+  // Add mutual tab for non-own profiles
+  const isOwnProfile = user?.id === profile?.user_id;
+  if (!isOwnProfile && user) {
+    tabs.push({ id: "mutual", label: t("profile.mutualFriends", { defaultValue: "Mutual" }) });
+  }
 
   if (loading) {
     return (
@@ -488,8 +510,6 @@ const UserProfile = () => {
       </div>
     );
   }
-
-  const isOwnProfile = user?.id === profile?.user_id;
 
   const handleCoverSaved = (newCoverUrl: string) => {
     setProfile(prev => prev ? { ...prev, cover_url: newCoverUrl || null } : null);
@@ -744,55 +764,87 @@ const UserProfile = () => {
           </div>
         </div>
 
-        {/* Tabs */}
-        <Tabs defaultValue="posts" className="px-4 py-4">
-          <TabsList className="w-full justify-start bg-muted/50 flex-wrap">
-            <TabsTrigger value="posts">{t("feed.posts", { defaultValue: "Posts" })}</TabsTrigger>
-            <TabsTrigger value="photos">{t("feed.photos", { defaultValue: "Photos" })}</TabsTrigger>
-            <TabsTrigger value="friends">{t("nav.friends", { defaultValue: "Friends" })}</TabsTrigger>
-            {!isOwnProfile && user && (
-              <TabsTrigger value="mutual" className="flex items-center gap-1.5">
-                <Users className="w-4 h-4" />
-                {t("profile.mutualFriends", { defaultValue: "Mutual Friends" })}
-                {mutualFriends.length > 0 && (
-                  <span className="bg-primary text-primary-foreground text-xs rounded-full px-1.5 py-0.5 min-w-[1.25rem]">
+        {/* Tab Navigation */}
+        <div className="border-b bg-card sticky top-0 z-10">
+          <nav className="flex overflow-x-auto scrollbar-hide">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === tab.id
+                    ? "border-primary text-primary"
+                    : "border-transparent text-muted-foreground hover:text-foreground hover:border-muted"
+                }`}
+              >
+                {tab.label}
+                {tab.id === "mutual" && mutualFriends.length > 0 && (
+                  <span className="ml-1.5 bg-primary text-primary-foreground text-xs rounded-full px-1.5 py-0.5 min-w-[1.25rem]">
                     {mutualFriends.length}
                   </span>
                 )}
-              </TabsTrigger>
-            )}
-          </TabsList>
+              </button>
+            ))}
+          </nav>
+        </div>
 
-          <TabsContent value="posts" className="mt-4">
-            <div className="text-center py-12 text-muted-foreground">
-              <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
-                <MessageCircle className="w-8 h-8" />
-              </div>
-              <p>{t("profile.noPostsYet", { defaultValue: "No posts yet" })}</p>
+        {/* Tab Content */}
+        <div className="p-4">
+          {activeTab === "posts" && (
+            <div className="space-y-4">
+              {loadingPosts ? (
+                <div className="space-y-4">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="bg-card rounded-lg p-4 border">
+                      <div className="flex items-center gap-3 mb-4">
+                        <Skeleton className="w-10 h-10 rounded-full" />
+                        <div className="space-y-2">
+                          <Skeleton className="h-4 w-32" />
+                          <Skeleton className="h-3 w-24" />
+                        </div>
+                      </div>
+                      <Skeleton className="h-20 w-full" />
+                    </div>
+                  ))}
+                </div>
+              ) : userPosts.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+                    <MessageCircle className="w-8 h-8" />
+                  </div>
+                  <p>{t("profile.noPostsYet", { defaultValue: "No posts yet" })}</p>
+                </div>
+              ) : (
+                userPosts.map((post) => (
+                  <PostCard key={post.id} post={post} />
+                ))
+              )}
             </div>
-          </TabsContent>
+          )}
 
-          <TabsContent value="photos" className="mt-4">
-            <div className="text-center py-12 text-muted-foreground">
-              <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
-                <ImageIcon className="w-8 h-8" />
-              </div>
-              <p>{t("profile.noPhotosYet", { defaultValue: "No photos yet" })}</p>
-            </div>
-          </TabsContent>
+          {activeTab === "photos" && profile?.user_id && (
+            <ProfileTabContent 
+              activeTab="photos" 
+              userId={profile.user_id} 
+            />
+          )}
 
-          <TabsContent value="friends" className="mt-4">
-            <div className="text-center py-12 text-muted-foreground">
-              <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
-                <Users className="w-8 h-8" />
-              </div>
-              <p>{t("friends.noFriends", { defaultValue: "No friends to show" })}</p>
-            </div>
-          </TabsContent>
+          {activeTab === "videos" && profile?.user_id && (
+            <ProfileTabContent 
+              activeTab="videos" 
+              userId={profile.user_id} 
+            />
+          )}
 
-          {/* Mutual Friends Tab - Only visible when viewing someone else's profile */}
-          {!isOwnProfile && user && (
-            <TabsContent value="mutual" className="mt-4">
+          {activeTab === "friends" && profile?.user_id && (
+            <ProfileTabContent 
+              activeTab="friends" 
+              userId={profile.user_id} 
+            />
+          )}
+
+          {activeTab === "mutual" && !isOwnProfile && user && (
+            <div className="space-y-4">
               {loadingMutualFriends ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {[1, 2, 3, 4].map((i) => (
@@ -855,9 +907,9 @@ const UserProfile = () => {
                   </div>
                 </div>
               )}
-            </TabsContent>
+            </div>
           )}
-        </Tabs>
+        </div>
 
         {/* Friends List Modal */}
         <Dialog open={showFriendsModal} onOpenChange={setShowFriendsModal}>
@@ -871,10 +923,10 @@ const UserProfile = () => {
             <ScrollArea className="max-h-[60vh]">
               {loadingFriends ? (
                 <div className="space-y-3 p-2">
-                  {[1, 2, 3].map((i) => (
+                  {[1, 2, 3, 4].map((i) => (
                     <div key={i} className="flex items-center gap-3">
                       <Skeleton className="w-12 h-12 rounded-full" />
-                      <div className="space-y-2">
+                      <div className="flex-1 space-y-2">
                         <Skeleton className="h-4 w-32" />
                         <Skeleton className="h-3 w-24" />
                       </div>
@@ -883,16 +935,15 @@ const UserProfile = () => {
                 </div>
               ) : friendsList.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
-                  <Users className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                  <p>{t("friends.noFriends", { defaultValue: "No friends yet" })}</p>
+                  <p>{t("friends.noFriends", { defaultValue: "No friends to show" })}</p>
                 </div>
               ) : (
-                <div className="space-y-1 p-2">
+                <div className="space-y-2 p-2">
                   {friendsList.map((friend) => (
                     <button
                       key={friend.user_id}
                       onClick={() => handleFriendClick(friend.username)}
-                      className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-muted transition-colors text-left"
+                      className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent transition-colors w-full text-left"
                     >
                       <Avatar className="w-12 h-12">
                         <AvatarImage src={friend.avatar_url || ""} />
