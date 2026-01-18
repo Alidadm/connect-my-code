@@ -347,18 +347,7 @@ const MemberDashboard = () => {
       </div>
 
       <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <Label htmlFor="username">Username</Label>
-          {formData.username && (
-            <Link 
-              to={`/${formData.username}`} 
-              className="text-xs text-primary hover:underline flex items-center gap-1"
-              target="_blank"
-            >
-              View Profile <ExternalLink className="w-3 h-3" />
-            </Link>
-          )}
-        </div>
+        <Label htmlFor="username">Username</Label>
         <div className="relative">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">@</span>
           <Input
