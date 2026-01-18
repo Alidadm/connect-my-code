@@ -4,7 +4,7 @@ import {
   MoreHorizontal, Filter, LayoutGrid, Table, List, ChevronRight, ChevronDown,
   Folder, Home, Calendar, FileText, Send, Mic, Phone, Video, X,
   Play, Clock, Link2, PanelLeftClose, PanelLeft, LayoutDashboard, ListOrdered, AlertTriangle, Mail,
-  Shield, CreditCard, BarChart3, Layers, Megaphone, Lock, Code, UserCog, Database, Flag, Wallet
+  Shield, CreditCard, BarChart3, Layers, Megaphone, Lock, Code, UserCog, Database, Flag, Wallet, LogOut
 } from "lucide-react";
 import { AdminStatsCards } from "@/components/admin/AdminStatsCards";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,8 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 // Demo data
 const favoriteProjects = [
@@ -258,6 +260,17 @@ const AdminIndex = () => {
         <div className="flex flex-col items-center gap-2">
           <button className="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 flex items-center justify-center transition-colors group">
             <Settings className="w-5 h-5 text-slate-400 group-hover:text-white" />
+          </button>
+          <button 
+            onClick={async () => {
+              await supabase.auth.signOut();
+              toast.success("Logged out successfully");
+              navigate("/login");
+            }}
+            className="w-10 h-10 rounded-xl bg-slate-800 hover:bg-red-600 flex items-center justify-center transition-colors group"
+            title="Logout"
+          >
+            <LogOut className="w-5 h-5 text-slate-400 group-hover:text-white" />
           </button>
           <Avatar className="w-10 h-10 border-2 border-slate-700">
             <AvatarImage src="https://i.pravatar.cc/40?img=12" />
