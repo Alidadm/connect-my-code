@@ -1070,7 +1070,8 @@ const UserList = () => {
                           variant="ghost" 
                           size="icon" 
                           className="h-8 w-8 text-green-500 hover:bg-green-50 hover:text-green-600"
-                          onClick={() => navigate(`/profile/${user.user_id}`)}
+                          onClick={() => user.username ? navigate(`/${user.username}`) : null}
+                          disabled={!user.username}
                           title="View Member Profile"
                         >
                           <ExternalLink className="w-4 h-4" />
@@ -1109,7 +1110,10 @@ const UserList = () => {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => navigate(`/profile/${user.user_id}`)}>
+                            <DropdownMenuItem 
+                              onClick={() => user.username ? navigate(`/${user.username}`) : null}
+                              disabled={!user.username}
+                            >
                               <ExternalLink className="w-4 h-4 mr-2" />
                               View Profile
                             </DropdownMenuItem>
