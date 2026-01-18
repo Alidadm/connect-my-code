@@ -1,6 +1,5 @@
-import { Search, Bell, Bookmark, ChevronDown, LogOut, Settings, User, ExternalLink, Menu, X, Shield, LayoutDashboard, UserPlus, Check, Lock, HelpCircle, MessageSquarePlus } from "lucide-react";
+import { Bell, Bookmark, ChevronDown, LogOut, Settings, User, ExternalLink, Shield, LayoutDashboard, UserPlus, Check, Lock, HelpCircle, MessageSquarePlus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -9,7 +8,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -18,6 +16,8 @@ import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { SearchDropdown } from "./SearchDropdown";
+import { MobileSearchDropdown } from "./MobileSearchDropdown";
 
 interface FriendRequest {
   id: string;
@@ -167,14 +167,8 @@ export const Header = () => {
         </div>
 
         {/* Search - Desktop */}
-        <div className="flex-1 max-w-md mx-2 sm:mx-4 hidden sm:block">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search"
-              className="pl-10 bg-secondary border-0 focus-visible:ring-1 focus-visible:ring-primary rounded-full h-10"
-            />
-          </div>
+        <div className="hidden sm:block flex-1">
+          <SearchDropdown />
         </div>
 
         {/* Search - Mobile */}
@@ -376,16 +370,7 @@ export const Header = () => {
 
       {/* Mobile Search Bar */}
       {searchOpen && (
-        <div className="absolute top-full left-0 right-0 p-2 bg-card border-b border-border sm:hidden">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search"
-              className="pl-10 bg-secondary border-0 focus-visible:ring-1 focus-visible:ring-primary rounded-full"
-              autoFocus
-            />
-          </div>
-        </div>
+        <MobileSearchDropdown onClose={() => setSearchOpen(false)} />
       )}
     </header>
   );
