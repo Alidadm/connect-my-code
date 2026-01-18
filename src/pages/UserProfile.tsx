@@ -112,6 +112,11 @@ const UserProfile = () => {
 
   useEffect(() => {
     const fetchProfile = async () => {
+      // Reset state for fresh fetch (important when auth/session is restored after first render)
+      setLoading(true);
+      setNotFound(false);
+      setProfile(null);
+
       if (!username) {
         setNotFound(true);
         setLoading(false);
@@ -122,16 +127,21 @@ const UserProfile = () => {
         // Use safe_profiles view to access public profile data (profiles table has RLS restricting to own profile only)
         const { data, error } = await supabase
           .from("safe_profiles")
-          .select("user_id, username, display_name, avatar_url, cover_url, bio, location, country, is_verified, created_at")
+          .select(
+            "user_id, username, display_name, avatar_url, cover_url, bio, location, country, is_verified, created_at"
+          )
           .eq("username", username.toLowerCase())
           .maybeSingle();
 
         if (error) {
           console.error("Error fetching profile:", error);
           setNotFound(true);
+          setProfile(null);
         } else if (!data) {
           setNotFound(true);
+          setProfile(null);
         } else {
+          setNotFound(false);
           setProfile(data);
           fetchUserStats(data.user_id);
           // Check if profile owner has blocked the current user
@@ -142,6 +152,7 @@ const UserProfile = () => {
       } catch (err) {
         console.error("Error:", err);
         setNotFound(true);
+        setProfile(null);
       } finally {
         setLoading(false);
       }
