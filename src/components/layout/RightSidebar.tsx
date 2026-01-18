@@ -868,75 +868,88 @@ export const RightSidebar = () => {
         </div>
 
         {/* Tic-Tac-Toe Games */}
-        <div className="bg-card rounded-xl p-4 border border-border">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <Gamepad2 className="h-5 w-5 text-primary" />
-              <h3 className="font-semibold text-foreground">{t("sidebar.ticTacToe", "Tic-Tac-Toe")}</h3>
-            </div>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="h-7 text-xs text-muted-foreground hover:text-foreground"
-              onClick={() => navigate("/games")}
-            >
-              {t("sidebar.viewAll", "View All")}
-            </Button>
-          </div>
-
-          <div className="space-y-2">
-            {activeGames.length === 0 ? (
-              <div className="text-center py-4">
-                <p className="text-sm text-muted-foreground mb-2">{t("sidebar.noActiveGames", "No active games")}</p>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => navigate("/games")}
-                  className="gap-2"
-                >
-                  <Play className="h-3 w-3" />
-                  {t("sidebar.startGame", "Start a Game")}
-                </Button>
+        <div className="relative rounded-xl p-4 border border-primary/20 overflow-hidden">
+          {/* Background with gradient and pattern */}
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-accent/20 to-secondary/30 dark:from-primary/20 dark:via-accent/15 dark:to-secondary/20" />
+          <div 
+            className="absolute inset-0 opacity-[0.07]"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+            }}
+          />
+          
+          <div className="relative">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-primary/20">
+                  <Gamepad2 className="h-4 w-4 text-primary" />
+                </div>
+                <h3 className="font-semibold text-foreground">{t("sidebar.ticTacToe", "Tic-Tac-Toe")}</h3>
               </div>
-            ) : (
-              activeGames.map((game) => (
-                <div
-                  key={game.id}
-                  onClick={() => navigate(`/games?game=${game.id}`)}
-                  className={cn(
-                    "flex items-center gap-3 p-2 -mx-2 rounded-lg hover:bg-secondary/50 cursor-pointer transition-colors",
-                    game.isMyTurn && "bg-primary/5 ring-1 ring-primary/20"
-                  )}
-                >
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={game.opponent?.avatar_url || undefined} />
-                    <AvatarFallback className="bg-secondary text-xs">
-                      {game.opponent?.display_name?.charAt(0) || "?"}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-foreground truncate">
-                      {game.opponent?.display_name || t("games.waitingForPlayer", "Waiting...")}
-                    </div>
-                    <div className="flex items-center gap-1 text-xs">
-                      {game.isMyTurn ? (
-                        <>
-                          <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-                          <span className="text-green-600 dark:text-green-400 font-medium">
-                            {game.status === 'pending' ? t("games.acceptInvite", "Accept invite") : t("games.yourTurn", "Your turn!")}
-                          </span>
-                        </>
-                      ) : (
-                        <>
-                          <Clock className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-muted-foreground">{t("games.waitingMove", "Waiting...")}</span>
-                        </>
-                      )}
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-7 text-xs text-muted-foreground hover:text-foreground hover:bg-background/50"
+                onClick={() => navigate("/games")}
+              >
+                {t("sidebar.viewAll", "View All")}
+              </Button>
+            </div>
+
+            <div className="space-y-2">
+              {activeGames.length === 0 ? (
+                <div className="text-center py-4 bg-background/40 rounded-lg backdrop-blur-sm">
+                  <p className="text-sm text-muted-foreground mb-2">{t("sidebar.noActiveGames", "No active games")}</p>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => navigate("/games")}
+                    className="gap-2 bg-background/80"
+                  >
+                    <Play className="h-3 w-3" />
+                    {t("sidebar.startGame", "Start a Game")}
+                  </Button>
+                </div>
+              ) : (
+                activeGames.map((game) => (
+                  <div
+                    key={game.id}
+                    onClick={() => navigate(`/games?game=${game.id}`)}
+                    className={cn(
+                      "flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-all bg-background/50 backdrop-blur-sm hover:bg-background/70",
+                      game.isMyTurn && "bg-background/70 ring-1 ring-primary/30 shadow-sm"
+                    )}
+                  >
+                    <Avatar className="h-8 w-8 ring-2 ring-background">
+                      <AvatarImage src={game.opponent?.avatar_url || undefined} />
+                      <AvatarFallback className="bg-secondary text-xs">
+                        {game.opponent?.display_name?.charAt(0) || "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium text-foreground truncate">
+                        {game.opponent?.display_name || t("games.waitingForPlayer", "Waiting...")}
+                      </div>
+                      <div className="flex items-center gap-1 text-xs">
+                        {game.isMyTurn ? (
+                          <>
+                            <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                            <span className="text-green-600 dark:text-green-400 font-medium">
+                              {game.status === 'pending' ? t("games.acceptInvite", "Accept invite") : t("games.yourTurn", "Your turn!")}
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <Clock className="h-3 w-3 text-muted-foreground" />
+                            <span className="text-muted-foreground">{t("games.waitingMove", "Waiting...")}</span>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))
-            )}
+                ))
+              )}
+            </div>
           </div>
         </div>
       </div>
