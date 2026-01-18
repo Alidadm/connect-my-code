@@ -424,10 +424,10 @@ const MemberDashboard = () => {
       <div className="space-y-2">
         <Label htmlFor="location">Location</Label>
         <div className="relative">
-          {profile?.country && (
+          {profile?.country && countryNames[profile.country] && (
             <img 
               src={`https://flagcdn.com/w20/${profile.country.toLowerCase()}.png`}
-              alt={countryNames[profile.country] || profile.country}
+              alt={countryNames[profile.country]}
               className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-auto rounded-sm"
             />
           )}
@@ -436,13 +436,8 @@ const MemberDashboard = () => {
             value={formData.location}
             onChange={(e) => setFormData({ ...formData, location: e.target.value })}
             placeholder="City"
-            className={profile?.country ? "pl-10 pr-28 border-slate-200" : "border-slate-200"}
+            className={profile?.country && countryNames[profile.country] ? "pl-10 border-slate-200" : "border-slate-200"}
           />
-          {profile?.country && (
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground whitespace-nowrap">
-              {countryNames[profile.country] || profile.country}
-            </span>
-          )}
         </div>
         <p className="text-xs text-slate-400">Enter your city. Country is detected automatically.</p>
       </div>
