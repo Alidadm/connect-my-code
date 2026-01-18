@@ -385,32 +385,54 @@ export const MemoryMatchGame = ({ gameId, onBack }: MemoryMatchGameProps) => {
                 <p className="text-muted-foreground">{t("games.opponentTurn", { defaultValue: "Waiting for opponent..." })}</p>
               )}
             </div>
-            <div className={`grid gap-2 ${difficultyConfig.cols === 3 ? "grid-cols-3" : "grid-cols-4"}`}>
-              {game.cards.map((emoji: string, index: number) => {
-                const isMatched = game.matched[index] === "matched";
-                const isFlipped = flippedCards.includes(index);
-                const showCard = isMatched || isFlipped;
+            
+            {/* Styled game board container */}
+            <div className="relative p-4 rounded-2xl overflow-hidden">
+              {/* Background with gradient and pattern */}
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/20 via-accent/30 to-secondary/40 dark:from-primary/30 dark:via-accent/20 dark:to-secondary/30" />
+              <div
+                className="absolute inset-0 rounded-2xl opacity-10"
+                style={{
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+                }}
+              />
 
-                return (
-                  <button
-                    key={index}
-                    onClick={() => handleCardClick(index)}
-                    disabled={!isMyTurn || isMatched || flipping}
-                    className={`
-                      aspect-square rounded-lg text-3xl flex items-center justify-center
-                      transition-all duration-300 transform
-                      ${isMatched 
-                        ? "bg-green-100 dark:bg-green-900/30 border-2 border-green-500" 
-                        : showCard 
-                          ? "bg-primary/10 border-2 border-primary" 
-                          : "bg-muted hover:bg-muted/80 border-2 border-border"}
-                      ${!isMyTurn || isMatched || flipping ? "cursor-not-allowed" : "cursor-pointer hover:scale-105"}
-                    `}
-                  >
-                    {showCard ? emoji : "❓"}
-                  </button>
-                );
-              })}
+              {/* Decorative corners */}
+              <div className="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-primary/50 rounded-tl-lg" />
+              <div className="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-primary/50 rounded-tr-lg" />
+              <div className="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-primary/50 rounded-bl-lg" />
+              <div className="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-primary/50 rounded-br-lg" />
+
+              {/* Game grid */}
+              <div className={`relative grid gap-2 ${difficultyConfig.cols === 3 ? "grid-cols-3" : "grid-cols-4"}`}>
+                {game.cards.map((emoji: string, index: number) => {
+                  const isMatched = game.matched[index] === "matched";
+                  const isFlipped = flippedCards.includes(index);
+                  const showCard = isMatched || isFlipped;
+
+                  return (
+                    <button
+                      key={index}
+                      onClick={() => handleCardClick(index)}
+                      disabled={!isMyTurn || isMatched || flipping}
+                      className={`
+                        aspect-square rounded-xl text-3xl flex items-center justify-center
+                        transition-all duration-300 transform backdrop-blur-sm shadow-lg
+                        ${isMatched 
+                          ? "bg-green-500/20 border-2 border-green-500 animate-pulse" 
+                          : showCard 
+                            ? "bg-primary/20 border-2 border-primary" 
+                            : "bg-background/80 border-2 border-border/50 hover:bg-accent/80 hover:border-primary hover:scale-105 hover:shadow-xl"}
+                        ${!isMyTurn || isMatched || flipping ? "cursor-not-allowed" : "cursor-pointer"}
+                      `}
+                    >
+                      <span className={showCard ? "animate-in zoom-in-50 duration-200" : ""}>
+                        {showCard ? emoji : "❓"}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </>
         )}
