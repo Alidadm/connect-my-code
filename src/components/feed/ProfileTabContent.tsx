@@ -1,13 +1,16 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserPhotos, useUserVideos, useUserFriends } from "@/hooks/useProfileTabs";
-import { Video, ImageOff, VideoOff, UserX, BadgeCheck } from "lucide-react";
+import { Video, ImageOff, VideoOff, UserX, BadgeCheck, FileText } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MasonryPhotoGrid } from "./MasonryPhotoGrid";
 import { VideoLightbox } from "./VideoLightbox";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { BlogCard } from "@/components/blog/BlogCard";
 export interface ProfileTabContentProps {
   activeTab: string;
   userId?: string; // Optional - defaults to current auth user
@@ -22,6 +25,10 @@ interface VideosGridProps {
 }
 
 interface FriendsListProps {
+  userId: string | undefined;
+}
+
+interface BlogsGridProps {
   userId: string | undefined;
 }
 
@@ -199,6 +206,93 @@ const FriendsList = ({ userId }: FriendsListProps) => {
   );
 };
 
+const BlogsGrid = ({ userId }: BlogsGridProps) => {
+  const { t } = useTranslation();
+  
+  const { data: blogs, isLoading } = useQuery({
+    queryKey: ["user-blogs", userId],
+    queryFn: async () => {
+      if (!userId) return [];
+      
+      const { data, error } = await supabase
+        .from("blogs")
+        .select(`
+          *,
+          blog_categories (name, color, icon)
+        `)
+        .eq("user_id", userId)
+        .eq("status", "published")
+        .order("published_at", { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!userId,
+  });
+
+  // Fetch author profile
+  const { data: authorProfile } = useQuery({
+    queryKey: ["blog-author", userId],
+    queryFn: async () => {
+      if (!userId) return null;
+      
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("user_id, display_name, avatar_url, username, is_verified")
+        .eq("user_id", userId)
+        .single();
+      
+      if (error) return null;
+      return data;
+    },
+    enabled: !!userId,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+        {[...Array(4)].map((_, i) => (
+          <Skeleton key={i} className="h-64 rounded-lg" />
+        ))}
+      </div>
+    );
+  }
+
+  if (!blogs || blogs.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+        <FileText className="h-12 w-12 mb-3" />
+        <p className="text-sm">{t("profile.noBlogs", "No blogs yet")}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+      {blogs.map((blog) => (
+        <BlogCard
+          key={blog.id}
+          id={blog.id}
+          title={blog.title}
+          excerpt={blog.excerpt}
+          coverImage={blog.cover_image_url}
+          category={blog.blog_categories ? { name: blog.blog_categories.name, color: blog.blog_categories.color || "" } : null}
+          author={{
+            username: authorProfile?.username,
+            displayName: authorProfile?.display_name,
+            avatarUrl: authorProfile?.avatar_url,
+          }}
+          publishedAt={blog.published_at}
+          readingTime={blog.reading_time_minutes || 1}
+          likesCount={blog.likes_count || 0}
+          commentsCount={blog.comments_count || 0}
+          viewsCount={blog.views_count || 0}
+        />
+      ))}
+    </div>
+  );
+};
+
 export const ProfileTabContent = ({ activeTab, userId }: ProfileTabContentProps) => {
   const { user } = useAuth();
   const targetUserId = userId || user?.id;
@@ -210,6 +304,8 @@ export const ProfileTabContent = ({ activeTab, userId }: ProfileTabContentProps)
       return <VideosGrid userId={targetUserId} />;
     case "friends":
       return <FriendsList userId={targetUserId} />;
+    case "blogs":
+      return <BlogsGrid userId={targetUserId} />;
     default:
       return null; // Feed is handled separately
   }
