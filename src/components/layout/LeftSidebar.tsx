@@ -2,13 +2,11 @@ import { useState, useEffect } from "react";
 import { 
   Newspaper, 
   Users, 
-  Calendar, 
   UsersRound, 
   Image, 
   Store,
   BadgeCheck,
   Bookmark,
-  Settings,
   Crown,
   Plus,
   Loader2,
@@ -34,12 +32,10 @@ const getNavItems = (t: TFunction, gameBadge: number | null) => [
   { icon: Newspaper, label: t("nav.feed"), path: "/", badge: null, iconColor: "text-blue-500" },
   { icon: Users, label: t("nav.friends"), path: "/friends", badge: null, iconColor: "text-green-500" },
   { icon: Gamepad2, label: t("nav.games", { defaultValue: "Games" }), path: "/games", badge: gameBadge, iconColor: "text-red-500" },
-  { icon: Calendar, label: t("nav.events"), path: "/events", badge: null, iconColor: "text-orange-500" },
   { icon: Bookmark, label: t("nav.saved", { defaultValue: "Saved" }), path: "/saved", badge: null, iconColor: "text-yellow-500" },
   { icon: UsersRound, label: t("nav.groups", { defaultValue: "Groups" }), path: "/groups", badge: null, iconColor: "text-purple-500" },
   { icon: Image, label: t("nav.photos"), path: "/photos", badge: null, iconColor: "text-pink-500" },
   { icon: Store, label: t("nav.marketplace"), path: "/marketplace", badge: null, iconColor: "text-cyan-500" },
-  { icon: Settings, label: t("nav.settings", { defaultValue: "Settings" }), path: "/dashboard", badge: null, iconColor: "text-gray-500" },
 ];
 
 
