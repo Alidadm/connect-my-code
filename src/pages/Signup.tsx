@@ -743,10 +743,10 @@ export const Signup = () => {
               </p>
 
               <div className="bg-muted/50 rounded-lg p-4 mb-6">
-                <div className="text-center">
-                  <p className="text-3xl font-bold text-foreground">$9.99</p>
-                  <p className="text-sm text-muted-foreground">/month</p>
-                </div>
+                <p className="text-center text-2xl font-bold">
+                  <span className="text-primary">$9.99</span>
+                  <span className="text-muted-foreground font-normal"> / Month</span>
+                </p>
               </div>
 
               <div className="space-y-4">
