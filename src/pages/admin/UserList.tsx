@@ -5,7 +5,7 @@ import { format, subDays, startOfMonth, endOfMonth, subMonths } from "date-fns";
 import {
   Search, Filter, Download, Upload, Plus, MoreHorizontal,
   ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight,
-  Edit, Trash2, Eye, Mail, Phone, ArrowUpDown, ArrowLeft, Loader2, AtSign, Calendar, X, Shield
+  Edit, Trash2, Eye, Mail, Phone, ArrowUpDown, ArrowLeft, Loader2, AtSign, Calendar, X, Shield, ExternalLink
 } from "lucide-react";
 
 // Country name to ISO 2-letter code mapping for flag emojis
@@ -1069,8 +1069,18 @@ const UserList = () => {
                         <Button 
                           variant="ghost" 
                           size="icon" 
+                          className="h-8 w-8 text-green-500 hover:bg-green-50 hover:text-green-600"
+                          onClick={() => navigate(`/profile/${user.user_id}`)}
+                          title="View Member Profile"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
                           className="h-8 w-8 text-blue-500 hover:bg-blue-50 hover:text-blue-600"
                           onClick={() => handleViewUser(user)}
+                          title="View Details"
                         >
                           <Eye className="w-4 h-4" />
                         </Button>
@@ -1079,6 +1089,7 @@ const UserList = () => {
                           size="icon" 
                           className="h-8 w-8 text-amber-500 hover:bg-amber-50 hover:text-amber-600"
                           onClick={() => handleEditUser(user)}
+                          title="Edit User"
                         >
                           <Edit className="w-4 h-4" />
                         </Button>
@@ -1087,6 +1098,7 @@ const UserList = () => {
                           size="icon" 
                           className="h-8 w-8 text-red-500 hover:bg-red-50 hover:text-red-600"
                           onClick={() => handleDeleteUser(user)}
+                          title="Delete User"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -1097,6 +1109,10 @@ const UserList = () => {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => navigate(`/profile/${user.user_id}`)}>
+                              <ExternalLink className="w-4 h-4 mr-2" />
+                              View Profile
+                            </DropdownMenuItem>
                             <DropdownMenuItem>Send Email</DropdownMenuItem>
                             <DropdownMenuItem>Reset Password</DropdownMenuItem>
                             <DropdownMenuItem>View Activity</DropdownMenuItem>
