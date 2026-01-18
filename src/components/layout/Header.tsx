@@ -317,10 +317,6 @@ export const Header = () => {
                     <LayoutDashboard className="mr-2 h-4 w-4" />
                     {t('header.dashboard', { defaultValue: 'Dashboard' })}
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate(`/${profile?.username || ""}`)}>
-                    <User className="mr-2 h-4 w-4" />
-                    {t('header.myProfile')}
-                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => navigate("/settings")}>
                     <Settings className="mr-2 h-4 w-4" />
