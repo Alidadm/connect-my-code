@@ -171,8 +171,8 @@ const MemberDashboard = () => {
       if (!user) return;
       try {
         const { data, error } = await supabase.functions.invoke('get-my-private-profile');
-        if (!error && data?.data) {
-          setPrivateProfile(data.data);
+        if (!error && data) {
+          setPrivateProfile(data);
         }
       } catch (err) {
         console.error("Error fetching private profile:", err);
