@@ -44,6 +44,7 @@ interface BirthdayReminder {
   user_id: string;
   display_name: string | null;
   avatar_url: string | null;
+  username: string | null;
   birthday: Date;
   isToday: boolean;
   isTomorrow: boolean;
@@ -328,7 +329,7 @@ export const RightSidebar = () => {
           if (privateProfiles && privateProfiles.length > 0) {
             const { data: publicProfiles } = await supabase
               .from("profiles")
-              .select("user_id, display_name, avatar_url")
+              .select("user_id, display_name, avatar_url, username")
               .in("user_id", privateProfiles.map(p => p.user_id));
 
             const today = new Date();
@@ -362,6 +363,7 @@ export const RightSidebar = () => {
                   user_id: pp.user_id,
                   display_name: publicProfile?.display_name || null,
                   avatar_url: publicProfile?.avatar_url || null,
+                  username: publicProfile?.username || null,
                   birthday: thisYearBday,
                   isToday: isBirthdayToday,
                   isTomorrow: daysUntil === 1,
@@ -385,7 +387,12 @@ export const RightSidebar = () => {
                         duration: 8000,
                         action: {
                           label: t("sidebar.sendWish", "Send Wish"),
-                          onClick: () => navigate(`/profile/${pp.user_id}?action=post&message=${encodeURIComponent(t("sidebar.birthdayWallPost", "Happy Birthday! 🎂🎉"))}`)
+                          onClick: () => {
+                            const bdayProfile = publicProfiles?.find(p => p.user_id === pp.user_id);
+                            if (bdayProfile?.username) {
+                              navigate(`/${bdayProfile.username}?action=post&message=${encodeURIComponent(t("sidebar.birthdayWallPost", "Happy Birthday! 🎂🎉"))}`);
+                            }
+                          }
                         }
                       }
                     );
@@ -600,7 +607,7 @@ export const RightSidebar = () => {
                   )}
                 >
                   <div 
-                    onClick={() => navigate(`/profile/${bday.user_id}`)}
+                    onClick={() => bday.username && navigate(`/${bday.username}`)}
                     className="flex items-center gap-3 cursor-pointer"
                   >
                     <Avatar className="h-10 w-10">
@@ -648,7 +655,7 @@ export const RightSidebar = () => {
                       className="flex-1 h-8 text-xs gap-1.5 hover:bg-pink-500/10 hover:text-pink-500 hover:border-pink-500/50"
                       onClick={(e) => {
                         e.stopPropagation();
-                        navigate(`/profile/${bday.user_id}?action=post&message=${encodeURIComponent(t("sidebar.birthdayWallPost", "Happy Birthday! 🎂🎉"))}`);
+                        bday.username && navigate(`/${bday.username}?action=post&message=${encodeURIComponent(t("sidebar.birthdayWallPost", "Happy Birthday! 🎂🎉"))}`);
                       }}
                     >
                       <PenLine className="h-3.5 w-3.5" />
@@ -694,7 +701,7 @@ export const RightSidebar = () => {
               {onlineFriends.map((friend) => (
                 <div
                   key={friend.user_id}
-                  onClick={() => navigate(`/profile/${friend.user_id}`)}
+                  onClick={() => friend.username && navigate(`/${friend.username}`)}
                   className="flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-secondary/50 cursor-pointer transition-colors"
                 >
                   <div className="relative">

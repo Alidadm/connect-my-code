@@ -181,7 +181,7 @@ export const MemberCoverHeader = ({ activeTab: externalActiveTab, onTabChange }:
               <div>
                 <div className="flex items-center gap-2">
                   <Link 
-                    to={user ? `/user/${username}` : "#"}
+                    to={user && username ? `/${username}` : "#"}
                     className="text-lg sm:text-xl font-semibold text-foreground hover:text-primary transition-colors truncate"
                   >
                     {displayName}

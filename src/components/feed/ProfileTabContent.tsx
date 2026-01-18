@@ -178,7 +178,7 @@ const FriendsList = ({ userId }: FriendsListProps) => {
       {friends.map((friend) => (
         <Link
           key={friend.id}
-          to={`/user/${friend.username || friend.userId}`}
+          to={`/${friend.username || friend.userId}`}
           className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
         >
           <Avatar className="h-12 w-12">
