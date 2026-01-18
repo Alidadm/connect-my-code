@@ -354,7 +354,14 @@ See you inside DolphySN.`;
                     size="sm" 
                     variant="outline" 
                     className="border-amber-600 text-amber-700 hover:bg-amber-100 dark:hover:bg-amber-900/30"
-                    onClick={() => navigate("/dashboard")}
+                    onClick={() => {
+                      const paypalSection = document.getElementById("paypal-auto-payout-section");
+                      if (paypalSection) {
+                        paypalSection.scrollIntoView({ behavior: "smooth", block: "center" });
+                        // Trigger highlight state
+                        window.dispatchEvent(new CustomEvent("highlight-paypal-input"));
+                      }
+                    }}
                   >
                     <Wallet className="h-4 w-4 mr-2" />
                     Add PayPal Email
@@ -476,7 +483,8 @@ See you inside DolphySN.`;
         {user && (
           <WithdrawalRequestSection 
             pendingEarnings={pendingEarnings} 
-            userId={user.id} 
+            userId={user.id}
+            onPayoutStatusChange={fetchPayoutStatus}
           />
         )}
 

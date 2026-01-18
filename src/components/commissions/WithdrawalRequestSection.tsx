@@ -44,9 +44,10 @@ interface StripeConnectStatus {
 interface WithdrawalRequestSectionProps {
   pendingEarnings: number;
   userId: string;
+  onPayoutStatusChange?: () => void;
 }
 
-const WithdrawalRequestSection = ({ pendingEarnings, userId }: WithdrawalRequestSectionProps) => {
+const WithdrawalRequestSection = ({ pendingEarnings, userId, onPayoutStatusChange }: WithdrawalRequestSectionProps) => {
   const [requests, setRequests] = useState<WithdrawalRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -65,6 +66,22 @@ const WithdrawalRequestSection = ({ pendingEarnings, userId }: WithdrawalRequest
   const [savedPaypalEmail, setSavedPaypalEmail] = useState("");
   const [savingPaypalEmail, setSavingPaypalEmail] = useState(false);
   const [loadingPaypalEmail, setLoadingPaypalEmail] = useState(true);
+  const [highlightPaypal, setHighlightPaypal] = useState(false);
+  
+  // Callback to notify parent when PayPal is saved
+  const [onPaypalSaved, setOnPaypalSaved] = useState<(() => void) | null>(null);
+
+  // Listen for highlight event from parent
+  useEffect(() => {
+    const handleHighlight = () => {
+      setHighlightPaypal(true);
+      // Remove highlight after 3 seconds
+      setTimeout(() => setHighlightPaypal(false), 3000);
+    };
+    
+    window.addEventListener("highlight-paypal-input", handleHighlight);
+    return () => window.removeEventListener("highlight-paypal-input", handleHighlight);
+  }, []);
 
   useEffect(() => {
     fetchWithdrawalRequests();
@@ -133,7 +150,10 @@ const WithdrawalRequestSection = ({ pendingEarnings, userId }: WithdrawalRequest
       }
 
       setSavedPaypalEmail(paypalAutoEmail.trim());
+      setHighlightPaypal(false);
       toast.success("PayPal auto-payout email saved! You'll receive commissions automatically.");
+      // Notify parent to refresh payout status
+      onPayoutStatusChange?.();
     } catch (error: any) {
       toast.error(error.message || "Failed to save PayPal email");
       console.error(error);
@@ -450,7 +470,12 @@ const WithdrawalRequestSection = ({ pendingEarnings, userId }: WithdrawalRequest
             </div>
 
             {/* PayPal Auto-Payout Option */}
-            <div className="p-3 border rounded-lg bg-background">
+            <div 
+              id="paypal-auto-payout-section"
+              className={`p-3 border rounded-lg bg-background transition-all duration-300 ${
+                highlightPaypal ? "ring-2 ring-red-500 border-red-500" : ""
+              }`}
+            >
               <div className="flex items-center gap-2 mb-2">
                 <Mail className="h-4 w-4 text-blue-600" />
                 <span className="font-medium text-sm">PayPal (Email Transfer)</span>
@@ -479,26 +504,32 @@ const WithdrawalRequestSection = ({ pendingEarnings, userId }: WithdrawalRequest
                   </Button>
                 </div>
               ) : (
-                <div className="flex gap-2">
-                  <Input
-                    type="email"
-                    placeholder="PayPal email"
-                    value={paypalAutoEmail}
-                    onChange={(e) => setPaypalAutoEmail(e.target.value)}
-                    className="h-8 text-sm"
-                  />
-                  <Button 
-                    size="sm" 
-                    onClick={savePaypalAutoEmail}
-                    disabled={savingPaypalEmail || !paypalAutoEmail.trim()}
-                    className="h-8"
-                  >
-                    {savingPaypalEmail ? (
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                    ) : (
-                      <Save className="h-3 w-3" />
-                    )}
-                  </Button>
+                <div className="space-y-2">
+                  {highlightPaypal && (
+                    <p className="text-xs text-red-500 font-medium">Please enter your PayPal email to receive payouts</p>
+                  )}
+                  <div className="flex gap-2">
+                    <Input
+                      type="email"
+                      placeholder="PayPal email"
+                      value={paypalAutoEmail}
+                      onChange={(e) => setPaypalAutoEmail(e.target.value)}
+                      className={`h-8 text-sm ${highlightPaypal ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                      autoFocus={highlightPaypal}
+                    />
+                    <Button 
+                      size="sm" 
+                      onClick={savePaypalAutoEmail}
+                      disabled={savingPaypalEmail || !paypalAutoEmail.trim()}
+                      className="h-8"
+                    >
+                      {savingPaypalEmail ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <Save className="h-3 w-3" />
+                      )}
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>
