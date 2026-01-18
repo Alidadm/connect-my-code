@@ -343,7 +343,14 @@ See you inside DolphySN.`;
                     size="sm" 
                     variant="outline" 
                     className="border-amber-600 text-amber-700 hover:bg-amber-100 dark:hover:bg-amber-900/30"
-                    onClick={() => navigate("/dashboard")}
+                    onClick={() => {
+                      const stripeSection = document.getElementById("stripe-auto-payout-section");
+                      if (stripeSection) {
+                        stripeSection.scrollIntoView({ behavior: "smooth", block: "center" });
+                        // Trigger highlight state
+                        window.dispatchEvent(new CustomEvent("highlight-stripe-input"));
+                      }
+                    }}
                   >
                     <CreditCard className="h-4 w-4 mr-2" />
                     Connect Bank Account
