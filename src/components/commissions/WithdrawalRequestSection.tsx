@@ -67,20 +67,31 @@ const WithdrawalRequestSection = ({ pendingEarnings, userId, onPayoutStatusChang
   const [savingPaypalEmail, setSavingPaypalEmail] = useState(false);
   const [loadingPaypalEmail, setLoadingPaypalEmail] = useState(true);
   const [highlightPaypal, setHighlightPaypal] = useState(false);
+  const [highlightStripe, setHighlightStripe] = useState(false);
   
   // Callback to notify parent when PayPal is saved
   const [onPaypalSaved, setOnPaypalSaved] = useState<(() => void) | null>(null);
 
-  // Listen for highlight event from parent
+  // Listen for highlight events from parent
   useEffect(() => {
-    const handleHighlight = () => {
+    const handlePaypalHighlight = () => {
       setHighlightPaypal(true);
       // Remove highlight after 3 seconds
       setTimeout(() => setHighlightPaypal(false), 3000);
     };
     
-    window.addEventListener("highlight-paypal-input", handleHighlight);
-    return () => window.removeEventListener("highlight-paypal-input", handleHighlight);
+    const handleStripeHighlight = () => {
+      setHighlightStripe(true);
+      // Remove highlight after 3 seconds
+      setTimeout(() => setHighlightStripe(false), 3000);
+    };
+    
+    window.addEventListener("highlight-paypal-input", handlePaypalHighlight);
+    window.addEventListener("highlight-stripe-input", handleStripeHighlight);
+    return () => {
+      window.removeEventListener("highlight-paypal-input", handlePaypalHighlight);
+      window.removeEventListener("highlight-stripe-input", handleStripeHighlight);
+    };
   }, []);
 
   useEffect(() => {
@@ -434,7 +445,12 @@ const WithdrawalRequestSection = ({ pendingEarnings, userId, onPayoutStatusChang
 
           <div className="grid gap-4 md:grid-cols-2">
             {/* Stripe Connect Option */}
-            <div className="p-3 border rounded-lg bg-background">
+            <div 
+              id="stripe-auto-payout-section"
+              className={`p-3 border rounded-lg bg-background transition-all duration-300 ${
+                highlightStripe ? "ring-2 ring-red-500 border-red-500" : ""
+              }`}
+            >
               <div className="flex items-center gap-2 mb-2">
                 <CreditCard className="h-4 w-4 text-purple-600" />
                 <span className="font-medium text-sm">Stripe (Bank Transfer)</span>
@@ -452,20 +468,26 @@ const WithdrawalRequestSection = ({ pendingEarnings, userId, onPayoutStatusChang
               ) : isStripeReady ? (
                 <p className="text-xs text-green-600">Instant payouts to your bank account</p>
               ) : (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={handleConnectStripe}
-                  disabled={connectingStripe}
-                  className="mt-1"
-                >
-                  {connectingStripe ? (
-                    <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                  ) : (
-                    <ExternalLink className="h-3 w-3 mr-1" />
+                <div className="space-y-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleConnectStripe}
+                    disabled={connectingStripe}
+                  >
+                    {connectingStripe ? (
+                      <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                    ) : (
+                      <ExternalLink className="h-3 w-3 mr-1" />
+                    )}
+                    Connect Stripe
+                  </Button>
+                  {highlightStripe && (
+                    <p className="text-xs text-red-500 font-medium">
+                      Please connect your Stripe account to receive bank payouts
+                    </p>
                   )}
-                  Connect Stripe
-                </Button>
+                </div>
               )}
             </div>
 
