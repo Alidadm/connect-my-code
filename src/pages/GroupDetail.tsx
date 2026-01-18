@@ -110,6 +110,8 @@ const GroupDetail = () => {
   const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const coverInputRef = useRef<HTMLInputElement>(null);
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -537,8 +539,6 @@ const GroupDetail = () => {
   const isMod = userRole === "moderator";
   const canManage = isAdmin || isMod;
 
-  const coverInputRef = useRef<HTMLInputElement>(null);
-  const [isUploadingCover, setIsUploadingCover] = useState(false);
 
   const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
