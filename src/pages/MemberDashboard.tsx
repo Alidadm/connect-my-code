@@ -822,7 +822,7 @@ const MemberDashboard = () => {
                   placeholder="Enter new phone number"
                 />
               ) : (
-                <p className="text-sm text-slate-500">{privateProfile?.phone || "Not set"}</p>
+                <p className="text-sm text-slate-600 font-medium">{privateProfile?.phone || "Not set"}</p>
               )}
             </div>
             {profile?.phone_verified && !editingPhone && (
