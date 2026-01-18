@@ -94,13 +94,16 @@ export const TodaysBirthdays = () => {
     });
   };
 
-  const handleViewProfile = (userId: string) => {
-    navigate(`/profile/${userId}`);
+  const handleViewProfile = (username: string | null) => {
+    if (username) {
+      navigate(`/${username}`);
+    }
   };
 
-  const handleSendMessage = (userId: string) => {
-    // Navigate to profile with message intent
-    navigate(`/profile/${userId}?action=message`);
+  const handleSendMessage = (username: string | null) => {
+    if (username) {
+      navigate(`/${username}?action=message`);
+    }
   };
 
   const nextBirthday = () => {
@@ -147,7 +150,7 @@ export const TodaysBirthdays = () => {
 
         <div 
           className="flex items-center gap-3 flex-1 cursor-pointer hover:bg-accent/50 rounded-lg p-2 transition-colors"
-          onClick={() => handleViewProfile(currentFriend.user_id)}
+          onClick={() => handleViewProfile(currentFriend.username)}
         >
           <div className="relative">
             <Avatar className="h-14 w-14 ring-2 ring-pink-500 ring-offset-2 ring-offset-background">
@@ -197,7 +200,7 @@ export const TodaysBirthdays = () => {
           variant="outline"
           size="sm"
           className="flex-1"
-          onClick={() => handleSendMessage(currentFriend.user_id)}
+          onClick={() => handleSendMessage(currentFriend.username)}
         >
           <MessageCircle className="h-4 w-4 mr-2" />
           {t("feed.sendWish", "Send Wish")}

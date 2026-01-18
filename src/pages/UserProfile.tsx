@@ -492,7 +492,7 @@ const UserProfile = () => {
   const handleFriendClick = (friendUsername: string | null) => {
     if (friendUsername) {
       setShowFriendsModal(false);
-      navigate(`/user/${friendUsername}`);
+      navigate(`/${friendUsername}`);
     }
   };
 
@@ -808,7 +808,7 @@ const UserProfile = () => {
                         <Avatar 
                           key={friend.user_id} 
                           className="w-8 h-8 border-2 border-background cursor-pointer hover:z-10 transition-transform hover:scale-110"
-                          onClick={() => navigate(`/user/${friend.username}`)}
+                          onClick={() => navigate(`/${friend.username}`)}
                         >
                           <AvatarImage src={friend.avatar_url || ""} />
                           <AvatarFallback className="text-xs bg-gradient-to-br from-primary to-primary/70 text-primary-foreground">
@@ -822,7 +822,7 @@ const UserProfile = () => {
                         <>
                           <button 
                             className="font-medium text-foreground hover:underline"
-                            onClick={() => navigate(`/user/${mutualFriends[0].username}`)}
+                            onClick={() => navigate(`/${mutualFriends[0].username}`)}
                           >
                             {mutualFriends[0].display_name || mutualFriends[0].username}
                           </button>
@@ -832,14 +832,14 @@ const UserProfile = () => {
                         <>
                           <button 
                             className="font-medium text-foreground hover:underline"
-                            onClick={() => navigate(`/user/${mutualFriends[0].username}`)}
+                            onClick={() => navigate(`/${mutualFriends[0].username}`)}
                           >
                             {mutualFriends[0].display_name || mutualFriends[0].username}
                           </button>
                           {" "}{t("common.and", { defaultValue: "and" })}{" "}
                           <button 
                             className="font-medium text-foreground hover:underline"
-                            onClick={() => navigate(`/user/${mutualFriends[1].username}`)}
+                            onClick={() => navigate(`/${mutualFriends[1].username}`)}
                           >
                             {mutualFriends[1].display_name || mutualFriends[1].username}
                           </button>
@@ -849,14 +849,14 @@ const UserProfile = () => {
                         <>
                           <button 
                             className="font-medium text-foreground hover:underline"
-                            onClick={() => navigate(`/user/${mutualFriends[0].username}`)}
+                            onClick={() => navigate(`/${mutualFriends[0].username}`)}
                           >
                             {mutualFriends[0].display_name || mutualFriends[0].username}
                           </button>
                           {", "}
                           <button 
                             className="font-medium text-foreground hover:underline"
-                            onClick={() => navigate(`/user/${mutualFriends[1].username}`)}
+                            onClick={() => navigate(`/${mutualFriends[1].username}`)}
                           >
                             {mutualFriends[1].display_name || mutualFriends[1].username}
                           </button>
@@ -994,7 +994,7 @@ const UserProfile = () => {
                     {mutualFriends.map((friend) => (
                       <button
                         key={friend.user_id}
-                        onClick={() => navigate(`/user/${friend.username}`)}
+                        onClick={() => navigate(`/${friend.username}`)}
                         className="flex items-center gap-3 p-3 rounded-lg border bg-card hover:bg-accent transition-colors text-left"
                       >
                         <Avatar className="w-12 h-12">
