@@ -33,6 +33,9 @@ import Privacy from "./pages/Privacy";
 import HelpSupport from "./pages/HelpSupport";
 import Feedback from "./pages/Feedback";
 import Games from "./pages/Games";
+import Blogs from "./pages/Blogs";
+import BlogEdit from "./pages/BlogEdit";
+import BlogView from "./pages/BlogView";
 
 const queryClient = new QueryClient();
 
@@ -54,6 +57,10 @@ const App = () => (
             <Route path="/commissions" element={<Commissions />} />
             <Route path="/saved" element={<Saved />} />
             <Route path="/games" element={<Games />} />
+            <Route path="/blogs" element={<Blogs />} />
+            <Route path="/blogs/new" element={<BlogEdit />} />
+            <Route path="/blogs/edit/:blogId" element={<BlogEdit />} />
+            <Route path="/blogs/:blogId" element={<BlogView />} />
             <Route path="/groups" element={<Groups />} />
             <Route path="/groups/:groupId" element={<GroupDetail />} />
             <Route path="/groups/:groupId/post/:postId" element={<GroupPostView />} />

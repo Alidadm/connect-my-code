@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.process-birthday-wishes]
 verify_jwt = false
+
+[functions.blog-ai-assistant]
+verify_jwt = false
