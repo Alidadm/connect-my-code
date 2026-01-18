@@ -98,10 +98,13 @@ export const MemberCoverHeader = ({ activeTab: externalActiveTab, onTabChange }:
     { id: "videos", label: t("profile.videos", "Videos") },
     { id: "friends", label: t("profile.friends", "Friends"), count: stats.friendsCount },
     { id: "posts", label: t("profile.posts", "Posts"), count: stats.postsCount },
-    { id: "blogs", label: t("profile.blogs", "Blogs"), count: stats.blogsCount },
+    { id: "blogs", label: t("profile.blogs", "Blogs"), count: stats.blogsCount, disabled: stats.blogsCount === 0 },
   ];
 
   const handleTabClick = (tabId: string) => {
+    const tab = tabs.find(t => t.id === tabId);
+    if (tab?.disabled) return;
+    
     // If external control is provided, use it
     if (onTabChange) {
       onTabChange(tabId);
@@ -214,21 +217,26 @@ export const MemberCoverHeader = ({ activeTab: externalActiveTab, onTabChange }:
                   <li key={tab.id}>
                     <button
                       onClick={() => handleTabClick(tab.id)}
+                      disabled={tab.disabled}
                       className={`relative px-3 sm:px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
-                        activeTab === tab.id
-                          ? "text-primary"
-                          : "text-muted-foreground hover:text-foreground"
+                        tab.disabled
+                          ? "text-muted-foreground/50 cursor-not-allowed"
+                          : activeTab === tab.id
+                            ? "text-primary"
+                            : "text-muted-foreground hover:text-foreground"
                       }`}
                     >
                       <span className="flex items-center gap-1.5">
                         {tab.label}
-                        {tab.count !== undefined && tab.count > 0 && (
-                          <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-medium bg-muted rounded">
+                        {tab.count !== undefined && (
+                          <span className={`inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-medium rounded ${
+                            tab.disabled ? "bg-muted/50" : "bg-muted"
+                          }`}>
                             {tab.count}
                           </span>
                         )}
                       </span>
-                      {activeTab === tab.id && (
+                      {activeTab === tab.id && !tab.disabled && (
                         <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-r-[6px] border-b-[6px] border-l-transparent border-r-transparent border-b-primary" />
                       )}
                     </button>
