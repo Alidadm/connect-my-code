@@ -26,7 +26,8 @@ import {
   AlertCircle,
   CreditCard,
   Eye,
-  RotateCcw
+  RotateCcw,
+  ArrowLeft
 } from "lucide-react";
 import {
   Dialog,
@@ -308,6 +309,17 @@ See you inside DolphySN.`;
   return (
     <MainLayout>
       <div className="max-w-4xl mx-auto">
+        {/* Back to Dashboard Link */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate("/dashboard")}
+          className="mb-4 -ml-2 text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Dashboard
+        </Button>
+
         {/* Page Title */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold">Referral Commissions</h1>
