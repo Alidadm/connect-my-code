@@ -329,7 +329,10 @@
       "7days": "7 days before",
       "14days": "14 days before",
       "30days": "30 days before"
-    }
+    },
+    "ticTacToe": "Tic-Tac-Toe",
+    "noActiveGames": "No active games",
+    "startGame": "Start a Game"
   },
   "messages": {
     "title": "Messages",

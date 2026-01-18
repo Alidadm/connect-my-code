@@ -1,4 +1,4 @@
-import { Search, MoreVertical, Calendar, Bell, Cake, TrendingUp, MessageCircle, Heart, Users, Circle, Send, PenLine, Settings2, Check, CalendarClock } from "lucide-react";
+import { Search, MoreVertical, Bell, Cake, TrendingUp, MessageCircle, Heart, Users, Circle, Send, PenLine, Settings2, Check, CalendarClock, Gamepad2, Play, Clock } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -70,28 +70,18 @@ interface TrendingPost {
   };
 }
 
-const events = [
-  { 
-    title: "10 Events Invites", 
-    subtitle: null,
-    icon: "📅"
-  },
-  { 
-    title: "Design System Collaboration", 
-    subtitle: "Thu - Harpoon Mall, YK",
-    icon: "🎨"
-  },
-  { 
-    title: "Web Dev 2.0 Meetup", 
-    subtitle: "Yoshkar-Ola, Russia",
-    icon: "💻"
-  },
-  { 
-    title: "Prada's Invitation Birthday", 
-    subtitle: null,
-    icon: "🎂"
-  },
-];
+interface ActiveTicTacToeGame {
+  id: string;
+  player_x: string;
+  player_o: string | null;
+  current_turn: string;
+  status: string;
+  opponent?: {
+    display_name: string | null;
+    avatar_url: string | null;
+  };
+  isMyTurn: boolean;
+}
 
 
 export const RightSidebar = () => {
@@ -106,6 +96,7 @@ export const RightSidebar = () => {
   const [onlineFriends, setOnlineFriends] = useState<OnlineFriend[]>([]);
   const [birthdays, setBirthdays] = useState<BirthdayReminder[]>([]);
   const [trendingPosts, setTrendingPosts] = useState<TrendingPost[]>([]);
+  const [activeGames, setActiveGames] = useState<ActiveTicTacToeGame[]>([]);
   
   // Birthday reminder settings - stored in localStorage
   const [birthdayReminderDays, setBirthdayReminderDays] = useState<number>(() => {
@@ -451,6 +442,83 @@ export const RightSidebar = () => {
 
     fetchTrendingPosts();
   }, []);
+
+  // Fetch active Tic-Tac-Toe games
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchActiveGames = async () => {
+      try {
+        const { data: games } = await supabase
+          .from("tic_tac_toe_games")
+          .select("*")
+          .or(`player_x.eq.${user.id},player_o.eq.${user.id}`)
+          .in("status", ["active", "pending"])
+          .order("updated_at", { ascending: false })
+          .limit(5);
+
+        if (games && games.length > 0) {
+          const opponentIds = games.map(g => 
+            g.player_x === user.id ? g.player_o : g.player_x
+          ).filter(Boolean);
+
+          let profiles: any[] = [];
+          if (opponentIds.length > 0) {
+            const { data: profilesData } = await supabase
+              .from("profiles")
+              .select("user_id, display_name, avatar_url")
+              .in("user_id", opponentIds);
+            profiles = profilesData || [];
+          }
+
+          const gamesWithOpponents = games.map(game => {
+            const isPlayerX = game.player_x === user.id;
+            const opponentId = isPlayerX ? game.player_o : game.player_x;
+            const opponent = profiles.find(p => p.user_id === opponentId);
+            const isMyTurn = (isPlayerX && game.current_turn === 'x') || (!isPlayerX && game.current_turn === 'o');
+
+            return {
+              id: game.id,
+              player_x: game.player_x,
+              player_o: game.player_o,
+              current_turn: game.current_turn,
+              status: game.status,
+              opponent: opponent || null,
+              isMyTurn: game.status === 'active' ? isMyTurn : game.status === 'pending' && !isPlayerX
+            };
+          });
+
+          setActiveGames(gamesWithOpponents);
+        } else {
+          setActiveGames([]);
+        }
+      } catch (error) {
+        console.error("Error fetching active games:", error);
+      }
+    };
+
+    fetchActiveGames();
+
+    // Subscribe to realtime updates
+    const channel = supabase
+      .channel('tic-tac-toe-sidebar')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'tic_tac_toe_games'
+        },
+        () => {
+          fetchActiveGames();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
 
   // Filter messages based on tab
   const filteredMessages = messages.filter(msg => {
@@ -799,32 +867,76 @@ export const RightSidebar = () => {
           </div>
         </div>
 
-        {/* Events */}
+        {/* Tic-Tac-Toe Games */}
         <div className="bg-card rounded-xl p-4 border border-border">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-foreground">{t("events.title")}</h3>
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
-              <MoreVertical className="h-4 w-4" />
+            <div className="flex items-center gap-2">
+              <Gamepad2 className="h-5 w-5 text-primary" />
+              <h3 className="font-semibold text-foreground">{t("sidebar.ticTacToe", "Tic-Tac-Toe")}</h3>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-7 text-xs text-muted-foreground hover:text-foreground"
+              onClick={() => navigate("/games")}
+            >
+              {t("sidebar.viewAll", "View All")}
             </Button>
           </div>
 
           <div className="space-y-2">
-            {events.map((event, index) => (
-              <div
-                key={index}
-                className="flex items-start gap-3 p-2 -mx-2 rounded-lg hover:bg-secondary/50 cursor-pointer transition-colors"
-              >
-                <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center text-base flex-shrink-0">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-foreground truncate">{event.title}</div>
-                  {event.subtitle && (
-                    <div className="text-xs text-muted-foreground truncate">{event.subtitle}</div>
-                  )}
-                </div>
+            {activeGames.length === 0 ? (
+              <div className="text-center py-4">
+                <p className="text-sm text-muted-foreground mb-2">{t("sidebar.noActiveGames", "No active games")}</p>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => navigate("/games")}
+                  className="gap-2"
+                >
+                  <Play className="h-3 w-3" />
+                  {t("sidebar.startGame", "Start a Game")}
+                </Button>
               </div>
-            ))}
+            ) : (
+              activeGames.map((game) => (
+                <div
+                  key={game.id}
+                  onClick={() => navigate(`/games?game=${game.id}`)}
+                  className={cn(
+                    "flex items-center gap-3 p-2 -mx-2 rounded-lg hover:bg-secondary/50 cursor-pointer transition-colors",
+                    game.isMyTurn && "bg-primary/5 ring-1 ring-primary/20"
+                  )}
+                >
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={game.opponent?.avatar_url || undefined} />
+                    <AvatarFallback className="bg-secondary text-xs">
+                      {game.opponent?.display_name?.charAt(0) || "?"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-foreground truncate">
+                      {game.opponent?.display_name || t("games.waitingForPlayer", "Waiting...")}
+                    </div>
+                    <div className="flex items-center gap-1 text-xs">
+                      {game.isMyTurn ? (
+                        <>
+                          <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                          <span className="text-green-600 dark:text-green-400 font-medium">
+                            {game.status === 'pending' ? t("games.acceptInvite", "Accept invite") : t("games.yourTurn", "Your turn!")}
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <Clock className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-muted-foreground">{t("games.waitingMove", "Waiting...")}</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>
