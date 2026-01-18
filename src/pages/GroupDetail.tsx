@@ -537,83 +537,154 @@ const GroupDetail = () => {
   const isMod = userRole === "moderator";
   const canManage = isAdmin || isMod;
 
+  const coverInputRef = useRef<HTMLInputElement>(null);
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
+
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user || !group) return;
+
+    // Validate file
+    if (!file.type.startsWith('image/')) {
+      toast.error("Please select an image file");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("Image must be less than 10MB");
+      return;
+    }
+
+    setIsUploadingCover(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${group.id}/cover-${Date.now()}.${fileExt}`;
+
+      const { data, error: uploadError } = await supabase.storage
+        .from('group-media')
+        .upload(fileName, file, { cacheControl: '3600', upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('group-media')
+        .getPublicUrl(data.path);
+
+      const { error: updateError } = await supabase
+        .from('groups')
+        .update({ cover_url: publicUrl })
+        .eq('id', group.id);
+
+      if (updateError) throw updateError;
+
+      setGroup({ ...group, cover_url: publicUrl });
+      toast.success("Cover image updated!");
+    } catch (error) {
+      console.error("Error uploading cover:", error);
+      toast.error("Failed to upload cover image");
+    } finally {
+      setIsUploadingCover(false);
+      if (coverInputRef.current) coverInputRef.current.value = '';
+    }
+  };
+
   return (
     <MainLayout>
       <div className="max-w-4xl mx-auto space-y-6">
-        {/* Back Button */}
-        <Button variant="ghost" onClick={() => navigate("/groups")} className="gap-2">
-          <ArrowLeft className="h-4 w-4" />
-          Back to Groups
-        </Button>
-
         {/* Group Header with Cover */}
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden shadow-lg">
           {/* Cover Image */}
           <div 
-            className="h-48 md:h-64 bg-gradient-to-br from-primary/30 to-primary/10 relative"
-            style={group.cover_url ? { 
-              backgroundImage: `url(${group.cover_url})`,
+            className="h-56 md:h-72 relative group"
+            style={{ 
+              backgroundImage: group.cover_url 
+                ? `linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.7)), url(${group.cover_url})`
+                : 'linear-gradient(135deg, hsl(var(--primary)/0.4), hsl(var(--primary)/0.1), hsl(var(--accent)/0.2))',
               backgroundSize: 'cover',
               backgroundPosition: 'center'
-            } : {}}
+            }}
           >
+            {/* Cover Upload Button (for admins) */}
+            {isAdmin && (
+              <>
+                <input
+                  ref={coverInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleCoverUpload}
+                  className="hidden"
+                />
+                <Button 
+                  variant="secondary" 
+                  size="sm" 
+                  className="absolute top-4 left-4 gap-2 opacity-0 group-hover:opacity-100 transition-opacity bg-background/80 backdrop-blur-sm"
+                  onClick={() => coverInputRef.current?.click()}
+                  disabled={isUploadingCover}
+                >
+                  {isUploadingCover ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Image className="h-4 w-4" />
+                  )}
+                  {group.cover_url ? "Change Cover" : "Add Cover"}
+                </Button>
+              </>
+            )}
+
+            {/* Manage Button */}
             {canManage && (
               <Button 
                 variant="secondary" 
                 size="sm" 
-                className="absolute top-4 right-4 gap-2"
+                className="absolute top-4 right-4 gap-2 bg-background/80 backdrop-blur-sm"
                 onClick={() => navigate(`/groups/${groupId}/settings`)}
               >
                 <Settings className="h-4 w-4" />
-                Manage Group
+                Manage
               </Button>
             )}
-          </div>
 
-          {/* Group Info */}
-          <CardContent className="pt-0 -mt-16 relative">
-            <div className="flex flex-col md:flex-row items-start md:items-end gap-4">
-              {/* Avatar */}
-              <Avatar className="h-32 w-32 border-4 border-background shadow-lg">
-                <AvatarImage src={group.avatar_url || undefined} />
-                <AvatarFallback className="bg-primary text-primary-foreground text-4xl">
-                  {group.name[0]}
-                </AvatarFallback>
-              </Avatar>
-
-              {/* Info */}
-              <div className="flex-1 pb-2">
-                <div className="flex items-center gap-3 flex-wrap">
-                  <h1 className="text-2xl md:text-3xl font-bold text-foreground">{group.name}</h1>
-                  <Badge variant="secondary" className="gap-1">
-                    {getPrivacyIcon(group.privacy)}
-                    {getPrivacyLabel(group.privacy)}
-                  </Badge>
+            {/* Group Info Overlay */}
+            <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+              <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+                <div className="space-y-2">
+                  <h1 className="text-3xl md:text-4xl font-bold drop-shadow-lg">{group.name}</h1>
+                  <div className="flex items-center gap-3 flex-wrap text-sm">
+                    <Badge variant="secondary" className="gap-1 bg-white/20 backdrop-blur-sm text-white border-white/30">
+                      {getPrivacyIcon(group.privacy)}
+                      {getPrivacyLabel(group.privacy)}
+                    </Badge>
+                    <span className="flex items-center gap-1.5 drop-shadow">
+                      <Users className="h-4 w-4" />
+                      {group.member_count?.toLocaleString() || 0} {group.member_count === 1 ? 'member' : 'members'}
+                    </span>
+                    {group.category && (
+                      <span className="drop-shadow">• {group.category}</span>
+                    )}
+                  </div>
+                  {group.description && (
+                    <p className="text-white/90 text-sm md:text-base max-w-2xl line-clamp-2 drop-shadow">
+                      {group.description}
+                    </p>
+                  )}
                 </div>
-                <p className="text-muted-foreground mt-1">
-                  {group.member_count?.toLocaleString() || 0} members • {group.category || "Community"}
-                </p>
-                {group.description && (
-                  <p className="text-foreground mt-2">{group.description}</p>
-                )}
-              </div>
 
-              {/* Join/Manage Button */}
-              <div className="flex gap-2 w-full md:w-auto">
-                {!isMember && user && (
-                  <Button className="flex-1 md:flex-none gap-2" onClick={handleJoinGroup}>
-                    <UserPlus className="h-4 w-4" />
-                    {group.privacy === "public" ? "Join Group" : "Request to Join"}
-                  </Button>
-                )}
-                {isMember && (
-                  <Badge variant="outline" className="h-9 px-4 text-sm">
-                    {userRole === "admin" ? "👑 Admin" : userRole === "moderator" ? "🛡️ Moderator" : "✓ Member"}
-                  </Badge>
-                )}
+                {/* Join/Member Badge */}
+                <div className="flex gap-2">
+                  {!isMember && user && (
+                    <Button className="gap-2 bg-white text-foreground hover:bg-white/90" onClick={handleJoinGroup}>
+                      <UserPlus className="h-4 w-4" />
+                      {group.privacy === "public" ? "Join Group" : "Request to Join"}
+                    </Button>
+                  )}
+                  {isMember && (
+                    <Badge className="h-9 px-4 text-sm bg-white/20 backdrop-blur-sm text-white border-white/30">
+                      {userRole === "admin" ? "👑 Admin" : userRole === "moderator" ? "🛡️ Moderator" : "✓ Member"}
+                    </Badge>
+                  )}
+                </div>
               </div>
             </div>
-          </CardContent>
+          </div>
         </Card>
 
         {/* Tabs: Feed, Members */}
