@@ -119,8 +119,9 @@ const UserProfile = () => {
       }
 
       try {
+        // Use safe_profiles view to access public profile data (profiles table has RLS restricting to own profile only)
         const { data, error } = await supabase
-          .from("profiles")
+          .from("safe_profiles")
           .select("user_id, username, display_name, avatar_url, cover_url, bio, location, country, is_verified, created_at")
           .eq("username", username.toLowerCase())
           .maybeSingle();
