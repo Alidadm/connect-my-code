@@ -25,6 +25,7 @@ const demoProfile = {
 interface ProfileStats {
   friendsCount: number;
   postsCount: number;
+  blogsCount: number;
 }
 
 export const MemberCoverHeader = ({ activeTab: externalActiveTab, onTabChange }: MemberCoverHeaderProps = {}) => {
@@ -32,7 +33,7 @@ export const MemberCoverHeader = ({ activeTab: externalActiveTab, onTabChange }:
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const [internalActiveTab, setInternalActiveTab] = useState("feed");
-  const [stats, setStats] = useState<ProfileStats>({ friendsCount: 0, postsCount: 0 });
+  const [stats, setStats] = useState<ProfileStats>({ friendsCount: 0, postsCount: 0, blogsCount: 0 });
 
   // Use external tab if provided, otherwise use internal state
   const activeTab = externalActiveTab ?? internalActiveTab;
@@ -74,9 +75,17 @@ export const MemberCoverHeader = ({ activeTab: externalActiveTab, onTabChange }:
         .select("id", { count: "exact", head: true })
         .eq("user_id", user.id);
 
+      // Fetch blogs count
+      const { count: blogsCount } = await supabase
+        .from("blogs")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .eq("status", "published");
+
       setStats({
         friendsCount: (friendsAsRequester || 0) + (friendsAsAddressee || 0),
         postsCount: postsCount || 0,
+        blogsCount: blogsCount || 0,
       });
     };
 
@@ -89,6 +98,7 @@ export const MemberCoverHeader = ({ activeTab: externalActiveTab, onTabChange }:
     { id: "videos", label: t("profile.videos", "Videos") },
     { id: "friends", label: t("profile.friends", "Friends"), count: stats.friendsCount },
     { id: "posts", label: t("profile.posts", "Posts"), count: stats.postsCount },
+    { id: "blogs", label: t("profile.blogs", "Blogs"), count: stats.blogsCount },
   ];
 
   const handleTabClick = (tabId: string) => {
