@@ -1,4 +1,4 @@
-import { Search, MoreVertical, Bell, Cake, TrendingUp, MessageCircle, Heart, Users, Circle, Send, PenLine, Settings2, Check, CalendarClock, Gamepad2, Play, Clock, Grid3X3, Trash2 } from "lucide-react";
+import { Search, MoreVertical, Bell, Cake, TrendingUp, MessageCircle, Heart, Users, Circle, Send, PenLine, Settings2, Check, CalendarClock, Gamepad2, Play, Clock, Grid3X3, Trash2, LayoutGrid } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { fetchBatchPrivacySettings } from "@/hooks/useUserPrivacySettings";
 import { useSavedGames } from "@/hooks/useSavedGames";
+import { useGameSidebarVisibility } from "@/hooks/useGameSidebarVisibility";
 import { formatDistanceToNow, format, isToday, isTomorrow, addDays, isSameDay, differenceInDays } from "date-fns";
 import {
   DropdownMenu,
@@ -99,6 +100,7 @@ export const RightSidebar = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { savedSudokuGames, deleteSavedGame } = useSavedGames();
+  const { isVisible } = useGameSidebarVisibility();
   const [activeTab, setActiveTab] = useState<"notification" | "unread">("notification");
   const [messages, setMessages] = useState<MessageWithSender[]>([]);
   const [loading, setLoading] = useState(true);
@@ -903,7 +905,7 @@ export const RightSidebar = () => {
         </div>
 
         {/* Saved Sudoku Games */}
-        {user && savedSudokuGames.length > 0 && (
+        {user && isVisible("sudoku") && savedSudokuGames.length > 0 && (
           <div className="bg-card rounded-xl p-4 mb-4 border border-border">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
@@ -967,6 +969,7 @@ export const RightSidebar = () => {
         )}
 
         {/* Tic-Tac-Toe Games */}
+        {isVisible("tictactoe") && (
         <div className="relative rounded-xl p-4 border border-border overflow-hidden bg-muted/50">
           {/* Background image */}
           <div 
@@ -1052,6 +1055,7 @@ export const RightSidebar = () => {
             </div>
           </div>
         </div>
+        )}
       </div>
       
       {/* Schedule Birthday Wish Dialog */}

@@ -549,6 +549,8 @@
     "aiThinking": "DolphySN is thinking...",
     "confirmDeleteGame": "Are you sure you want to delete this saved game?",
     "gameDeleted": "Game deleted successfully",
+    "showInSidebar": "Show in sidebar",
+    "hideFromSidebar": "Hide from sidebar",
     "difficulty": {
       "easy": "Easy",
       "medium": "Medium",

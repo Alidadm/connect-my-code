@@ -14,7 +14,8 @@ import { InviteFriendToMemoryDialog } from "@/components/games/InviteFriendToMem
 import { GameStats } from "@/components/games/GameStats";
 import { MemoryMatchStats } from "@/components/games/MemoryMatchStats";
 import { GameSoundSettingsProvider, useGameSoundSettings } from "@/hooks/useGameSoundSettings";
-import { Gamepad2, Plus, Clock, Trophy, Users, Loader2, History, Grid3X3, LayoutGrid, Volume2, VolumeX, Hash } from "lucide-react";
+import { useGameSidebarVisibility } from "@/hooks/useGameSidebarVisibility";
+import { Gamepad2, Plus, Clock, Trophy, Users, Loader2, History, Grid3X3, LayoutGrid, Volume2, VolumeX, Hash, Sidebar, SidebarClose } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { SudokuGame } from "@/components/games/SudokuGame";
 import { SudokuStats } from "@/components/games/SudokuStats";
@@ -23,6 +24,7 @@ import { InviteFriendToSudokuDialog } from "@/components/games/InviteFriendToSud
 import { generateSudoku } from "@/lib/sudokuGenerator";
 import { Json } from "@/integrations/supabase/types";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface TicTacToeGameWithPlayers {
   id: string;
@@ -57,6 +59,7 @@ const GamesContent = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { isMuted, toggleMute } = useGameSoundSettings();
+  const { visibility, toggleGame } = useGameSidebarVisibility();
   const [searchParams] = useSearchParams();
   
   // Tic Tac Toe state
@@ -557,30 +560,102 @@ const GamesContent = () => {
 
         {/* Game Type Selector */}
         <div className="flex flex-wrap gap-2">
-          <Button
-            variant={activeGameType === "tictactoe" ? "default" : "outline"}
-            onClick={() => setActiveGameType("tictactoe")}
-            className="gap-2"
-          >
-            <Grid3X3 className="w-4 h-4" />
-            {t("games.ticTacToe", { defaultValue: "Tic-Tac-Toe" })}
-          </Button>
-          <Button
-            variant={activeGameType === "memory" ? "default" : "outline"}
-            onClick={() => setActiveGameType("memory")}
-            className="gap-2"
-          >
-            <LayoutGrid className="w-4 h-4" />
-            {t("games.memoryMatch", { defaultValue: "Memory Match" })}
-          </Button>
-          <Button
-            variant={activeGameType === "sudoku" ? "default" : "outline"}
-            onClick={() => setActiveGameType("sudoku")}
-            className="gap-2"
-          >
-            <Hash className="w-4 h-4" />
-            {t("games.sudoku", { defaultValue: "Sudoku" })}
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button
+              variant={activeGameType === "tictactoe" ? "default" : "outline"}
+              onClick={() => setActiveGameType("tictactoe")}
+              className="gap-2"
+            >
+              <Grid3X3 className="w-4 h-4" />
+              {t("games.ticTacToe", { defaultValue: "Tic-Tac-Toe" })}
+            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => toggleGame("tictactoe")}
+                >
+                  {visibility.tictactoe ? (
+                    <Sidebar className="w-4 h-4 text-primary" />
+                  ) : (
+                    <SidebarClose className="w-4 h-4 text-muted-foreground" />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {visibility.tictactoe 
+                  ? t("games.hideFromSidebar", { defaultValue: "Hide from sidebar" })
+                  : t("games.showInSidebar", { defaultValue: "Show in sidebar" })
+                }
+              </TooltipContent>
+            </Tooltip>
+          </div>
+          <div className="flex items-center gap-1">
+            <Button
+              variant={activeGameType === "memory" ? "default" : "outline"}
+              onClick={() => setActiveGameType("memory")}
+              className="gap-2"
+            >
+              <LayoutGrid className="w-4 h-4" />
+              {t("games.memoryMatch", { defaultValue: "Memory Match" })}
+            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => toggleGame("memory")}
+                >
+                  {visibility.memory ? (
+                    <Sidebar className="w-4 h-4 text-primary" />
+                  ) : (
+                    <SidebarClose className="w-4 h-4 text-muted-foreground" />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {visibility.memory 
+                  ? t("games.hideFromSidebar", { defaultValue: "Hide from sidebar" })
+                  : t("games.showInSidebar", { defaultValue: "Show in sidebar" })
+                }
+              </TooltipContent>
+            </Tooltip>
+          </div>
+          <div className="flex items-center gap-1">
+            <Button
+              variant={activeGameType === "sudoku" ? "default" : "outline"}
+              onClick={() => setActiveGameType("sudoku")}
+              className="gap-2"
+            >
+              <Hash className="w-4 h-4" />
+              {t("games.sudoku", { defaultValue: "Sudoku" })}
+            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => toggleGame("sudoku")}
+                >
+                  {visibility.sudoku ? (
+                    <Sidebar className="w-4 h-4 text-primary" />
+                  ) : (
+                    <SidebarClose className="w-4 h-4 text-muted-foreground" />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {visibility.sudoku 
+                  ? t("games.hideFromSidebar", { defaultValue: "Hide from sidebar" })
+                  : t("games.showInSidebar", { defaultValue: "Show in sidebar" })
+                }
+              </TooltipContent>
+            </Tooltip>
+          </div>
         </div>
 
         {/* Stats Card */}
