@@ -98,9 +98,14 @@ export const LeftSidebar = () => {
         <div className="bg-card rounded-xl p-4 mb-4 border border-border">
           <div className="flex items-center gap-3 mb-4">
             <Avatar className="h-12 w-12">
-              <AvatarImage src={avatarUrl} />
-              <AvatarFallback className="bg-gradient-to-br from-primary to-weshare-purple text-primary-foreground">
-                {displayName?.[0]?.toUpperCase() || "U"}
+              {profile?.avatar_url ? (
+                <AvatarImage src={profile.avatar_url} />
+              ) : null}
+              <AvatarFallback 
+                showCameraIcon={user && !profile?.avatar_url}
+                className="bg-muted"
+              >
+                {!user && <AvatarImage src={demoProfile.avatar_url} />}
               </AvatarFallback>
             </Avatar>
             <div className="min-w-0 flex-1">
