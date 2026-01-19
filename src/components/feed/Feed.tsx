@@ -29,6 +29,7 @@ interface Post {
   shares_count: number;
   created_at: string;
   user_id: string;
+  is_platform_post?: boolean;
   profiles?: {
     display_name: string | null;
     avatar_url: string | null;
@@ -161,6 +162,17 @@ export const Feed = () => {
 
       let postsData: any[] = [];
 
+      // Always fetch platform posts first (visible to all authenticated users)
+      let platformPosts: any[] = [];
+      if (user) {
+        const { data: platformData } = await supabase
+          .from("posts")
+          .select("*")
+          .eq("is_platform_post", true)
+          .order("created_at", { ascending: false });
+        platformPosts = platformData || [];
+      }
+
       if (user && filter === "following") {
         // Get friends list first
         const { data: friendships } = await supabase
@@ -179,6 +191,7 @@ export const Feed = () => {
             .select("*")
             .in("user_id", friendIds)
             .eq("visibility", "public")
+            .eq("is_platform_post", false)
             .order("created_at", { ascending: false })
             .range(offset, offset + POSTS_PER_PAGE - 1);
 
@@ -190,6 +203,7 @@ export const Feed = () => {
           .from("posts")
           .select("*")
           .eq("visibility", "public")
+          .eq("is_platform_post", false)
           .order("likes_count", { ascending: false })
           .range(offset, offset + POSTS_PER_PAGE - 1);
 
@@ -208,6 +222,7 @@ export const Feed = () => {
             .from("posts")
             .select("*")
             .eq("visibility", "public")
+            .eq("is_platform_post", false)
             .order("created_at", { ascending: false })
             .range(offset, offset + POSTS_PER_PAGE - 1);
 
@@ -218,6 +233,7 @@ export const Feed = () => {
             .select("*")
             .eq("user_id", user.id)
             .neq("visibility", "public")
+            .eq("is_platform_post", false)
             .order("created_at", { ascending: false })
             .range(offset, offset + POSTS_PER_PAGE - 1);
 
@@ -232,12 +248,21 @@ export const Feed = () => {
             .from("posts")
             .select("*")
             .eq("visibility", "public")
+            .eq("is_platform_post", false)
             .order("created_at", { ascending: false })
             .range(offset, offset + POSTS_PER_PAGE - 1);
 
           if (error) throw error;
           postsData = data || [];
         }
+      }
+
+      // Merge platform posts with regular posts (platform posts show at the top on first page)
+      if (offset === 0 && platformPosts.length > 0) {
+        // Combine and sort by created_at, platform posts are mixed in chronologically
+        postsData = [...platformPosts, ...postsData].sort((a, b) => 
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
       }
 
       // Check if we have more posts to load
