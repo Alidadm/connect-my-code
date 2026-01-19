@@ -321,9 +321,14 @@ export const Header = () => {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="flex items-center gap-1 sm:gap-2 px-1.5 sm:px-2 hover:bg-secondary h-9 sm:h-10">
                 <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
-                  <AvatarImage src={avatarUrl} />
-                  <AvatarFallback className="bg-gradient-to-br from-primary to-dolphy-purple text-primary-foreground text-xs sm:text-sm">
-                    {displayName?.[0]?.toUpperCase() || "U"}
+                  {profile?.avatar_url ? (
+                    <AvatarImage src={profile.avatar_url} />
+                  ) : null}
+                  <AvatarFallback 
+                    showCameraIcon={user && !profile?.avatar_url}
+                    className="bg-muted"
+                  >
+                    {!user && <AvatarImage src={demoProfile.avatar_url} />}
                   </AvatarFallback>
                 </Avatar>
                 <span className="hidden md:block text-sm font-medium text-foreground max-w-[100px] truncate">
