@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserPhotos, useUserVideos, useUserFriends } from "@/hooks/useProfileTabs";
 import { Video, ImageOff, VideoOff, UserX, BadgeCheck, FileText } from "lucide-react";
+import { ProfileAboutSection } from "./ProfileAboutSection";
 import { useTranslation } from "react-i18next";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link } from "react-router-dom";
@@ -298,6 +299,8 @@ export const ProfileTabContent = ({ activeTab, userId }: ProfileTabContentProps)
   const targetUserId = userId || user?.id;
 
   switch (activeTab) {
+    case "about":
+      return <ProfileAboutSection userId={targetUserId} />;
     case "photos":
       return <PhotosGrid userId={targetUserId} />;
     case "videos":
