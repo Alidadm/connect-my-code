@@ -1,4 +1,4 @@
-import { Search, MoreVertical, Bell, Cake, TrendingUp, MessageCircle, Heart, Users, Circle, Send, PenLine, Settings2, Check, CalendarClock, Gamepad2, Play, Clock } from "lucide-react";
+import { Search, MoreVertical, Bell, Cake, TrendingUp, MessageCircle, Heart, Users, Circle, Send, PenLine, Settings2, Check, CalendarClock, Gamepad2, Play, Clock, Grid3X3 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { fetchBatchPrivacySettings } from "@/hooks/useUserPrivacySettings";
+import { useSavedGames } from "@/hooks/useSavedGames";
 import { formatDistanceToNow, format, isToday, isTomorrow, addDays, isSameDay, differenceInDays } from "date-fns";
 import {
   DropdownMenu,
@@ -87,10 +88,17 @@ interface ActiveTicTacToeGame {
 }
 
 
+const formatTime = (seconds: number): string => {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins}:${secs.toString().padStart(2, "0")}`;
+};
+
 export const RightSidebar = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { savedSudokuGames } = useSavedGames();
   const [activeTab, setActiveTab] = useState<"notification" | "unread">("notification");
   const [messages, setMessages] = useState<MessageWithSender[]>([]);
   const [loading, setLoading] = useState(true);
@@ -893,6 +901,53 @@ export const RightSidebar = () => {
             )}
           </div>
         </div>
+
+        {/* Saved Sudoku Games */}
+        {user && savedSudokuGames.length > 0 && (
+          <div className="bg-card rounded-xl p-4 mb-4 border border-border">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-emerald-500/20">
+                  <Grid3X3 className="h-4 w-4 text-emerald-500" />
+                </div>
+                <h3 className="font-semibold text-foreground">{t("sidebar.sudoku", "Sudoku")}</h3>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-7 text-xs text-muted-foreground hover:text-foreground"
+                onClick={() => navigate("/games")}
+              >
+                {t("sidebar.viewAll", "View All")}
+              </Button>
+            </div>
+            <div className="space-y-2">
+              {savedSudokuGames.slice(0, 3).map((game) => (
+                <div
+                  key={game.id}
+                  onClick={() => navigate(`/games?sudoku=${game.id}`)}
+                  className="flex items-center gap-3 p-2 -mx-2 rounded-lg cursor-pointer transition-colors hover:bg-secondary/50"
+                >
+                  <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center flex-shrink-0">
+                    <Grid3X3 className="h-4 w-4 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-sm font-medium text-foreground capitalize">{game.difficulty}</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <Clock className="h-3 w-3" />
+                      <span>{formatTime(game.player_1_time || 0)}</span>
+                    </div>
+                  </div>
+                  <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                    {t("sidebar.continue", "Continue")}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Tic-Tac-Toe Games */}
         <div className="relative rounded-xl p-4 border border-border overflow-hidden bg-muted/50">
