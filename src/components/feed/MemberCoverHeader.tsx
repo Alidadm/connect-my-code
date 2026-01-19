@@ -15,8 +15,7 @@ interface MemberCoverHeaderProps {
 const demoProfile = {
   display_name: "Dolphy Member",
   username: "member",
-  avatar_url:
-    "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop",
+  avatar_url: "",
   cover_url:
     "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=1200&h=400&fit=crop",
   is_verified: true,
@@ -181,9 +180,7 @@ export const MemberCoverHeader = ({ activeTab: externalActiveTab, onTabChange }:
           <div className="relative -mt-12 ml-4 sm:ml-6 flex-shrink-0">
             <Avatar className="h-24 w-24 sm:h-28 sm:w-28 ring-4 ring-card shadow-lg">
               <AvatarImage src={avatarUrl || undefined} alt={`${displayName}'s avatar`} />
-              <AvatarFallback className="bg-primary text-primary-foreground font-semibold text-2xl">
-                {(displayName?.[0] || "U").toUpperCase()}
-              </AvatarFallback>
+              <AvatarFallback className="bg-muted" showCameraIcon />
             </Avatar>
           </div>
 
