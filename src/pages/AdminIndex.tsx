@@ -22,6 +22,7 @@ const favoriteProjects = [
   { name: "Member Home", starred: true, path: "/" },
   { name: "Member List", starred: true, path: "/admin/users/list" },
   { name: "Platform Posts", starred: true, path: "/admin/platform-posts", icon: "megaphone" },
+  { name: "Short Videos", starred: true, path: "/admin/short-videos", icon: "video" },
   { name: "Payouts", starred: true, path: "/admin/payouts", icon: "paypal" },
 ];
 
@@ -329,6 +330,8 @@ const AdminIndex = () => {
                   <Wallet className="w-4 h-4 text-green-500" />
                 ) : project.icon === "megaphone" ? (
                   <Megaphone className="w-4 h-4 text-primary" />
+                ) : project.icon === "video" ? (
+                  <Play className="w-4 h-4 text-pink-500" />
                 ) : (
                   <Star className={cn("w-4 h-4", project.path ? "text-blue-500 fill-blue-500" : "text-amber-400 fill-amber-400")} />
                 )}

@@ -22,6 +22,7 @@ import UserList from "./pages/admin/UserList";
 import EmailTemplates from "./pages/admin/EmailTemplates";
 import PayoutManagement from "./pages/admin/PayoutManagement";
 import PlatformPosts from "./pages/admin/PlatformPosts";
+import ShortVideos from "./pages/admin/ShortVideos";
 import MemberDashboard from "./pages/MemberDashboard";
 import UserProfile from "./pages/UserProfile";
 import ConfirmEmail from "./pages/ConfirmEmail";
@@ -110,6 +111,14 @@ const App = () => (
               element={
                 <AdminRouteGuard>
                   <PlatformPosts />
+                </AdminRouteGuard>
+              }
+            />
+            <Route
+              path="/admin/short-videos"
+              element={
+                <AdminRouteGuard>
+                  <ShortVideos />
                 </AdminRouteGuard>
               }
             />
