@@ -17,6 +17,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { CoverEditor } from "@/components/cover/CoverEditor";
@@ -24,6 +30,7 @@ import { AvatarEditor } from "@/components/avatar/AvatarEditor";
 import { ProfileTabContent } from "@/components/feed/ProfileTabContent";
 import { PostCard } from "@/components/feed/PostCard";
 import { useBlockMute } from "@/hooks/useBlockMute";
+import { useUserPrivacySettings } from "@/hooks/useUserPrivacySettings";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
@@ -94,6 +101,9 @@ const UserProfile = () => {
 
   // Block/Mute hook
   const { isBlocked, isMuted, blockUser, muteUser, loading: blockMuteLoading } = useBlockMute(profile?.user_id);
+  
+  // Privacy settings hook - check if user allows DMs
+  const { settings: profilePrivacySettings } = useUserPrivacySettings(profile?.user_id);
   const { data: userPosts = [], isLoading: loadingPosts } = useQuery({
     queryKey: ["user-posts", profile?.user_id],
     queryFn: async () => {
@@ -691,9 +701,25 @@ const UserProfile = () => {
               ) : (
                 <>
                   {renderFriendButton()}
-                  <Button variant="outline" size="icon" title={t("profile.message", { defaultValue: "Message" })}>
-                    <MessageCircle className="w-4 h-4" />
-                  </Button>
+                  {/* Message button - respect DM privacy settings */}
+                  {profilePrivacySettings.allow_direct_messages || friendshipStatus === "accepted" ? (
+                    <Button variant="outline" size="icon" title={t("profile.message", { defaultValue: "Message" })}>
+                      <MessageCircle className="w-4 h-4" />
+                    </Button>
+                  ) : (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant="outline" size="icon" disabled className="opacity-50">
+                            <MessageCircle className="w-4 h-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{t("privacy.dmDisabled", { defaultValue: "This user has disabled direct messages" })}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="outline" size="icon" title={t("profile.more", { defaultValue: "More options" })}>

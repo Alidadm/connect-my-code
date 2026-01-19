@@ -1702,6 +1702,7 @@ export type Database = {
       }
       privacy_settings: {
         Row: {
+          allow_direct_messages: boolean | null
           created_at: string
           hide_from_search: boolean | null
           id: string
@@ -1716,6 +1717,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          allow_direct_messages?: boolean | null
           created_at?: string
           hide_from_search?: boolean | null
           id?: string
@@ -1730,6 +1732,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          allow_direct_messages?: boolean | null
           created_at?: string
           hide_from_search?: boolean | null
           id?: string

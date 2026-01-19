@@ -10,6 +10,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { fetchBatchPrivacySettings } from "@/hooks/useUserPrivacySettings";
 import { formatDistanceToNow, format, isToday, isTomorrow, addDays, isSameDay, differenceInDays } from "date-fns";
 import {
   DropdownMenu,
@@ -38,6 +39,7 @@ interface OnlineFriend {
   avatar_url: string | null;
   username: string | null;
   isOnline: boolean;
+  showOnlineStatus: boolean; // Privacy setting
 }
 
 interface BirthdayReminder {
@@ -210,15 +212,29 @@ export const RightSidebar = () => {
             .in("user_id", friendIds);
 
           if (profiles) {
+            // Fetch privacy settings for all friends
+            const privacySettings = await fetchBatchPrivacySettings(friendIds);
+            
             // Consider users "online" if updated in last 15 minutes
             const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
-            const onlineProfiles = profiles.map(p => ({
-              user_id: p.user_id,
-              display_name: p.display_name,
-              avatar_url: p.avatar_url,
-              username: p.username,
-              isOnline: new Date(p.updated_at) > fifteenMinutesAgo
-            })).sort((a, b) => (b.isOnline ? 1 : 0) - (a.isOnline ? 1 : 0));
+            const onlineProfiles = profiles.map(p => {
+              const settings = privacySettings.get(p.user_id);
+              const showOnlineStatus = settings?.show_online_status ?? true;
+              
+              return {
+                user_id: p.user_id,
+                display_name: p.display_name,
+                avatar_url: p.avatar_url,
+                username: p.username,
+                isOnline: new Date(p.updated_at) > fifteenMinutesAgo,
+                showOnlineStatus
+              };
+            }).sort((a, b) => {
+              // Only sort by online if they show their status
+              const aOnline = a.showOnlineStatus && a.isOnline ? 1 : 0;
+              const bOnline = b.showOnlineStatus && b.isOnline ? 1 : 0;
+              return bOnline - aOnline;
+            });
 
             setOnlineFriends(onlineProfiles.slice(0, 8));
           }
@@ -556,7 +572,8 @@ export const RightSidebar = () => {
   };
 
   const unreadCount = messages.filter(m => m.read_at === null).length;
-  const onlineCount = onlineFriends.filter(f => f.isOnline).length;
+  // Only count friends who show their online status and are actually online
+  const onlineCount = onlineFriends.filter(f => f.showOnlineStatus && f.isOnline).length;
 
   return (
     <aside className="w-[320px] flex-shrink-0 hidden xl:block">
@@ -711,12 +728,15 @@ export const RightSidebar = () => {
                         {friend.display_name?.split(" ").map(n => n[0]).join("") || "?"}
                       </AvatarFallback>
                     </Avatar>
-                    <Circle 
-                      className={cn(
-                        "absolute bottom-0 right-0 h-3 w-3 fill-current border-2 border-card rounded-full",
-                        friend.isOnline ? "text-green-500" : "text-gray-400"
-                      )} 
-                    />
+                    {/* Only show online indicator if user allows it */}
+                    {friend.showOnlineStatus && (
+                      <Circle 
+                        className={cn(
+                          "absolute bottom-0 right-0 h-3 w-3 fill-current border-2 border-card rounded-full",
+                          friend.isOnline ? "text-green-500" : "text-gray-400"
+                        )} 
+                      />
+                    )}
                   </div>
                   <span className="text-[10px] text-muted-foreground truncate max-w-full text-center">
                     {friend.display_name?.split(" ")[0] || "User"}
