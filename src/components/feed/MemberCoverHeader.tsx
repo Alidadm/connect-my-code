@@ -5,7 +5,6 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
-import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
 import { ProfileAboutSection } from "./ProfileAboutSection";
 
 interface MemberCoverHeaderProps {
@@ -272,14 +271,21 @@ export const MemberCoverHeader = ({ activeTab: externalActiveTab, onTabChange }:
           </nav>
         </div>
 
-        {/* About Section - Collapsible Slide Toggle */}
-        <Collapsible open={aboutOpen} onOpenChange={setAboutOpen}>
-          <CollapsibleContent className="overflow-hidden data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-up data-[state=open]:slide-down duration-300">
-            <div className="border-t border-border bg-muted/30">
-              <ProfileAboutSection userId={user?.id} />
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
+      </div>
+
+      {/* About Section - Slide Down Overlay (on top of content below) */}
+      <div
+        className={`overflow-hidden transition-all duration-300 ease-in-out ${
+          aboutOpen ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0"
+        }`}
+        style={{
+          position: "relative",
+          zIndex: 20,
+        }}
+      >
+        <div className="bg-card border-t border-border shadow-lg">
+          <ProfileAboutSection userId={user?.id} />
+        </div>
       </div>
     </section>
   );
