@@ -643,33 +643,6 @@ export const Signup = () => {
                   Log in
                 </Link>
               </p>
-
-              <p className="text-center text-sm text-muted-foreground mt-2">
-                <Link to="/" className="text-primary hover:underline font-medium">
-                  Go to Home Page →
-                </Link>
-              </p>
-
-              {/* Temporary Navigation Links - For Development */}
-              <div className="mt-8 text-center">
-                <div className="inline-block p-4 border border-dashed border-blue-500/50 rounded-lg bg-blue-500/5">
-                  <p className="text-xs text-blue-600 mb-3 font-medium">🔗 Quick Navigation (Dev)</p>
-                  <div className="flex gap-3 flex-wrap justify-center">
-                    <Link to="/">
-                      <Button variant="outline" size="sm" className="border-blue-500/50 text-blue-600 hover:bg-blue-500/10">
-                        <Home className="h-3 w-3 mr-2" />
-                        Member Home
-                      </Button>
-                    </Link>
-                    <Link to="/pricing">
-                      <Button variant="outline" size="sm" className="border-blue-500/50 text-blue-600 hover:bg-blue-500/10">
-                        <CreditCard className="h-3 w-3 mr-2" />
-                        Pricing Page
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
-              </div>
             </>
           ) : step === 'avatar' ? (
             /* Avatar Step (Optional) */
