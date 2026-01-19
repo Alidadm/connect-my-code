@@ -635,6 +635,30 @@ export type Database = {
         }
         Relationships: []
       }
+      family_members: {
+        Row: {
+          created_at: string
+          family_member_id: string
+          id: string
+          relationship: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          family_member_id: string
+          id?: string
+          relationship: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          family_member_id?: string
+          id?: string
+          relationship?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       friendships: {
         Row: {
           addressee_id: string
@@ -1751,6 +1775,72 @@ export type Database = {
           typing_indicator?: boolean | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      profile_details: {
+        Row: {
+          birthplace: string | null
+          citizenships: string[] | null
+          college: string | null
+          created_at: string
+          current_residence: string | null
+          current_work: string | null
+          full_name: string | null
+          gender: string | null
+          high_school: string | null
+          id: string
+          languages: string[] | null
+          major: string | null
+          relationship_status: string | null
+          show_email: boolean | null
+          show_phone: boolean | null
+          social_network_id: string | null
+          updated_at: string
+          user_id: string
+          website: string | null
+        }
+        Insert: {
+          birthplace?: string | null
+          citizenships?: string[] | null
+          college?: string | null
+          created_at?: string
+          current_residence?: string | null
+          current_work?: string | null
+          full_name?: string | null
+          gender?: string | null
+          high_school?: string | null
+          id?: string
+          languages?: string[] | null
+          major?: string | null
+          relationship_status?: string | null
+          show_email?: boolean | null
+          show_phone?: boolean | null
+          social_network_id?: string | null
+          updated_at?: string
+          user_id: string
+          website?: string | null
+        }
+        Update: {
+          birthplace?: string | null
+          citizenships?: string[] | null
+          college?: string | null
+          created_at?: string
+          current_residence?: string | null
+          current_work?: string | null
+          full_name?: string | null
+          gender?: string | null
+          high_school?: string | null
+          id?: string
+          languages?: string[] | null
+          major?: string | null
+          relationship_status?: string | null
+          show_email?: boolean | null
+          show_phone?: boolean | null
+          social_network_id?: string | null
+          updated_at?: string
+          user_id?: string
+          website?: string | null
         }
         Relationships: []
       }
