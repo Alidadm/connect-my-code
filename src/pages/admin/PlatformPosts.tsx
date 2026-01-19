@@ -20,7 +20,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   ArrowLeft, Plus, Trash2, Loader2, Image as ImageIcon, 
   Send, Megaphone, X, Calendar, Film, FileAudio, FileText,
-  Upload, Clock, Pencil, FileX, FileEdit, RotateCcw
+  Upload, Clock, Pencil, FileX, FileEdit, RotateCcw, Copy
 } from "lucide-react";
 import { formatDistanceToNow, format, isPast, isFuture } from "date-fns";
 import AdminRouteGuard from "@/components/admin/AdminRouteGuard";
@@ -440,6 +440,34 @@ const PlatformPosts = () => {
     }
   };
 
+  const handleDuplicatePost = async (post: PlatformPost) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("You must be logged in");
+        return;
+      }
+
+      const { error } = await supabase.from("posts").insert({
+        content: post.content,
+        media_urls: post.media_urls,
+        user_id: user.id,
+        is_platform_post: true,
+        visibility: "private", // Create as draft
+        scheduled_at: null
+      });
+
+      if (error) throw error;
+
+      toast.success("Post duplicated as draft");
+      setActiveTab("drafts");
+      fetchPlatformPosts();
+    } catch (error) {
+      console.error("Error duplicating post:", error);
+      toast.error("Failed to duplicate post");
+    }
+  };
+
   const getMediaIcon = (type: MediaFile['type']) => {
     switch (type) {
       case 'video': return <Film className="h-4 w-4" />;
@@ -780,6 +808,15 @@ const PlatformPosts = () => {
                               <Button
                                 variant="ghost"
                                 size="icon"
+                                className="text-slate-400 hover:text-blue-600"
+                                onClick={() => handleDuplicatePost(post)}
+                                title="Duplicate as draft"
+                              >
+                                <Copy className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
                                 className="text-slate-400 hover:text-amber-600"
                                 onClick={() => handleMoveToDrafts(post.id)}
                                 title="Move to drafts"
@@ -892,6 +929,15 @@ const PlatformPosts = () => {
                                 title="Edit post"
                               >
                                 <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-slate-400 hover:text-blue-600"
+                                onClick={() => handleDuplicatePost(post)}
+                                title="Duplicate as draft"
+                              >
+                                <Copy className="h-4 w-4" />
                               </Button>
                               <Button
                                 variant="ghost"
@@ -1012,6 +1058,15 @@ const PlatformPosts = () => {
                                 title="Edit and schedule"
                               >
                                 <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-slate-400 hover:text-blue-600"
+                                onClick={() => handleDuplicatePost(post)}
+                                title="Duplicate as draft"
+                              >
+                                <Copy className="h-4 w-4" />
                               </Button>
                               <Button
                                 variant="ghost"
