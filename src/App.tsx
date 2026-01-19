@@ -37,6 +37,7 @@ import Games from "./pages/Games";
 import Blogs from "./pages/Blogs";
 import BlogEdit from "./pages/BlogEdit";
 import BlogView from "./pages/BlogView";
+import About from "./pages/About";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +50,7 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/about" element={<About />} />
             <Route path="/friends" element={<Friends />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
