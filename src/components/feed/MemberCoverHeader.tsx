@@ -129,7 +129,7 @@ export const MemberCoverHeader = ({ activeTab: externalActiveTab, onTabChange }:
   return (
     <section
       aria-label="Profile header"
-      className="mb-4 overflow-hidden rounded-xl bg-card shadow-sm"
+      className="mb-4 overflow-visible rounded-xl bg-card shadow-sm relative"
     >
       {/* Cover Image Section */}
       <div className="relative h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/30 to-primary/10">
@@ -273,17 +273,19 @@ export const MemberCoverHeader = ({ activeTab: externalActiveTab, onTabChange }:
 
       </div>
 
-      {/* About Section - Slide Down Overlay (on top of content below) */}
+      {/* About Section - Slide Down Overlay (overlaps content below) */}
       <div
-        className={`overflow-hidden transition-all duration-300 ease-in-out ${
-          aboutOpen ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0"
+        className={`absolute left-0 right-0 transition-all duration-300 ease-in-out overflow-hidden ${
+          aboutOpen 
+            ? "max-h-[2000px] opacity-100 pointer-events-auto" 
+            : "max-h-0 opacity-0 pointer-events-none"
         }`}
         style={{
-          position: "relative",
-          zIndex: 20,
+          top: "100%",
+          zIndex: 50,
         }}
       >
-        <div className="bg-card border-t border-border shadow-lg">
+        <div className="bg-card border border-border rounded-b-xl shadow-xl">
           <ProfileAboutSection userId={user?.id} />
         </div>
       </div>
