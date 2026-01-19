@@ -2152,6 +2152,120 @@ export type Database = {
         }
         Relationships: []
       }
+      sudoku_games: {
+        Row: {
+          created_at: string
+          difficulty: string
+          id: string
+          is_multiplayer: boolean | null
+          player_1: string
+          player_1_hints_used: number | null
+          player_1_state: Json | null
+          player_1_time: number | null
+          player_2: string | null
+          player_2_hints_used: number | null
+          player_2_state: Json | null
+          player_2_time: number | null
+          puzzle: Json
+          solution: Json
+          status: string
+          updated_at: string
+          winner: string | null
+        }
+        Insert: {
+          created_at?: string
+          difficulty?: string
+          id?: string
+          is_multiplayer?: boolean | null
+          player_1: string
+          player_1_hints_used?: number | null
+          player_1_state?: Json | null
+          player_1_time?: number | null
+          player_2?: string | null
+          player_2_hints_used?: number | null
+          player_2_state?: Json | null
+          player_2_time?: number | null
+          puzzle: Json
+          solution: Json
+          status?: string
+          updated_at?: string
+          winner?: string | null
+        }
+        Update: {
+          created_at?: string
+          difficulty?: string
+          id?: string
+          is_multiplayer?: boolean | null
+          player_1?: string
+          player_1_hints_used?: number | null
+          player_1_state?: Json | null
+          player_1_time?: number | null
+          player_2?: string | null
+          player_2_hints_used?: number | null
+          player_2_state?: Json | null
+          player_2_time?: number | null
+          puzzle?: Json
+          solution?: Json
+          status?: string
+          updated_at?: string
+          winner?: string | null
+        }
+        Relationships: []
+      }
+      sudoku_stats: {
+        Row: {
+          created_at: string
+          easy_best_time: number | null
+          easy_games_won: number | null
+          expert_best_time: number | null
+          expert_games_won: number | null
+          hard_best_time: number | null
+          hard_games_won: number | null
+          id: string
+          medium_best_time: number | null
+          medium_games_won: number | null
+          multiplayer_losses: number | null
+          multiplayer_wins: number | null
+          total_games_played: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          easy_best_time?: number | null
+          easy_games_won?: number | null
+          expert_best_time?: number | null
+          expert_games_won?: number | null
+          hard_best_time?: number | null
+          hard_games_won?: number | null
+          id?: string
+          medium_best_time?: number | null
+          medium_games_won?: number | null
+          multiplayer_losses?: number | null
+          multiplayer_wins?: number | null
+          total_games_played?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          easy_best_time?: number | null
+          easy_games_won?: number | null
+          expert_best_time?: number | null
+          expert_games_won?: number | null
+          hard_best_time?: number | null
+          hard_games_won?: number | null
+          id?: string
+          medium_best_time?: number | null
+          medium_games_won?: number | null
+          multiplayer_losses?: number | null
+          multiplayer_wins?: number | null
+          total_games_played?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       tic_tac_toe_games: {
         Row: {
           board: string[]
