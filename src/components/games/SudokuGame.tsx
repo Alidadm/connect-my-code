@@ -74,14 +74,27 @@ export const SudokuGame = ({ gameId, initialPuzzle, initialSolution, difficulty 
   };
 
   // For single-player mode without database
-  const isSinglePlayer = !gameId && initialPuzzle && initialSolution;
+  const isSinglePlayer = !gameId && !!initialPuzzle && !!initialSolution;
 
   const fetchGame = useCallback(async () => {
-    // If single player mode, use initial puzzle
+    // If single player mode, use initial puzzle and create a local "game" object
+    // so the UI doesn't fall back to "Game not found".
     if (isSinglePlayer) {
-      setPuzzle(initialPuzzle);
-      setSolution(initialSolution);
-      setCurrentState(initialPuzzle.map(row => [...row]));
+      const userId = user?.id ?? "single-player";
+
+      setGame({
+        id: "single-player",
+        player_1: userId,
+        player_2: null,
+        status: "active",
+        difficulty,
+        winner: null,
+        is_multiplayer: false,
+      });
+
+      setPuzzle(initialPuzzle!);
+      setSolution(initialSolution!);
+      setCurrentState(initialPuzzle!.map(row => [...row]));
       setNotes(initializeNotes());
       setIsRunning(true);
       setLoading(false);
@@ -104,22 +117,22 @@ export const SudokuGame = ({ gameId, initialPuzzle, initialSolution, difficulty 
       if (!gameData) return;
 
       setGame(gameData);
-      
+
       const puzzleGrid = jsonToGrid(gameData.puzzle);
       const solutionGrid = jsonToGrid(gameData.solution);
-      
+
       setPuzzle(puzzleGrid);
       setSolution(solutionGrid);
-      
+
       // Determine which player state to use
       const isPlayer1 = gameData.player_1 === user?.id;
       const stateJson = isPlayer1 ? gameData.player_1_state : gameData.player_2_state;
       const playerState = stateJson ? jsonToGrid(stateJson) : puzzleGrid.map(row => [...row]);
-      
+
       setCurrentState(playerState);
       setNotes(initializeNotes());
       setHintsUsed(isPlayer1 ? (gameData.player_1_hints_used || 0) : (gameData.player_2_hints_used || 0));
-      
+
       // Load timer from existing time
       const existingTime = isPlayer1 ? gameData.player_1_time : gameData.player_2_time;
       if (existingTime && gameData.status === 'completed') {
@@ -152,7 +165,7 @@ export const SudokuGame = ({ gameId, initialPuzzle, initialSolution, difficulty 
     } finally {
       setLoading(false);
     }
-  }, [gameId, user?.id, t, toast, isSinglePlayer, initialPuzzle, initialSolution]);
+  }, [difficulty, gameId, initialPuzzle, initialSolution, isSinglePlayer, t, toast, user?.id]);
 
   useEffect(() => {
     fetchGame();
@@ -170,8 +183,10 @@ export const SudokuGame = ({ gameId, initialPuzzle, initialSolution, difficulty 
     };
   }, [isRunning, game?.status]);
 
-  // Subscribe to realtime updates
+  // Subscribe to realtime updates (multiplayer only)
   useEffect(() => {
+    if (!gameId || isSinglePlayer) return;
+
     const channel = supabase
       .channel(`sudoku-game-${gameId}`)
       .on(
@@ -185,7 +200,7 @@ export const SudokuGame = ({ gameId, initialPuzzle, initialSolution, difficulty 
         (payload) => {
           const newGame = payload.new as any;
           setGame(newGame);
-          
+
           if (newGame.status === 'completed' && game?.status !== 'completed') {
             if (newGame.winner === user?.id) {
               playWin();
@@ -211,7 +226,7 @@ export const SudokuGame = ({ gameId, initialPuzzle, initialSolution, difficulty 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [gameId, game?.status, user?.id, playWin, playLose, toast, t]);
+  }, [gameId, game?.status, isSinglePlayer, playWin, playLose, toast, t, user?.id]);
 
   const handleCellSelect = (row: number, col: number) => {
     if (puzzle[row]?.[col] !== 0) return; // Can't select original cells

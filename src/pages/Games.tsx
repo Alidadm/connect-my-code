@@ -74,9 +74,12 @@ const GamesContent = () => {
   const [showMemoryInvite, setShowMemoryInvite] = useState(false);
   
   // Sudoku state
-  const [selectedSudokuId, setSelectedSudokuId] = useState<string | null>(
-    searchParams.get("sudoku") || null
-  );
+  const [selectedSudokuId, setSelectedSudokuId] = useState<string | null>(() => {
+    const v = searchParams.get("sudoku");
+    if (!v || v === "null" || v === "undefined") return null;
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
+    return isUuid ? v : null;
+  });
   const [showSudokuSelector, setShowSudokuSelector] = useState(false);
   const [sudokuPuzzle, setSudokuPuzzle] = useState<number[][] | null>(null);
   const [sudokuSolution, setSudokuSolution] = useState<number[][] | null>(null);
@@ -85,7 +88,7 @@ const GamesContent = () => {
   const [sudokuStats, setSudokuStats] = useState<any>(null);
   const [sudokuLoading, setSudokuLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("active");
-  
+
   const [loading, setLoading] = useState(true);
   const [activeGameType, setActiveGameType] = useState<"tictactoe" | "memory" | "sudoku">("tictactoe");
 
@@ -110,11 +113,15 @@ const GamesContent = () => {
   const handleSudokuDifficultySelect = async (difficulty: string, isMultiplayer: boolean) => {
     setSudokuLoading(true);
     try {
+      // Clear any stale multiplayer selection (e.g. /games?sudoku=null)
+      setSelectedSudokuId(null);
+      navigate("/games", { replace: true });
+
       const { puzzle, solution } = generateSudoku(difficulty);
       setSudokuPuzzle(puzzle);
       setSudokuSolution(solution);
       setSudokuDifficulty(difficulty);
-      
+
       if (isMultiplayer) {
         setShowSudokuInvite(true);
       } else {
