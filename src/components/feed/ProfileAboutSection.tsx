@@ -131,8 +131,8 @@ export const ProfileAboutSection = ({ userId }: ProfileAboutSectionProps) => {
     <div className="flex items-center justify-between py-2.5 group">
       <div className="flex items-center gap-3">
         {isAdd ? (
-          <div className="flex items-center justify-center w-9 h-9 rounded-full border-2 border-primary">
-            <Plus className="h-4 w-4 text-primary" />
+          <div className="flex items-center justify-center w-7 h-7 rounded-full border border-primary">
+            <Plus className="h-3.5 w-3.5 text-primary" />
           </div>
         ) : (
           <Icon className="h-5 w-5 text-muted-foreground" />
