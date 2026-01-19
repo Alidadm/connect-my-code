@@ -20,15 +20,14 @@ serve(async (req) => {
   try {
     logStep("Checking Stripe Connect status");
 
-    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-    if (!stripeKey) {
-      throw new Error("Stripe secret key not configured");
-    }
-
-    // Verify authentication
+    // Verify authentication first
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      throw new Error("No authorization header");
+      logStep("No authorization header provided");
+      return new Response(
+        JSON.stringify({ connected: false, status: "unauthenticated", message: "Not logged in" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+      );
     }
 
     const supabaseClient = createClient(
@@ -42,7 +41,15 @@ serve(async (req) => {
     
     if (authError || !user) {
       logStep("Auth failed", { error: authError?.message });
-      throw new Error("Unauthorized");
+      return new Response(
+        JSON.stringify({ connected: false, status: "unauthenticated", message: "Session expired" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+      );
+    }
+
+    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+    if (!stripeKey) {
+      throw new Error("Stripe secret key not configured");
     }
 
     // Get user's Stripe Connect ID
