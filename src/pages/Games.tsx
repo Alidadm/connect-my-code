@@ -14,8 +14,14 @@ import { InviteFriendToMemoryDialog } from "@/components/games/InviteFriendToMem
 import { GameStats } from "@/components/games/GameStats";
 import { MemoryMatchStats } from "@/components/games/MemoryMatchStats";
 import { GameSoundSettingsProvider, useGameSoundSettings } from "@/hooks/useGameSoundSettings";
-import { Gamepad2, Plus, Clock, Trophy, Users, Loader2, History, Grid3X3, LayoutGrid, Volume2, VolumeX } from "lucide-react";
+import { Gamepad2, Plus, Clock, Trophy, Users, Loader2, History, Grid3X3, LayoutGrid, Volume2, VolumeX, Hash } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { SudokuGame } from "@/components/games/SudokuGame";
+import { SudokuStats } from "@/components/games/SudokuStats";
+import { SudokuDifficultySelector } from "@/components/games/SudokuDifficultySelector";
+import { InviteFriendToSudokuDialog } from "@/components/games/InviteFriendToSudokuDialog";
+import { generateSudoku } from "@/lib/sudokuGenerator";
+import { Json } from "@/integrations/supabase/types";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 interface TicTacToeGameWithPlayers {
@@ -67,9 +73,21 @@ const GamesContent = () => {
   );
   const [showMemoryInvite, setShowMemoryInvite] = useState(false);
   
-  const [loading, setLoading] = useState(true);
-  const [activeGameType, setActiveGameType] = useState<"tictactoe" | "memory">("tictactoe");
+  // Sudoku state
+  const [selectedSudokuId, setSelectedSudokuId] = useState<string | null>(
+    searchParams.get("sudoku") || null
+  );
+  const [showSudokuSelector, setShowSudokuSelector] = useState(false);
+  const [sudokuPuzzle, setSudokuPuzzle] = useState<number[][] | null>(null);
+  const [sudokuSolution, setSudokuSolution] = useState<number[][] | null>(null);
+  const [sudokuDifficulty, setSudokuDifficulty] = useState<string>("medium");
+  const [showSudokuInvite, setShowSudokuInvite] = useState(false);
+  const [sudokuStats, setSudokuStats] = useState<any>(null);
+  const [sudokuLoading, setSudokuLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("active");
+  
+  const [loading, setLoading] = useState(true);
+  const [activeGameType, setActiveGameType] = useState<"tictactoe" | "memory" | "sudoku">("tictactoe");
 
   useEffect(() => {
     if (user) {
@@ -409,7 +427,7 @@ const GamesContent = () => {
         </div>
 
         {/* Game Type Selector */}
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button
             variant={activeGameType === "tictactoe" ? "default" : "outline"}
             onClick={() => setActiveGameType("tictactoe")}
@@ -426,9 +444,26 @@ const GamesContent = () => {
             <LayoutGrid className="w-4 h-4" />
             {t("games.memoryMatch", { defaultValue: "Memory Match" })}
           </Button>
+          <Button
+            variant={activeGameType === "sudoku" ? "default" : "outline"}
+            onClick={() => setActiveGameType("sudoku")}
+            className="gap-2"
+          >
+            <Hash className="w-4 h-4" />
+            {t("games.sudoku", { defaultValue: "Sudoku" })}
+          </Button>
         </div>
 
         {/* Stats Card */}
+        {activeGameType === "tictactoe" && (
+          <GameStats wins={ticTacToeStats.wins} losses={ticTacToeStats.losses} draws={ticTacToeStats.draws} />
+        )}
+        {activeGameType === "memory" && (
+          <MemoryMatchStats wins={memoryStats.wins} losses={memoryStats.losses} draws={memoryStats.draws} />
+        )}
+        {activeGameType === "sudoku" && (
+          <SudokuStats stats={sudokuStats} />
+        )}
         {activeGameType === "tictactoe" ? (
           <GameStats wins={ticTacToeStats.wins} losses={ticTacToeStats.losses} draws={ticTacToeStats.draws} />
         ) : (
