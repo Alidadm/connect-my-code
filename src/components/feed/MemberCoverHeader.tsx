@@ -94,6 +94,7 @@ export const MemberCoverHeader = ({ activeTab: externalActiveTab, onTabChange }:
 
   const tabs = [
     { id: "feed", label: t("profile.feed", "Feed") },
+    { id: "about", label: t("profile.about", "About") },
     { id: "photos", label: t("profile.photos", "Photos") },
     { id: "videos", label: t("profile.videos", "Videos") },
     { id: "friends", label: t("profile.friends", "Friends"), count: stats.friendsCount },
