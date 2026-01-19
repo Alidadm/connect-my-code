@@ -20,7 +20,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   ArrowLeft, Plus, Trash2, Loader2, Image as ImageIcon, 
   Send, Megaphone, X, Calendar, Film, FileAudio, FileText,
-  Upload, Clock, Pencil, FileX, FileEdit, RotateCcw, Copy
+  Upload, Clock, Pencil, FileX, FileEdit, RotateCcw, Copy,
+  Eye, Heart, MessageCircle, Share2, MoreVertical, Bookmark
 } from "lucide-react";
 import { formatDistanceToNow, format, isPast, isFuture } from "date-fns";
 import AdminRouteGuard from "@/components/admin/AdminRouteGuard";
@@ -77,6 +78,9 @@ const PlatformPosts = () => {
   const [restoreScheduledDate, setRestoreScheduledDate] = useState("");
   const [restoreScheduledTime, setRestoreScheduledTime] = useState("");
   const [restoring, setRestoring] = useState(false);
+  
+  // Preview state
+  const [previewPost, setPreviewPost] = useState<PlatformPost | null>(null);
   
   const imageInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
@@ -485,6 +489,14 @@ const PlatformPosts = () => {
     return url.match(/\.(mp3|wav|ogg|m4a)$/i);
   };
 
+  const openPreviewModal = (post: PlatformPost) => {
+    setPreviewPost(post);
+  };
+
+  const closePreviewModal = () => {
+    setPreviewPost(null);
+  };
+
   return (
     <AdminRouteGuard>
       <div className="min-h-screen bg-slate-50 p-6">
@@ -808,6 +820,15 @@ const PlatformPosts = () => {
                               <Button
                                 variant="ghost"
                                 size="icon"
+                                className="text-slate-400 hover:text-green-600"
+                                onClick={() => openPreviewModal(post)}
+                                title="Preview post"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
                                 className="text-slate-400 hover:text-blue-600"
                                 onClick={() => handleDuplicatePost(post)}
                                 title="Duplicate as draft"
@@ -921,6 +942,15 @@ const PlatformPosts = () => {
                               </div>
                             </div>
                             <div className="flex items-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-slate-400 hover:text-green-600"
+                                onClick={() => openPreviewModal(post)}
+                                title="Preview post"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
                               <Button
                                 variant="ghost"
                                 size="icon"
@@ -1041,6 +1071,15 @@ const PlatformPosts = () => {
                               </div>
                             </div>
                             <div className="flex items-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-slate-400 hover:text-green-600"
+                                onClick={() => openPreviewModal(post)}
+                                title="Preview post"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
                               <Button
                                 variant="ghost"
                                 size="icon"
@@ -1320,6 +1359,144 @@ const PlatformPosts = () => {
                   {restoreIsScheduled ? "Schedule Post" : "Publish Now"}
                 </Button>
               </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Post Preview Modal */}
+        <Dialog open={!!previewPost} onOpenChange={(open) => !open && closePreviewModal()}>
+          <DialogContent className="max-w-lg p-0 overflow-hidden">
+            <DialogHeader className="sr-only">
+              <DialogTitle>Post Preview</DialogTitle>
+            </DialogHeader>
+            
+            {previewPost && (
+              <div className="bg-card rounded-xl overflow-hidden">
+                {/* Header */}
+                <div className="flex items-center justify-between p-3 sm:p-4">
+                  <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                    <Avatar className="h-9 w-9 sm:h-10 sm:w-10 flex-shrink-0">
+                      <AvatarImage src={previewPost.profiles?.avatar_url || undefined} />
+                      <AvatarFallback className="bg-gradient-to-br from-primary to-primary/70 text-primary-foreground text-sm">
+                        {previewPost.profiles?.display_name?.[0] || "A"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-foreground text-sm sm:text-base truncate">
+                          {previewPost.profiles?.display_name || "Admin"}
+                        </span>
+                        <Badge variant="secondary" className="text-xs">
+                          Platform
+                        </Badge>
+                      </div>
+                      <div className="text-[10px] sm:text-xs text-muted-foreground">
+                        {previewPost.scheduled_at 
+                          ? `Scheduled for ${format(new Date(previewPost.scheduled_at), 'MMM d, yyyy h:mm a')}`
+                          : formatDistanceToNow(new Date(previewPost.created_at), { addSuffix: true })}
+                      </div>
+                    </div>
+                  </div>
+                  <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0">
+                    <MoreVertical className="h-4 w-4 sm:h-5 sm:w-5" />
+                  </Button>
+                </div>
+
+                {/* Media Grid */}
+                {previewPost.media_urls && previewPost.media_urls.length > 0 && (
+                  <div className={`grid gap-0.5 ${previewPost.media_urls.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
+                    {previewPost.media_urls.slice(0, 4).map((url, index) => (
+                      <div 
+                        key={index} 
+                        className={`relative bg-secondary ${previewPost.media_urls!.length === 1 ? 'aspect-[16/10] sm:aspect-[16/9]' : 'aspect-square'}`}
+                      >
+                        {isVideoUrl(url) ? (
+                          <video
+                            src={url}
+                            controls
+                            className="w-full h-full object-cover"
+                          />
+                        ) : isAudioUrl(url) ? (
+                          <div className="w-full h-full flex items-center justify-center bg-slate-100 p-3">
+                            <FileAudio className="h-8 w-8 text-purple-600 mr-2" />
+                            <audio src={url} controls className="w-full" />
+                          </div>
+                        ) : (
+                          <img
+                            src={url}
+                            alt={`Post media ${index + 1}`}
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                          />
+                        )}
+                        {index === 3 && previewPost.media_urls!.length > 4 && (
+                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                            <span className="text-white font-semibold text-lg">
+                              +{previewPost.media_urls!.length - 4}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Content */}
+                {previewPost.content && (
+                  <div className="px-3 sm:px-4 py-2 sm:py-3">
+                    <p className="text-foreground whitespace-pre-wrap text-sm sm:text-base">
+                      {previewPost.content}
+                    </p>
+                  </div>
+                )}
+
+                {/* Actions */}
+                <div className="flex items-center justify-between px-2 sm:px-4 py-2 sm:py-3 border-t border-border">
+                  <div className="flex items-center gap-1 sm:gap-2">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="gap-1 sm:gap-1.5 text-muted-foreground px-2 sm:px-3 h-8 sm:h-9 cursor-default"
+                    >
+                      <Heart className="h-4 w-4 sm:h-5 sm:w-5" />
+                      <span className="text-xs sm:text-sm">{previewPost.likes_count || 0}</span>
+                      <span className="hidden xs:inline text-xs sm:text-sm">Like</span>
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="gap-1 sm:gap-1.5 text-muted-foreground px-2 sm:px-3 h-8 sm:h-9 cursor-default"
+                    >
+                      <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5" />
+                      <span className="text-xs sm:text-sm">{previewPost.comments_count || 0}</span>
+                      <span className="hidden sm:inline text-xs sm:text-sm">Comment</span>
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="gap-1 sm:gap-1.5 text-muted-foreground px-2 sm:px-3 h-8 sm:h-9 cursor-default"
+                    >
+                      <Share2 className="h-4 w-4 sm:h-5 sm:w-5" />
+                      <span className="text-xs sm:text-sm">0</span>
+                      <span className="hidden sm:inline text-xs sm:text-sm">Share</span>
+                    </Button>
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="text-muted-foreground h-8 w-8 sm:h-9 sm:w-9 cursor-default"
+                  >
+                    <Bookmark className="h-4 w-4 sm:h-5 sm:w-5" />
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            <div className="p-4 border-t bg-muted/30">
+              <p className="text-center text-sm text-muted-foreground">
+                <Eye className="h-4 w-4 inline-block mr-1" />
+                This is how the post will appear to members
+              </p>
             </div>
           </DialogContent>
         </Dialog>
