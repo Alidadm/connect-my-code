@@ -1,14 +1,16 @@
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { 
   Building2, Phone, Mail, Globe, MapPin, ArrowLeft, 
-  Loader2, ExternalLink, User
+  Loader2, ExternalLink, User, ZoomIn
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
 
@@ -78,6 +80,7 @@ export default function BusinessProfile() {
   const { businessId } = useParams<{ businessId: string }>();
   const navigate = useNavigate();
   const { data: business, isLoading, error } = useBusinessById(businessId);
+  const [cardZoomOpen, setCardZoomOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -269,18 +272,50 @@ export default function BusinessProfile() {
         {/* Business Card */}
         {business.business_card_url && (
           <div className="bg-card rounded-xl border border-border p-6 mt-4">
-            <h2 className="text-lg font-semibold text-foreground mb-4">
-              {t("business.businessCard", { defaultValue: "Business Card" })}
-            </h2>
-            <div className="rounded-lg overflow-hidden border border-border">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-foreground">
+                {t("business.businessCard", { defaultValue: "Business Card" })}
+              </h2>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => setCardZoomOpen(true)}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <ZoomIn className="h-4 w-4 mr-1" />
+                {t("common.viewFull", { defaultValue: "View Full" })}
+              </Button>
+            </div>
+            <div 
+              className="rounded-lg overflow-hidden border border-border cursor-pointer hover:shadow-lg transition-shadow group"
+              onClick={() => setCardZoomOpen(true)}
+            >
               <img
                 src={business.business_card_url}
                 alt={`${business.name} business card`}
-                className="w-full h-auto"
+                className="w-full h-auto max-w-2xl mx-auto"
+                style={{ imageRendering: "auto" }}
               />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 rounded-lg">
+                <ZoomIn className="h-8 w-8 text-white drop-shadow-lg" />
+              </div>
             </div>
           </div>
         )}
+
+        {/* Business Card Zoom Dialog */}
+        <Dialog open={cardZoomOpen} onOpenChange={setCardZoomOpen}>
+          <DialogContent className="max-w-4xl w-full p-2 bg-black/95">
+            <div className="flex items-center justify-center min-h-[50vh]">
+              <img
+                src={business?.business_card_url || ""}
+                alt={`${business?.name} business card`}
+                className="max-w-full max-h-[85vh] object-contain"
+                style={{ imageRendering: "auto" }}
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </MainLayout>
   );

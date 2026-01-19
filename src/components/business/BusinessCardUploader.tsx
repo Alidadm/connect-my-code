@@ -74,16 +74,16 @@ export const BusinessCardUploader = ({
     
     ctx.drawImage(video, 0, 0);
     
-    // Convert to blob
+    // Convert to blob with high quality
     canvas.toBlob((blob) => {
       if (blob) {
         const file = new File([blob], `business-card-${Date.now()}.jpg`, { type: "image/jpeg" });
         setSelectedFile(file);
-        setSelectedImage(canvas.toDataURL("image/jpeg"));
+        setSelectedImage(canvas.toDataURL("image/jpeg", 0.98));
         stopCamera();
         setMode("preview");
       }
-    }, "image/jpeg", 0.9);
+    }, "image/jpeg", 0.98);
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {

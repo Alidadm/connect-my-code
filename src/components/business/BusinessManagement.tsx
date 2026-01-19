@@ -350,7 +350,8 @@ export const BusinessManagement = () => {
             <img
               src={formData.business_card_url}
               alt="Business card"
-              className="w-full h-auto"
+              className="w-full h-auto max-w-xl mx-auto"
+              style={{ imageRendering: "auto" }}
             />
           </div>
         ) : (
