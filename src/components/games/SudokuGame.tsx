@@ -54,6 +54,7 @@ export const SudokuGame = ({ gameId, initialPuzzle, initialSolution, difficulty 
   const [timer, setTimer] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const [hintsUsed, setHintsUsed] = useState(0);
+  const [isSaving, setIsSaving] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Initialize notes grid
@@ -135,8 +136,11 @@ export const SudokuGame = ({ gameId, initialPuzzle, initialSolution, difficulty 
 
       // Load timer from existing time
       const existingTime = isPlayer1 ? gameData.player_1_time : gameData.player_2_time;
-      if (existingTime && gameData.status === 'completed') {
+      if (existingTime) {
         setTimer(existingTime);
+      }
+      
+      if (gameData.status === 'completed') {
         setIsRunning(false);
       } else if (gameData.status === 'active') {
         setIsRunning(true);
@@ -565,6 +569,66 @@ export const SudokuGame = ({ gameId, initialPuzzle, initialSolution, difficulty 
     await saveGameState(resetState);
   };
 
+  // Save single-player game progress to database
+  const handleSaveProgress = async () => {
+    if (!user || !isSinglePlayer) return;
+    
+    setIsSaving(true);
+    try {
+      // Check if there's already a saved game for this difficulty
+      const { data: existingGame } = await supabase
+        .from("sudoku_games")
+        .select("id")
+        .eq("player_1", user.id)
+        .eq("is_multiplayer", false)
+        .eq("difficulty", difficulty)
+        .eq("status", "active")
+        .single();
+
+      if (existingGame) {
+        // Update existing game
+        await supabase
+          .from("sudoku_games")
+          .update({
+            player_1_state: currentState as unknown as Json,
+            player_1_time: timer,
+            player_1_hints_used: hintsUsed,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", existingGame.id);
+      } else {
+        // Create new saved game
+        await supabase
+          .from("sudoku_games")
+          .insert({
+            player_1: user.id,
+            puzzle: puzzle as unknown as Json,
+            solution: solution as unknown as Json,
+            player_1_state: currentState as unknown as Json,
+            difficulty: difficulty,
+            status: "active",
+            is_multiplayer: false,
+            player_1_time: timer,
+            player_1_hints_used: hintsUsed,
+          });
+      }
+
+      toast({
+        title: t("games.gameSaved", { defaultValue: "Game Saved!" }),
+        description: t("games.gameSavedDesc", { defaultValue: "Your progress has been saved. You can continue later." }),
+      });
+    } catch (error) {
+      console.error("Error saving game:", error);
+      toast({
+        title: t("games.error", { defaultValue: "Error" }),
+        description: t("games.errorSavingGame", { defaultValue: "Failed to save game" }),
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -745,9 +809,12 @@ export const SudokuGame = ({ gameId, initialPuzzle, initialSolution, difficulty 
             onHint={handleHint}
             onValidate={handleValidate}
             onReset={handleReset}
+            onSave={handleSaveProgress}
             isNoteMode={isNoteMode}
             onToggleNoteMode={() => setIsNoteMode(!isNoteMode)}
             disabled={game.status !== 'active'}
+            isSaving={isSaving}
+            showSave={isSinglePlayer}
           />
         </div>
       )}
