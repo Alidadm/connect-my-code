@@ -28,17 +28,17 @@ export const SudokuBoard = ({
   const selectedNumber = getSelectedNumber();
 
   return (
-    <div className="relative">
+    <div className="relative w-full max-w-[400px] mx-auto">
       {/* Decorative background */}
-      <div className="absolute inset-0 -m-4 rounded-2xl bg-gradient-to-br from-primary/5 via-background to-primary/10" />
+      <div className="absolute inset-0 -m-2 sm:-m-4 rounded-2xl bg-gradient-to-br from-primary/5 via-background to-primary/10" />
       
-      <div className="relative bg-card rounded-xl shadow-lg p-2 sm:p-3 border-2 border-primary/20">
+      <div className="relative bg-card rounded-xl shadow-lg p-1.5 sm:p-2 md:p-3 border-2 border-primary/20">
         <div 
           className="grid gap-0"
           style={{ 
             gridTemplateColumns: 'repeat(9, 1fr)',
             aspectRatio: '1/1',
-            width: 'min(90vw, 400px)'
+            width: '100%'
           }}
         >
           {Array.from({ length: 81 }).map((_, index) => {
@@ -76,7 +76,7 @@ export const SudokuBoard = ({
                 disabled={disabled || isOriginal}
                 className={cn(
                   "relative flex items-center justify-center transition-all duration-150",
-                  "text-base sm:text-xl font-medium",
+                  "text-sm xs:text-base sm:text-lg md:text-xl font-medium",
                   "border-border/50",
                   // Base styling
                   isOriginal ? "bg-muted/50 cursor-default" : "bg-background hover:bg-accent/50 cursor-pointer",
@@ -114,7 +114,7 @@ export const SudokuBoard = ({
                       <span 
                         key={n}
                         className={cn(
-                          "text-[6px] sm:text-[8px] flex items-center justify-center text-muted-foreground",
+                          "text-[5px] xs:text-[6px] sm:text-[7px] md:text-[8px] flex items-center justify-center text-muted-foreground",
                           cellNotes.has(n) ? "opacity-100" : "opacity-0"
                         )}
                       >

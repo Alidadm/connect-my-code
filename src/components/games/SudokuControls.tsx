@@ -33,19 +33,19 @@ export const SudokuControls = ({
   const { t } = useTranslation();
 
   return (
-    <div className="flex flex-col gap-4 w-full lg:w-auto">
-      {/* Number pad */}
-      <div className="bg-card rounded-xl shadow-lg p-3 border border-border">
-        <div className="grid grid-cols-3 gap-2">
+    <div className="flex flex-col gap-3 sm:gap-4 w-full lg:w-auto">
+      {/* Number pad - horizontal on mobile, grid on desktop */}
+      <div className="bg-card rounded-xl shadow-lg p-2 sm:p-3 border border-border">
+        <div className="grid grid-cols-9 sm:grid-cols-3 gap-1 sm:gap-2">
           {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
             <Button
               key={num}
               variant="outline"
-              size="lg"
+              size="sm"
               onClick={() => onNumberInput(num)}
               disabled={disabled}
               className={cn(
-                "w-12 h-12 text-xl font-bold",
+                "h-10 sm:h-12 sm:w-12 text-lg sm:text-xl font-bold p-0",
                 isNoteMode && "bg-secondary/50"
               )}
             >
@@ -55,18 +55,18 @@ export const SudokuControls = ({
         </div>
       </div>
 
-      {/* Action buttons */}
-      <div className="bg-card rounded-xl shadow-lg p-3 border border-border">
-        <div className="grid grid-cols-2 gap-2">
+      {/* Action buttons - horizontal scroll on mobile */}
+      <div className="bg-card rounded-xl shadow-lg p-2 sm:p-3 border border-border">
+        <div className="grid grid-cols-4 sm:grid-cols-2 gap-1 sm:gap-2">
           <Button
             variant={isNoteMode ? "default" : "outline"}
             size="sm"
             onClick={onToggleNoteMode}
             disabled={disabled}
-            className="gap-1"
+            className="gap-1 text-xs sm:text-sm px-2 sm:px-3"
           >
-            <PenTool className="w-4 h-4" />
-            {t("games.notes", { defaultValue: "Notes" })}
+            <PenTool className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="hidden xs:inline">{t("games.notes", { defaultValue: "Notes" })}</span>
           </Button>
           
           <Button
@@ -74,10 +74,10 @@ export const SudokuControls = ({
             size="sm"
             onClick={onClear}
             disabled={disabled}
-            className="gap-1"
+            className="gap-1 text-xs sm:text-sm px-2 sm:px-3"
           >
-            <Eraser className="w-4 h-4" />
-            {t("games.erase", { defaultValue: "Erase" })}
+            <Eraser className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="hidden xs:inline">{t("games.erase", { defaultValue: "Erase" })}</span>
           </Button>
           
           <Button
@@ -85,10 +85,10 @@ export const SudokuControls = ({
             size="sm"
             onClick={onHint}
             disabled={disabled}
-            className="gap-1"
+            className="gap-1 text-xs sm:text-sm px-2 sm:px-3"
           >
-            <Lightbulb className="w-4 h-4" />
-            {t("games.hint", { defaultValue: "Hint" })}
+            <Lightbulb className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="hidden xs:inline">{t("games.hint", { defaultValue: "Hint" })}</span>
           </Button>
           
           <Button
@@ -96,10 +96,10 @@ export const SudokuControls = ({
             size="sm"
             onClick={onValidate}
             disabled={disabled}
-            className="gap-1"
+            className="gap-1 text-xs sm:text-sm px-2 sm:px-3"
           >
-            <CheckCircle className="w-4 h-4" />
-            {t("games.check", { defaultValue: "Check" })}
+            <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="hidden xs:inline">{t("games.check", { defaultValue: "Check" })}</span>
           </Button>
         </div>
         

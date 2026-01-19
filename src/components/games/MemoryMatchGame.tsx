@@ -404,7 +404,7 @@ export const MemoryMatchGame = ({ gameId, onBack }: MemoryMatchGameProps) => {
               <div className="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-primary/50 rounded-br-lg" />
 
               {/* Game grid */}
-              <div className={`relative grid gap-2 ${difficultyConfig.cols === 3 ? "grid-cols-3" : "grid-cols-4"}`}>
+              <div className={`relative grid gap-1.5 sm:gap-2 ${difficultyConfig.cols === 3 ? "grid-cols-3" : "grid-cols-4"}`}>
                 {game.cards.map((emoji: string, index: number) => {
                   const isMatched = game.matched[index] === "matched";
                   const isFlipped = flippedCards.includes(index);
@@ -416,8 +416,8 @@ export const MemoryMatchGame = ({ gameId, onBack }: MemoryMatchGameProps) => {
                       onClick={() => handleCardClick(index)}
                       disabled={!isMyTurn || isMatched || flipping}
                       className={`
-                        aspect-square rounded-xl text-3xl flex items-center justify-center
-                        transition-all duration-300 transform backdrop-blur-sm shadow-lg
+                        aspect-square rounded-lg sm:rounded-xl text-2xl sm:text-3xl flex items-center justify-center
+                        transition-all duration-300 transform backdrop-blur-sm shadow-md sm:shadow-lg
                         ${isMatched 
                           ? "bg-green-500/20 border-2 border-green-500 animate-pulse" 
                           : showCard 
