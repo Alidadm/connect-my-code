@@ -1,4 +1,4 @@
-import { Search, MoreVertical, Bell, Cake, TrendingUp, MessageCircle, Heart, Users, Circle, Send, PenLine, Settings2, Check, CalendarClock, Gamepad2, Play, Clock, Grid3X3 } from "lucide-react";
+import { Search, MoreVertical, Bell, Cake, TrendingUp, MessageCircle, Heart, Users, Circle, Send, PenLine, Settings2, Check, CalendarClock, Gamepad2, Play, Clock, Grid3X3, Trash2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -98,7 +98,7 @@ export const RightSidebar = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { savedSudokuGames } = useSavedGames();
+  const { savedSudokuGames, deleteSavedGame } = useSavedGames();
   const [activeTab, setActiveTab] = useState<"notification" | "unread">("notification");
   const [messages, setMessages] = useState<MessageWithSender[]>([]);
   const [loading, setLoading] = useState(true);
@@ -925,24 +925,41 @@ export const RightSidebar = () => {
               {savedSudokuGames.slice(0, 3).map((game) => (
                 <div
                   key={game.id}
-                  onClick={() => navigate(`/games?sudoku=${game.id}`)}
-                  className="flex items-center gap-3 p-2 -mx-2 rounded-lg cursor-pointer transition-colors hover:bg-secondary/50"
+                  className="group flex items-center gap-3 p-2 -mx-2 rounded-lg transition-colors hover:bg-secondary/50"
                 >
-                  <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center flex-shrink-0">
-                    <Grid3X3 className="h-4 w-4 text-white" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-sm font-medium text-foreground capitalize">{game.difficulty}</span>
+                  <div 
+                    className="flex items-center gap-3 flex-1 cursor-pointer"
+                    onClick={() => navigate(`/games?sudoku=${game.id}`)}
+                  >
+                    <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center flex-shrink-0">
+                      <Grid3X3 className="h-4 w-4 text-white" />
                     </div>
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <Clock className="h-3 w-3" />
-                      <span>{formatTime(game.player_1_time || 0)}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-sm font-medium text-foreground capitalize">{game.difficulty}</span>
+                      </div>
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Clock className="h-3 w-3" />
+                        <span>{formatTime(game.player_1_time || 0)}</span>
+                      </div>
                     </div>
+                    <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400 group-hover:hidden">
+                      {t("sidebar.continue", "Continue")}
+                    </span>
                   </div>
-                  <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
-                    {t("sidebar.continue", "Continue")}
-                  </span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 hidden group-hover:flex text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (window.confirm(t("games.confirmDeleteGame", "Are you sure you want to delete this saved game?"))) {
+                        deleteSavedGame(game.id);
+                      }
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
               ))}
             </div>

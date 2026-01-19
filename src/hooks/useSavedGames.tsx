@@ -1,6 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 interface SavedSudokuGame {
   id: string;
@@ -11,6 +12,7 @@ interface SavedSudokuGame {
 
 export const useSavedGames = () => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   const { data: savedSudokuGames = [], refetch } = useQuery({
     queryKey: ["saved-sudoku-games", user?.id],
@@ -36,5 +38,29 @@ export const useSavedGames = () => {
     staleTime: 30000,
   });
 
-  return { savedSudokuGames, refetchSavedGames: refetch };
+  const deleteSavedGame = useMutation({
+    mutationFn: async (gameId: string) => {
+      const { error } = await supabase
+        .from("sudoku_games")
+        .delete()
+        .eq("id", gameId)
+        .eq("player_1", user?.id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["saved-sudoku-games", user?.id] });
+    },
+    onError: (error) => {
+      console.error("Error deleting saved game:", error);
+      toast.error("Failed to delete game");
+    },
+  });
+
+  return { 
+    savedSudokuGames, 
+    refetchSavedGames: refetch,
+    deleteSavedGame: deleteSavedGame.mutate,
+    isDeletingGame: deleteSavedGame.isPending,
+  };
 };
