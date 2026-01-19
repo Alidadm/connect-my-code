@@ -543,6 +543,10 @@
     "decline": "Decline",
     "gameInvite": "Game Invite",
     "invitedYou": "invited you to play",
+    "playVsAI": "Play vs DolphySN",
+    "inviteFriend": "Invite Friend",
+    "you": "You",
+    "aiThinking": "DolphySN is thinking...",
     "difficulty": {
       "easy": "Easy",
       "medium": "Medium",
