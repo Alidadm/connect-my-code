@@ -19,7 +19,7 @@ import {
 import { 
   ArrowLeft, Plus, Trash2, Loader2, Image as ImageIcon, 
   Send, Megaphone, X, Calendar, Film, FileAudio, FileText,
-  Upload, Clock, Pencil
+  Upload, Clock, Pencil, FileX
 } from "lucide-react";
 import { formatDistanceToNow, format, isPast, isFuture } from "date-fns";
 import AdminRouteGuard from "@/components/admin/AdminRouteGuard";
@@ -339,6 +339,30 @@ const PlatformPosts = () => {
       toast.error("Failed to update post");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleMoveToDrafts = async (postId: string) => {
+    if (!confirm("Move this scheduled post to drafts? It will no longer be published automatically.")) return;
+
+    try {
+      const { error } = await supabase
+        .from("posts")
+        .update({
+          scheduled_at: null,
+          visibility: "private",
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", postId)
+        .eq("is_platform_post", true);
+
+      if (error) throw error;
+
+      toast.success("Post moved to drafts");
+      fetchPlatformPosts();
+    } catch (error) {
+      console.error("Error moving post to drafts:", error);
+      toast.error("Failed to move post to drafts");
     }
   };
 
@@ -671,20 +695,33 @@ const PlatformPosts = () => {
                       </div>
                       <div className="flex items-center gap-1">
                         {post.scheduled_at && isFuture(new Date(post.scheduled_at)) && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-slate-400 hover:text-primary"
-                            onClick={() => openEditDialog(post)}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-slate-400 hover:text-primary"
+                              onClick={() => openEditDialog(post)}
+                              title="Edit post"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-slate-400 hover:text-amber-600"
+                              onClick={() => handleMoveToDrafts(post.id)}
+                              title="Move to drafts"
+                            >
+                              <FileX className="h-4 w-4" />
+                            </Button>
+                          </>
                         )}
                         <Button
                           variant="ghost"
                           size="icon"
                           className="text-slate-400 hover:text-destructive"
                           onClick={() => handleDeletePost(post.id)}
+                          title="Delete post"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
