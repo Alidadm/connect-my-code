@@ -87,6 +87,7 @@ const GamesContent = () => {
   const [showSudokuInvite, setShowSudokuInvite] = useState(false);
   const [sudokuStats, setSudokuStats] = useState<any>(null);
   const [sudokuLoading, setSudokuLoading] = useState(false);
+  const [savedSudokuGames, setSavedSudokuGames] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState("active");
 
   const [loading, setLoading] = useState(true);
@@ -96,6 +97,7 @@ const GamesContent = () => {
     if (user) {
       fetchAllGames();
       fetchSudokuStats();
+      fetchSavedSudokuGames();
       subscribeToGames();
     }
   }, [user]);
@@ -110,12 +112,45 @@ const GamesContent = () => {
     setSudokuStats(data);
   };
 
+  // Fetch saved single-player Sudoku games
+  const fetchSavedSudokuGames = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("sudoku_games")
+      .select("id, difficulty, player_1_time, updated_at")
+      .eq("player_1", user.id)
+      .eq("is_multiplayer", false)
+      .eq("status", "active")
+      .order("updated_at", { ascending: false });
+    setSavedSudokuGames(data || []);
+  };
+
+  // Resume a saved game
+  const handleResumeSavedGame = (gameId: string) => {
+    setSelectedSudokuId(gameId);
+    navigate(`/games?sudoku=${gameId}`, { replace: true });
+  };
+
   const handleSudokuDifficultySelect = async (difficulty: string, isMultiplayer: boolean) => {
     setSudokuLoading(true);
     try {
       // Clear any stale multiplayer selection (e.g. /games?sudoku=null)
       setSelectedSudokuId(null);
       navigate("/games", { replace: true });
+
+      // If starting a new single-player game, delete any existing saved game for this difficulty
+      if (!isMultiplayer && user) {
+        await supabase
+          .from("sudoku_games")
+          .delete()
+          .eq("player_1", user.id)
+          .eq("is_multiplayer", false)
+          .eq("difficulty", difficulty)
+          .eq("status", "active");
+        
+        // Refresh saved games list
+        fetchSavedSudokuGames();
+      }
 
       const { puzzle, solution } = generateSudoku(difficulty);
       setSudokuPuzzle(puzzle);
@@ -397,6 +432,7 @@ const GamesContent = () => {
               setShowSudokuSelector(false);
               navigate("/games", { replace: true });
               fetchSudokuStats();
+              fetchSavedSudokuGames();
             }}
           />
         </div>
@@ -541,12 +577,15 @@ const GamesContent = () => {
                 setSudokuSolution(null);
                 navigate("/games", { replace: true });
                 fetchSudokuStats();
+                fetchSavedSudokuGames();
               }}
             />
           ) : (
             <SudokuDifficultySelector
               onSelectDifficulty={handleSudokuDifficultySelect}
+              onResumeSavedGame={handleResumeSavedGame}
               loading={sudokuLoading}
+              savedGames={savedSudokuGames}
             />
           )
         ) : (

@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Eraser, Lightbulb, CheckCircle, RotateCcw, PenTool } from "lucide-react";
+import { Eraser, Lightbulb, CheckCircle, RotateCcw, PenTool, Save, Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 interface SudokuControlsProps {
@@ -9,9 +9,12 @@ interface SudokuControlsProps {
   onHint: () => void;
   onValidate: () => void;
   onReset: () => void;
+  onSave?: () => void;
   isNoteMode: boolean;
   onToggleNoteMode: () => void;
   disabled: boolean;
+  isSaving?: boolean;
+  showSave?: boolean;
 }
 
 export const SudokuControls = ({
@@ -20,9 +23,12 @@ export const SudokuControls = ({
   onHint,
   onValidate,
   onReset,
+  onSave,
   isNoteMode,
   onToggleNoteMode,
-  disabled
+  disabled,
+  isSaving = false,
+  showSave = false
 }: SudokuControlsProps) => {
   const { t } = useTranslation();
 
@@ -96,6 +102,23 @@ export const SudokuControls = ({
             {t("games.check", { defaultValue: "Check" })}
           </Button>
         </div>
+        
+        {showSave && onSave && (
+          <Button
+            variant="default"
+            size="sm"
+            onClick={onSave}
+            disabled={disabled || isSaving}
+            className="w-full mt-2 gap-1"
+          >
+            {isSaving ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Save className="w-4 h-4" />
+            )}
+            {t("games.saveProgress", { defaultValue: "Save Progress" })}
+          </Button>
+        )}
         
         <Button
           variant="ghost"
