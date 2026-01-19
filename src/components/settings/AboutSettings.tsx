@@ -63,13 +63,14 @@ const familyRelationships = [
 const genderOptions = ["Male", "Female", "Non-binary", "Prefer not to say", "Custom"];
 
 export const AboutSettings = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [saving, setSaving] = useState(false);
   const [newCitizenship, setNewCitizenship] = useState("");
   const [newLanguage, setNewLanguage] = useState("");
   const [showFamilySearch, setShowFamilySearch] = useState(false);
   const [familySearchQuery, setFamilySearchQuery] = useState("");
   const [selectedFamilyRelationship, setSelectedFamilyRelationship] = useState("Brother");
+  const [hasInitialized, setHasInitialized] = useState(false);
 
   const [formData, setFormData] = useState<ProfileDetails>({
     full_name: "",
@@ -175,13 +176,16 @@ export const AboutSettings = () => {
     enabled: !!user?.id && showFamilySearch,
   });
 
-  // Update form when data loads
+  // Update form when data loads - auto-populate from profile if no existing data
   useEffect(() => {
+    if (hasInitialized) return;
+    
     if (profileDetails) {
+      // Use existing profile_details data
       setFormData({
         full_name: profileDetails.full_name || "",
         website: profileDetails.website || "",
-        social_network_id: profileDetails.social_network_id || "",
+        social_network_id: profileDetails.social_network_id || profile?.username ? `@${profile.username}` : "",
         citizenships: profileDetails.citizenships || [],
         languages: profileDetails.languages || [],
         gender: profileDetails.gender || "",
@@ -190,13 +194,24 @@ export const AboutSettings = () => {
         major: profileDetails.major || "",
         current_work: profileDetails.current_work || "",
         birthplace: profileDetails.birthplace || "",
-        current_residence: profileDetails.current_residence || "",
+        current_residence: profileDetails.current_residence || profile?.location || "",
         relationship_status: profileDetails.relationship_status || "",
         show_email: profileDetails.show_email || false,
         show_phone: profileDetails.show_phone || false,
       });
+      setHasInitialized(true);
+    } else if (profile && !profileDetails) {
+      // No existing profile_details - auto-populate from profile
+      const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(" ");
+      setFormData(prev => ({
+        ...prev,
+        full_name: fullName || profile.display_name || "",
+        social_network_id: profile.username ? `@${profile.username}` : "",
+        current_residence: profile.location || "",
+      }));
+      setHasInitialized(true);
     }
-  }, [profileDetails]);
+  }, [profileDetails, profile, hasInitialized]);
 
   const handleSave = async () => {
     if (!user?.id) return;
