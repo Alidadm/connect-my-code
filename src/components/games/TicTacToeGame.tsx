@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -7,7 +7,7 @@ import { TicTacToeBoard } from "./TicTacToeBoard";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { ArrowLeft, Loader2, Trophy, Clock, Check, X, RotateCcw } from "lucide-react";
+import { ArrowLeft, Loader2, Trophy, Clock, Check, X, RotateCcw, Bot } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useGameSounds } from "@/hooks/useGameSounds";
@@ -19,7 +19,8 @@ interface Player {
 }
 
 interface TicTacToeGameProps {
-  gameId: string;
+  gameId: string | null;
+  isAIGame?: boolean;
   onBack: () => void;
 }
 
@@ -29,20 +30,98 @@ const WINNING_COMBOS = [
   [0, 4, 8], [2, 4, 6] // Diagonals
 ];
 
-export const TicTacToeGame = ({ gameId, onBack }: TicTacToeGameProps) => {
+// AI Constants
+const AI_PLAYER_NAME = "DolphySN";
+
+// Check winner helper
+const checkWinnerStatic = (board: string[]): string | null => {
+  for (const combo of WINNING_COMBOS) {
+    const [a, b, c] = combo;
+    if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+      return board[a];
+    }
+  }
+  return null;
+};
+
+// AI move logic - minimax with some randomness for balanced play
+const getAIMove = (board: string[]): number => {
+  const emptyCells = board.map((cell, index) => cell === '' ? index : -1).filter(i => i !== -1);
+  
+  if (emptyCells.length === 0) return -1;
+  
+  // 30% chance of random move for easier gameplay
+  if (Math.random() < 0.3) {
+    return emptyCells[Math.floor(Math.random() * emptyCells.length)];
+  }
+  
+  // Check for winning move
+  for (const cell of emptyCells) {
+    const testBoard = [...board];
+    testBoard[cell] = 'o';
+    if (checkWinnerStatic(testBoard) === 'o') {
+      return cell;
+    }
+  }
+  
+  // Block player's winning move
+  for (const cell of emptyCells) {
+    const testBoard = [...board];
+    testBoard[cell] = 'x';
+    if (checkWinnerStatic(testBoard) === 'x') {
+      return cell;
+    }
+  }
+  
+  // Take center if available
+  if (board[4] === '') return 4;
+  
+  // Take a corner
+  const corners = [0, 2, 6, 8].filter(c => board[c] === '');
+  if (corners.length > 0) {
+    return corners[Math.floor(Math.random() * corners.length)];
+  }
+  
+  // Take any remaining
+  return emptyCells[Math.floor(Math.random() * emptyCells.length)];
+};
+
+export const TicTacToeGame = ({ gameId, isAIGame = false, onBack }: TicTacToeGameProps) => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { playFlip, playMatch, playNoMatch, playWin, playLose, playDraw, playGameStart } = useGameSounds();
+  const { playFlip, playWin, playLose, playDraw, playGameStart } = useGameSounds();
+  
+  // Multiplayer game state
   const [game, setGame] = useState<any>(null);
   const [playerX, setPlayerX] = useState<Player | null>(null);
   const [playerO, setPlayerO] = useState<Player | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!isAIGame);
   const [making, setMaking] = useState(false);
   const [winningCells, setWinningCells] = useState<number[]>([]);
   const [creatingRematch, setCreatingRematch] = useState(false);
+  
+  // AI game state
+  const [aiBoard, setAiBoard] = useState<string[]>(Array(9).fill(''));
+  const [aiCurrentTurn, setAiCurrentTurn] = useState<'x' | 'o'>('x');
+  const [aiStatus, setAiStatus] = useState<'active' | 'completed' | 'draw'>('active');
+  const [aiWinner, setAiWinner] = useState<'player' | 'ai' | null>(null);
+
+  // Initialize AI game
+  useEffect(() => {
+    if (isAIGame) {
+      playGameStart();
+      setAiBoard(Array(9).fill(''));
+      setAiCurrentTurn('x');
+      setAiStatus('active');
+      setAiWinner(null);
+      setWinningCells([]);
+    }
+  }, [isAIGame, playGameStart]);
 
   const fetchGame = useCallback(async () => {
+    if (!gameId) return;
+    
     const { data, error } = await supabase
       .from("tic_tac_toe_games")
       .select("*")
@@ -80,45 +159,47 @@ export const TicTacToeGame = ({ gameId, onBack }: TicTacToeGameProps) => {
   }, [gameId]);
 
   useEffect(() => {
-    fetchGame();
+    if (!isAIGame && gameId) {
+      fetchGame();
 
-    // Subscribe to realtime updates
-    const channel = supabase
-      .channel(`game-${gameId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'tic_tac_toe_games',
-          filter: `id=eq.${gameId}`
-        },
-        (payload) => {
-          setGame(payload.new);
-          if (payload.new.status === "completed" && payload.new.winner) {
-            const cells = findWinningCells(payload.new.board);
-            setWinningCells(cells);
-            if (payload.new.winner === user?.id) {
-              playWin();
-              toast.success(t("games.youWon", { defaultValue: "🎉 You won!" }));
-            } else {
-              playLose();
-              toast.info(t("games.youLost", { defaultValue: "You lost. Better luck next time!" }));
+      // Subscribe to realtime updates
+      const channel = supabase
+        .channel(`game-${gameId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'tic_tac_toe_games',
+            filter: `id=eq.${gameId}`
+          },
+          (payload) => {
+            setGame(payload.new);
+            if (payload.new.status === "completed" && payload.new.winner) {
+              const cells = findWinningCells(payload.new.board);
+              setWinningCells(cells);
+              if (payload.new.winner === user?.id) {
+                playWin();
+                toast.success(t("games.youWon", { defaultValue: "🎉 You won!" }));
+              } else {
+                playLose();
+                toast.info(t("games.youLost", { defaultValue: "You lost. Better luck next time!" }));
+              }
+            } else if (payload.new.status === "draw") {
+              playDraw();
+              toast.info(t("games.draw", { defaultValue: "It's a draw!" }));
+            } else if (payload.new.current_turn !== game?.current_turn) {
+              toast.info(t("games.opponentMoved", { defaultValue: "Your opponent made a move!" }));
             }
-          } else if (payload.new.status === "draw") {
-            playDraw();
-            toast.info(t("games.draw", { defaultValue: "It's a draw!" }));
-          } else if (payload.new.current_turn !== game?.current_turn) {
-            toast.info(t("games.opponentMoved", { defaultValue: "Your opponent made a move!" }));
           }
-        }
-      )
-      .subscribe();
+        )
+        .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [gameId, fetchGame, user?.id, game?.current_turn, t, playWin, playLose, playDraw]);
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [gameId, isAIGame, fetchGame, user?.id, game?.current_turn, t, playWin, playLose, playDraw]);
 
   const findWinningCells = (board: string[]): number[] => {
     for (const combo of WINNING_COMBOS) {
@@ -131,16 +212,81 @@ export const TicTacToeGame = ({ gameId, onBack }: TicTacToeGameProps) => {
   };
 
   const checkWinner = (board: string[]): string | null => {
-    for (const combo of WINNING_COMBOS) {
-      const [a, b, c] = combo;
-      if (board[a] && board[a] === board[b] && board[a] === board[c]) {
-        return board[a];
-      }
-    }
-    return null;
+    return checkWinnerStatic(board);
   };
 
+  // AI Game cell click handler
+  const handleAICellClick = (index: number) => {
+    if (aiStatus !== 'active' || aiCurrentTurn !== 'x' || aiBoard[index] !== '' || making) return;
+
+    playFlip();
+    setMaking(true);
+
+    const newBoard = [...aiBoard];
+    newBoard[index] = 'x';
+    setAiBoard(newBoard);
+
+    const winner = checkWinner(newBoard);
+    const isDraw = !winner && newBoard.every(cell => cell !== '');
+
+    if (winner) {
+      setAiStatus('completed');
+      setAiWinner('player');
+      setWinningCells(findWinningCells(newBoard));
+      playWin();
+      toast.success(t("games.youWon", { defaultValue: "🎉 You won!" }));
+      setMaking(false);
+      return;
+    }
+
+    if (isDraw) {
+      setAiStatus('draw');
+      playDraw();
+      toast.info(t("games.draw", { defaultValue: "It's a draw!" }));
+      setMaking(false);
+      return;
+    }
+
+    // AI's turn
+    setAiCurrentTurn('o');
+    
+    // AI makes move after a short delay
+    setTimeout(() => {
+      const aiMove = getAIMove(newBoard);
+      if (aiMove !== -1) {
+        playFlip();
+        const afterAiBoard = [...newBoard];
+        afterAiBoard[aiMove] = 'o';
+        setAiBoard(afterAiBoard);
+
+        const aiWins = checkWinner(afterAiBoard);
+        const aiDraw = !aiWins && afterAiBoard.every(cell => cell !== '');
+
+        if (aiWins) {
+          setAiStatus('completed');
+          setAiWinner('ai');
+          setWinningCells(findWinningCells(afterAiBoard));
+          playLose();
+          toast.info(t("games.youLost", { defaultValue: "You lost. Better luck next time!" }));
+        } else if (aiDraw) {
+          setAiStatus('draw');
+          playDraw();
+          toast.info(t("games.draw", { defaultValue: "It's a draw!" }));
+        } else {
+          setAiCurrentTurn('x');
+        }
+      }
+      setMaking(false);
+    }, 600);
+  };
+
+  // Multiplayer cell click handler
   const handleCellClick = async (index: number) => {
+    if (isAIGame) {
+      handleAICellClick(index);
+      return;
+    }
+
     if (!user || !game || making) return;
     
     const isPlayerX = game.player_x === user.id;
@@ -149,9 +295,7 @@ export const TicTacToeGame = ({ gameId, onBack }: TicTacToeGameProps) => {
 
     if (!isMyTurn || game.board[index] !== '' || game.status !== 'active') return;
 
-    // Play move sound
     playFlip();
-
     setMaking(true);
     const newBoard = [...game.board];
     newBoard[index] = game.current_turn;
@@ -217,15 +361,23 @@ export const TicTacToeGame = ({ gameId, onBack }: TicTacToeGameProps) => {
   };
 
   const handleRematch = async () => {
+    if (isAIGame) {
+      // Reset AI game
+      setAiBoard(Array(9).fill(''));
+      setAiCurrentTurn('x');
+      setAiStatus('active');
+      setAiWinner(null);
+      setWinningCells([]);
+      playGameStart();
+      return;
+    }
+
     if (!user || !game) return;
     
     setCreatingRematch(true);
-    
-    // Determine opponent - swap roles (loser/drawer gets to go first as X)
     const opponentId = game.player_x === user.id ? game.player_o : game.player_x;
     
     try {
-      // Create new game with swapped player positions
       const { data, error } = await supabase
         .from("tic_tac_toe_games")
         .insert({
@@ -240,7 +392,6 @@ export const TicTacToeGame = ({ gameId, onBack }: TicTacToeGameProps) => {
       
       toast.success(t("games.rematchCreated", { defaultValue: "Rematch created! Waiting for opponent..." }));
       navigate(`/games?game=${data.id}`, { replace: true });
-      // The parent will handle the game change via URL params
       window.location.reload();
     } catch (error) {
       console.error("Error creating rematch:", error);
@@ -250,6 +401,114 @@ export const TicTacToeGame = ({ gameId, onBack }: TicTacToeGameProps) => {
     }
   };
 
+  // AI Game UI
+  if (isAIGame) {
+    const isGameOver = aiStatus === 'completed' || aiStatus === 'draw';
+    const isMyTurn = aiCurrentTurn === 'x' && aiStatus === 'active';
+
+    const getAIStatusMessage = () => {
+      if (aiStatus === 'completed') {
+        return aiWinner === 'player' 
+          ? t("games.youWon", { defaultValue: "🎉 You won!" })
+          : t("games.youLost", { defaultValue: "You lost. Better luck next time!" });
+      }
+      if (aiStatus === 'draw') {
+        return t("games.draw", { defaultValue: "It's a draw!" });
+      }
+      if (isMyTurn) {
+        return t("games.yourTurn", { defaultValue: "Your turn!" });
+      }
+      return t("games.aiThinking", { defaultValue: "DolphySN is thinking..." });
+    };
+
+    return (
+      <Card className="max-w-md mx-auto">
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <Button variant="ghost" size="sm" onClick={onBack}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              {t("common.back", { defaultValue: "Back" })}
+            </Button>
+            <Badge variant={isGameOver ? "secondary" : isMyTurn ? "default" : "outline"}>
+              {isGameOver ? (
+                <Trophy className="w-3 h-3 mr-1" />
+              ) : (
+                <Clock className="w-3 h-3 mr-1" />
+              )}
+              {getAIStatusMessage()}
+            </Badge>
+          </div>
+        </CardHeader>
+
+        <CardContent className="space-y-4">
+          {/* Players */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Avatar className="w-10 h-10 ring-2 ring-primary">
+                <AvatarFallback className="bg-primary text-primary-foreground">✕</AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="font-medium text-sm">{t("games.you", { defaultValue: "You" })}</p>
+                <Badge variant="outline" className="text-xs">{t("games.you", { defaultValue: "You" })}</Badge>
+              </div>
+            </div>
+
+            <span className="text-xl font-bold text-muted-foreground">VS</span>
+
+            <div className="flex items-center gap-2">
+              <div className="text-right">
+                <p className="font-medium text-sm">{AI_PLAYER_NAME}</p>
+                <Badge variant="secondary" className="text-xs gap-1">
+                  <Bot className="w-3 h-3" />
+                  AI
+                </Badge>
+              </div>
+              <Avatar className="w-10 h-10 ring-2 ring-destructive">
+                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+                  <Bot className="w-5 h-5" />
+                </AvatarFallback>
+              </Avatar>
+            </div>
+          </div>
+
+          {/* Game Board */}
+          <TicTacToeBoard
+            board={aiBoard}
+            onCellClick={handleCellClick}
+            disabled={!isMyTurn || isGameOver || making}
+            winningCells={winningCells}
+          />
+
+          {/* Turn indicator */}
+          {aiStatus === 'active' && (
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground">
+                {isMyTurn 
+                  ? t("games.clickToPlay", { defaultValue: "Click a cell to make your move" })
+                  : t("games.aiThinking", { defaultValue: "DolphySN is thinking..." })
+                }
+              </p>
+            </div>
+          )}
+
+          {/* Play Again button when game is over */}
+          {isGameOver && (
+            <div className="pt-2 border-t">
+              <Button 
+                onClick={handleRematch} 
+                className="w-full gap-2"
+              >
+                <RotateCcw className="w-4 h-4" />
+                {t("games.playAgain", { defaultValue: "Play Again" })}
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Multiplayer UI (original logic)
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">

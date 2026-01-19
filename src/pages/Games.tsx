@@ -89,6 +89,7 @@ const GamesContent = () => {
   const [sudokuLoading, setSudokuLoading] = useState(false);
   const [savedSudokuGames, setSavedSudokuGames] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState("active");
+  const [isPlayingVsAI, setIsPlayingVsAI] = useState(false);
 
   const [loading, setLoading] = useState(true);
   const [activeGameType, setActiveGameType] = useState<"tictactoe" | "memory" | "sudoku">(() => {
@@ -99,6 +100,11 @@ const GamesContent = () => {
     }
     return "tictactoe";
   });
+
+  // Handle play vs AI
+  const handlePlayVsAI = () => {
+    setIsPlayingVsAI(true);
+  };
 
   useEffect(() => {
     if (user) {
@@ -406,6 +412,24 @@ const GamesContent = () => {
     );
   }
 
+  // Show AI game
+  if (isPlayingVsAI) {
+    return (
+      <MainLayout>
+        <div className="container max-w-4xl py-8">
+          <TicTacToeGame
+            gameId={null}
+            isAIGame={true}
+            onBack={() => {
+              setIsPlayingVsAI(false);
+              navigate("/games", { replace: true });
+            }}
+          />
+        </div>
+      </MainLayout>
+    );
+  }
+
   if (selectedMemoryId) {
     return (
       <MainLayout>
@@ -620,13 +644,25 @@ const GamesContent = () => {
                     }
                   </CardDescription>
                 </div>
-                <Button 
-                  onClick={() => activeGameType === "tictactoe" ? setShowTicTacToeInvite(true) : setShowMemoryInvite(true)} 
-                  className="gap-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  {t("games.newGame", { defaultValue: "New Game" })}
-                </Button>
+                <div className="flex gap-2">
+                  {activeGameType === "tictactoe" && (
+                    <Button 
+                      variant="secondary"
+                      onClick={handlePlayVsAI}
+                      className="gap-2"
+                    >
+                      <Gamepad2 className="w-4 h-4" />
+                      {t("games.playVsAI", { defaultValue: "Play vs DolphySN" })}
+                    </Button>
+                  )}
+                  <Button 
+                    onClick={() => activeGameType === "tictactoe" ? setShowTicTacToeInvite(true) : setShowMemoryInvite(true)} 
+                    className="gap-2"
+                  >
+                    <Users className="w-4 h-4" />
+                    {t("games.inviteFriend", { defaultValue: "Invite Friend" })}
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
