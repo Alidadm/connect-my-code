@@ -91,7 +91,14 @@ const GamesContent = () => {
   const [activeTab, setActiveTab] = useState("active");
 
   const [loading, setLoading] = useState(true);
-  const [activeGameType, setActiveGameType] = useState<"tictactoe" | "memory" | "sudoku">("tictactoe");
+  const [activeGameType, setActiveGameType] = useState<"tictactoe" | "memory" | "sudoku">(() => {
+    // If coming from a saved game link, start on sudoku tab
+    const sudokuParam = searchParams.get("sudoku");
+    if (sudokuParam && sudokuParam !== "null" && sudokuParam !== "undefined") {
+      return "sudoku";
+    }
+    return "tictactoe";
+  });
 
   useEffect(() => {
     if (user) {

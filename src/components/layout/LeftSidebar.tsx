@@ -15,7 +15,9 @@ import {
   Mail,
   Globe,
   MapPin,
-  Gamepad2
+  Gamepad2,
+  Play,
+  Clock
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -24,9 +26,16 @@ import { useAuth } from "@/hooks/useAuth";
 import { useMemberStats, useUserGroups, formatCount } from "@/hooks/useMemberStats";
 import { useUserBusiness } from "@/hooks/useBusiness";
 import { useGameNotifications } from "@/hooks/useGameNotifications";
+import { useSavedGames } from "@/hooks/useSavedGames";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
+
+const formatTime = (seconds: number): string => {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins}:${secs.toString().padStart(2, "0")}`;
+};
 
 const getNavItems = (t: TFunction, gameBadge: number | null) => [
   { icon: Newspaper, label: t("nav.feed"), path: "/", badge: null, iconColor: "text-blue-500" },
@@ -54,6 +63,7 @@ export const LeftSidebar = () => {
   const { data: userGroups } = useUserGroups();
   const { data: userBusiness } = useUserBusiness();
   const { pendingTurnCount } = useGameNotifications();
+  const { savedSudokuGames } = useSavedGames();
   const navigate = useNavigate();
   const location = useLocation();
   const [isNavigatingToCreate, setIsNavigatingToCreate] = useState(false);
@@ -153,6 +163,44 @@ export const LeftSidebar = () => {
             );
           })}
         </nav>
+
+        {/* Continue Playing - Show saved games */}
+        {user && savedSudokuGames.length > 0 && (
+          <div className="bg-card rounded-xl p-4 border border-border mb-4">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+              <Play className="h-3.5 w-3.5" />
+              {t("sidebar.continuePlaying", { defaultValue: "Continue Playing" })}
+            </h3>
+            <div className="space-y-2">
+              {savedSudokuGames.slice(0, 3).map((game) => (
+                <div
+                  key={game.id}
+                  className="flex items-center gap-3 cursor-pointer hover:bg-secondary/50 -mx-2 px-2 py-2 rounded-lg transition-colors"
+                  onClick={() => navigate(`/games?sudoku=${game.id}`)}
+                >
+                  <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center flex-shrink-0">
+                    <Gamepad2 className="h-4 w-4 text-white" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-sm font-medium text-foreground">Sudoku</span>
+                      <span className="text-[10px] font-medium bg-primary/10 text-primary px-1.5 py-0.5 rounded-full capitalize">
+                        {game.difficulty}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <Clock className="h-3 w-3" />
+                      <span>{formatTime(game.player_1_time || 0)}</span>
+                    </div>
+                  </div>
+                  <span className="text-xs font-medium text-primary">
+                    {t("sidebar.continue", { defaultValue: "Continue" })}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Business Card - Show only if user has enabled business */}
         {user && userBusiness?.is_enabled && (
