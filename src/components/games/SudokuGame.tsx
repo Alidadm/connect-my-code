@@ -74,8 +74,11 @@ export const SudokuGame = ({ gameId, initialPuzzle, initialSolution, difficulty 
     return Array(9).fill(null).map(() => Array(9).fill(0));
   };
 
-  // For single-player mode without database
+  // For single-player mode without database (new game)
   const isSinglePlayer = !gameId && !!initialPuzzle && !!initialSolution;
+  
+  // Check if this is a saved single-player game (has gameId but is not multiplayer)
+  const isSavedSinglePlayer = !!gameId && game && game.is_multiplayer === false;
 
   const fetchGame = useCallback(async () => {
     // If single player mode, use initial puzzle and create a local "game" object
@@ -814,7 +817,7 @@ export const SudokuGame = ({ gameId, initialPuzzle, initialSolution, difficulty 
             onToggleNoteMode={() => setIsNoteMode(!isNoteMode)}
             disabled={game.status !== 'active'}
             isSaving={isSaving}
-            showSave={isSinglePlayer}
+            showSave={isSinglePlayer || isSavedSinglePlayer}
           />
         </div>
       )}
