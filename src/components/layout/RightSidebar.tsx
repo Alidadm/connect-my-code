@@ -895,16 +895,16 @@ export const RightSidebar = () => {
         </div>
 
         {/* Tic-Tac-Toe Games */}
-        <div className="relative rounded-xl p-4 border border-primary/20 overflow-hidden">
+        <div className="relative rounded-xl p-4 border border-border overflow-hidden bg-muted/50">
           {/* Background image */}
           <div 
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20"
             style={{
               backgroundImage: `url("/images/tic-tac-toe-bg.png")`,
             }}
           />
           {/* Overlay for better text readability */}
-          <div className="absolute inset-0 bg-background/60 dark:bg-background/70 backdrop-blur-[1px]" />
+          <div className="absolute inset-0 bg-muted/30 backdrop-blur-[1px]" />
           
           <div className="relative">
             <div className="flex items-center justify-between mb-3">
