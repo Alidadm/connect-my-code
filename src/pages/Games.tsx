@@ -522,10 +522,26 @@ const GamesContent = () => {
 
         {/* Game Card */}
         {activeGameType === "sudoku" ? (
-          <SudokuDifficultySelector
-            onSelectDifficulty={handleSudokuDifficultySelect}
-            loading={sudokuLoading}
-          />
+          selectedSudokuId || sudokuPuzzle ? (
+            <SudokuGame
+              gameId={selectedSudokuId}
+              initialPuzzle={sudokuPuzzle}
+              initialSolution={sudokuSolution}
+              difficulty={sudokuDifficulty}
+              onBack={() => {
+                setSelectedSudokuId(null);
+                setSudokuPuzzle(null);
+                setSudokuSolution(null);
+                navigate("/games", { replace: true });
+                fetchSudokuStats();
+              }}
+            />
+          ) : (
+            <SudokuDifficultySelector
+              onSelectDifficulty={handleSudokuDifficultySelect}
+              loading={sudokuLoading}
+            />
+          )
         ) : (
           <Card>
             <CardHeader>
