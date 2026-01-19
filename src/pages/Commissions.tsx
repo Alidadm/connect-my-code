@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -53,6 +53,7 @@ interface Commission {
 const Commissions = () => {
   const { user, profile, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [commissions, setCommissions] = useState<Commission[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -102,7 +103,19 @@ See you inside DolphySN.`;
     localStorage.setItem("referral_email_message", emailMessage);
   }, [emailMessage]);
 
-  // Get the referral URL
+  // Scroll to hash element when page loads
+  useEffect(() => {
+    if (location.hash) {
+      // Small delay to ensure the element is rendered
+      const timer = setTimeout(() => {
+        const element = document.querySelector(location.hash);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [location.hash]);
   const baseUrl = window.location.origin;
   const referralUrl = profile?.username ? `${baseUrl}/${profile.username}` : "";
 
