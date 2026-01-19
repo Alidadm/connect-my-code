@@ -287,16 +287,16 @@ export default function BusinessProfile() {
               </Button>
             </div>
             <div 
-              className="rounded-lg overflow-hidden border border-border cursor-pointer hover:shadow-lg transition-shadow group"
+              className="relative rounded-lg overflow-hidden border border-border cursor-pointer hover:shadow-lg transition-shadow group inline-block"
               onClick={() => setCardZoomOpen(true)}
             >
               <img
                 src={business.business_card_url}
                 alt={`${business.name} business card`}
-                className="w-full h-auto max-w-2xl mx-auto"
+                className="w-full h-auto max-w-2xl mx-auto block"
                 style={{ imageRendering: "auto" }}
               />
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 rounded-lg">
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
                 <ZoomIn className="h-8 w-8 text-white drop-shadow-lg" />
               </div>
             </div>
