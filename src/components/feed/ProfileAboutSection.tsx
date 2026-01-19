@@ -128,14 +128,15 @@ export const ProfileAboutSection = ({ userId }: ProfileAboutSectionProps) => {
     isAdd?: boolean;
     showActions?: boolean;
   }) => (
-    <div className="flex items-center justify-between py-3 border-b border-border last:border-0">
+    <div className="flex items-center justify-between py-2.5 group">
       <div className="flex items-center gap-3">
-        <div className={cn(
-          "flex items-center justify-center w-9 h-9 rounded-full",
-          isAdd ? "border-2 border-primary border-dashed" : "bg-muted"
-        )}>
-          <Icon className={cn("h-5 w-5", isAdd ? "text-primary" : "text-muted-foreground")} />
-        </div>
+        {isAdd ? (
+          <div className="flex items-center justify-center w-9 h-9 rounded-full border-2 border-primary">
+            <Plus className="h-4 w-4 text-primary" />
+          </div>
+        ) : (
+          <Icon className="h-5 w-5 text-muted-foreground" />
+        )}
         <div>
           <span className={cn("text-sm", isAdd ? "text-primary font-medium" : "text-foreground")}>
             {text}
@@ -146,12 +147,12 @@ export const ProfileAboutSection = ({ userId }: ProfileAboutSectionProps) => {
         </div>
       </div>
       {showActions && (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <button className="p-2 rounded-full hover:bg-muted transition-colors">
-            <Lock className="h-4 w-4 text-muted-foreground" />
+            <Globe className="h-4 w-4 text-muted-foreground" />
           </button>
           <button className="p-2 rounded-full hover:bg-muted transition-colors">
-            <Pencil className="h-4 w-4 text-muted-foreground" />
+            <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
           </button>
         </div>
       )}
@@ -329,21 +330,21 @@ export const ProfileAboutSection = ({ userId }: ProfileAboutSectionProps) => {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex gap-6">
+    <div className="p-6 bg-card">
+      <div className="flex gap-4">
         {/* Left Sidebar - Navigation */}
-        <div className="w-64 flex-shrink-0">
-          <h3 className="text-xl font-bold text-foreground mb-4">About</h3>
-          <nav className="space-y-1">
+        <div className="w-56 flex-shrink-0 border-r border-border pr-4">
+          <h3 className="text-lg font-bold text-foreground mb-3">About</h3>
+          <nav className="space-y-0.5">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  "w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                  "w-full text-left px-3 py-2 rounded-md text-sm transition-colors",
                   activeTab === tab.id
-                    ? "bg-primary/10 text-primary border-l-4 border-primary"
-                    : "text-muted-foreground hover:bg-muted"
+                    ? "text-primary font-medium bg-primary/5 border-l-2 border-primary"
+                    : "text-muted-foreground hover:bg-muted/50"
                 )}
               >
                 {t(`about.tabs.${tab.id}`, tab.label)}
@@ -353,10 +354,8 @@ export const ProfileAboutSection = ({ userId }: ProfileAboutSectionProps) => {
         </div>
 
         {/* Right Content Area */}
-        <div className="flex-1 min-w-0">
-          <div className="bg-card rounded-lg border border-border p-4">
-            {renderContent()}
-          </div>
+        <div className="flex-1 min-w-0 pl-4">
+          {renderContent()}
         </div>
       </div>
     </div>
