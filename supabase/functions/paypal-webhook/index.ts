@@ -167,6 +167,31 @@ serve(async (req) => {
           
           logStep("Updated subscription status to active", { wasAlreadyActive });
 
+          // Auto-populate PayPal payout email from subscriber info (first activation only)
+          if (!wasAlreadyActive && subscription.subscriber?.email_address) {
+            const subscriberEmail = subscription.subscriber.email_address;
+            logStep("Auto-populating PayPal payout email from subscriber", { email: subscriberEmail });
+            
+            // Check if paypal_payout_email is already set
+            const { data: privateProfile } = await supabaseClient
+              .from("profiles_private")
+              .select("paypal_payout_email")
+              .eq("user_id", userId)
+              .single();
+            
+            // Only set if not already configured
+            if (!privateProfile?.paypal_payout_email) {
+              await supabaseClient
+                .from("profiles_private")
+                .update({ paypal_payout_email: subscriberEmail })
+                .eq("user_id", userId);
+              
+              logStep("PayPal payout email auto-populated", { email: subscriberEmail });
+            } else {
+              logStep("PayPal payout email already set, skipping auto-populate");
+            }
+          }
+
           // Create or update subscription record
           const billingInfo = subscription.billing_info;
           const currentPeriodStart = billingInfo?.last_payment?.time 
