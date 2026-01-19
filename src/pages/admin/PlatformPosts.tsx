@@ -16,10 +16,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   ArrowLeft, Plus, Trash2, Loader2, Image as ImageIcon, 
   Send, Megaphone, X, Calendar, Film, FileAudio, FileText,
-  Upload, Clock, Pencil, FileX
+  Upload, Clock, Pencil, FileX, FileEdit, RotateCcw
 } from "lucide-react";
 import { formatDistanceToNow, format, isPast, isFuture } from "date-fns";
 import AdminRouteGuard from "@/components/admin/AdminRouteGuard";
@@ -32,6 +33,7 @@ interface PlatformPost {
   comments_count: number;
   created_at: string;
   scheduled_at: string | null;
+  visibility: string | null;
   user_id: string;
   profiles?: {
     display_name: string | null;
@@ -59,6 +61,7 @@ const PlatformPosts = () => {
   const [isScheduled, setIsScheduled] = useState(false);
   const [scheduledDate, setScheduledDate] = useState("");
   const [scheduledTime, setScheduledTime] = useState("");
+  const [activeTab, setActiveTab] = useState("published");
   
   // Edit state
   const [editingPost, setEditingPost] = useState<PlatformPost | null>(null);
@@ -72,6 +75,16 @@ const PlatformPosts = () => {
   const videoInputRef = useRef<HTMLInputElement>(null);
   const audioInputRef = useRef<HTMLInputElement>(null);
   const documentInputRef = useRef<HTMLInputElement>(null);
+
+  // Filter posts by category
+  const now = new Date();
+  const publishedPosts = posts.filter(p => 
+    p.visibility === "public" && (!p.scheduled_at || isPast(new Date(p.scheduled_at)))
+  );
+  const scheduledPosts = posts.filter(p => 
+    p.scheduled_at && isFuture(new Date(p.scheduled_at)) && p.visibility === "public"
+  );
+  const draftPosts = posts.filter(p => p.visibility === "private");
 
   const fetchPlatformPosts = async () => {
     try {
@@ -343,7 +356,7 @@ const PlatformPosts = () => {
   };
 
   const handleMoveToDrafts = async (postId: string) => {
-    if (!confirm("Move this scheduled post to drafts? It will no longer be published automatically.")) return;
+    if (!confirm("Move this post to drafts? It will no longer be visible to members.")) return;
 
     try {
       const { error } = await supabase
@@ -363,6 +376,30 @@ const PlatformPosts = () => {
     } catch (error) {
       console.error("Error moving post to drafts:", error);
       toast.error("Failed to move post to drafts");
+    }
+  };
+
+  const handleRestoreFromDrafts = async (postId: string) => {
+    if (!confirm("Publish this draft immediately?")) return;
+
+    try {
+      const { error } = await supabase
+        .from("posts")
+        .update({
+          visibility: "public",
+          scheduled_at: null,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", postId)
+        .eq("is_platform_post", true);
+
+      if (error) throw error;
+
+      toast.success("Draft published successfully");
+      fetchPlatformPosts();
+    } catch (error) {
+      console.error("Error publishing draft:", error);
+      toast.error("Failed to publish draft");
     }
   };
 
@@ -643,135 +680,356 @@ const PlatformPosts = () => {
             </Card>
           )}
 
-          {/* Posts List */}
+          {/* Posts Tabs */}
           {loading ? (
             <div className="flex justify-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
-          ) : posts.length === 0 ? (
-            <Card className="py-12 text-center">
-              <Megaphone className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-slate-700">No platform posts yet</h3>
-              <p className="text-sm text-slate-500 mt-1">
-                Create your first post to welcome all members!
-              </p>
-            </Card>
           ) : (
-            <div className="space-y-4">
-              {posts.map((post) => (
-                <Card key={post.id} className="overflow-hidden">
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-10 w-10">
-                          <AvatarImage src={post.profiles?.avatar_url || undefined} />
-                          <AvatarFallback className="bg-primary/10 text-primary">
-                            {post.profiles?.display_name?.[0] || "A"}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium text-slate-900">
-                              {post.profiles?.display_name || "Admin"}
-                            </span>
-                            <Badge variant="secondary" className="text-xs">
-                              Platform
-                            </Badge>
-                            {post.scheduled_at && isFuture(new Date(post.scheduled_at)) && (
-                              <Badge variant="outline" className="text-xs gap-1 text-amber-600 border-amber-300 bg-amber-50">
-                                <Clock className="h-3 w-3" />
-                                Scheduled
-                              </Badge>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-1 text-xs text-slate-500">
-                            <Calendar className="h-3 w-3" />
-                            {post.scheduled_at && isFuture(new Date(post.scheduled_at))
-                              ? `Publishes ${format(new Date(post.scheduled_at), 'MMM d, yyyy h:mm a')}`
-                              : formatDistanceToNow(new Date(post.created_at), { addSuffix: true })
-                            }
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        {post.scheduled_at && isFuture(new Date(post.scheduled_at)) && (
-                          <>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="text-slate-400 hover:text-primary"
-                              onClick={() => openEditDialog(post)}
-                              title="Edit post"
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="text-slate-400 hover:text-amber-600"
-                              onClick={() => handleMoveToDrafts(post.id)}
-                              title="Move to drafts"
-                            >
-                              <FileX className="h-4 w-4" />
-                            </Button>
-                          </>
-                        )}
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-slate-400 hover:text-destructive"
-                          onClick={() => handleDeletePost(post.id)}
-                          title="Delete post"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-3 mb-4">
+                <TabsTrigger value="published" className="gap-2">
+                  <Send className="h-4 w-4" />
+                  Published ({publishedPosts.length})
+                </TabsTrigger>
+                <TabsTrigger value="scheduled" className="gap-2">
+                  <Clock className="h-4 w-4" />
+                  Scheduled ({scheduledPosts.length})
+                </TabsTrigger>
+                <TabsTrigger value="drafts" className="gap-2">
+                  <FileEdit className="h-4 w-4" />
+                  Drafts ({draftPosts.length})
+                </TabsTrigger>
+              </TabsList>
 
-                    {post.content && (
-                      <p className="mt-3 text-slate-700 whitespace-pre-wrap">
-                        {post.content}
-                      </p>
-                    )}
-
-                    {post.media_urls && post.media_urls.length > 0 && (
-                      <div className="mt-3 grid grid-cols-2 gap-2">
-                        {post.media_urls.slice(0, 4).map((url, index) => (
-                          isVideoUrl(url) ? (
-                            <video
-                              key={index}
-                              src={url}
-                              controls
-                              className="rounded-lg w-full h-32 object-cover"
-                            />
-                          ) : isAudioUrl(url) ? (
-                            <div key={index} className="rounded-lg bg-slate-100 p-3 flex items-center gap-2">
-                              <FileAudio className="h-6 w-6 text-purple-600" />
-                              <audio src={url} controls className="w-full h-8" />
+              <TabsContent value="published">
+                {publishedPosts.length === 0 ? (
+                  <Card className="py-12 text-center">
+                    <Megaphone className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-slate-700">No published posts yet</h3>
+                    <p className="text-sm text-slate-500 mt-1">
+                      Create your first post to welcome all members!
+                    </p>
+                  </Card>
+                ) : (
+                  <div className="space-y-4">
+                    {publishedPosts.map((post) => (
+                      <Card key={post.id} className="overflow-hidden">
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-center gap-3">
+                              <Avatar className="h-10 w-10">
+                                <AvatarImage src={post.profiles?.avatar_url || undefined} />
+                                <AvatarFallback className="bg-primary/10 text-primary">
+                                  {post.profiles?.display_name?.[0] || "A"}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium text-slate-900">
+                                    {post.profiles?.display_name || "Admin"}
+                                  </span>
+                                  <Badge variant="secondary" className="text-xs">
+                                    Platform
+                                  </Badge>
+                                </div>
+                                <div className="flex items-center gap-1 text-xs text-slate-500">
+                                  <Calendar className="h-3 w-3" />
+                                  {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+                                </div>
+                              </div>
                             </div>
-                          ) : (
-                            <img
-                              key={index}
-                              src={url}
-                              alt={`Media ${index + 1}`}
-                              className="rounded-lg object-cover w-full h-32"
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).src = "/placeholder.svg";
-                              }}
-                            />
-                          )
-                        ))}
-                      </div>
-                    )}
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-slate-400 hover:text-amber-600"
+                                onClick={() => handleMoveToDrafts(post.id)}
+                                title="Move to drafts"
+                              >
+                                <FileX className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-slate-400 hover:text-destructive"
+                                onClick={() => handleDeletePost(post.id)}
+                                title="Delete post"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
 
-                    <div className="mt-3 flex items-center gap-4 text-sm text-slate-500">
-                      <span>{post.likes_count || 0} likes</span>
-                      <span>{post.comments_count || 0} comments</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                          {post.content && (
+                            <p className="mt-3 text-slate-700 whitespace-pre-wrap">
+                              {post.content}
+                            </p>
+                          )}
+
+                          {post.media_urls && post.media_urls.length > 0 && (
+                            <div className="mt-3 grid grid-cols-2 gap-2">
+                              {post.media_urls.slice(0, 4).map((url, index) => (
+                                isVideoUrl(url) ? (
+                                  <video
+                                    key={index}
+                                    src={url}
+                                    controls
+                                    className="rounded-lg w-full h-32 object-cover"
+                                  />
+                                ) : isAudioUrl(url) ? (
+                                  <div key={index} className="rounded-lg bg-slate-100 p-3 flex items-center gap-2">
+                                    <FileAudio className="h-6 w-6 text-purple-600" />
+                                    <audio src={url} controls className="w-full h-8" />
+                                  </div>
+                                ) : (
+                                  <img
+                                    key={index}
+                                    src={url}
+                                    alt={`Media ${index + 1}`}
+                                    className="rounded-lg object-cover w-full h-32"
+                                    onError={(e) => {
+                                      (e.target as HTMLImageElement).src = "/placeholder.svg";
+                                    }}
+                                  />
+                                )
+                              ))}
+                            </div>
+                          )}
+
+                          <div className="mt-3 flex items-center gap-4 text-sm text-slate-500">
+                            <span>{post.likes_count || 0} likes</span>
+                            <span>{post.comments_count || 0} comments</span>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="scheduled">
+                {scheduledPosts.length === 0 ? (
+                  <Card className="py-12 text-center">
+                    <Clock className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-slate-700">No scheduled posts</h3>
+                    <p className="text-sm text-slate-500 mt-1">
+                      Schedule a post to publish it later.
+                    </p>
+                  </Card>
+                ) : (
+                  <div className="space-y-4">
+                    {scheduledPosts.map((post) => (
+                      <Card key={post.id} className="overflow-hidden border-amber-200 bg-amber-50/30">
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-center gap-3">
+                              <Avatar className="h-10 w-10">
+                                <AvatarImage src={post.profiles?.avatar_url || undefined} />
+                                <AvatarFallback className="bg-primary/10 text-primary">
+                                  {post.profiles?.display_name?.[0] || "A"}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium text-slate-900">
+                                    {post.profiles?.display_name || "Admin"}
+                                  </span>
+                                  <Badge variant="outline" className="text-xs gap-1 text-amber-600 border-amber-300 bg-amber-50">
+                                    <Clock className="h-3 w-3" />
+                                    Scheduled
+                                  </Badge>
+                                </div>
+                                <div className="flex items-center gap-1 text-xs text-amber-600">
+                                  <Calendar className="h-3 w-3" />
+                                  Publishes {format(new Date(post.scheduled_at!), 'MMM d, yyyy h:mm a')}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-slate-400 hover:text-primary"
+                                onClick={() => openEditDialog(post)}
+                                title="Edit post"
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-slate-400 hover:text-amber-600"
+                                onClick={() => handleMoveToDrafts(post.id)}
+                                title="Move to drafts"
+                              >
+                                <FileX className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-slate-400 hover:text-destructive"
+                                onClick={() => handleDeletePost(post.id)}
+                                title="Delete post"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+
+                          {post.content && (
+                            <p className="mt-3 text-slate-700 whitespace-pre-wrap">
+                              {post.content}
+                            </p>
+                          )}
+
+                          {post.media_urls && post.media_urls.length > 0 && (
+                            <div className="mt-3 grid grid-cols-2 gap-2">
+                              {post.media_urls.slice(0, 4).map((url, index) => (
+                                isVideoUrl(url) ? (
+                                  <video
+                                    key={index}
+                                    src={url}
+                                    controls
+                                    className="rounded-lg w-full h-32 object-cover"
+                                  />
+                                ) : isAudioUrl(url) ? (
+                                  <div key={index} className="rounded-lg bg-slate-100 p-3 flex items-center gap-2">
+                                    <FileAudio className="h-6 w-6 text-purple-600" />
+                                    <audio src={url} controls className="w-full h-8" />
+                                  </div>
+                                ) : (
+                                  <img
+                                    key={index}
+                                    src={url}
+                                    alt={`Media ${index + 1}`}
+                                    className="rounded-lg object-cover w-full h-32"
+                                    onError={(e) => {
+                                      (e.target as HTMLImageElement).src = "/placeholder.svg";
+                                    }}
+                                  />
+                                )
+                              ))}
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="drafts">
+                {draftPosts.length === 0 ? (
+                  <Card className="py-12 text-center">
+                    <FileEdit className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-slate-700">No drafts</h3>
+                    <p className="text-sm text-slate-500 mt-1">
+                      Cancelled or unpublished posts will appear here.
+                    </p>
+                  </Card>
+                ) : (
+                  <div className="space-y-4">
+                    {draftPosts.map((post) => (
+                      <Card key={post.id} className="overflow-hidden border-slate-200 bg-slate-50/50">
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-center gap-3">
+                              <Avatar className="h-10 w-10">
+                                <AvatarImage src={post.profiles?.avatar_url || undefined} />
+                                <AvatarFallback className="bg-primary/10 text-primary">
+                                  {post.profiles?.display_name?.[0] || "A"}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium text-slate-900">
+                                    {post.profiles?.display_name || "Admin"}
+                                  </span>
+                                  <Badge variant="outline" className="text-xs gap-1 text-slate-500 border-slate-300">
+                                    <FileEdit className="h-3 w-3" />
+                                    Draft
+                                  </Badge>
+                                </div>
+                                <div className="flex items-center gap-1 text-xs text-slate-500">
+                                  <Calendar className="h-3 w-3" />
+                                  Created {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-slate-400 hover:text-green-600"
+                                onClick={() => handleRestoreFromDrafts(post.id)}
+                                title="Publish now"
+                              >
+                                <RotateCcw className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-slate-400 hover:text-primary"
+                                onClick={() => openEditDialog(post)}
+                                title="Edit and schedule"
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-slate-400 hover:text-destructive"
+                                onClick={() => handleDeletePost(post.id)}
+                                title="Delete post"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+
+                          {post.content && (
+                            <p className="mt-3 text-slate-700 whitespace-pre-wrap">
+                              {post.content}
+                            </p>
+                          )}
+
+                          {post.media_urls && post.media_urls.length > 0 && (
+                            <div className="mt-3 grid grid-cols-2 gap-2">
+                              {post.media_urls.slice(0, 4).map((url, index) => (
+                                isVideoUrl(url) ? (
+                                  <video
+                                    key={index}
+                                    src={url}
+                                    controls
+                                    className="rounded-lg w-full h-32 object-cover"
+                                  />
+                                ) : isAudioUrl(url) ? (
+                                  <div key={index} className="rounded-lg bg-slate-100 p-3 flex items-center gap-2">
+                                    <FileAudio className="h-6 w-6 text-purple-600" />
+                                    <audio src={url} controls className="w-full h-8" />
+                                  </div>
+                                ) : (
+                                  <img
+                                    key={index}
+                                    src={url}
+                                    alt={`Media ${index + 1}`}
+                                    className="rounded-lg object-cover w-full h-32"
+                                    onError={(e) => {
+                                      (e.target as HTMLImageElement).src = "/placeholder.svg";
+                                    }}
+                                  />
+                                )
+                              ))}
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
           )}
         </div>
 
