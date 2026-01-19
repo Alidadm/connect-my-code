@@ -31,8 +31,24 @@ const ShortVideosPage = () => {
   const [videos, setVideos] = useState<ShortVideo[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [bulkUrls, setBulkUrls] = useState("");
-  const [showBulkAdd, setShowBulkAdd] = useState(false);
+  
+  // Persist bulk URLs and show state in localStorage so they survive tab switches
+  const [bulkUrls, setBulkUrls] = useState(() => {
+    return localStorage.getItem("admin_short_videos_bulk_urls") || "";
+  });
+  const [showBulkAdd, setShowBulkAdd] = useState(() => {
+    return localStorage.getItem("admin_short_videos_show_bulk") === "true";
+  });
+
+  // Save bulk URLs to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem("admin_short_videos_bulk_urls", bulkUrls);
+  }, [bulkUrls]);
+
+  // Save show state to localStorage
+  useEffect(() => {
+    localStorage.setItem("admin_short_videos_show_bulk", String(showBulkAdd));
+  }, [showBulkAdd]);
 
   useEffect(() => {
     fetchVideos();
@@ -89,6 +105,9 @@ const ShortVideosPage = () => {
       toast.success(`Added ${urls.length} video(s) successfully`);
       setBulkUrls("");
       setShowBulkAdd(false);
+      // Clear localStorage after successful save
+      localStorage.removeItem("admin_short_videos_bulk_urls");
+      localStorage.removeItem("admin_short_videos_show_bulk");
       fetchVideos();
     } catch (error) {
       console.error("Error adding videos:", error);
@@ -96,6 +115,13 @@ const ShortVideosPage = () => {
     } finally {
       setSaving(false);
     }
+  };
+
+  const clearBulkAddState = () => {
+    setBulkUrls("");
+    setShowBulkAdd(false);
+    localStorage.removeItem("admin_short_videos_bulk_urls");
+    localStorage.removeItem("admin_short_videos_show_bulk");
   };
 
   const handleDelete = async (id: string) => {
@@ -252,10 +278,7 @@ const ShortVideosPage = () => {
                   </Button>
                   <Button
                     variant="outline"
-                    onClick={() => {
-                      setShowBulkAdd(false);
-                      setBulkUrls("");
-                    }}
+                    onClick={clearBulkAddState}
                   >
                     Cancel
                   </Button>
