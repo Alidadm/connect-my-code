@@ -22,14 +22,17 @@ interface Player {
 }
 
 interface SudokuGameProps {
-  gameId: string;
+  gameId?: string | null;
+  initialPuzzle?: number[][] | null;
+  initialSolution?: number[][] | null;
+  difficulty?: string;
   onBack: () => void;
 }
 
 type SudokuGrid = number[][];
 type NotesGrid = Set<number>[][];
 
-export const SudokuGame = ({ gameId, onBack }: SudokuGameProps) => {
+export const SudokuGame = ({ gameId, initialPuzzle, initialSolution, difficulty = 'medium', onBack }: SudokuGameProps) => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -70,7 +73,26 @@ export const SudokuGame = ({ gameId, onBack }: SudokuGameProps) => {
     return Array(9).fill(null).map(() => Array(9).fill(0));
   };
 
+  // For single-player mode without database
+  const isSinglePlayer = !gameId && initialPuzzle && initialSolution;
+
   const fetchGame = useCallback(async () => {
+    // If single player mode, use initial puzzle
+    if (isSinglePlayer) {
+      setPuzzle(initialPuzzle);
+      setSolution(initialSolution);
+      setCurrentState(initialPuzzle.map(row => [...row]));
+      setNotes(initializeNotes());
+      setIsRunning(true);
+      setLoading(false);
+      return;
+    }
+
+    if (!gameId) {
+      setLoading(false);
+      return;
+    }
+
     try {
       const { data: gameData, error } = await supabase
         .from("sudoku_games")
@@ -130,7 +152,7 @@ export const SudokuGame = ({ gameId, onBack }: SudokuGameProps) => {
     } finally {
       setLoading(false);
     }
-  }, [gameId, user?.id, t, toast]);
+  }, [gameId, user?.id, t, toast, isSinglePlayer, initialPuzzle, initialSolution]);
 
   useEffect(() => {
     fetchGame();
@@ -262,7 +284,9 @@ export const SudokuGame = ({ gameId, onBack }: SudokuGameProps) => {
   };
 
   const saveGameState = async (state: SudokuGrid) => {
-    if (!user || !game) return;
+    // Skip database save for single player mode
+    if (isSinglePlayer) return;
+    if (!user || !game || !gameId) return;
     
     const isPlayer1 = game.player_1 === user.id;
     const updateField = isPlayer1 ? 'player_1_state' : 'player_2_state';
@@ -285,11 +309,27 @@ export const SudokuGame = ({ gameId, onBack }: SudokuGameProps) => {
   };
 
   const handlePuzzleComplete = async () => {
-    if (!user || !game) return;
+    if (!user) return;
     
     setIsRunning(false);
     playWin();
     confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+    
+    // For single player mode, just update stats
+    if (isSinglePlayer) {
+      await updateStatsSinglePlayer();
+      toast({
+        title: t("games.puzzleComplete", { defaultValue: "🎉 Puzzle Complete!" }),
+        description: t("games.timeWithHints", { 
+          defaultValue: "Time: {{time}} | Hints: {{hints}}", 
+          time: formatTime(timer),
+          hints: hintsUsed 
+        }),
+      });
+      return;
+    }
+
+    if (!game || !gameId) return;
     
     const isPlayer1 = game.player_1 === user.id;
     const timeField = isPlayer1 ? 'player_1_time' : 'player_2_time';
@@ -329,6 +369,46 @@ export const SudokuGame = ({ gameId, onBack }: SudokuGameProps) => {
         hints: hintsUsed 
       }),
     });
+  };
+
+  const updateStatsSinglePlayer = async () => {
+    if (!user) return;
+    
+    const bestTimeField = `${difficulty}_best_time` as const;
+    const gamesWonField = `${difficulty}_games_won` as const;
+    
+    // Get or create stats
+    const { data: existingStats } = await supabase
+      .from("sudoku_stats")
+      .select("*")
+      .eq("user_id", user.id)
+      .single();
+
+    if (existingStats) {
+      const currentBest = (existingStats as any)[bestTimeField];
+      const updates: Record<string, any> = {
+        total_games_played: (existingStats.total_games_played || 0) + 1,
+        [gamesWonField]: ((existingStats as any)[gamesWonField] || 0) + 1,
+      };
+      
+      if (!currentBest || timer < currentBest) {
+        updates[bestTimeField] = timer;
+      }
+      
+      await supabase
+        .from("sudoku_stats")
+        .update(updates)
+        .eq("user_id", user.id);
+    } else {
+      await supabase
+        .from("sudoku_stats")
+        .insert({
+          user_id: user.id,
+          [bestTimeField]: timer,
+          [gamesWonField]: 1,
+          total_games_played: 1,
+        });
+    }
   };
 
   const updateStats = async () => {

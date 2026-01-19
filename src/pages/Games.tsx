@@ -92,9 +92,40 @@ const GamesContent = () => {
   useEffect(() => {
     if (user) {
       fetchAllGames();
+      fetchSudokuStats();
       subscribeToGames();
     }
   }, [user]);
+
+  const fetchSudokuStats = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("sudoku_stats")
+      .select("*")
+      .eq("user_id", user.id)
+      .single();
+    setSudokuStats(data);
+  };
+
+  const handleSudokuDifficultySelect = async (difficulty: string, isMultiplayer: boolean) => {
+    setSudokuLoading(true);
+    try {
+      const { puzzle, solution } = generateSudoku(difficulty);
+      setSudokuPuzzle(puzzle);
+      setSudokuSolution(solution);
+      setSudokuDifficulty(difficulty);
+      
+      if (isMultiplayer) {
+        setShowSudokuInvite(true);
+      } else {
+        setShowSudokuSelector(false);
+      }
+    } catch (error) {
+      console.error("Error generating puzzle:", error);
+    } finally {
+      setSudokuLoading(false);
+    }
+  };
 
   const fetchAllGames = async () => {
     if (!user) return;
@@ -342,6 +373,30 @@ const GamesContent = () => {
     );
   }
 
+  // Show Sudoku game if selected or starting single player
+  if (selectedSudokuId || (sudokuPuzzle && !showSudokuSelector)) {
+    return (
+      <MainLayout>
+        <div className="container max-w-6xl py-8">
+          <SudokuGame
+            gameId={selectedSudokuId}
+            initialPuzzle={sudokuPuzzle}
+            initialSolution={sudokuSolution}
+            difficulty={sudokuDifficulty}
+            onBack={() => {
+              setSelectedSudokuId(null);
+              setSudokuPuzzle(null);
+              setSudokuSolution(null);
+              setShowSudokuSelector(false);
+              navigate("/games", { replace: true });
+              fetchSudokuStats();
+            }}
+          />
+        </div>
+      </MainLayout>
+    );
+  }
+
   const renderGameList = (
     games: (TicTacToeGameWithPlayers | MemoryGameWithPlayers)[],
     getOpponent: (game: any) => any,
@@ -464,107 +519,109 @@ const GamesContent = () => {
         {activeGameType === "sudoku" && (
           <SudokuStats stats={sudokuStats} />
         )}
-        {activeGameType === "tictactoe" ? (
-          <GameStats wins={ticTacToeStats.wins} losses={ticTacToeStats.losses} draws={ticTacToeStats.draws} />
-        ) : (
-          <MemoryMatchStats wins={memoryStats.wins} losses={memoryStats.losses} draws={memoryStats.draws} />
-        )}
 
         {/* Game Card */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  {activeGameType === "tictactoe" ? (
-                    <>
-                      <Grid3X3 className="w-5 h-5" />
-                      {t("games.ticTacToe", { defaultValue: "Tic-Tac-Toe" })}
-                    </>
-                  ) : (
-                    <>
-                      <LayoutGrid className="w-5 h-5" />
-                      {t("games.memoryMatch", { defaultValue: "Memory Match" })}
-                    </>
-                  )}
-                </CardTitle>
-                <CardDescription>
-                  {activeGameType === "tictactoe" 
-                    ? t("games.ticTacToeDesc", { defaultValue: "Classic game - take turns with friends, even when offline!" })
-                    : t("games.memoryMatchDesc", { defaultValue: "Find matching pairs - challenge your friends' memory!" })
-                  }
-                </CardDescription>
-              </div>
-              <Button 
-                onClick={() => activeGameType === "tictactoe" ? setShowTicTacToeInvite(true) : setShowMemoryInvite(true)} 
-                className="gap-2"
-              >
-                <Plus className="w-4 h-4" />
-                {t("games.newGame", { defaultValue: "New Game" })}
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="active">
-                  {t("games.activeGames", { defaultValue: "Active" })}
-                  {(activeGameType === "tictactoe" ? filterTicTacToeGames("active") : filterMemoryGames("active")).length > 0 && (
-                    <Badge variant="secondary" className="ml-2">
-                      {(activeGameType === "tictactoe" ? filterTicTacToeGames("active") : filterMemoryGames("active")).length}
-                    </Badge>
-                  )}
-                </TabsTrigger>
-                <TabsTrigger value="my-turn">
-                  {t("games.myTurn", { defaultValue: "My Turn" })}
-                  {(activeGameType === "tictactoe" ? filterTicTacToeGames("my-turn") : filterMemoryGames("my-turn")).length > 0 && (
-                    <Badge variant="default" className="ml-2">
-                      {(activeGameType === "tictactoe" ? filterTicTacToeGames("my-turn") : filterMemoryGames("my-turn")).length}
-                    </Badge>
-                  )}
-                </TabsTrigger>
-                <TabsTrigger value="completed" className="gap-1">
-                  <History className="w-4 h-4" />
-                  {t("games.history", { defaultValue: "History" })}
-                  {(activeGameType === "tictactoe" ? filterTicTacToeGames("completed") : filterMemoryGames("completed")).length > 0 && (
-                    <Badge variant="outline" className="ml-1">
-                      {(activeGameType === "tictactoe" ? filterTicTacToeGames("completed") : filterMemoryGames("completed")).length}
-                    </Badge>
-                  )}
-                </TabsTrigger>
-              </TabsList>
-
-              {loading ? (
-                <div className="flex justify-center py-8">
-                  <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+        {activeGameType === "sudoku" ? (
+          <SudokuDifficultySelector
+            onSelectDifficulty={handleSudokuDifficultySelect}
+            loading={sudokuLoading}
+          />
+        ) : (
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    {activeGameType === "tictactoe" ? (
+                      <>
+                        <Grid3X3 className="w-5 h-5" />
+                        {t("games.ticTacToe", { defaultValue: "Tic-Tac-Toe" })}
+                      </>
+                    ) : (
+                      <>
+                        <LayoutGrid className="w-5 h-5" />
+                        {t("games.memoryMatch", { defaultValue: "Memory Match" })}
+                      </>
+                    )}
+                  </CardTitle>
+                  <CardDescription>
+                    {activeGameType === "tictactoe" 
+                      ? t("games.ticTacToeDesc", { defaultValue: "Classic game - take turns with friends, even when offline!" })
+                      : t("games.memoryMatchDesc", { defaultValue: "Find matching pairs - challenge your friends' memory!" })
+                    }
+                  </CardDescription>
                 </div>
-              ) : (
-                <>
-                  {["active", "my-turn", "completed"].map((tab) => (
-                    <TabsContent key={tab} value={tab} className="space-y-2 mt-4">
-                      {activeGameType === "tictactoe" 
-                        ? renderGameList(
-                            filterTicTacToeGames(tab),
-                            getTicTacToeOpponent,
-                            isTicTacToeMyTurn,
-                            setSelectedTicTacToeId,
-                            "game"
-                          )
-                        : renderGameList(
-                            filterMemoryGames(tab),
-                            getMemoryOpponent,
-                            isMemoryMyTurn,
-                            setSelectedMemoryId,
-                            "memory"
-                          )
-                      }
-                    </TabsContent>
-                  ))}
-                </>
-              )}
-            </Tabs>
-          </CardContent>
-        </Card>
+                <Button 
+                  onClick={() => activeGameType === "tictactoe" ? setShowTicTacToeInvite(true) : setShowMemoryInvite(true)} 
+                  className="gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  {t("games.newGame", { defaultValue: "New Game" })}
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="active">
+                    {t("games.activeGames", { defaultValue: "Active" })}
+                    {(activeGameType === "tictactoe" ? filterTicTacToeGames("active") : filterMemoryGames("active")).length > 0 && (
+                      <Badge variant="secondary" className="ml-2">
+                        {(activeGameType === "tictactoe" ? filterTicTacToeGames("active") : filterMemoryGames("active")).length}
+                      </Badge>
+                    )}
+                  </TabsTrigger>
+                  <TabsTrigger value="my-turn">
+                    {t("games.myTurn", { defaultValue: "My Turn" })}
+                    {(activeGameType === "tictactoe" ? filterTicTacToeGames("my-turn") : filterMemoryGames("my-turn")).length > 0 && (
+                      <Badge variant="default" className="ml-2">
+                        {(activeGameType === "tictactoe" ? filterTicTacToeGames("my-turn") : filterMemoryGames("my-turn")).length}
+                      </Badge>
+                    )}
+                  </TabsTrigger>
+                  <TabsTrigger value="completed" className="gap-1">
+                    <History className="w-4 h-4" />
+                    {t("games.history", { defaultValue: "History" })}
+                    {(activeGameType === "tictactoe" ? filterTicTacToeGames("completed") : filterMemoryGames("completed")).length > 0 && (
+                      <Badge variant="outline" className="ml-1">
+                        {(activeGameType === "tictactoe" ? filterTicTacToeGames("completed") : filterMemoryGames("completed")).length}
+                      </Badge>
+                    )}
+                  </TabsTrigger>
+                </TabsList>
+
+                {loading ? (
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                  </div>
+                ) : (
+                  <>
+                    {["active", "my-turn", "completed"].map((tab) => (
+                      <TabsContent key={tab} value={tab} className="space-y-2 mt-4">
+                        {activeGameType === "tictactoe" 
+                          ? renderGameList(
+                              filterTicTacToeGames(tab),
+                              getTicTacToeOpponent,
+                              isTicTacToeMyTurn,
+                              setSelectedTicTacToeId,
+                              "game"
+                            )
+                          : renderGameList(
+                              filterMemoryGames(tab),
+                              getMemoryOpponent,
+                              isMemoryMyTurn,
+                              setSelectedMemoryId,
+                              "memory"
+                            )
+                        }
+                      </TabsContent>
+                    ))}
+                  </>
+                )}
+              </Tabs>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       <InviteFriendToGameDialog
@@ -582,6 +639,26 @@ const GamesContent = () => {
         onGameCreated={(gameId) => {
           setSelectedMemoryId(gameId);
           navigate(`/games?memory=${gameId}`, { replace: true });
+        }}
+      />
+
+      <InviteFriendToSudokuDialog
+        open={showSudokuInvite}
+        onOpenChange={(open) => {
+          setShowSudokuInvite(open);
+          if (!open) {
+            setSudokuPuzzle(null);
+            setSudokuSolution(null);
+          }
+        }}
+        difficulty={sudokuDifficulty}
+        puzzle={sudokuPuzzle || []}
+        solution={sudokuSolution || []}
+        onGameCreated={(gameId) => {
+          setSelectedSudokuId(gameId);
+          setSudokuPuzzle(null);
+          setSudokuSolution(null);
+          navigate(`/games?sudoku=${gameId}`, { replace: true });
         }}
       />
     </MainLayout>

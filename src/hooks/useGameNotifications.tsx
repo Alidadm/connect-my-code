@@ -48,7 +48,30 @@ export const useGameNotifications = () => {
         return game.current_turn === user.id;
       }).length;
 
-      return ticTacToeCount + memoryCount;
+      // Fetch Sudoku multiplayer games where it's the current user's turn (opponent finished)
+      const { data: sudokuGames, error: sudokuError } = await supabase
+        .from("sudoku_games")
+        .select("id, player_1, player_2, player_1_state, player_2_state, status")
+        .or(`player_1.eq.${user.id},player_2.eq.${user.id}`)
+        .eq("status", "active")
+        .eq("is_multiplayer", true);
+
+      if (sudokuError) {
+        console.error("Error fetching sudoku notifications:", sudokuError);
+      }
+
+      // Count Sudoku games where opponent finished but user hasn't
+      const sudokuCount = (sudokuGames || []).filter((game) => {
+        const isPlayer1 = game.player_1 === user.id;
+        const myState = isPlayer1 ? game.player_1_state : game.player_2_state;
+        const opponentState = isPlayer1 ? game.player_2_state : game.player_1_state;
+        // Notify if opponent has completed but I haven't
+        const opponentCompleted = opponentState && typeof opponentState === 'object' && 'completed' in opponentState && opponentState.completed;
+        const myCompleted = myState && typeof myState === 'object' && 'completed' in myState && myState.completed;
+        return opponentCompleted && !myCompleted;
+      }).length;
+
+      return ticTacToeCount + memoryCount + sudokuCount;
     },
     enabled: !!user?.id,
     staleTime: 30000, // Cache for 30 seconds
@@ -88,9 +111,25 @@ export const useGameNotifications = () => {
       )
       .subscribe();
 
+    const sudokuChannel = supabase
+      .channel("sudoku-notifications")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "sudoku_games",
+        },
+        () => {
+          refetch();
+        }
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(ticTacToeChannel);
       supabase.removeChannel(memoryChannel);
+      supabase.removeChannel(sudokuChannel);
     };
   }, [user?.id, refetch]);
 
