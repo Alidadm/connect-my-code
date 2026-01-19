@@ -206,7 +206,15 @@ export const CoverEditor: React.FC<CoverEditorProps> = ({
   };
 
   const cropAndUpload = async () => {
-    if (!imageSrc || !userId) return;
+    if (!imageSrc) {
+      toast.error(t("cover.noImageSelected"));
+      return;
+    }
+    if (!userId) {
+      toast.error(t("cover.uploadFailed"));
+      console.error("Cannot save cover: userId is undefined");
+      return;
+    }
     
     setUploading(true);
     
@@ -296,7 +304,11 @@ export const CoverEditor: React.FC<CoverEditorProps> = ({
   };
 
   const removeCover = async () => {
-    if (!userId) return;
+    if (!userId) {
+      toast.error(t("cover.removeFailed"));
+      console.error("Cannot remove cover: userId is undefined");
+      return;
+    }
     
     setUploading(true);
     

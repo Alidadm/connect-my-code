@@ -236,7 +236,15 @@ export const AvatarEditor: React.FC<AvatarEditorProps> = ({
   };
 
   const cropAndUpload = async () => {
-    if (!imageSrc || !userId) return;
+    if (!imageSrc) {
+      toast.error(t("avatar.noImageSelected"));
+      return;
+    }
+    if (!userId) {
+      toast.error(t("avatar.uploadFailed"));
+      console.error("Cannot save avatar: userId is undefined");
+      return;
+    }
     
     setUploading(true);
     
@@ -340,7 +348,11 @@ export const AvatarEditor: React.FC<AvatarEditorProps> = ({
 
   // Save generated avatar
   const saveGeneratedAvatar = async () => {
-    if (!userId) return;
+    if (!userId) {
+      toast.error(t("avatar.saveFailed"));
+      console.error("Cannot save generated avatar: userId is undefined");
+      return;
+    }
     
     setUploading(true);
     
@@ -418,7 +430,11 @@ export const AvatarEditor: React.FC<AvatarEditorProps> = ({
 
   // Remove current avatar
   const removeAvatar = async () => {
-    if (!userId) return;
+    if (!userId) {
+      toast.error(t("avatar.removeFailed"));
+      console.error("Cannot remove avatar: userId is undefined");
+      return;
+    }
     
     setUploading(true);
     
