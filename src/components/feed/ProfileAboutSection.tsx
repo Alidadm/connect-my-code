@@ -173,7 +173,7 @@ export const ProfileAboutSection = ({ userId }: ProfileAboutSectionProps) => {
             <Plus className="h-3.5 w-3.5 text-primary" />
           </div>
         ) : (
-          <Icon className="h-5 w-5 text-muted-foreground" />
+          <Icon className="h-5 w-5 text-blue-500" />
         )}
         <div>
           <span className={cn("text-sm", isAdd ? "text-primary font-medium" : "text-foreground")}>
@@ -329,7 +329,7 @@ export const ProfileAboutSection = ({ userId }: ProfileAboutSectionProps) => {
               {privateProfile?.birthday && (
                 <div className="flex items-center py-2.5">
                   <div className="flex items-center gap-3">
-                    <Calendar className="h-5 w-5 text-muted-foreground" />
+                    <Calendar className="h-5 w-5 text-blue-500" />
                     <div className="flex items-center gap-8">
                       <div>
                         <span className="text-sm text-foreground">
