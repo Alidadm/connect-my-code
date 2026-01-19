@@ -12,6 +12,7 @@ export interface PrivacySettings {
   read_receipts: boolean;
   typing_indicator: boolean;
   login_alerts: boolean;
+  allow_direct_messages: boolean;
 }
 
 const defaultSettings: PrivacySettings = {
@@ -23,6 +24,7 @@ const defaultSettings: PrivacySettings = {
   read_receipts: true,
   typing_indicator: true,
   login_alerts: true,
+  allow_direct_messages: true,
 };
 
 export const usePrivacySettings = () => {
@@ -59,6 +61,7 @@ export const usePrivacySettings = () => {
           read_receipts: data.read_receipts ?? defaultSettings.read_receipts,
           typing_indicator: data.typing_indicator ?? defaultSettings.typing_indicator,
           login_alerts: data.login_alerts ?? defaultSettings.login_alerts,
+          allow_direct_messages: data.allow_direct_messages ?? defaultSettings.allow_direct_messages,
         });
       }
     } catch (error) {

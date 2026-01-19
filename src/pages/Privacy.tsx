@@ -138,6 +138,17 @@ const Privacy = () => {
                 onCheckedChange={(checked) => updateSetting("show_last_seen", checked)}
               />
             </div>
+            <Separator />
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>{t("privacy.allowDirectMessages", { defaultValue: "Allow Direct Messages" })}</Label>
+                <p className="text-sm text-muted-foreground">{t("privacy.allowDirectMessagesDesc", { defaultValue: "Let anyone send you messages" })}</p>
+              </div>
+              <Switch 
+                checked={settings.allow_direct_messages}
+                onCheckedChange={(checked) => updateSetting("allow_direct_messages", checked)}
+              />
+            </div>
           </CardContent>
         </Card>
 
