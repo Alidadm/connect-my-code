@@ -1,16 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { 
   ArrowLeft, Plus, Trash2, Loader2, Image as ImageIcon, 
-  Send, Megaphone, X, Calendar
+  Send, Megaphone, X, Calendar, Film, FileAudio, FileText,
+  Upload
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import AdminRouteGuard from "@/components/admin/AdminRouteGuard";
@@ -29,15 +29,28 @@ interface PlatformPost {
   };
 }
 
+interface MediaFile {
+  file: File;
+  preview: string;
+  type: 'image' | 'video' | 'gif' | 'audio' | 'document';
+}
+
+const MAX_FILES = 10;
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+
 const PlatformPosts = () => {
   const navigate = useNavigate();
   const [posts, setPosts] = useState<PlatformPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [newContent, setNewContent] = useState("");
-  const [mediaUrls, setMediaUrls] = useState<string[]>([]);
-  const [newMediaUrl, setNewMediaUrl] = useState("");
+  const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
+  const audioInputRef = useRef<HTMLInputElement>(null);
+  const documentInputRef = useRef<HTMLInputElement>(null);
 
   const fetchPlatformPosts = async () => {
     try {
@@ -50,7 +63,6 @@ const PlatformPosts = () => {
 
       if (error) throw error;
 
-      // Fetch profiles for each post
       if (data && data.length > 0) {
         const userIds = [...new Set(data.map(p => p.user_id))];
         const { data: profiles } = await supabase
@@ -79,8 +91,88 @@ const PlatformPosts = () => {
     fetchPlatformPosts();
   }, []);
 
+  const getFileType = (file: File): MediaFile['type'] => {
+    const mimeType = file.type;
+    if (mimeType.startsWith('image/gif')) return 'gif';
+    if (mimeType.startsWith('image/')) return 'image';
+    if (mimeType.startsWith('video/')) return 'video';
+    if (mimeType.startsWith('audio/')) return 'audio';
+    return 'document';
+  };
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files) return;
+
+    const newFiles: MediaFile[] = [];
+    const remainingSlots = MAX_FILES - mediaFiles.length;
+
+    for (let i = 0; i < Math.min(files.length, remainingSlots); i++) {
+      const file = files[i];
+      
+      if (file.size > MAX_FILE_SIZE) {
+        toast.error(`${file.name} is too large. Max size is 50MB.`);
+        continue;
+      }
+
+      const type = getFileType(file);
+      const preview = type === 'image' || type === 'gif' || type === 'video' 
+        ? URL.createObjectURL(file) 
+        : '';
+
+      newFiles.push({ file, preview, type });
+    }
+
+    if (files.length > remainingSlots) {
+      toast.warning(`Only ${remainingSlots} more files can be added. Max is ${MAX_FILES}.`);
+    }
+
+    setMediaFiles([...mediaFiles, ...newFiles]);
+    event.target.value = '';
+  };
+
+  const removeMediaFile = (index: number) => {
+    const file = mediaFiles[index];
+    if (file.preview) {
+      URL.revokeObjectURL(file.preview);
+    }
+    setMediaFiles(mediaFiles.filter((_, i) => i !== index));
+  };
+
+  const uploadFiles = async (files: MediaFile[]): Promise<string[]> => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return [];
+    
+    const uploadedUrls: string[] = [];
+    
+    for (const mediaFile of files) {
+      const fileExt = mediaFile.file.name.split('.').pop();
+      const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      
+      const { data, error } = await supabase.storage
+        .from('post-media')
+        .upload(fileName, mediaFile.file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+      
+      if (error) {
+        console.error('Upload error:', error);
+        throw error;
+      }
+      
+      const { data: { publicUrl } } = supabase.storage
+        .from('post-media')
+        .getPublicUrl(data.path);
+      
+      uploadedUrls.push(publicUrl);
+    }
+    
+    return uploadedUrls;
+  };
+
   const handleCreatePost = async () => {
-    if (!newContent.trim() && mediaUrls.length === 0) {
+    if (!newContent.trim() && mediaFiles.length === 0) {
       toast.error("Please add some content or media");
       return;
     }
@@ -92,6 +184,13 @@ const PlatformPosts = () => {
       if (!user) {
         toast.error("You must be logged in");
         return;
+      }
+
+      // Upload media files
+      let mediaUrls: string[] = [];
+      if (mediaFiles.length > 0) {
+        toast.info("Uploading media files...");
+        mediaUrls = await uploadFiles(mediaFiles);
       }
 
       const { error } = await supabase.from("posts").insert({
@@ -106,7 +205,9 @@ const PlatformPosts = () => {
 
       toast.success("Platform post created successfully!");
       setNewContent("");
-      setMediaUrls([]);
+      // Cleanup previews
+      mediaFiles.forEach(f => f.preview && URL.revokeObjectURL(f.preview));
+      setMediaFiles([]);
       setShowCreateForm(false);
       fetchPlatformPosts();
     } catch (error) {
@@ -137,15 +238,21 @@ const PlatformPosts = () => {
     }
   };
 
-  const addMediaUrl = () => {
-    if (newMediaUrl.trim() && !mediaUrls.includes(newMediaUrl.trim())) {
-      setMediaUrls([...mediaUrls, newMediaUrl.trim()]);
-      setNewMediaUrl("");
+  const getMediaIcon = (type: MediaFile['type']) => {
+    switch (type) {
+      case 'video': return <Film className="h-4 w-4" />;
+      case 'audio': return <FileAudio className="h-4 w-4" />;
+      case 'document': return <FileText className="h-4 w-4" />;
+      default: return <ImageIcon className="h-4 w-4" />;
     }
   };
 
-  const removeMediaUrl = (url: string) => {
-    setMediaUrls(mediaUrls.filter(u => u !== url));
+  const isVideoUrl = (url: string) => {
+    return url.match(/\.(mp4|webm|ogg|mov)$/i);
+  };
+
+  const isAudioUrl = (url: string) => {
+    return url.match(/\.(mp3|wav|ogg|m4a)$/i);
   };
 
   return (
@@ -195,49 +302,148 @@ const PlatformPosts = () => {
                   className="min-h-[120px] resize-none"
                 />
 
-                {/* Media URLs */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                    <ImageIcon className="h-4 w-4" />
-                    Media URLs (optional)
-                  </label>
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="https://example.com/image.jpg"
-                      value={newMediaUrl}
-                      onChange={(e) => setNewMediaUrl(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addMediaUrl())}
-                    />
-                    <Button type="button" variant="outline" onClick={addMediaUrl}>
-                      Add
-                    </Button>
-                  </div>
-                  {mediaUrls.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {mediaUrls.map((url, index) => (
+                {/* Media Upload Buttons */}
+                <div className="flex flex-wrap gap-2">
+                  <input
+                    ref={imageInputRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={handleFileSelect}
+                  />
+                  <input
+                    ref={videoInputRef}
+                    type="file"
+                    accept="video/*"
+                    multiple
+                    className="hidden"
+                    onChange={handleFileSelect}
+                  />
+                  <input
+                    ref={audioInputRef}
+                    type="file"
+                    accept="audio/*"
+                    multiple
+                    className="hidden"
+                    onChange={handleFileSelect}
+                  />
+                  <input
+                    ref={documentInputRef}
+                    type="file"
+                    accept=".pdf,.doc,.docx,.txt"
+                    multiple
+                    className="hidden"
+                    onChange={handleFileSelect}
+                  />
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => imageInputRef.current?.click()}
+                    disabled={mediaFiles.length >= MAX_FILES}
+                    className="gap-2"
+                  >
+                    <ImageIcon className="h-4 w-4 text-green-600" />
+                    Photo
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => videoInputRef.current?.click()}
+                    disabled={mediaFiles.length >= MAX_FILES}
+                    className="gap-2"
+                  >
+                    <Film className="h-4 w-4 text-blue-600" />
+                    Video
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => audioInputRef.current?.click()}
+                    disabled={mediaFiles.length >= MAX_FILES}
+                    className="gap-2"
+                  >
+                    <FileAudio className="h-4 w-4 text-purple-600" />
+                    Audio
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => documentInputRef.current?.click()}
+                    disabled={mediaFiles.length >= MAX_FILES}
+                    className="gap-2"
+                  >
+                    <FileText className="h-4 w-4 text-orange-600" />
+                    Document
+                  </Button>
+                  <span className="text-xs text-slate-500 self-center ml-2">
+                    {mediaFiles.length}/{MAX_FILES} files (max 50MB each)
+                  </span>
+                </div>
+
+                {/* Media Preview */}
+                {mediaFiles.length > 0 && (
+                  <div className="p-3 bg-slate-100 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                        <Upload className="h-4 w-4" />
+                        Attached Media
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {mediaFiles.map((media, index) => (
                         <div key={index} className="relative group">
-                          <img
-                            src={url}
-                            alt={`Media ${index + 1}`}
-                            className="h-20 w-20 object-cover rounded-lg border"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = "/placeholder.svg";
-                            }}
-                          />
+                          {media.type === 'image' || media.type === 'gif' ? (
+                            <img
+                              src={media.preview}
+                              alt={`Media ${index + 1}`}
+                              className="h-24 w-full object-cover rounded-lg border"
+                            />
+                          ) : media.type === 'video' ? (
+                            <div className="h-24 w-full bg-slate-200 rounded-lg border flex items-center justify-center">
+                              <video
+                                src={media.preview}
+                                className="h-full w-full object-cover rounded-lg"
+                              />
+                            </div>
+                          ) : (
+                            <div className="h-24 w-full bg-slate-200 rounded-lg border flex flex-col items-center justify-center p-2">
+                              {getMediaIcon(media.type)}
+                              <span className="text-xs text-slate-600 mt-1 truncate max-w-full">
+                                {media.file.name}
+                              </span>
+                            </div>
+                          )}
                           <button
-                            onClick={() => removeMediaUrl(url)}
-                            className="absolute -top-2 -right-2 bg-destructive text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => removeMediaFile(index)}
+                            className="absolute -top-2 -right-2 bg-destructive text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
                           >
                             <X className="h-3 w-3" />
                           </button>
+                          <Badge 
+                            variant="secondary" 
+                            className="absolute bottom-1 left-1 text-[10px] px-1 py-0"
+                          >
+                            {media.type}
+                          </Badge>
                         </div>
                       ))}
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
 
                 <div className="flex justify-end gap-2">
-                  <Button variant="outline" onClick={() => setShowCreateForm(false)}>
+                  <Button variant="outline" onClick={() => {
+                    setShowCreateForm(false);
+                    setNewContent("");
+                    mediaFiles.forEach(f => f.preview && URL.revokeObjectURL(f.preview));
+                    setMediaFiles([]);
+                  }}>
                     Cancel
                   </Button>
                   <Button onClick={handleCreatePost} disabled={creating} className="gap-2">
@@ -313,15 +519,29 @@ const PlatformPosts = () => {
                     {post.media_urls && post.media_urls.length > 0 && (
                       <div className="mt-3 grid grid-cols-2 gap-2">
                         {post.media_urls.slice(0, 4).map((url, index) => (
-                          <img
-                            key={index}
-                            src={url}
-                            alt={`Media ${index + 1}`}
-                            className="rounded-lg object-cover w-full h-32"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = "/placeholder.svg";
-                            }}
-                          />
+                          isVideoUrl(url) ? (
+                            <video
+                              key={index}
+                              src={url}
+                              controls
+                              className="rounded-lg w-full h-32 object-cover"
+                            />
+                          ) : isAudioUrl(url) ? (
+                            <div key={index} className="rounded-lg bg-slate-100 p-3 flex items-center gap-2">
+                              <FileAudio className="h-6 w-6 text-purple-600" />
+                              <audio src={url} controls className="w-full h-8" />
+                            </div>
+                          ) : (
+                            <img
+                              key={index}
+                              src={url}
+                              alt={`Media ${index + 1}`}
+                              className="rounded-lg object-cover w-full h-32"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = "/placeholder.svg";
+                              }}
+                            />
+                          )
                         ))}
                       </div>
                     )}
