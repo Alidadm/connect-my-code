@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { MessageCircle, Share2, MoreVertical, Bookmark, FileText, Music, Pencil, Trash2, Copy, Facebook, Twitter, Link2, Check, Ban, VolumeX, Volume2, UserX } from "lucide-react";
+import { MessageCircle, Share2, MoreVertical, Bookmark, FileText, Music, Pencil, Trash2, Copy, Facebook, Twitter, Link2, Check, Ban, VolumeX, Volume2, UserX, Megaphone } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -31,6 +32,7 @@ interface PostCardProps {
     shares_count: number;
     created_at: string;
     user_id: string;
+    is_platform_post?: boolean;
     profiles?: {
       display_name: string | null;
       avatar_url: string | null;
@@ -474,6 +476,12 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
           <div>
             <div className="flex items-center gap-1.5 font-semibold text-foreground">
               {profile?.display_name || "Unknown User"}
+              {post.is_platform_post && (
+                <Badge variant="secondary" className="text-xs gap-1 bg-primary/10 text-primary border-primary/20">
+                  <Megaphone className="h-3 w-3" />
+                  Platform
+                </Badge>
+              )}
               {isMuted && (
                 <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs bg-muted text-muted-foreground" title={t('privacy.mutedUser', 'Muted user')}>
                   <VolumeX className="h-3 w-3" />

@@ -1667,6 +1667,7 @@ export type Database = {
           content: string | null
           created_at: string
           id: string
+          is_platform_post: boolean | null
           likes_count: number | null
           media_urls: string[] | null
           shares_count: number | null
@@ -1679,6 +1680,7 @@ export type Database = {
           content?: string | null
           created_at?: string
           id?: string
+          is_platform_post?: boolean | null
           likes_count?: number | null
           media_urls?: string[] | null
           shares_count?: number | null
@@ -1691,6 +1693,7 @@ export type Database = {
           content?: string | null
           created_at?: string
           id?: string
+          is_platform_post?: boolean | null
           likes_count?: number | null
           media_urls?: string[] | null
           shares_count?: number | null
