@@ -1,4 +1,4 @@
-import { Bell, Bookmark, ChevronDown, LogOut, Settings, User, ExternalLink, Shield, LayoutDashboard, UserPlus, Check, Lock, HelpCircle, MessageSquarePlus, Search } from "lucide-react";
+import { Bell, Bookmark, ChevronDown, LogOut, Settings, User, ExternalLink, Shield, LayoutDashboard, UserPlus, Check, Lock, HelpCircle, MessageSquarePlus, Search, Newspaper, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -165,6 +165,28 @@ export const Header = () => {
           </div>
           <span className="text-lg sm:text-xl font-bold text-foreground hidden xs:block">DolphySN</span>
         </div>
+
+        {/* Navigation Links */}
+        <nav className="hidden md:flex items-center gap-1 ml-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-2 text-muted-foreground hover:text-foreground"
+            onClick={() => navigate("/")}
+          >
+            <Newspaper className="h-4 w-4" />
+            {t("nav.feed")}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-2 text-muted-foreground hover:text-foreground"
+            onClick={() => navigate("/about")}
+          >
+            <Info className="h-4 w-4" />
+            {t("nav.about", { defaultValue: "About" })}
+          </Button>
+        </nav>
 
         {/* Search - Desktop */}
         <div className="hidden sm:block flex-1">
