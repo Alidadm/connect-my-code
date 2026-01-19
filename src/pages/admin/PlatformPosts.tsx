@@ -10,10 +10,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { 
   ArrowLeft, Plus, Trash2, Loader2, Image as ImageIcon, 
   Send, Megaphone, X, Calendar, Film, FileAudio, FileText,
-  Upload, Clock
+  Upload, Clock, Pencil
 } from "lucide-react";
 import { formatDistanceToNow, format, isPast, isFuture } from "date-fns";
 import AdminRouteGuard from "@/components/admin/AdminRouteGuard";
@@ -53,6 +59,14 @@ const PlatformPosts = () => {
   const [isScheduled, setIsScheduled] = useState(false);
   const [scheduledDate, setScheduledDate] = useState("");
   const [scheduledTime, setScheduledTime] = useState("");
+  
+  // Edit state
+  const [editingPost, setEditingPost] = useState<PlatformPost | null>(null);
+  const [editContent, setEditContent] = useState("");
+  const [editScheduledDate, setEditScheduledDate] = useState("");
+  const [editScheduledTime, setEditScheduledTime] = useState("");
+  const [editIsScheduled, setEditIsScheduled] = useState(false);
+  const [saving, setSaving] = useState(false);
   
   const imageInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
@@ -258,6 +272,73 @@ const PlatformPosts = () => {
     } catch (error) {
       console.error("Error deleting post:", error);
       toast.error("Failed to delete post");
+    }
+  };
+
+  const openEditDialog = (post: PlatformPost) => {
+    setEditingPost(post);
+    setEditContent(post.content || "");
+    if (post.scheduled_at && isFuture(new Date(post.scheduled_at))) {
+      setEditIsScheduled(true);
+      const date = new Date(post.scheduled_at);
+      setEditScheduledDate(format(date, 'yyyy-MM-dd'));
+      setEditScheduledTime(format(date, 'HH:mm'));
+    } else {
+      setEditIsScheduled(false);
+      setEditScheduledDate("");
+      setEditScheduledTime("");
+    }
+  };
+
+  const closeEditDialog = () => {
+    setEditingPost(null);
+    setEditContent("");
+    setEditScheduledDate("");
+    setEditScheduledTime("");
+    setEditIsScheduled(false);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingPost) return;
+    if (!editContent.trim() && (!editingPost.media_urls || editingPost.media_urls.length === 0)) {
+      toast.error("Please add some content");
+      return;
+    }
+
+    try {
+      setSaving(true);
+
+      let scheduledAt: string | null = null;
+      if (editIsScheduled && editScheduledDate && editScheduledTime) {
+        const scheduledDateTime = new Date(`${editScheduledDate}T${editScheduledTime}`);
+        if (isPast(scheduledDateTime)) {
+          toast.error("Scheduled time must be in the future");
+          setSaving(false);
+          return;
+        }
+        scheduledAt = scheduledDateTime.toISOString();
+      }
+
+      const { error } = await supabase
+        .from("posts")
+        .update({
+          content: editContent.trim() || null,
+          scheduled_at: scheduledAt,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", editingPost.id)
+        .eq("is_platform_post", true);
+
+      if (error) throw error;
+
+      toast.success("Post updated successfully!");
+      closeEditDialog();
+      fetchPlatformPosts();
+    } catch (error) {
+      console.error("Error updating post:", error);
+      toast.error("Failed to update post");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -588,14 +669,26 @@ const PlatformPosts = () => {
                           </div>
                         </div>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-slate-400 hover:text-destructive"
-                        onClick={() => handleDeletePost(post.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        {post.scheduled_at && isFuture(new Date(post.scheduled_at)) && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-slate-400 hover:text-primary"
+                            onClick={() => openEditDialog(post)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-slate-400 hover:text-destructive"
+                          onClick={() => handleDeletePost(post.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
 
                     {post.content && (
@@ -644,6 +737,120 @@ const PlatformPosts = () => {
             </div>
           )}
         </div>
+
+        {/* Edit Dialog */}
+        <Dialog open={!!editingPost} onOpenChange={(open) => !open && closeEditDialog()}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Pencil className="h-5 w-5 text-primary" />
+                Edit Scheduled Post
+              </DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              <Textarea
+                placeholder="Write a message for all members..."
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                className="min-h-[120px] resize-none"
+              />
+
+              {/* Existing media preview */}
+              {editingPost?.media_urls && editingPost.media_urls.length > 0 && (
+                <div className="p-3 bg-slate-100 rounded-lg">
+                  <span className="text-sm font-medium text-slate-700 mb-2 block">
+                    Attached Media ({editingPost.media_urls.length} files)
+                  </span>
+                  <div className="grid grid-cols-4 gap-2">
+                    {editingPost.media_urls.slice(0, 4).map((url, index) => (
+                      <img
+                        key={index}
+                        src={url}
+                        alt={`Media ${index + 1}`}
+                        className="h-16 w-full object-cover rounded-lg border"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = "/placeholder.svg";
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Schedule Settings */}
+              <div className="p-4 bg-slate-50 rounded-lg space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-slate-600" />
+                    <Label htmlFor="edit-schedule-toggle" className="text-sm font-medium text-slate-700">
+                      Schedule for later
+                    </Label>
+                  </div>
+                  <Switch
+                    id="edit-schedule-toggle"
+                    checked={editIsScheduled}
+                    onCheckedChange={setEditIsScheduled}
+                  />
+                </div>
+                
+                {editIsScheduled && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label htmlFor="edit-schedule-date" className="text-xs text-slate-500">
+                        Date
+                      </Label>
+                      <Input
+                        id="edit-schedule-date"
+                        type="date"
+                        value={editScheduledDate}
+                        onChange={(e) => setEditScheduledDate(e.target.value)}
+                        min={format(new Date(), 'yyyy-MM-dd')}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="edit-schedule-time" className="text-xs text-slate-500">
+                        Time
+                      </Label>
+                      <Input
+                        id="edit-schedule-time"
+                        type="time"
+                        value={editScheduledTime}
+                        onChange={(e) => setEditScheduledTime(e.target.value)}
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {!editIsScheduled && (
+                  <p className="text-xs text-amber-600">
+                    Removing the schedule will publish this post immediately.
+                  </p>
+                )}
+              </div>
+
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={closeEditDialog}>
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleSaveEdit} 
+                  disabled={saving || (editIsScheduled && (!editScheduledDate || !editScheduledTime))} 
+                  className="gap-2"
+                >
+                  {saving ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
+                  {editIsScheduled ? "Update Schedule" : "Publish Now"}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </AdminRouteGuard>
   );
