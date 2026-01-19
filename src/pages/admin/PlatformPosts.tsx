@@ -4,15 +4,18 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { 
   ArrowLeft, Plus, Trash2, Loader2, Image as ImageIcon, 
   Send, Megaphone, X, Calendar, Film, FileAudio, FileText,
-  Upload
+  Upload, Clock
 } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, format, isPast, isFuture } from "date-fns";
 import AdminRouteGuard from "@/components/admin/AdminRouteGuard";
 
 interface PlatformPost {
@@ -22,6 +25,7 @@ interface PlatformPost {
   likes_count: number;
   comments_count: number;
   created_at: string;
+  scheduled_at: string | null;
   user_id: string;
   profiles?: {
     display_name: string | null;
@@ -46,6 +50,9 @@ const PlatformPosts = () => {
   const [newContent, setNewContent] = useState("");
   const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [isScheduled, setIsScheduled] = useState(false);
+  const [scheduledDate, setScheduledDate] = useState("");
+  const [scheduledTime, setScheduledTime] = useState("");
   
   const imageInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
@@ -193,21 +200,37 @@ const PlatformPosts = () => {
         mediaUrls = await uploadFiles(mediaFiles);
       }
 
+      // Build scheduled_at timestamp if scheduling is enabled
+      let scheduledAt: string | null = null;
+      if (isScheduled && scheduledDate && scheduledTime) {
+        const scheduledDateTime = new Date(`${scheduledDate}T${scheduledTime}`);
+        if (isPast(scheduledDateTime)) {
+          toast.error("Scheduled time must be in the future");
+          setCreating(false);
+          return;
+        }
+        scheduledAt = scheduledDateTime.toISOString();
+      }
+
       const { error } = await supabase.from("posts").insert({
         content: newContent.trim() || null,
         media_urls: mediaUrls.length > 0 ? mediaUrls : null,
         user_id: user.id,
         is_platform_post: true,
-        visibility: "public"
+        visibility: "public",
+        scheduled_at: scheduledAt
       });
 
       if (error) throw error;
 
-      toast.success("Platform post created successfully!");
+      toast.success(scheduledAt ? "Post scheduled successfully!" : "Platform post created successfully!");
       setNewContent("");
       // Cleanup previews
       mediaFiles.forEach(f => f.preview && URL.revokeObjectURL(f.preview));
       setMediaFiles([]);
+      setIsScheduled(false);
+      setScheduledDate("");
+      setScheduledTime("");
       setShowCreateForm(false);
       fetchPlatformPosts();
     } catch (error) {
@@ -437,22 +460,78 @@ const PlatformPosts = () => {
                   </div>
                 )}
 
+                {/* Schedule Post */}
+                <div className="p-4 bg-slate-50 rounded-lg space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-slate-600" />
+                      <Label htmlFor="schedule-toggle" className="text-sm font-medium text-slate-700">
+                        Schedule for later
+                      </Label>
+                    </div>
+                    <Switch
+                      id="schedule-toggle"
+                      checked={isScheduled}
+                      onCheckedChange={setIsScheduled}
+                    />
+                  </div>
+                  
+                  {isScheduled && (
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label htmlFor="schedule-date" className="text-xs text-slate-500">
+                          Date
+                        </Label>
+                        <Input
+                          id="schedule-date"
+                          type="date"
+                          value={scheduledDate}
+                          onChange={(e) => setScheduledDate(e.target.value)}
+                          min={format(new Date(), 'yyyy-MM-dd')}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="schedule-time" className="text-xs text-slate-500">
+                          Time
+                        </Label>
+                        <Input
+                          id="schedule-time"
+                          type="time"
+                          value={scheduledTime}
+                          onChange={(e) => setScheduledTime(e.target.value)}
+                          className="mt-1"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 <div className="flex justify-end gap-2">
                   <Button variant="outline" onClick={() => {
                     setShowCreateForm(false);
                     setNewContent("");
                     mediaFiles.forEach(f => f.preview && URL.revokeObjectURL(f.preview));
                     setMediaFiles([]);
+                    setIsScheduled(false);
+                    setScheduledDate("");
+                    setScheduledTime("");
                   }}>
                     Cancel
                   </Button>
-                  <Button onClick={handleCreatePost} disabled={creating} className="gap-2">
+                  <Button 
+                    onClick={handleCreatePost} 
+                    disabled={creating || (isScheduled && (!scheduledDate || !scheduledTime))} 
+                    className="gap-2"
+                  >
                     {creating ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : isScheduled ? (
+                      <Clock className="h-4 w-4" />
                     ) : (
                       <Send className="h-4 w-4" />
                     )}
-                    Publish Post
+                    {isScheduled ? "Schedule Post" : "Publish Post"}
                   </Button>
                 </div>
               </CardContent>
@@ -493,10 +572,19 @@ const PlatformPosts = () => {
                             <Badge variant="secondary" className="text-xs">
                               Platform
                             </Badge>
+                            {post.scheduled_at && isFuture(new Date(post.scheduled_at)) && (
+                              <Badge variant="outline" className="text-xs gap-1 text-amber-600 border-amber-300 bg-amber-50">
+                                <Clock className="h-3 w-3" />
+                                Scheduled
+                              </Badge>
+                            )}
                           </div>
                           <div className="flex items-center gap-1 text-xs text-slate-500">
                             <Calendar className="h-3 w-3" />
-                            {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+                            {post.scheduled_at && isFuture(new Date(post.scheduled_at))
+                              ? `Publishes ${format(new Date(post.scheduled_at), 'MMM d, yyyy h:mm a')}`
+                              : formatDistanceToNow(new Date(post.created_at), { addSuffix: true })
+                            }
                           </div>
                         </div>
                       </div>
