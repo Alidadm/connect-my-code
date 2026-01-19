@@ -30,7 +30,11 @@ export const PayoutSetupModal = ({ userId, onComplete }: PayoutSetupModalProps) 
   const checkPayoutSetupNeeded = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      if (!session?.access_token) {
+        // No valid session - silently complete to avoid showing modal
+        onComplete();
+        return;
+      }
 
       // Check if payout setup is already completed
       const response = await fetch(
@@ -43,6 +47,12 @@ export const PayoutSetupModal = ({ userId, onComplete }: PayoutSetupModalProps) 
           },
         }
       );
+
+      // Handle auth errors gracefully
+      if (response.status === 401) {
+        onComplete();
+        return;
+      }
 
       const result = await response.json();
       
@@ -70,6 +80,7 @@ export const PayoutSetupModal = ({ userId, onComplete }: PayoutSetupModalProps) 
       console.error("Error checking payout setup:", error);
       setCheckingStripe(false);
       setLoadingPaypal(false);
+      onComplete(); // Complete on error to avoid blocking
     }
   };
 
@@ -86,6 +97,11 @@ export const PayoutSetupModal = ({ userId, onComplete }: PayoutSetupModalProps) 
           },
         }
       );
+
+      // Handle auth errors gracefully - just skip setting status
+      if (response.status === 401) {
+        return;
+      }
 
       const result = await response.json();
       if (response.ok) {
