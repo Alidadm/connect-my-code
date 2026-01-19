@@ -1,10 +1,12 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
-import { BadgeCheck, UserPlus, Star, MessageCircle, Settings, MapPin } from "lucide-react";
+import { BadgeCheck, UserPlus, Star, MessageCircle, Settings, MapPin, ChevronDown, ChevronUp } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
+import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
+import { ProfileAboutSection } from "./ProfileAboutSection";
 
 interface MemberCoverHeaderProps {
   activeTab?: string;
@@ -34,6 +36,7 @@ export const MemberCoverHeader = ({ activeTab: externalActiveTab, onTabChange }:
   const navigate = useNavigate();
   const [internalActiveTab, setInternalActiveTab] = useState("feed");
   const [stats, setStats] = useState<ProfileStats>({ friendsCount: 0, postsCount: 0, blogsCount: 0 });
+  const [aboutOpen, setAboutOpen] = useState(false);
 
   // Use external tab if provided, otherwise use internal state
   const activeTab = externalActiveTab ?? internalActiveTab;
@@ -94,7 +97,7 @@ export const MemberCoverHeader = ({ activeTab: externalActiveTab, onTabChange }:
 
   const tabs = [
     { id: "feed", label: t("profile.feed", "Feed") },
-    { id: "about", label: t("profile.about", "About") },
+    { id: "about", label: t("profile.about", "About"), isToggle: true },
     { id: "photos", label: t("profile.photos", "Photos") },
     { id: "videos", label: t("profile.videos", "Videos") },
     { id: "friends", label: t("profile.friends", "Friends"), count: stats.friendsCount },
@@ -105,6 +108,15 @@ export const MemberCoverHeader = ({ activeTab: externalActiveTab, onTabChange }:
   const handleTabClick = (tabId: string) => {
     const tab = tabs.find(t => t.id === tabId);
     if (tab?.disabled) return;
+    
+    // Special handling for About - toggle slide instead of switching tabs
+    if (tabId === "about") {
+      setAboutOpen(!aboutOpen);
+      return;
+    }
+    
+    // Close About section when switching to other tabs
+    setAboutOpen(false);
     
     // If external control is provided, use it
     if (onTabChange) {
@@ -222,13 +234,22 @@ export const MemberCoverHeader = ({ activeTab: externalActiveTab, onTabChange }:
                       className={`relative px-3 sm:px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
                         tab.disabled
                           ? "text-muted-foreground/50 cursor-not-allowed"
-                          : activeTab === tab.id
+                          : tab.id === "about" && aboutOpen
                             ? "text-primary"
-                            : "text-muted-foreground hover:text-foreground"
+                            : activeTab === tab.id && tab.id !== "about"
+                              ? "text-primary"
+                              : "text-muted-foreground hover:text-foreground"
                       }`}
                     >
                       <span className="flex items-center gap-1.5">
                         {tab.label}
+                        {tab.id === "about" && (
+                          aboutOpen ? (
+                            <ChevronUp className="h-4 w-4" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4" />
+                          )
+                        )}
                         {tab.count !== undefined && (
                           <span className={`inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-medium rounded ${
                             tab.disabled ? "bg-muted/50" : "bg-muted"
@@ -237,7 +258,10 @@ export const MemberCoverHeader = ({ activeTab: externalActiveTab, onTabChange }:
                           </span>
                         )}
                       </span>
-                      {activeTab === tab.id && !tab.disabled && (
+                      {tab.id === "about" && aboutOpen && (
+                        <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-r-[6px] border-b-[6px] border-l-transparent border-r-transparent border-b-primary" />
+                      )}
+                      {activeTab === tab.id && !tab.disabled && tab.id !== "about" && (
                         <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-r-[6px] border-b-[6px] border-l-transparent border-r-transparent border-b-primary" />
                       )}
                     </button>
@@ -247,6 +271,15 @@ export const MemberCoverHeader = ({ activeTab: externalActiveTab, onTabChange }:
             </div>
           </nav>
         </div>
+
+        {/* About Section - Collapsible Slide Toggle */}
+        <Collapsible open={aboutOpen} onOpenChange={setAboutOpen}>
+          <CollapsibleContent className="overflow-hidden data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-up data-[state=open]:slide-down duration-300">
+            <div className="border-t border-border bg-muted/30">
+              <ProfileAboutSection userId={user?.id} />
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
       </div>
     </section>
   );
