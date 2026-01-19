@@ -71,6 +71,13 @@ const PlatformPosts = () => {
   const [editIsScheduled, setEditIsScheduled] = useState(false);
   const [saving, setSaving] = useState(false);
   
+  // Restore draft state
+  const [restoringPost, setRestoringPost] = useState<PlatformPost | null>(null);
+  const [restoreIsScheduled, setRestoreIsScheduled] = useState(false);
+  const [restoreScheduledDate, setRestoreScheduledDate] = useState("");
+  const [restoreScheduledTime, setRestoreScheduledTime] = useState("");
+  const [restoring, setRestoring] = useState(false);
+  
   const imageInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
   const audioInputRef = useRef<HTMLInputElement>(null);
@@ -379,27 +386,57 @@ const PlatformPosts = () => {
     }
   };
 
-  const handleRestoreFromDrafts = async (postId: string) => {
-    if (!confirm("Publish this draft immediately?")) return;
+  const openRestoreDialog = (post: PlatformPost) => {
+    setRestoringPost(post);
+    setRestoreIsScheduled(false);
+    setRestoreScheduledDate("");
+    setRestoreScheduledTime("");
+  };
+
+  const closeRestoreDialog = () => {
+    setRestoringPost(null);
+    setRestoreIsScheduled(false);
+    setRestoreScheduledDate("");
+    setRestoreScheduledTime("");
+  };
+
+  const handleRestoreFromDrafts = async () => {
+    if (!restoringPost) return;
 
     try {
+      setRestoring(true);
+
+      let scheduledAt: string | null = null;
+      if (restoreIsScheduled && restoreScheduledDate && restoreScheduledTime) {
+        const scheduledDateTime = new Date(`${restoreScheduledDate}T${restoreScheduledTime}`);
+        if (isPast(scheduledDateTime)) {
+          toast.error("Scheduled time must be in the future");
+          setRestoring(false);
+          return;
+        }
+        scheduledAt = scheduledDateTime.toISOString();
+      }
+
       const { error } = await supabase
         .from("posts")
         .update({
           visibility: "public",
-          scheduled_at: null,
+          scheduled_at: scheduledAt,
           updated_at: new Date().toISOString()
         })
-        .eq("id", postId)
+        .eq("id", restoringPost.id)
         .eq("is_platform_post", true);
 
       if (error) throw error;
 
-      toast.success("Draft published successfully");
+      toast.success(scheduledAt ? "Draft scheduled successfully" : "Draft published successfully");
+      closeRestoreDialog();
       fetchPlatformPosts();
     } catch (error) {
-      console.error("Error publishing draft:", error);
-      toast.error("Failed to publish draft");
+      console.error("Error restoring draft:", error);
+      toast.error("Failed to restore draft");
+    } finally {
+      setRestoring(false);
     }
   };
 
@@ -962,8 +999,8 @@ const PlatformPosts = () => {
                                 variant="ghost"
                                 size="icon"
                                 className="text-slate-400 hover:text-green-600"
-                                onClick={() => handleRestoreFromDrafts(post.id)}
-                                title="Publish now"
+                                onClick={() => openRestoreDialog(post)}
+                                title="Publish or schedule"
                               >
                                 <RotateCcw className="h-4 w-4" />
                               </Button>
@@ -1141,6 +1178,91 @@ const PlatformPosts = () => {
                     <Send className="h-4 w-4" />
                   )}
                   {editIsScheduled ? "Update Schedule" : "Publish Now"}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Restore Draft Dialog */}
+        <Dialog open={!!restoringPost} onOpenChange={(open) => !open && closeRestoreDialog()}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <RotateCcw className="h-5 w-5 text-green-600" />
+                Publish Draft
+              </DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              {/* Preview */}
+              {restoringPost?.content && (
+                <div className="p-3 bg-slate-100 rounded-lg">
+                  <p className="text-sm text-slate-700 line-clamp-3">
+                    {restoringPost.content}
+                  </p>
+                </div>
+              )}
+
+              {/* Schedule toggle */}
+              <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-slate-500" />
+                  <span className="text-sm font-medium">Schedule for later</span>
+                </div>
+                <Switch
+                  checked={restoreIsScheduled}
+                  onCheckedChange={setRestoreIsScheduled}
+                />
+              </div>
+
+              {restoreIsScheduled && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label htmlFor="restore-schedule-date" className="text-xs text-slate-500">
+                      Date
+                    </Label>
+                    <Input
+                      id="restore-schedule-date"
+                      type="date"
+                      value={restoreScheduledDate}
+                      onChange={(e) => setRestoreScheduledDate(e.target.value)}
+                      min={format(new Date(), 'yyyy-MM-dd')}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="restore-schedule-time" className="text-xs text-slate-500">
+                      Time
+                    </Label>
+                    <Input
+                      id="restore-schedule-time"
+                      type="time"
+                      value={restoreScheduledTime}
+                      onChange={(e) => setRestoreScheduledTime(e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-end gap-2 pt-2">
+                <Button variant="outline" onClick={closeRestoreDialog}>
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleRestoreFromDrafts} 
+                  disabled={restoring || (restoreIsScheduled && (!restoreScheduledDate || !restoreScheduledTime))} 
+                  className="gap-2"
+                >
+                  {restoring ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : restoreIsScheduled ? (
+                    <Calendar className="h-4 w-4" />
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
+                  {restoreIsScheduled ? "Schedule Post" : "Publish Now"}
                 </Button>
               </div>
             </div>
