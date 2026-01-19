@@ -17,7 +17,8 @@ import {
   MapPin,
   Gamepad2,
   Play,
-  Clock
+  Clock,
+  Trash2
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -63,7 +64,7 @@ export const LeftSidebar = () => {
   const { data: userGroups } = useUserGroups();
   const { data: userBusiness } = useUserBusiness();
   const { pendingTurnCount } = useGameNotifications();
-  const { savedSudokuGames } = useSavedGames();
+  const { savedSudokuGames, deleteSavedGame } = useSavedGames();
   const navigate = useNavigate();
   const location = useLocation();
   const [isNavigatingToCreate, setIsNavigatingToCreate] = useState(false);
@@ -180,27 +181,44 @@ export const LeftSidebar = () => {
               {savedSudokuGames.slice(0, 3).map((game) => (
                 <div
                   key={game.id}
-                  className="flex items-center gap-3 cursor-pointer hover:bg-secondary/50 -mx-2 px-2 py-2 rounded-lg transition-colors"
-                  onClick={() => navigate(`/games?sudoku=${game.id}`)}
+                  className="group flex items-center gap-3 hover:bg-secondary/50 -mx-2 px-2 py-2 rounded-lg transition-colors"
                 >
-                  <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center flex-shrink-0">
-                    <Gamepad2 className="h-4 w-4 text-white" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-sm font-medium text-foreground">Sudoku</span>
-                      <span className="text-[10px] font-medium bg-primary/10 text-primary px-1.5 py-0.5 rounded-full capitalize">
-                        {game.difficulty}
-                      </span>
+                  <div 
+                    className="flex items-center gap-3 flex-1 cursor-pointer"
+                    onClick={() => navigate(`/games?sudoku=${game.id}`)}
+                  >
+                    <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center flex-shrink-0">
+                      <Gamepad2 className="h-4 w-4 text-white" />
                     </div>
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <Clock className="h-3 w-3" />
-                      <span>{formatTime(game.player_1_time || 0)}</span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-sm font-medium text-foreground">Sudoku</span>
+                        <span className="text-[10px] font-medium bg-primary/10 text-primary px-1.5 py-0.5 rounded-full capitalize">
+                          {game.difficulty}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Clock className="h-3 w-3" />
+                        <span>{formatTime(game.player_1_time || 0)}</span>
+                      </div>
                     </div>
+                    <span className="text-xs font-medium text-primary group-hover:hidden">
+                      {t("sidebar.continue", { defaultValue: "Continue" })}
+                    </span>
                   </div>
-                  <span className="text-xs font-medium text-primary">
-                    {t("sidebar.continue", { defaultValue: "Continue" })}
-                  </span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 hidden group-hover:flex text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (window.confirm(t("games.confirmDeleteGame", { defaultValue: "Are you sure you want to delete this saved game?" }))) {
+                        deleteSavedGame(game.id);
+                      }
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
               ))}
             </div>
