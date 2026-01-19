@@ -1,6 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
-import { BadgeCheck, UserPlus, Star, MessageCircle, Settings, MapPin, ChevronDown, ChevronUp } from "lucide-react";
+import { BadgeCheck, UserPlus, Star, MessageCircle, Settings, MapPin, ChevronDown, ChevronUp, Camera } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
@@ -178,10 +178,21 @@ export const MemberCoverHeader = ({ activeTab: externalActiveTab, onTabChange }:
         <div className="flex flex-col sm:flex-row items-start sm:items-end">
           {/* Avatar - overlapping the cover */}
           <div className="relative -mt-12 ml-4 sm:ml-6 flex-shrink-0">
-            <Avatar className="h-24 w-24 sm:h-28 sm:w-28 ring-4 ring-card shadow-lg">
-              <AvatarImage src={avatarUrl || undefined} alt={`${displayName}'s avatar`} />
-              <AvatarFallback className="bg-muted" showCameraIcon />
-            </Avatar>
+            <div 
+              className={`group relative ${user ? "cursor-pointer" : ""}`}
+              onClick={() => user && navigate("/dashboard")}
+              title={user ? t("profile.changeAvatar", "Change avatar") : undefined}
+            >
+              <Avatar className="h-24 w-24 sm:h-28 sm:w-28 ring-4 ring-card shadow-lg">
+                <AvatarImage src={avatarUrl || undefined} alt={`${displayName}'s avatar`} />
+                <AvatarFallback className="bg-muted" showCameraIcon />
+              </Avatar>
+              {user && (
+                <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Camera className="h-8 w-8 text-white" />
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Name and Location */}
