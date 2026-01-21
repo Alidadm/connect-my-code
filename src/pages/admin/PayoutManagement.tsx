@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import AdminRouteGuard from "@/components/admin/AdminRouteGuard";
+import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,7 +19,6 @@ import {
 } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { 
-  ArrowLeft, 
   DollarSign, 
   Clock, 
   CheckCircle2, 
@@ -64,7 +62,6 @@ interface WithdrawalRequest {
 
 const PayoutManagement = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const [requests, setRequests] = useState<WithdrawalRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -512,14 +509,11 @@ const PayoutManagement = () => {
   };
 
   return (
-    <AdminRouteGuard>
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+    <AdminLayout>
+      <div className="min-h-screen bg-background">
         <div className="container max-w-6xl mx-auto px-4 py-8">
           {/* Header */}
           <div className="flex items-center gap-4 mb-8">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/adminindex")}>
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
             <div className="flex-1">
               <h1 className="text-2xl font-bold">Payout Management</h1>
               <p className="text-muted-foreground">Process member withdrawal requests</p>
@@ -1159,7 +1153,7 @@ const PayoutManagement = () => {
           </DialogContent>
         </Dialog>
       </div>
-    </AdminRouteGuard>
+    </AdminLayout>
   );
 };
 

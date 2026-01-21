@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Save, Mail, Key, Loader2, Eye, PartyPopper } from "lucide-react";
+import { Save, Mail, Key, Loader2, Eye, PartyPopper } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import AdminRouteGuard from "@/components/admin/AdminRouteGuard";
+import { AdminLayout } from "@/components/admin/AdminLayout";
 import Editor from "react-simple-wysiwyg";
 import {
   Dialog,
@@ -30,7 +29,6 @@ interface EmailTemplates {
 }
 
 const EmailTemplatesPage = () => {
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [templates, setTemplates] = useState<EmailTemplates>({
@@ -126,37 +124,28 @@ const EmailTemplatesPage = () => {
 
   if (loading) {
     return (
-      <AdminRouteGuard>
+      <AdminLayout>
         <div className="flex items-center justify-center min-h-screen">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
-      </AdminRouteGuard>
+      </AdminLayout>
     );
   }
 
   return (
-    <AdminRouteGuard>
-      <div className="min-h-screen bg-slate-50">
+    <AdminLayout>
+      <div className="min-h-screen bg-background">
         {/* Header */}
-        <div className="bg-white border-b border-slate-200 px-6 py-4">
+        <div className="bg-card border-b border-border px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate("/adminindex")}
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-              <div>
-                <h1 className="text-xl font-bold text-slate-800">Email Templates</h1>
-                <p className="text-sm text-slate-500">Manage email templates with visual editor</p>
-              </div>
+            <div>
+              <h1 className="text-xl font-bold text-foreground">Email Templates</h1>
+              <p className="text-sm text-muted-foreground">Manage email templates with visual editor</p>
             </div>
             <Button
               onClick={handleSave}
               disabled={saving}
-              className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600"
+              className="bg-primary hover:bg-primary/90"
             >
               {saving ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -362,7 +351,7 @@ const EmailTemplatesPage = () => {
           </Tabs>
         </div>
       </div>
-    </AdminRouteGuard>
+    </AdminLayout>
   );
 };
 
