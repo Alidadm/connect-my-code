@@ -824,14 +824,13 @@ const UserList = () => {
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Toolbar */}
-      <div className="max-w-7xl mx-auto px-6 py-4">
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
-          {/* Cover Tools Header */}
-          <div className="p-4 border-b border-slate-200 flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-3 flex-1 flex-wrap">
+        {/* Toolbar */}
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="bg-card rounded-xl border border-border shadow-sm">
+            {/* Cover Tools Header */}
+            <div className="p-4 border-b border-border flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-3 flex-1 flex-wrap">
               {/* Date Range Filter */}
               <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
                 <PopoverTrigger asChild>
@@ -1216,6 +1215,7 @@ const UserList = () => {
                 />
               </div>
             </div>
+          </div>
           </div>
         </div>
       </div>
