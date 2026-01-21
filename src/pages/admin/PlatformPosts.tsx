@@ -634,6 +634,7 @@ const PlatformPosts = () => {
           [newUrls[currentIndex], newUrls[newIndex]] = [newUrls[newIndex], newUrls[currentIndex]];
           setYoutubeUrls(newUrls);
           setSelectedYoutubeIndex(newIndex);
+          toast.success(`Video moved to position ${newIndex + 1}`);
         }
         break;
       case 'ArrowRight':
@@ -646,6 +647,7 @@ const PlatformPosts = () => {
           [newUrls[currentIndex], newUrls[newIndex]] = [newUrls[newIndex], newUrls[currentIndex]];
           setYoutubeUrls(newUrls);
           setSelectedYoutubeIndex(newIndex);
+          toast.success(`Video moved to position ${newIndex + 1}`);
         }
         break;
       case 'Escape':
@@ -683,6 +685,7 @@ const PlatformPosts = () => {
           [newUrls[currentIndex], newUrls[newIndex]] = [newUrls[newIndex], newUrls[currentIndex]];
           setEditYoutubeUrls(newUrls);
           setEditSelectedYoutubeIndex(newIndex);
+          toast.success(`Video moved to position ${newIndex + 1}`);
         }
         break;
       case 'ArrowRight':
@@ -694,6 +697,7 @@ const PlatformPosts = () => {
           [newUrls[currentIndex], newUrls[newIndex]] = [newUrls[newIndex], newUrls[currentIndex]];
           setEditYoutubeUrls(newUrls);
           setEditSelectedYoutubeIndex(newIndex);
+          toast.success(`Video moved to position ${newIndex + 1}`);
         }
         break;
       case 'Escape':
