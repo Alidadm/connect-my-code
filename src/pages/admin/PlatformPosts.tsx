@@ -256,6 +256,7 @@ const PlatformPosts = () => {
       const { error } = await supabase.from("posts").insert({
         content: newContent.trim() || null,
         media_urls: mediaUrls.length > 0 ? mediaUrls : null,
+        youtube_urls: youtubeUrls.length > 0 ? youtubeUrls : null,
         user_id: user.id,
         is_platform_post: true,
         visibility: "public",
@@ -460,6 +461,7 @@ const PlatformPosts = () => {
       const { error } = await supabase.from("posts").insert({
         content: post.content,
         media_urls: post.media_urls,
+        youtube_urls: (post as any).youtube_urls || null,
         user_id: user.id,
         is_platform_post: true,
         visibility: "private", // Create as draft

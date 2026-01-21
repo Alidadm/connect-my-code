@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { MessageCircle, Share2, MoreVertical, Bookmark, FileText, Music, Pencil, Trash2, Copy, Facebook, Twitter, Link2, Check, Ban, VolumeX, Volume2, UserX, Megaphone } from "lucide-react";
+import { MessageCircle, Share2, MoreVertical, Bookmark, FileText, Music, Pencil, Trash2, Copy, Facebook, Twitter, Link2, Check, Ban, VolumeX, Volume2, UserX, Megaphone, Youtube, Play } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,7 @@ interface PostCardProps {
     id: string;
     content: string | null;
     media_urls: string[] | null;
+    youtube_urls?: string[] | null;
     likes_count: number;
     comments_count: number;
     shares_count: number;
@@ -399,6 +400,43 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
     return "document";
   };
 
+  // YouTube helper functions
+  const extractYoutubeVideoId = (url: string): string | null => {
+    const patterns = [
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([^&\s?]+)/,
+      /youtube\.com\/shorts\/([^&\s?]+)/
+    ];
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match) return match[1];
+    }
+    return null;
+  };
+
+  const handleYoutubeClick = (url: string) => {
+    const videoId = extractYoutubeVideoId(url);
+    if (!videoId) return;
+    
+    Swal.fire({
+      html: `<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;">
+        <iframe 
+          src="https://www.youtube.com/embed/${videoId}?autoplay=1" 
+          style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+          allowfullscreen
+        ></iframe>
+      </div>`,
+      width: '80%',
+      showCloseButton: true,
+      showConfirmButton: false,
+      background: '#000',
+      customClass: {
+        popup: 'youtube-preview-popup',
+        closeButton: 'youtube-close-button'
+      }
+    });
+  };
+
   const allImages = post.media_urls?.filter(url => getMediaType(url) === "image") || [];
 
   const renderMedia = (url: string, index: number) => {
@@ -600,6 +638,44 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
             {post.media_urls
               .filter(url => getMediaType(url) === "document")
               .map((url, index) => renderMedia(url, index))}
+          </div>
+        </div>
+      )}
+
+      {/* YouTube Videos */}
+      {post.youtube_urls && post.youtube_urls.length > 0 && (
+        <div className="px-4 pb-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {post.youtube_urls.map((url, index) => {
+              const videoId = extractYoutubeVideoId(url);
+              if (!videoId) return null;
+              return (
+                <div 
+                  key={index}
+                  className="relative aspect-video rounded-lg overflow-hidden cursor-pointer group bg-secondary"
+                  onClick={() => handleYoutubeClick(url)}
+                >
+                  <img
+                    src={`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`}
+                    alt="YouTube video thumbnail"
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/50 transition-colors">
+                    <div className="w-14 h-14 rounded-full bg-destructive flex items-center justify-center shadow-lg">
+                      <Play className="h-6 w-6 text-white ml-1" fill="currentColor" />
+                    </div>
+                  </div>
+                  <Badge 
+                    variant="secondary" 
+                    className="absolute bottom-2 left-2 text-xs bg-destructive/90 text-destructive-foreground border-0"
+                  >
+                    <Youtube className="h-3 w-3 mr-1" />
+                    YouTube
+                  </Badge>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
