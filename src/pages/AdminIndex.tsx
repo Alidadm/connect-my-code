@@ -7,6 +7,7 @@ import {
   Shield, CreditCard, BarChart3, Layers, Megaphone, Lock, Code, UserCog, Database, Flag, Wallet, LogOut
 } from "lucide-react";
 import { AdminStatsCards } from "@/components/admin/AdminStatsCards";
+import { AdminHeader } from "@/components/admin/AdminHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -452,26 +453,7 @@ const AdminIndex = () => {
       {/* Column 2 & 3: Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Navigation Bar */}
-        <div className="bg-white border-b border-slate-200 px-6 py-4">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-6 h-6 rounded border-2 border-slate-300" />
-              <h1 className="text-xl font-bold text-slate-800">Admin Dashboard</h1>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon">
-                <Search className="w-5 h-5 text-slate-500" />
-              </Button>
-              <Button variant="ghost" size="icon">
-                <Star className="w-5 h-5 text-slate-500" />
-              </Button>
-              <Button variant="ghost" size="icon">
-                <MoreHorizontal className="w-5 h-5 text-slate-500" />
-              </Button>
-            </div>
-          </div>
-
-        </div>
+        <AdminHeader title="Admin Dashboard" />
 
 
         {/* Stats Cards + Kanban Board */}

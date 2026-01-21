@@ -590,7 +590,7 @@ const PlatformPosts = () => {
   };
 
   return (
-    <AdminLayout>
+    <AdminLayout title="Platform Posts">
       <div className="min-h-screen bg-background p-6">
         <div className="max-w-4xl mx-auto">
           {/* Header */}

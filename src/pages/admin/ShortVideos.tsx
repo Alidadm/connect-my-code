@@ -216,7 +216,7 @@ const ShortVideosPage = () => {
   };
 
   return (
-    <AdminLayout>
+    <AdminLayout title="Short Videos">
       <div className="min-h-screen bg-background p-6">
         <div className="max-w-5xl mx-auto">
           {/* Header */}

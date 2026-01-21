@@ -776,7 +776,7 @@ const UserList = () => {
   };
 
   return (
-    <AdminLayout>
+    <AdminLayout title="User Management">
       <div className="min-h-screen bg-background">
         {/* Header */}
         <div className="bg-card border-b border-border">
