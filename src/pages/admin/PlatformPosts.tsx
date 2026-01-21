@@ -21,7 +21,8 @@ import {
   Plus, Trash2, Loader2, Image as ImageIcon, 
   Send, Megaphone, X, Calendar, Film, FileAudio, FileText,
   Upload, Clock, Pencil, FileX, FileEdit, RotateCcw, Copy,
-  Eye, Heart, MessageCircle, Share2, MoreVertical, Bookmark, Youtube
+  Eye, Heart, MessageCircle, Share2, MoreVertical, Bookmark, Youtube,
+  GripVertical
 } from "lucide-react";
 import { formatDistanceToNow, format, isPast, isFuture } from "date-fns";
 import { AdminLayout } from "@/components/admin/AdminLayout";
@@ -85,6 +86,12 @@ const PlatformPosts = () => {
   
   // Preview state
   const [previewPost, setPreviewPost] = useState<PlatformPost | null>(null);
+  
+  // Drag and drop state for YouTube videos
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [editDraggedIndex, setEditDraggedIndex] = useState<number | null>(null);
+  const [editDragOverIndex, setEditDragOverIndex] = useState<number | null>(null);
   
   const imageInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
@@ -557,6 +564,52 @@ const PlatformPosts = () => {
     setYoutubeUrls(youtubeUrls.filter((_, i) => i !== index));
   };
 
+  // Drag and drop handlers for create form YouTube videos
+  const handleYoutubeDragStart = (index: number) => {
+    setDraggedIndex(index);
+  };
+
+  const handleYoutubeDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedIndex !== null && draggedIndex !== index) {
+      setDragOverIndex(index);
+    }
+  };
+
+  const handleYoutubeDragEnd = () => {
+    if (draggedIndex !== null && dragOverIndex !== null && draggedIndex !== dragOverIndex) {
+      const newUrls = [...youtubeUrls];
+      const [removed] = newUrls.splice(draggedIndex, 1);
+      newUrls.splice(dragOverIndex, 0, removed);
+      setYoutubeUrls(newUrls);
+    }
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  // Drag and drop handlers for edit form YouTube videos
+  const handleEditYoutubeDragStart = (index: number) => {
+    setEditDraggedIndex(index);
+  };
+
+  const handleEditYoutubeDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (editDraggedIndex !== null && editDraggedIndex !== index) {
+      setEditDragOverIndex(index);
+    }
+  };
+
+  const handleEditYoutubeDragEnd = () => {
+    if (editDraggedIndex !== null && editDragOverIndex !== null && editDraggedIndex !== editDragOverIndex) {
+      const newUrls = [...editYoutubeUrls];
+      const [removed] = newUrls.splice(editDraggedIndex, 1);
+      newUrls.splice(editDragOverIndex, 0, removed);
+      setEditYoutubeUrls(newUrls);
+    }
+    setEditDraggedIndex(null);
+    setEditDragOverIndex(null);
+  };
+
   const previewYoutubeVideo = (url: string) => {
     const videoId = extractYoutubeVideoId(url);
     if (!videoId) return;
@@ -796,12 +849,32 @@ const PlatformPosts = () => {
                   {/* Added YouTube Videos */}
                   {youtubeUrls.length > 0 && (
                     <div className="space-y-2 mt-3">
-                      <span className="text-xs text-muted-foreground">Added Videos ({youtubeUrls.length})</span>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground">Added Videos ({youtubeUrls.length})</span>
+                        <span className="text-xs text-muted-foreground flex items-center gap-1">
+                          <GripVertical className="h-3 w-3" />
+                          Drag to reorder
+                        </span>
+                      </div>
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                         {youtubeUrls.map((url, index) => {
                           const videoId = extractYoutubeVideoId(url);
+                          const isDragging = draggedIndex === index;
+                          const isDragOver = dragOverIndex === index;
                           return (
-                            <div key={index} className="relative group">
+                            <div 
+                              key={`${url}-${index}`} 
+                              className={`relative group transition-all duration-200 ${isDragging ? 'opacity-50 scale-95' : ''} ${isDragOver ? 'ring-2 ring-primary ring-offset-2' : ''}`}
+                              draggable
+                              onDragStart={() => handleYoutubeDragStart(index)}
+                              onDragOver={(e) => handleYoutubeDragOver(e, index)}
+                              onDragEnd={handleYoutubeDragEnd}
+                              onDragLeave={() => setDragOverIndex(null)}
+                            >
+                              {/* Drag handle */}
+                              <div className="absolute top-1 left-1 z-10 bg-background/80 rounded p-0.5 cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity">
+                                <GripVertical className="h-4 w-4 text-muted-foreground" />
+                              </div>
                               <div 
                                 className="h-24 w-full rounded-lg border overflow-hidden cursor-pointer bg-background"
                                 onClick={() => previewYoutubeVideo(url)}
@@ -826,10 +899,10 @@ const PlatformPosts = () => {
                               </button>
                               <Badge 
                                 variant="secondary" 
-                                className="absolute bottom-1 left-1 text-[10px] px-1 py-0 bg-destructive/90 text-destructive-foreground"
+                                className="absolute bottom-1 right-1 text-[10px] px-1 py-0 bg-destructive/90 text-destructive-foreground"
                               >
                                 <Youtube className="h-2.5 w-2.5 mr-0.5" />
-                                YouTube
+                                {index + 1}
                               </Badge>
                             </div>
                           );
@@ -1526,12 +1599,32 @@ const PlatformPosts = () => {
                 {/* Added YouTube Videos */}
                 {editYoutubeUrls.length > 0 && (
                   <div className="space-y-2 mt-3">
-                    <span className="text-xs text-muted-foreground">Added Videos ({editYoutubeUrls.length})</span>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground">Added Videos ({editYoutubeUrls.length})</span>
+                      <span className="text-xs text-muted-foreground flex items-center gap-1">
+                        <GripVertical className="h-3 w-3" />
+                        Drag to reorder
+                      </span>
+                    </div>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                       {editYoutubeUrls.map((url, index) => {
                         const videoId = extractYoutubeVideoId(url);
+                        const isDragging = editDraggedIndex === index;
+                        const isDragOver = editDragOverIndex === index;
                         return (
-                          <div key={index} className="relative group">
+                          <div 
+                            key={`${url}-${index}`} 
+                            className={`relative group transition-all duration-200 ${isDragging ? 'opacity-50 scale-95' : ''} ${isDragOver ? 'ring-2 ring-primary ring-offset-2' : ''}`}
+                            draggable
+                            onDragStart={() => handleEditYoutubeDragStart(index)}
+                            onDragOver={(e) => handleEditYoutubeDragOver(e, index)}
+                            onDragEnd={handleEditYoutubeDragEnd}
+                            onDragLeave={() => setEditDragOverIndex(null)}
+                          >
+                            {/* Drag handle */}
+                            <div className="absolute top-1 left-1 z-10 bg-background/80 rounded p-0.5 cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity">
+                              <GripVertical className="h-4 w-4 text-muted-foreground" />
+                            </div>
                             <div 
                               className="h-20 w-full rounded-lg border overflow-hidden cursor-pointer bg-background"
                               onClick={() => previewYoutubeVideo(url)}
@@ -1556,10 +1649,10 @@ const PlatformPosts = () => {
                             </button>
                             <Badge 
                               variant="secondary" 
-                              className="absolute bottom-1 left-1 text-[10px] px-1 py-0 bg-destructive/90 text-destructive-foreground"
+                              className="absolute bottom-1 right-1 text-[10px] px-1 py-0 bg-destructive/90 text-destructive-foreground"
                             >
                               <Youtube className="h-2.5 w-2.5 mr-0.5" />
-                              YouTube
+                              {index + 1}
                             </Badge>
                           </div>
                         );
