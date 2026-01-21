@@ -405,8 +405,13 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
   // YouTube helper functions
   const extractYoutubeVideoId = (url: string): string | null => {
     const patterns = [
-      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([^&\s?]+)/,
-      /youtube\.com\/shorts\/([^&\s?]+)/
+      /(?:youtube\.com|youtu\.be)\/watch\?v=([^&\s?#]+)/i,
+      /youtu\.be\/([^&\s?#]+)/i,
+      /(?:youtube\.com|youtu\.be)\/embed\/([^&\s?#]+)/i,
+      /(?:youtube\.com|youtu\.be)\/v\/([^&\s?#]+)/i,
+      /(?:youtube\.com|youtu\.be)\/shorts\/([^&\s?#]+)/i,
+      /(?:youtube\.com)\/live\/([^&\s?#]+)/i,
+      /[?&]v=([^&\s?#]+)/i
     ];
     for (const pattern of patterns) {
       const match = url.match(pattern);
