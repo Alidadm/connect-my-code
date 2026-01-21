@@ -645,7 +645,7 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
       {/* YouTube Videos */}
       {post.youtube_urls && post.youtube_urls.length > 0 && (
         <div className="px-4 pb-3">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div className={`grid gap-2 ${post.youtube_urls.length === 1 ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2'}`}>
             {post.youtube_urls.map((url, index) => {
               const videoId = extractYoutubeVideoId(url);
               if (!videoId) return null;
