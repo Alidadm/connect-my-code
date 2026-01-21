@@ -632,13 +632,21 @@ serve(async (req) => {
           : 9.99;
         const currency = subscriptionItem?.price?.currency?.toUpperCase() || "USD";
 
+        // Safely convert timestamps - they may be undefined
+        const periodStart = subscription.current_period_start 
+          ? new Date(subscription.current_period_start * 1000).toISOString() 
+          : new Date().toISOString();
+        const periodEnd = subscription.current_period_end 
+          ? new Date(subscription.current_period_end * 1000).toISOString() 
+          : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(); // Default to 30 days from now
+
         logStep("Inserting subscription record", { 
           userId: user.id,
           subscriptionId: subscription.id,
           amount,
           currency,
-          periodStart: subscription.current_period_start,
-          periodEnd: subscription.current_period_end
+          periodStart,
+          periodEnd
         });
 
         const { data: insertedSub, error: subError } = await supabaseClient
@@ -650,8 +658,8 @@ serve(async (req) => {
             provider_subscription_id: subscription.id,
             amount,
             currency,
-            current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-            current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+            current_period_start: periodStart,
+            current_period_end: periodEnd,
           })
           .select()
           .single();
