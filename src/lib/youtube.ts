@@ -5,21 +5,40 @@
 
 export type YoutubeThumbnailQuality = "max" | "hq" | "mq" | "default";
 
+function fileForQuality(quality: YoutubeThumbnailQuality): string {
+  return quality === "max"
+    ? "maxresdefault.jpg"
+    : quality === "hq"
+      ? "hqdefault.jpg"
+      : quality === "mq"
+        ? "mqdefault.jpg"
+        : "default.jpg";
+}
+
 export function getYoutubeThumbnailUrl(
   videoId: string,
   quality: YoutubeThumbnailQuality = "hq"
 ): string {
-  // Some videos don't have maxresdefault. We use fallbacks in components via onError.
-  const file =
-    quality === "max"
-      ? "maxresdefault.jpg"
-      : quality === "hq"
-        ? "hqdefault.jpg"
-        : quality === "mq"
-          ? "mqdefault.jpg"
-          : "default.jpg";
+  // Prefer i.ytimg.com (most reliable thumbnail host) and fallback in UI via onError.
+  const file = fileForQuality(quality);
+  return `https://i.ytimg.com/vi/${videoId}/${file}`;
+}
 
-  return `https://img.youtube.com/vi/${videoId}/${file}`;
+/**
+ * Ordered list of thumbnail URLs to try (quality + host fallbacks).
+ */
+export function getYoutubeThumbnailCandidates(videoId: string): string[] {
+  const qualities: YoutubeThumbnailQuality[] = ["max", "hq", "mq", "default"];
+  const bases = ["https://i.ytimg.com/vi", "https://img.youtube.com/vi"];
+
+  const urls: string[] = [];
+  for (const q of qualities) {
+    const file = fileForQuality(q);
+    for (const base of bases) {
+      urls.push(`${base}/${videoId}/${file}`);
+    }
+  }
+  return urls;
 }
 
 function looksLikeVideoId(value: string): boolean {
