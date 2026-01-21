@@ -1054,6 +1054,48 @@ const PlatformPosts = () => {
                             </div>
                           )}
 
+                          {/* YouTube Videos */}
+                          {post.youtube_urls && post.youtube_urls.length > 0 && (
+                            <div className="mt-3 p-3 bg-muted/30 rounded-lg border border-muted">
+                              <div className="flex items-center gap-2 mb-2">
+                                <Youtube className="h-4 w-4 text-destructive" />
+                                <span className="text-xs font-medium text-muted-foreground">
+                                  YouTube Videos ({post.youtube_urls.length})
+                                </span>
+                              </div>
+                              <div className={`grid gap-2 ${post.youtube_urls.length === 1 ? 'grid-cols-1' : 'grid-cols-2 sm:grid-cols-3'}`}>
+                                {post.youtube_urls.map((url, index) => {
+                                  const videoId = extractYoutubeVideoId(url);
+                                  return (
+                                    <div 
+                                      key={index} 
+                                      className="relative group cursor-pointer rounded-lg overflow-hidden border bg-background"
+                                      onClick={() => previewYoutubeVideo(url)}
+                                    >
+                                      <img
+                                        src={`https://img.youtube.com/vi/${videoId}/mqdefault.jpg`}
+                                        alt={`YouTube video ${index + 1}`}
+                                        className={`w-full object-cover ${post.youtube_urls!.length === 1 ? 'h-48' : 'h-24'}`}
+                                      />
+                                      <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="bg-destructive/90 rounded-full p-2">
+                                          <Eye className="h-5 w-5 text-white" />
+                                        </div>
+                                      </div>
+                                      <Badge 
+                                        variant="secondary" 
+                                        className="absolute bottom-1 left-1 text-[10px] px-1.5 py-0.5 bg-destructive/90 text-destructive-foreground gap-0.5"
+                                      >
+                                        <Youtube className="h-2.5 w-2.5" />
+                                        YouTube
+                                      </Badge>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+
                           <div className="mt-3 flex items-center gap-4 text-sm text-slate-500">
                             <span>{post.likes_count || 0} likes</span>
                             <span>{post.comments_count || 0} comments</span>
@@ -1187,6 +1229,48 @@ const PlatformPosts = () => {
                               ))}
                             </div>
                           )}
+
+                          {/* YouTube Videos */}
+                          {post.youtube_urls && post.youtube_urls.length > 0 && (
+                            <div className="mt-3 p-3 bg-muted/30 rounded-lg border border-muted">
+                              <div className="flex items-center gap-2 mb-2">
+                                <Youtube className="h-4 w-4 text-destructive" />
+                                <span className="text-xs font-medium text-muted-foreground">
+                                  YouTube Videos ({post.youtube_urls.length})
+                                </span>
+                              </div>
+                              <div className={`grid gap-2 ${post.youtube_urls.length === 1 ? 'grid-cols-1' : 'grid-cols-2 sm:grid-cols-3'}`}>
+                                {post.youtube_urls.map((url, index) => {
+                                  const videoId = extractYoutubeVideoId(url);
+                                  return (
+                                    <div 
+                                      key={index} 
+                                      className="relative group cursor-pointer rounded-lg overflow-hidden border bg-background"
+                                      onClick={() => previewYoutubeVideo(url)}
+                                    >
+                                      <img
+                                        src={`https://img.youtube.com/vi/${videoId}/mqdefault.jpg`}
+                                        alt={`YouTube video ${index + 1}`}
+                                        className={`w-full object-cover ${post.youtube_urls!.length === 1 ? 'h-48' : 'h-24'}`}
+                                      />
+                                      <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="bg-destructive/90 rounded-full p-2">
+                                          <Eye className="h-5 w-5 text-white" />
+                                        </div>
+                                      </div>
+                                      <Badge 
+                                        variant="secondary" 
+                                        className="absolute bottom-1 left-1 text-[10px] px-1.5 py-0.5 bg-destructive/90 text-destructive-foreground gap-0.5"
+                                      >
+                                        <Youtube className="h-2.5 w-2.5" />
+                                        YouTube
+                                      </Badge>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
                         </CardContent>
                       </Card>
                     ))}
@@ -1314,6 +1398,48 @@ const PlatformPosts = () => {
                                   />
                                 )
                               ))}
+                            </div>
+                          )}
+
+                          {/* YouTube Videos */}
+                          {post.youtube_urls && post.youtube_urls.length > 0 && (
+                            <div className="mt-3 p-3 bg-muted/30 rounded-lg border border-muted">
+                              <div className="flex items-center gap-2 mb-2">
+                                <Youtube className="h-4 w-4 text-destructive" />
+                                <span className="text-xs font-medium text-muted-foreground">
+                                  YouTube Videos ({post.youtube_urls.length})
+                                </span>
+                              </div>
+                              <div className={`grid gap-2 ${post.youtube_urls.length === 1 ? 'grid-cols-1' : 'grid-cols-2 sm:grid-cols-3'}`}>
+                                {post.youtube_urls.map((url, index) => {
+                                  const videoId = extractYoutubeVideoId(url);
+                                  return (
+                                    <div 
+                                      key={index} 
+                                      className="relative group cursor-pointer rounded-lg overflow-hidden border bg-background"
+                                      onClick={() => previewYoutubeVideo(url)}
+                                    >
+                                      <img
+                                        src={`https://img.youtube.com/vi/${videoId}/mqdefault.jpg`}
+                                        alt={`YouTube video ${index + 1}`}
+                                        className={`w-full object-cover ${post.youtube_urls!.length === 1 ? 'h-48' : 'h-24'}`}
+                                      />
+                                      <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="bg-destructive/90 rounded-full p-2">
+                                          <Eye className="h-5 w-5 text-white" />
+                                        </div>
+                                      </div>
+                                      <Badge 
+                                        variant="secondary" 
+                                        className="absolute bottom-1 left-1 text-[10px] px-1.5 py-0.5 bg-destructive/90 text-destructive-foreground gap-0.5"
+                                      >
+                                        <Youtube className="h-2.5 w-2.5" />
+                                        YouTube
+                                      </Badge>
+                                    </div>
+                                  );
+                                })}
+                              </div>
                             </div>
                           )}
                         </CardContent>
