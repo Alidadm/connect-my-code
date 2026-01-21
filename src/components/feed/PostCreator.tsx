@@ -1,4 +1,4 @@
-import { Image, Paperclip, Radio, Hash, AtSign, Globe, Smile, X, FileAudio, FileText, Film, Upload, Users, FileImage, Sparkles, Lock, UserCheck, List, Eye } from "lucide-react";
+import { Image, Paperclip, Radio, Hash, AtSign, Globe, Smile, X, FileAudio, FileText, Film, Upload, Users, FileImage, Sparkles, Lock, UserCheck, List, Eye, Youtube } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -192,11 +192,12 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
       `<button type="button" class="hashtag-btn" style="font-size: 13px; padding: 6px 12px; border: 1px solid #e5e7eb; background: #f8fafc; cursor: pointer; border-radius: 16px; color: #1c76e6; transition: all 0.2s;" data-hashtag="${tag}">${tag}</button>`
     ).join('');
 
-    // Track uploaded files, tags, and custom lists
+    // Track uploaded files, tags, custom lists, and YouTube URLs
     let mediaFiles: MediaFile[] = [];
     let taggedItems: TaggedItem[] = [];
     let selectedTopics: SelectedTopic[] = [];
     let selectedCustomLists: CustomList[] = [];
+    let youtubeUrls: string[] = [];
 
     // Fetch topics and custom lists for display
     const [topics, customLists] = await Promise.all([fetchTopics(), fetchCustomLists()]);
@@ -482,12 +483,36 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
               ${t('feed.maxFileSize', 'Max 50MB per file')} • ${t('feed.maxFiles', 'Up to 10 files')}
             </p>
           </div>
+
+          <!-- YouTube Panel -->
+          <div id="youtube-panel" style="display: none; padding: 16px; background: #fef2f2; border-radius: 12px; margin-bottom: 12px; border: 1px solid #fca5a5;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <span style="font-weight: 600; font-size: 14px; color: #dc2626;">▶️ ${t('feed.addYouTubeVideo', 'Add YouTube Video')}</span>
+              <button type="button" id="close-youtube" style="background: none; border: none; cursor: pointer; padding: 4px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </button>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="youtube-url-input" placeholder="${t('feed.pasteYouTubeUrl', 'Paste YouTube URL...')}" style="flex: 1; padding: 10px 14px; border: 1px solid #fca5a5; border-radius: 8px; font-size: 14px; outline: none;" />
+              <button type="button" id="add-youtube-btn" style="padding: 10px 16px; background: #dc2626; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 500; white-space: nowrap;">
+                ${t('common.add', 'Add')}
+              </button>
+            </div>
+            <div id="youtube-preview-list" style="margin-top: 12px; display: none;">
+              <span style="font-size: 12px; color: #dc2626; font-weight: 600;">${t('feed.addedVideos', 'Added Videos')}:</span>
+              <div id="youtube-videos-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; margin-top: 8px;"></div>
+            </div>
+          </div>
           
           <!-- Action buttons -->
           <div style="display: flex; align-items: center; gap: 4px; padding-top: 16px; border-top: 1px solid #e5e7eb; margin-top: 16px; flex-wrap: wrap;">
             <button type="button" id="btn-media" class="swal-action-btn" style="display: flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 8px; border: none; background: transparent; cursor: pointer; color: #666; font-size: 13px; transition: background 0.2s;">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
               <span style="color: #10b981;">${t('feed.media', 'Media')}</span>
+            </button>
+            <button type="button" id="btn-youtube" class="swal-action-btn" style="display: flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 8px; border: none; background: transparent; cursor: pointer; color: #666; font-size: 13px; transition: background 0.2s;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17"/><path d="m10 15 5-3-5-3z"/></svg>
+              <span style="color: #dc2626;">YouTube</span>
             </button>
             <button type="button" id="btn-emoji" class="swal-action-btn" style="display: flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 8px; border: none; background: transparent; cursor: pointer; color: #666; font-size: 13px; transition: background 0.2s;">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/></svg>
@@ -711,6 +736,8 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
           topicsPanel.style.display = 'none';
           privacyPanel.style.display = 'none';
           customListsPanel.style.display = 'none';
+          const youtubePanel = document.getElementById('youtube-panel') as HTMLDivElement;
+          if (youtubePanel) youtubePanel.style.display = 'none';
         };
 
         // Update tagged items preview
@@ -787,6 +814,91 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
 
         document.getElementById('close-media')?.addEventListener('click', () => {
           mediaPanel.style.display = 'none';
+        });
+
+        // YouTube panel functionality
+        const youtubePanel = document.getElementById('youtube-panel') as HTMLDivElement;
+        const youtubeUrlInput = document.getElementById('youtube-url-input') as HTMLInputElement;
+        const youtubePreviewList = document.getElementById('youtube-preview-list') as HTMLDivElement;
+        const youtubeVideosGrid = document.getElementById('youtube-videos-grid') as HTMLDivElement;
+        
+        const extractYoutubeVideoId = (url: string): string | null => {
+          const patterns = [
+            /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([^&\s?]+)/,
+            /youtube\.com\/shorts\/([^&\s?]+)/
+          ];
+          for (const pattern of patterns) {
+            const match = url.match(pattern);
+            if (match) return match[1];
+          }
+          return null;
+        };
+
+        const updateYoutubePreview = () => {
+          if (youtubeUrls.length === 0) {
+            youtubePreviewList.style.display = 'none';
+            return;
+          }
+          
+          youtubePreviewList.style.display = 'block';
+          youtubeVideosGrid.innerHTML = youtubeUrls.map((url, index) => {
+            const videoId = extractYoutubeVideoId(url);
+            return `
+              <div style="position: relative; border-radius: 8px; overflow: hidden; aspect-ratio: 16/9;">
+                <img src="https://img.youtube.com/vi/${videoId}/mqdefault.jpg" style="width: 100%; height: 100%; object-fit: cover;" />
+                <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.3);">
+                  <span style="font-size: 24px;">▶️</span>
+                </div>
+                <button type="button" class="remove-youtube-btn" data-index="${index}" style="position: absolute; top: 4px; right: 4px; background: #dc2626; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </button>
+              </div>
+            `;
+          }).join('');
+          
+          document.querySelectorAll('.remove-youtube-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+              const index = parseInt((e.currentTarget as HTMLButtonElement).dataset.index || '0');
+              youtubeUrls.splice(index, 1);
+              updateYoutubePreview();
+            });
+          });
+        };
+
+        document.getElementById('btn-youtube')?.addEventListener('click', () => {
+          const isVisible = youtubePanel.style.display === 'block';
+          closeAllPanels();
+          youtubePanel.style.display = isVisible ? 'none' : 'block';
+          if (!isVisible) youtubeUrlInput?.focus();
+        });
+
+        document.getElementById('close-youtube')?.addEventListener('click', () => {
+          youtubePanel.style.display = 'none';
+        });
+
+        document.getElementById('add-youtube-btn')?.addEventListener('click', () => {
+          const url = youtubeUrlInput.value.trim();
+          const videoId = extractYoutubeVideoId(url);
+          if (!videoId) {
+            Swal.showValidationMessage('Invalid YouTube URL');
+            setTimeout(() => Swal.resetValidationMessage(), 2000);
+            return;
+          }
+          if (youtubeUrls.includes(url)) {
+            Swal.showValidationMessage('This video is already added');
+            setTimeout(() => Swal.resetValidationMessage(), 2000);
+            return;
+          }
+          youtubeUrls.push(url);
+          youtubeUrlInput.value = '';
+          updateYoutubePreview();
+        });
+
+        youtubeUrlInput?.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            document.getElementById('add-youtube-btn')?.click();
+          }
         });
 
         // Emoji functionality
@@ -1159,7 +1271,7 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
         const content = (document.getElementById('swal-post-content') as HTMLTextAreaElement).value;
         const visibility = (document.getElementById('swal-visibility') as HTMLInputElement).value;
         
-        if (!content.trim() && mediaFiles.length === 0) {
+        if (!content.trim() && mediaFiles.length === 0 && youtubeUrls.length === 0) {
           Swal.showValidationMessage(t('feed.postCannotBeEmpty', 'Post cannot be empty'));
           return false;
         }
@@ -1186,7 +1298,8 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
           content: content.trim(), 
           visibility, 
           mediaUrls: uploadedUrls,
-          customListIds: selectedCustomLists.map(l => l.id)
+          customListIds: selectedCustomLists.map(l => l.id),
+          youtubeUrls: youtubeUrls
         };
       }
     });
@@ -1199,6 +1312,7 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
           content: formValues.content || null,
           visibility: formValues.visibility,
           media_urls: formValues.mediaUrls.length > 0 ? formValues.mediaUrls : null,
+          youtube_urls: formValues.youtubeUrls.length > 0 ? formValues.youtubeUrls : null,
         }).select('id').single();
 
         if (postError) throw postError;
