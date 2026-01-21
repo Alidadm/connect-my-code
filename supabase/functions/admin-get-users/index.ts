@@ -129,7 +129,7 @@ serve(async (req) => {
     if (profilesError) throw profilesError;
 
     // Fetch private data for these users
-  const userIds = (profiles || []).map(p => p.user_id);
+    const userIds = (profiles || []).map(p => p.user_id);
     
     // Fetch private data for these users
     const { data: privateData, error: privateError } = await supabaseAdmin
@@ -139,6 +139,16 @@ serve(async (req) => {
 
     if (privateError) {
       logStep("Warning: Could not fetch private data", { error: privateError.message });
+    }
+
+    // Fetch profile details for these users
+    const { data: profileDetails, error: detailsError } = await supabaseAdmin
+      .from('profile_details')
+      .select('user_id, full_name, birthplace, current_residence, current_work, college, high_school, major, gender, relationship_status, languages, citizenships, website')
+      .in('user_id', userIds);
+
+    if (detailsError) {
+      logStep("Warning: Could not fetch profile details", { error: detailsError.message });
     }
 
     // Fetch admin roles for these users
@@ -158,26 +168,58 @@ serve(async (req) => {
       privateDataMap.set(pd.user_id, pd);
     });
 
+    const profileDetailsMap = new Map();
+    (profileDetails || []).forEach(pd => {
+      profileDetailsMap.set(pd.user_id, pd);
+    });
+
     const adminUserIds = new Set((adminRoles || []).map(r => r.user_id));
 
     // Combine public and private data
     const users = (profiles || []).map(profile => {
       const privateInfo = privateDataMap.get(profile.user_id) || {};
+      const details = profileDetailsMap.get(profile.user_id) || {};
       return {
         id: profile.id,
         user_id: profile.user_id,
         firstName: profile.first_name || profile.display_name?.split(' ')[0] || 'N/A',
         lastName: profile.last_name || profile.display_name?.split(' ').slice(1).join(' ') || '',
+        displayName: profile.display_name || '',
         username: profile.username || '',
         email: privateInfo.email || 'No email',
         phone: privateInfo.phone || 'No phone',
         birthday: privateInfo.birthday 
           ? new Date(privateInfo.birthday).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
           : 'Not set',
+        birthdayRaw: privateInfo.birthday || null,
         country: profile.country || 'Unknown',
+        location: profile.location || '',
         avatar: profile.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.user_id}`,
+        coverUrl: profile.cover_url || '',
+        bio: profile.bio || '',
         status: profile.subscription_status === 'active' ? 'active' : 'inactive',
-        isAdmin: adminUserIds.has(profile.user_id)
+        subscriptionStatus: profile.subscription_status || 'inactive',
+        isVerified: profile.is_verified || false,
+        emailVerified: profile.email_verified || false,
+        phoneVerified: profile.phone_verified || false,
+        referralCode: profile.referral_code || '',
+        referrerId: profile.referrer_id || null,
+        createdAt: profile.created_at,
+        updatedAt: profile.updated_at,
+        isAdmin: adminUserIds.has(profile.user_id),
+        // Profile details
+        fullName: details.full_name || '',
+        birthplace: details.birthplace || '',
+        currentResidence: details.current_residence || '',
+        currentWork: details.current_work || '',
+        college: details.college || '',
+        highSchool: details.high_school || '',
+        major: details.major || '',
+        gender: details.gender || '',
+        relationshipStatus: details.relationship_status || '',
+        languages: details.languages || [],
+        citizenships: details.citizenships || [],
+        website: details.website || ''
       };
     });
 
