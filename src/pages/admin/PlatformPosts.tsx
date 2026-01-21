@@ -31,6 +31,7 @@ interface PlatformPost {
   id: string;
   content: string | null;
   media_urls: string[] | null;
+  youtube_urls: string[] | null;
   likes_count: number;
   comments_count: number;
   created_at: string;
@@ -73,6 +74,8 @@ const PlatformPosts = () => {
   const [editScheduledDate, setEditScheduledDate] = useState("");
   const [editScheduledTime, setEditScheduledTime] = useState("");
   const [editIsScheduled, setEditIsScheduled] = useState(false);
+  const [editYoutubeUrl, setEditYoutubeUrl] = useState("");
+  const [editYoutubeUrls, setEditYoutubeUrls] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   
   // Restore draft state
@@ -308,6 +311,8 @@ const PlatformPosts = () => {
   const openEditDialog = (post: PlatformPost) => {
     setEditingPost(post);
     setEditContent(post.content || "");
+    setEditYoutubeUrls(post.youtube_urls || []);
+    setEditYoutubeUrl("");
     if (post.scheduled_at && isFuture(new Date(post.scheduled_at))) {
       setEditIsScheduled(true);
       const date = new Date(post.scheduled_at);
@@ -326,11 +331,32 @@ const PlatformPosts = () => {
     setEditScheduledDate("");
     setEditScheduledTime("");
     setEditIsScheduled(false);
+    setEditYoutubeUrl("");
+    setEditYoutubeUrls([]);
+  };
+
+  const handleAddEditYoutubeUrl = () => {
+    const videoId = extractYoutubeVideoId(editYoutubeUrl);
+    if (!videoId) {
+      toast.error("Invalid YouTube URL");
+      return;
+    }
+    if (editYoutubeUrls.includes(editYoutubeUrl)) {
+      toast.error("This YouTube video is already added");
+      return;
+    }
+    setEditYoutubeUrls([...editYoutubeUrls, editYoutubeUrl]);
+    setEditYoutubeUrl("");
+    toast.success("YouTube video added");
+  };
+
+  const removeEditYoutubeUrl = (index: number) => {
+    setEditYoutubeUrls(editYoutubeUrls.filter((_, i) => i !== index));
   };
 
   const handleSaveEdit = async () => {
     if (!editingPost) return;
-    if (!editContent.trim() && (!editingPost.media_urls || editingPost.media_urls.length === 0)) {
+    if (!editContent.trim() && (!editingPost.media_urls || editingPost.media_urls.length === 0) && editYoutubeUrls.length === 0) {
       toast.error("Please add some content");
       return;
     }
@@ -353,6 +379,7 @@ const PlatformPosts = () => {
         .from("posts")
         .update({
           content: editContent.trim() || null,
+          youtube_urls: editYoutubeUrls.length > 0 ? editYoutubeUrls : null,
           scheduled_at: scheduledAt,
           updated_at: new Date().toISOString()
         })
@@ -461,7 +488,7 @@ const PlatformPosts = () => {
       const { error } = await supabase.from("posts").insert({
         content: post.content,
         media_urls: post.media_urls,
-        youtube_urls: (post as any).youtube_urls || null,
+        youtube_urls: post.youtube_urls || null,
         user_id: user.id,
         is_platform_post: true,
         visibility: "private", // Create as draft
@@ -1349,6 +1376,83 @@ const PlatformPosts = () => {
                   </div>
                 </div>
               )}
+
+              {/* YouTube URL Editor */}
+              <div className="p-4 bg-muted/30 rounded-lg space-y-3 border border-muted">
+                <div className="flex items-center gap-2 mb-2">
+                  <Youtube className="h-5 w-5 text-destructive" />
+                  <span className="text-sm font-medium text-foreground">YouTube Videos</span>
+                </div>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Paste YouTube URL..."
+                    value={editYoutubeUrl}
+                    onChange={(e) => setEditYoutubeUrl(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddEditYoutubeUrl();
+                      }
+                    }}
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleAddEditYoutubeUrl}
+                    disabled={!editYoutubeUrl.trim()}
+                    className="gap-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add
+                  </Button>
+                </div>
+                
+                {/* Added YouTube Videos */}
+                {editYoutubeUrls.length > 0 && (
+                  <div className="space-y-2 mt-3">
+                    <span className="text-xs text-muted-foreground">Added Videos ({editYoutubeUrls.length})</span>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {editYoutubeUrls.map((url, index) => {
+                        const videoId = extractYoutubeVideoId(url);
+                        return (
+                          <div key={index} className="relative group">
+                            <div 
+                              className="h-20 w-full rounded-lg border overflow-hidden cursor-pointer bg-background"
+                              onClick={() => previewYoutubeVideo(url)}
+                            >
+                              <img
+                                src={`https://img.youtube.com/vi/${videoId}/mqdefault.jpg`}
+                                alt="YouTube thumbnail"
+                                className="h-full w-full object-cover"
+                              />
+                              <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Eye className="h-5 w-5 text-white" />
+                              </div>
+                            </div>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                removeEditYoutubeUrl(index);
+                              }}
+                              className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                            <Badge 
+                              variant="secondary" 
+                              className="absolute bottom-1 left-1 text-[10px] px-1 py-0 bg-destructive/90 text-destructive-foreground"
+                            >
+                              <Youtube className="h-2.5 w-2.5 mr-0.5" />
+                              YouTube
+                            </Badge>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {/* Schedule Settings */}
               <div className="p-4 bg-slate-50 rounded-lg space-y-3">
