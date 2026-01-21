@@ -4,11 +4,12 @@ import {
   ChevronRight, Eye, EyeOff, Lock, Mail, Phone, Globe, Calendar,
   Home, CreditCard, Users, Heart, MessageCircle, LogOut, Clock,
   CheckCircle2, XCircle, Loader2, ExternalLink, Languages, UsersRound,
-  Building2, Info
+  Building2, Info, Youtube
 } from "lucide-react";
 import { GroupsManagement } from "@/components/dashboard/GroupsManagement";
 import { BusinessManagement } from "@/components/business/BusinessManagement";
 import { AboutSettings } from "@/components/settings/AboutSettings";
+import { RecentlyWatchedSection } from "@/components/dashboard/RecentlyWatchedSection";
 import { AvatarEditor } from "@/components/avatar/AvatarEditor";
 import { CoverEditor } from "@/components/cover/CoverEditor";
 import Swal from "sweetalert2";
@@ -29,7 +30,7 @@ import { validateUsername } from "@/lib/username";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
-type TabType = "profile" | "account" | "about" | "privacy" | "notifications" | "appearance" | "groups" | "business";
+type TabType = "profile" | "account" | "about" | "privacy" | "notifications" | "appearance" | "groups" | "business" | "watch-history";
 
 // Country code to name mapping
 const countryNames: Record<string, string> = {
@@ -55,6 +56,7 @@ const getMenuItems = (t: (key: string) => string) => [
   { id: "about" as TabType, label: "About", icon: Info, description: "Manage your about information" },
   { id: "business" as TabType, label: "Business", icon: Building2, description: "Manage your business profile" },
   { id: "groups" as TabType, label: t("nav.groups"), icon: UsersRound, description: t("groups.manageGroups") },
+  { id: "watch-history" as TabType, label: "Watch History", icon: Youtube, description: "Your recently watched videos" },
   { id: "privacy" as TabType, label: t("privacy.title"), icon: Shield, description: t("privacy.description") },
   { id: "notifications" as TabType, label: t("notifications.title"), icon: Bell, description: t("notifications.description") },
   { id: "appearance" as TabType, label: t("appearance.title"), icon: Palette, description: t("appearance.description") },
@@ -1088,6 +1090,8 @@ const MemberDashboard = () => {
         return <BusinessManagement />;
       case "groups":
         return <GroupsManagement />;
+      case "watch-history":
+        return <RecentlyWatchedSection />;
       case "privacy":
         return renderPrivacyTab();
       case "notifications":
