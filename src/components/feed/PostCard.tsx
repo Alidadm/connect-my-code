@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { MessageCircle, Share2, MoreVertical, Bookmark, FileText, Music, Pencil, Trash2, Copy, Facebook, Twitter, Link2, Check, Ban, VolumeX, Volume2, UserX, Megaphone, Youtube, Play } from "lucide-react";
+import { MessageCircle, Share2, MoreVertical, Bookmark, FileText, Music, Pencil, Trash2, Copy, Facebook, Twitter, Link2, Check, Ban, VolumeX, Volume2, UserX, Megaphone, Youtube, Play, Eye } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,7 @@ import { CommentSection } from "./CommentSection";
 import { ReactionPicker } from "./ReactionPicker";
 import { MasonryPhotoGrid } from "./MasonryPhotoGrid";
 import { useBlockMute } from "@/hooks/useBlockMute";
+import { useViewedVideos } from "@/hooks/useViewedVideos";
 import Swal from "sweetalert2";
 import ReactDOMServer from "react-dom/server";
 
@@ -56,6 +57,7 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
 
   const isOwner = user?.id === post.user_id;
   const { isBlocked, isMuted, blockUser, muteUser, loading: blockMuteLoading } = useBlockMute(post.user_id);
+  const { isVideoViewed, markVideoAsViewed } = useViewedVideos();
 
   // Check if user has bookmarked this post
   useEffect(() => {
@@ -417,6 +419,9 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
     const videoId = extractYoutubeVideoId(url);
     if (!videoId) return;
     
+    // Mark video as viewed when user clicks to watch
+    markVideoAsViewed(videoId);
+    
     Swal.fire({
       html: `<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;">
         <iframe 
@@ -649,10 +654,11 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
             {post.youtube_urls.map((url, index) => {
               const videoId = extractYoutubeVideoId(url);
               if (!videoId) return null;
+              const hasWatched = isVideoViewed(videoId);
               return (
                 <div 
                   key={index}
-                  className="relative aspect-video rounded-lg overflow-hidden cursor-pointer group bg-secondary"
+                  className={`relative aspect-video rounded-lg overflow-hidden cursor-pointer group bg-secondary ${hasWatched ? 'opacity-75' : ''}`}
                   onClick={() => handleYoutubeClick(url)}
                 >
                   <img
@@ -673,6 +679,16 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
                     <Youtube className="h-3 w-3 mr-1" />
                     YouTube
                   </Badge>
+                  {/* Watched badge */}
+                  {hasWatched && (
+                    <Badge 
+                      variant="secondary" 
+                      className="absolute top-2 right-2 text-xs bg-background/90 text-muted-foreground border-0"
+                    >
+                      <Eye className="h-3 w-3 mr-1" />
+                      {t('feed.watched', 'Watched')}
+                    </Badge>
+                  )}
                 </div>
               );
             })}
