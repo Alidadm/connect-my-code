@@ -347,18 +347,56 @@ const PlatformPosts = () => {
   };
 
   const handleAddEditYoutubeUrl = () => {
-    const videoId = extractYoutubeVideoId(editYoutubeUrl);
-    if (!videoId) {
-      toast.error("Invalid YouTube URL");
+    // Support bulk import: split by newlines and process each URL
+    const urls = editYoutubeUrl.split(/[\n\r]+/).map(u => u.trim()).filter(u => u.length > 0);
+    
+    if (urls.length === 0) {
+      toast.error("Please enter a YouTube URL");
       return;
     }
-    if (editYoutubeUrls.includes(editYoutubeUrl)) {
-      toast.error("This YouTube video is already added");
-      return;
+
+    const validUrls: string[] = [];
+    const invalidUrls: string[] = [];
+    const duplicateUrls: string[] = [];
+
+    for (const url of urls) {
+      const videoId = extractYoutubeVideoId(url);
+      if (!videoId) {
+        invalidUrls.push(url);
+      } else if (editYoutubeUrls.includes(url) || validUrls.includes(url)) {
+        duplicateUrls.push(url);
+      } else {
+        validUrls.push(url);
+      }
     }
-    setEditYoutubeUrls([...editYoutubeUrls, editYoutubeUrl]);
+
+    if (validUrls.length > 0) {
+      setEditYoutubeUrls([...editYoutubeUrls, ...validUrls]);
+    }
     setEditYoutubeUrl("");
-    toast.success("YouTube video added");
+
+    // Show appropriate feedback
+    if (urls.length === 1) {
+      if (validUrls.length === 1) {
+        toast.success("YouTube video added");
+      } else if (invalidUrls.length === 1) {
+        toast.error("Invalid YouTube URL");
+      } else if (duplicateUrls.length === 1) {
+        toast.error("This YouTube video is already added");
+      }
+    } else {
+      // Bulk import feedback
+      const messages: string[] = [];
+      if (validUrls.length > 0) messages.push(`${validUrls.length} video${validUrls.length > 1 ? 's' : ''} added`);
+      if (invalidUrls.length > 0) messages.push(`${invalidUrls.length} invalid`);
+      if (duplicateUrls.length > 0) messages.push(`${duplicateUrls.length} duplicate${duplicateUrls.length > 1 ? 's' : ''}`);
+      
+      if (validUrls.length > 0) {
+        toast.success(messages.join(', '));
+      } else {
+        toast.error(messages.join(', '));
+      }
+    }
   };
 
   const removeEditYoutubeUrl = (index: number) => {
@@ -552,18 +590,56 @@ const PlatformPosts = () => {
   };
 
   const handleAddYoutubeUrl = () => {
-    const videoId = extractYoutubeVideoId(youtubeUrl);
-    if (!videoId) {
-      toast.error("Invalid YouTube URL");
+    // Support bulk import: split by newlines and process each URL
+    const urls = youtubeUrl.split(/[\n\r]+/).map(u => u.trim()).filter(u => u.length > 0);
+    
+    if (urls.length === 0) {
+      toast.error("Please enter a YouTube URL");
       return;
     }
-    if (youtubeUrls.includes(youtubeUrl)) {
-      toast.error("This YouTube video is already added");
-      return;
+
+    const validUrls: string[] = [];
+    const invalidUrls: string[] = [];
+    const duplicateUrls: string[] = [];
+
+    for (const url of urls) {
+      const videoId = extractYoutubeVideoId(url);
+      if (!videoId) {
+        invalidUrls.push(url);
+      } else if (youtubeUrls.includes(url) || validUrls.includes(url)) {
+        duplicateUrls.push(url);
+      } else {
+        validUrls.push(url);
+      }
     }
-    setYoutubeUrls([...youtubeUrls, youtubeUrl]);
+
+    if (validUrls.length > 0) {
+      setYoutubeUrls([...youtubeUrls, ...validUrls]);
+    }
     setYoutubeUrl("");
-    toast.success("YouTube video added");
+
+    // Show appropriate feedback
+    if (urls.length === 1) {
+      if (validUrls.length === 1) {
+        toast.success("YouTube video added");
+      } else if (invalidUrls.length === 1) {
+        toast.error("Invalid YouTube URL");
+      } else if (duplicateUrls.length === 1) {
+        toast.error("This YouTube video is already added");
+      }
+    } else {
+      // Bulk import feedback
+      const messages: string[] = [];
+      if (validUrls.length > 0) messages.push(`${validUrls.length} video${validUrls.length > 1 ? 's' : ''} added`);
+      if (invalidUrls.length > 0) messages.push(`${invalidUrls.length} invalid`);
+      if (duplicateUrls.length > 0) messages.push(`${duplicateUrls.length} duplicate${duplicateUrls.length > 1 ? 's' : ''}`);
+      
+      if (validUrls.length > 0) {
+        toast.success(messages.join(', '));
+      } else {
+        toast.error(messages.join(', '));
+      }
+    }
   };
 
   const removeYoutubeUrl = (index: number) => {
@@ -925,29 +1001,33 @@ const PlatformPosts = () => {
 
                 {/* YouTube URL Input */}
                 <div className="p-4 bg-muted/30 rounded-lg space-y-3 border border-muted">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Youtube className="h-5 w-5 text-destructive" />
-                    <span className="text-sm font-medium text-foreground">Add YouTube Video</span>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <Youtube className="h-5 w-5 text-destructive" />
+                      <span className="text-sm font-medium text-foreground">Add YouTube Videos</span>
+                    </div>
+                    <span className="text-xs text-muted-foreground">Paste multiple URLs (one per line)</span>
                   </div>
                   <div className="flex gap-2">
-                    <Input
-                      placeholder="Paste YouTube URL (e.g., https://youtube.com/watch?v=...)"
+                    <Textarea
+                      placeholder="Paste YouTube URLs (one per line)&#10;https://youtube.com/watch?v=abc123&#10;https://youtu.be/xyz789"
                       value={youtubeUrl}
                       onChange={(e) => setYoutubeUrl(e.target.value)}
                       onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
+                        if (e.key === 'Enter' && !e.shiftKey && !youtubeUrl.includes('\n')) {
                           e.preventDefault();
                           handleAddYoutubeUrl();
                         }
                       }}
-                      className="flex-1"
+                      className="flex-1 min-h-[60px] resize-none"
+                      rows={2}
                     />
                     <Button
                       type="button"
                       variant="outline"
                       onClick={handleAddYoutubeUrl}
                       disabled={!youtubeUrl.trim()}
-                      className="gap-2"
+                      className="gap-2 self-end"
                     >
                       <Plus className="h-4 w-4" />
                       Add
@@ -1698,29 +1778,33 @@ const PlatformPosts = () => {
 
               {/* YouTube URL Editor */}
               <div className="p-4 bg-muted/30 rounded-lg space-y-3 border border-muted">
-                <div className="flex items-center gap-2 mb-2">
-                  <Youtube className="h-5 w-5 text-destructive" />
-                  <span className="text-sm font-medium text-foreground">YouTube Videos</span>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <Youtube className="h-5 w-5 text-destructive" />
+                    <span className="text-sm font-medium text-foreground">YouTube Videos</span>
+                  </div>
+                  <span className="text-xs text-muted-foreground">Paste multiple URLs (one per line)</span>
                 </div>
                 <div className="flex gap-2">
-                  <Input
-                    placeholder="Paste YouTube URL..."
+                  <Textarea
+                    placeholder="Paste YouTube URLs (one per line)&#10;https://youtube.com/watch?v=abc123&#10;https://youtu.be/xyz789"
                     value={editYoutubeUrl}
                     onChange={(e) => setEditYoutubeUrl(e.target.value)}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
+                      if (e.key === 'Enter' && !e.shiftKey && !editYoutubeUrl.includes('\n')) {
                         e.preventDefault();
                         handleAddEditYoutubeUrl();
                       }
                     }}
-                    className="flex-1"
+                    className="flex-1 min-h-[60px] resize-none"
+                    rows={2}
                   />
                   <Button
                     type="button"
                     variant="outline"
                     onClick={handleAddEditYoutubeUrl}
                     disabled={!editYoutubeUrl.trim()}
-                    className="gap-2"
+                    className="gap-2 self-end"
                   >
                     <Plus className="h-4 w-4" />
                     Add
