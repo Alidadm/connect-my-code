@@ -135,18 +135,32 @@ serve(async (req) => {
 
       // Create or update subscription record
       const stripeSubscriptionId = invoice.subscription as string;
+      logStep("Subscription ID from invoice", { stripeSubscriptionId: stripeSubscriptionId || "null" });
+      
       if (stripeSubscriptionId) {
         const stripeSubscription = await stripe.subscriptions.retrieve(stripeSubscriptionId);
+        logStep("Retrieved Stripe subscription", { 
+          subscriptionId: stripeSubscription.id,
+          status: stripeSubscription.status,
+          periodStart: stripeSubscription.current_period_start,
+          periodEnd: stripeSubscription.current_period_end
+        });
 
-        const { data: existingSub } = await supabaseClient
+        const { data: existingSub, error: existingSubError } = await supabaseClient
           .from("subscriptions")
           .select("id")
           .eq("provider_subscription_id", stripeSubscriptionId)
           .single();
 
+        logStep("Checked for existing subscription", { 
+          found: !!existingSub, 
+          existingId: existingSub?.id,
+          checkError: existingSubError?.message 
+        });
+
         if (existingSub) {
           // Update existing subscription
-          await supabaseClient
+          const { error: updateError } = await supabaseClient
             .from("subscriptions")
             .update({
               status: "active",
@@ -156,10 +170,21 @@ serve(async (req) => {
             })
             .eq("id", existingSub.id);
 
-          logStep("Updated existing subscription record", { id: existingSub.id });
+          if (updateError) {
+            logStep("Failed to update subscription record", { error: updateError.message });
+          } else {
+            logStep("Updated existing subscription record", { id: existingSub.id });
+          }
         } else {
           // Create new subscription record
-          const { error: subError } = await supabaseClient
+          logStep("Attempting to insert new subscription", { 
+            userId: user.id,
+            provider: "stripe",
+            subscriptionId: stripeSubscriptionId,
+            amount: invoice.amount_paid / 100
+          });
+
+          const { data: insertedSub, error: subError } = await supabaseClient
             .from("subscriptions")
             .insert({
               user_id: user.id,
@@ -170,14 +195,18 @@ serve(async (req) => {
               currency: invoice.currency?.toUpperCase() || "USD",
               current_period_start: new Date(stripeSubscription.current_period_start * 1000).toISOString(),
               current_period_end: new Date(stripeSubscription.current_period_end * 1000).toISOString(),
-            });
+            })
+            .select()
+            .single();
 
           if (subError) {
-            logStep("Failed to create subscription record", { error: subError.message });
+            logStep("Failed to create subscription record", { error: subError.message, code: subError.code });
           } else {
-            logStep("Created subscription record");
+            logStep("Created subscription record successfully", { id: insertedSub?.id });
           }
         }
+      } else {
+        logStep("No subscription ID on invoice - skipping subscription record creation");
       }
 
       // Send verification/confirmation email only on FIRST activation
