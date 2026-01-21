@@ -84,14 +84,40 @@ type User = {
   user_id: string;
   firstName: string;
   lastName: string;
+  displayName: string;
   username: string;
   email: string;
   phone: string;
   birthday: string;
+  birthdayRaw: string | null;
   country: string;
+  location: string;
   avatar: string;
+  coverUrl: string;
+  bio: string;
   status: string;
+  subscriptionStatus: string;
+  isVerified: boolean;
+  emailVerified: boolean;
+  phoneVerified: boolean;
+  referralCode: string;
+  referrerId: string | null;
+  createdAt: string;
+  updatedAt: string;
   isAdmin?: boolean;
+  // Profile details
+  fullName: string;
+  birthplace: string;
+  currentResidence: string;
+  currentWork: string;
+  college: string;
+  highSchool: string;
+  major: string;
+  gender: string;
+  relationshipStatus: string;
+  languages: string[];
+  citizenships: string[];
+  website: string;
 };
 
 const UserList = () => {
@@ -416,29 +442,193 @@ const UserList = () => {
 
   // SweetAlert2 View User Modal
   const handleViewUser = (user: User) => {
+    const createdDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Unknown';
+    const updatedDate = user.updatedAt ? new Date(user.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Unknown';
+    const languagesStr = user.languages?.length > 0 ? user.languages.join(', ') : 'Not specified';
+    const citizenshipsStr = user.citizenships?.length > 0 ? user.citizenships.join(', ') : 'Not specified';
+    const countryFlag = getFlagUrl(user.country);
+    
     Swal.fire({
-      title: `<strong class="text-blue-600">User Details</strong>`,
       html: `
-        <div class="text-left space-y-3 p-2">
-          <div class="flex items-center gap-3 mb-4">
-            <img src="${user.avatar}" class="w-16 h-16 rounded-full border-2 border-blue-200" alt="Avatar" />
-            <div>
-              <h3 class="font-bold text-lg text-slate-800">${user.firstName} ${user.lastName}</h3>
-              <span class="text-sm px-2 py-0.5 rounded-full ${user.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}">${user.status}</span>
-            </div>
+        <div class="text-left -m-5">
+          <!-- Cover Photo Section -->
+          <div class="relative h-32 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-t-xl overflow-hidden">
+            ${user.coverUrl ? `<img src="${user.coverUrl}" class="w-full h-full object-cover" alt="Cover" />` : ''}
+            <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
           </div>
-          <div class="border-t pt-3 space-y-2">
-            <p class="flex items-center gap-2"><span class="font-medium text-slate-600 w-20">Email:</span> <span class="text-slate-800">${user.email}</span></p>
-            <p class="flex items-center gap-2"><span class="font-medium text-slate-600 w-20">Phone:</span> <span class="text-slate-800">${user.phone}</span></p>
-            <p class="flex items-center gap-2"><span class="font-medium text-slate-600 w-20">Birthday:</span> <span class="text-slate-800">${user.birthday}</span></p>
+          
+          <!-- Profile Header -->
+          <div class="relative px-6 pb-4">
+            <div class="flex items-end gap-4 -mt-12 relative z-10">
+              <img src="${user.avatar}" class="w-24 h-24 rounded-full border-4 border-white shadow-lg object-cover bg-white" alt="Avatar" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${user.user_id}'" />
+              <div class="pb-2 flex-1">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <h2 class="text-xl font-bold text-slate-800">${user.firstName} ${user.lastName}</h2>
+                  ${user.isVerified ? '<svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>' : ''}
+                  ${user.isAdmin ? '<span class="px-2 py-0.5 text-xs font-semibold bg-purple-100 text-purple-700 rounded-full">ADMIN</span>' : ''}
+                </div>
+                ${user.username ? `<p class="text-sm text-slate-500">@${user.username}</p>` : ''}
+              </div>
+            </div>
+            
+            <!-- Status Badges -->
+            <div class="flex flex-wrap gap-2 mt-4">
+              <span class="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium rounded-full ${user.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}">
+                <span class="w-2 h-2 rounded-full ${user.status === 'active' ? 'bg-green-500' : 'bg-slate-400'}"></span>
+                ${user.subscriptionStatus || user.status}
+              </span>
+              <span class="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium rounded-full ${user.emailVerified ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}">
+                ${user.emailVerified ? '✓ Email Verified' : '✗ Email Unverified'}
+              </span>
+              <span class="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium rounded-full ${user.phoneVerified ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}">
+                ${user.phoneVerified ? '✓ Phone Verified' : '✗ Phone Unverified'}
+              </span>
+            </div>
+            
+            <!-- Bio -->
+            ${user.bio ? `<p class="mt-4 text-sm text-slate-600 italic">"${user.bio}"</p>` : ''}
+          </div>
+          
+          <!-- Information Sections -->
+          <div class="px-6 pb-6 space-y-4">
+            <!-- Contact Information -->
+            <div class="bg-slate-50 rounded-xl p-4">
+              <h3 class="text-sm font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                Contact Information
+              </h3>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                <div class="flex items-start gap-2">
+                  <span class="text-slate-400 w-20 shrink-0">Email:</span>
+                  <span class="text-slate-700 break-all">${user.email}</span>
+                </div>
+                <div class="flex items-start gap-2">
+                  <span class="text-slate-400 w-20 shrink-0">Phone:</span>
+                  <span class="text-slate-700">${user.phone}</span>
+                </div>
+                ${user.website ? `<div class="flex items-start gap-2 col-span-2">
+                  <span class="text-slate-400 w-20 shrink-0">Website:</span>
+                  <a href="${user.website}" target="_blank" class="text-blue-600 hover:underline break-all">${user.website}</a>
+                </div>` : ''}
+              </div>
+            </div>
+            
+            <!-- Personal Information -->
+            <div class="bg-slate-50 rounded-xl p-4">
+              <h3 class="text-sm font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                Personal Information
+              </h3>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                <div class="flex items-start gap-2">
+                  <span class="text-slate-400 w-20 shrink-0">Birthday:</span>
+                  <span class="text-slate-700">${user.birthday}</span>
+                </div>
+                <div class="flex items-start gap-2">
+                  <span class="text-slate-400 w-20 shrink-0">Gender:</span>
+                  <span class="text-slate-700">${user.gender || 'Not specified'}</span>
+                </div>
+                <div class="flex items-start gap-2">
+                  <span class="text-slate-400 w-20 shrink-0">Status:</span>
+                  <span class="text-slate-700">${user.relationshipStatus || 'Not specified'}</span>
+                </div>
+                <div class="flex items-start gap-2">
+                  <span class="text-slate-400 w-20 shrink-0">Country:</span>
+                  <span class="text-slate-700 flex items-center gap-2">
+                    ${countryFlag ? `<img src="${countryFlag}" alt="${user.country}" class="w-5 h-auto" />` : ''}
+                    ${user.country}
+                  </span>
+                </div>
+                ${user.birthplace ? `<div class="flex items-start gap-2">
+                  <span class="text-slate-400 w-20 shrink-0">Birthplace:</span>
+                  <span class="text-slate-700">${user.birthplace}</span>
+                </div>` : ''}
+                ${user.currentResidence ? `<div class="flex items-start gap-2">
+                  <span class="text-slate-400 w-20 shrink-0">Lives in:</span>
+                  <span class="text-slate-700">${user.currentResidence}</span>
+                </div>` : ''}
+              </div>
+            </div>
+            
+            <!-- Education & Work -->
+            <div class="bg-slate-50 rounded-xl p-4">
+              <h3 class="text-sm font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                Education & Work
+              </h3>
+              <div class="grid grid-cols-1 gap-3 text-sm">
+                <div class="flex items-start gap-2">
+                  <span class="text-slate-400 w-24 shrink-0">Work:</span>
+                  <span class="text-slate-700">${user.currentWork || 'Not specified'}</span>
+                </div>
+                <div class="flex items-start gap-2">
+                  <span class="text-slate-400 w-24 shrink-0">College:</span>
+                  <span class="text-slate-700">${user.college || 'Not specified'}${user.major ? ` (${user.major})` : ''}</span>
+                </div>
+                <div class="flex items-start gap-2">
+                  <span class="text-slate-400 w-24 shrink-0">High School:</span>
+                  <span class="text-slate-700">${user.highSchool || 'Not specified'}</span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Languages & Citizenships -->
+            <div class="bg-slate-50 rounded-xl p-4">
+              <h3 class="text-sm font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                Languages & Citizenship
+              </h3>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                <div class="flex items-start gap-2">
+                  <span class="text-slate-400 w-24 shrink-0">Languages:</span>
+                  <span class="text-slate-700">${languagesStr}</span>
+                </div>
+                <div class="flex items-start gap-2">
+                  <span class="text-slate-400 w-24 shrink-0">Citizenship:</span>
+                  <span class="text-slate-700">${citizenshipsStr}</span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Account Information -->
+            <div class="bg-slate-50 rounded-xl p-4">
+              <h3 class="text-sm font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                Account Information
+              </h3>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                <div class="flex items-start gap-2">
+                  <span class="text-slate-400 w-24 shrink-0">User ID:</span>
+                  <span class="text-slate-700 font-mono text-xs break-all">${user.user_id}</span>
+                </div>
+                <div class="flex items-start gap-2">
+                  <span class="text-slate-400 w-24 shrink-0">Referral Code:</span>
+                  <span class="text-slate-700 font-mono">${user.referralCode || 'None'}</span>
+                </div>
+                <div class="flex items-start gap-2">
+                  <span class="text-slate-400 w-24 shrink-0">Joined:</span>
+                  <span class="text-slate-700">${createdDate}</span>
+                </div>
+                <div class="flex items-start gap-2">
+                  <span class="text-slate-400 w-24 shrink-0">Last Updated:</span>
+                  <span class="text-slate-700">${updatedDate}</span>
+                </div>
+                ${user.referrerId ? `<div class="flex items-start gap-2 col-span-2">
+                  <span class="text-slate-400 w-24 shrink-0">Referred By:</span>
+                  <span class="text-slate-700 font-mono text-xs">${user.referrerId}</span>
+                </div>` : ''}
+              </div>
+            </div>
           </div>
         </div>
       `,
       showCloseButton: true,
       showConfirmButton: false,
-      width: 420,
+      width: 640,
+      padding: 0,
       customClass: {
-        popup: 'rounded-xl',
+        popup: 'rounded-xl overflow-hidden',
+        closeButton: 'text-white hover:text-white focus:outline-none absolute top-2 right-2 z-20',
       }
     });
   };
