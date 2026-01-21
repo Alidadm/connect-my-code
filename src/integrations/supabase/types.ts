@@ -1699,6 +1699,7 @@ export type Database = {
           updated_at: string
           user_id: string
           visibility: string | null
+          youtube_urls: string[] | null
         }
         Insert: {
           comments_count?: number | null
@@ -1713,6 +1714,7 @@ export type Database = {
           updated_at?: string
           user_id: string
           visibility?: string | null
+          youtube_urls?: string[] | null
         }
         Update: {
           comments_count?: number | null
@@ -1727,6 +1729,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
           visibility?: string | null
+          youtube_urls?: string[] | null
         }
         Relationships: []
       }
