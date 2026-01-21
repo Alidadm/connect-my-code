@@ -5,8 +5,9 @@ import { format, subDays, startOfMonth, endOfMonth, subMonths } from "date-fns";
 import {
   Search, Filter, Download, Upload, Plus, MoreHorizontal,
   ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight,
-  Edit, Trash2, Eye, Mail, Phone, ArrowUpDown, ArrowLeft, Loader2, AtSign, Calendar, X, Shield, ExternalLink
+  Edit, Trash2, Eye, Mail, Phone, ArrowUpDown, Loader2, AtSign, Calendar, X, Shield, ExternalLink
 } from "lucide-react";
+import { AdminLayout } from "@/components/admin/AdminLayout";
 
 // Country name to ISO 2-letter code mapping for flag emojis
 const countryToCode: Record<string, string> = {
@@ -775,59 +776,51 @@ const UserList = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* Header */}
-      <div className="bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button 
-                variant="ghost" 
-                size="icon"
-                onClick={() => navigate('/adminindex')}
-                className="hover:bg-slate-100"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
+    <AdminLayout>
+      <div className="min-h-screen bg-background">
+        {/* Header */}
+        <div className="bg-card border-b border-border">
+          <div className="max-w-7xl mx-auto px-6 py-4">
+            <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-slate-900">
+                <h1 className="text-2xl font-bold text-foreground">
                   {datePreset !== 'all' ? getPresetLabel(datePreset) : "User List"}
                 </h1>
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-muted-foreground">
                   {datePreset !== 'all'
                     ? `${totalCount} members in selected period` 
                     : "Manage and view all registered users"}
                 </p>
               </div>
-            </div>
-            <div className="flex items-center gap-3">
-              {selectedUsers.size > 0 && (
-                <Button 
-                  variant="destructive" 
-                  className="gap-2"
-                  onClick={handleBatchDelete}
-                  disabled={isDeleting}
-                >
-                  {isDeleting ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Trash2 className="w-4 h-4" />
-                  )}
-                  Delete {selectedUsers.size} Selected
+              <div className="flex items-center gap-3">
+                {selectedUsers.size > 0 && (
+                  <Button 
+                    variant="destructive" 
+                    className="gap-2"
+                    onClick={handleBatchDelete}
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="w-4 h-4" />
+                    )}
+                    Delete {selectedUsers.size} Selected
+                  </Button>
+                )}
+                <Button variant="outline" className="gap-2">
+                  <Download className="w-4 h-4" />
+                  Export
                 </Button>
-              )}
-              <Button variant="outline" className="gap-2">
-                <Download className="w-4 h-4" />
-                Export
-              </Button>
-              <Button variant="outline" className="gap-2">
-                <Upload className="w-4 h-4" />
-                Import
-              </Button>
-              <Button className="gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                <Plus className="w-4 h-4" />
-                Add User
-              </Button>
+                <Button variant="outline" className="gap-2">
+                  <Upload className="w-4 h-4" />
+                  Import
+                </Button>
+                <Button className="gap-2 bg-primary hover:bg-primary/90">
+                  <Plus className="w-4 h-4" />
+                  Add User
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -1226,7 +1219,7 @@ const UserList = () => {
           </div>
         </div>
       </div>
-    </div>
+    </AdminLayout>
   );
 };
 

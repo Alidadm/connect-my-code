@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import Swal from "sweetalert2";
@@ -19,13 +18,13 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
-  ArrowLeft, Plus, Trash2, Loader2, Image as ImageIcon, 
+  Plus, Trash2, Loader2, Image as ImageIcon, 
   Send, Megaphone, X, Calendar, Film, FileAudio, FileText,
   Upload, Clock, Pencil, FileX, FileEdit, RotateCcw, Copy,
   Eye, Heart, MessageCircle, Share2, MoreVertical, Bookmark, Youtube
 } from "lucide-react";
 import { formatDistanceToNow, format, isPast, isFuture } from "date-fns";
-import AdminRouteGuard from "@/components/admin/AdminRouteGuard";
+import { AdminLayout } from "@/components/admin/AdminLayout";
 
 interface PlatformPost {
   id: string;
@@ -54,7 +53,6 @@ const MAX_FILES = 10;
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 
 const PlatformPosts = () => {
-  const navigate = useNavigate();
   const [posts, setPosts] = useState<PlatformPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -592,28 +590,19 @@ const PlatformPosts = () => {
   };
 
   return (
-    <AdminRouteGuard>
-      <div className="min-h-screen bg-slate-50 p-6">
+    <AdminLayout>
+      <div className="min-h-screen bg-background p-6">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate("/admin")}
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <div>
-                <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-                  <Megaphone className="h-6 w-6 text-primary" />
-                  Platform Posts
-                </h1>
-                <p className="text-sm text-slate-500">
-                  Create posts visible to all members
-                </p>
-              </div>
+            <div>
+              <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+                <Megaphone className="h-6 w-6 text-primary" />
+                Platform Posts
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                Create posts visible to all members
+              </p>
             </div>
             <Button onClick={() => setShowCreateForm(!showCreateForm)} className="gap-2">
               <Plus className="h-4 w-4" />
@@ -1751,7 +1740,7 @@ const PlatformPosts = () => {
           </DialogContent>
         </Dialog>
       </div>
-    </AdminRouteGuard>
+    </AdminLayout>
   );
 };
 

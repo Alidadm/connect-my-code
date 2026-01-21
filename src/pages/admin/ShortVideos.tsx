@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,10 +9,10 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { 
-  ArrowLeft, Plus, Trash2, Play, GripVertical, 
+  Plus, Trash2, Play, GripVertical, 
   ExternalLink, Save, Loader2, Video
 } from "lucide-react";
-import AdminRouteGuard from "@/components/admin/AdminRouteGuard";
+import { AdminLayout } from "@/components/admin/AdminLayout";
 import Swal from "sweetalert2";
 
 interface ShortVideo {
@@ -27,7 +26,6 @@ interface ShortVideo {
 }
 
 const ShortVideosPage = () => {
-  const navigate = useNavigate();
   const [videos, setVideos] = useState<ShortVideo[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -218,28 +216,19 @@ const ShortVideosPage = () => {
   };
 
   return (
-    <AdminRouteGuard>
+    <AdminLayout>
       <div className="min-h-screen bg-background p-6">
         <div className="max-w-5xl mx-auto">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate("/adminindex")}
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <div>
-                <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-                  <Video className="h-6 w-6 text-primary" />
-                  Short Videos
-                </h1>
-                <p className="text-muted-foreground">
-                  Manage TikTok-style videos shown in the feed
-                </p>
-              </div>
+            <div>
+              <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+                <Video className="h-6 w-6 text-primary" />
+                Short Videos
+              </h1>
+              <p className="text-muted-foreground">
+                Manage TikTok-style videos shown in the feed
+              </p>
             </div>
             <Button onClick={() => setShowBulkAdd(!showBulkAdd)}>
               <Plus className="h-4 w-4 mr-2" />
@@ -434,7 +423,7 @@ const ShortVideosPage = () => {
           )}
         </div>
       </div>
-    </AdminRouteGuard>
+    </AdminLayout>
   );
 };
 
