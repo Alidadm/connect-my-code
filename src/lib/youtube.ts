@@ -26,6 +26,16 @@ function looksLikeVideoId(value: string): boolean {
   return /^[a-zA-Z0-9_-]{11}$/.test(value);
 }
 
+function normalizeVideoId(candidate: string | null | undefined): string | null {
+  if (!candidate) return null;
+  const value = candidate.trim();
+  if (!value) return null;
+
+  // Extract the first valid-looking 11-char YouTube ID from messy inputs.
+  const match = value.match(/[a-zA-Z0-9_-]{11}/);
+  return match?.[0] ?? null;
+}
+
 /**
  * Extract YouTube video ID from a wide range of URL formats.
  * Returns null for non-video URLs (e.g. playlists).
@@ -70,14 +80,14 @@ export function extractYoutubeVideoId(input: string): string | null {
   // youtu.be/<id>
   if (hostname === "youtu.be" || hostname.endsWith(".youtu.be")) {
     const id = url.pathname.split("/").filter(Boolean)[0];
-    return id && looksLikeVideoId(id) ? id : id || null;
+    return normalizeVideoId(id);
   }
 
   // Any subdomain of youtube.com (www, m, music, etc.)
   if (hostname === "youtube.com" || hostname.endsWith(".youtube.com")) {
     // Standard watch
-    const v = url.searchParams.get("v");
-    if (v && v.length > 0) return v;
+    const v = normalizeVideoId(url.searchParams.get("v"));
+    if (v) return v;
 
     // /shorts/<id>, /embed/<id>, /v/<id>, /live/<id>
     const parts = url.pathname.split("/").filter(Boolean);
@@ -85,13 +95,13 @@ export function extractYoutubeVideoId(input: string): string | null {
       ["shorts", "embed", "v", "live"].includes(p.toLowerCase())
     );
     if (markerIndex >= 0 && parts[markerIndex + 1]) {
-      return parts[markerIndex + 1];
+      return normalizeVideoId(parts[markerIndex + 1]);
     }
   }
 
   // Fallback: v param anywhere.
-  const vAny = url.searchParams.get("v");
-  if (vAny && vAny.length > 0) return vAny;
+  const vAny = normalizeVideoId(url.searchParams.get("v"));
+  if (vAny) return vAny;
 
   return extractYoutubeVideoIdRegexFallback(raw);
 }
@@ -117,7 +127,8 @@ function extractYoutubeVideoIdRegexFallback(value: string): string | null {
 
   for (const pattern of patterns) {
     const match = value.match(pattern);
-    if (match?.[1]) return match[1];
+    const normalized = normalizeVideoId(match?.[1] ?? null);
+    if (normalized) return normalized;
   }
   return null;
 }
