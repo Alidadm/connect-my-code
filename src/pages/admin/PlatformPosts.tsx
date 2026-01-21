@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import Swal from "sweetalert2";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -21,7 +22,7 @@ import {
   ArrowLeft, Plus, Trash2, Loader2, Image as ImageIcon, 
   Send, Megaphone, X, Calendar, Film, FileAudio, FileText,
   Upload, Clock, Pencil, FileX, FileEdit, RotateCcw, Copy,
-  Eye, Heart, MessageCircle, Share2, MoreVertical, Bookmark
+  Eye, Heart, MessageCircle, Share2, MoreVertical, Bookmark, Youtube
 } from "lucide-react";
 import { formatDistanceToNow, format, isPast, isFuture } from "date-fns";
 import AdminRouteGuard from "@/components/admin/AdminRouteGuard";
@@ -62,6 +63,8 @@ const PlatformPosts = () => {
   const [isScheduled, setIsScheduled] = useState(false);
   const [scheduledDate, setScheduledDate] = useState("");
   const [scheduledTime, setScheduledTime] = useState("");
+  const [youtubeUrl, setYoutubeUrl] = useState("");
+  const [youtubeUrls, setYoutubeUrls] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState("published");
   
   // Edit state
@@ -269,6 +272,8 @@ const PlatformPosts = () => {
       setIsScheduled(false);
       setScheduledDate("");
       setScheduledTime("");
+      setYoutubeUrl("");
+      setYoutubeUrls([]);
       setShowCreateForm(false);
       fetchPlatformPosts();
     } catch (error) {
@@ -489,6 +494,66 @@ const PlatformPosts = () => {
     return url.match(/\.(mp3|wav|ogg|m4a)$/i);
   };
 
+  // YouTube URL helpers
+  const extractYoutubeVideoId = (url: string): string | null => {
+    const patterns = [
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([^&\s?]+)/,
+      /youtube\.com\/shorts\/([^&\s?]+)/
+    ];
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match) return match[1];
+    }
+    return null;
+  };
+
+  const isYoutubeUrl = (url: string): boolean => {
+    return extractYoutubeVideoId(url) !== null;
+  };
+
+  const handleAddYoutubeUrl = () => {
+    const videoId = extractYoutubeVideoId(youtubeUrl);
+    if (!videoId) {
+      toast.error("Invalid YouTube URL");
+      return;
+    }
+    if (youtubeUrls.includes(youtubeUrl)) {
+      toast.error("This YouTube video is already added");
+      return;
+    }
+    setYoutubeUrls([...youtubeUrls, youtubeUrl]);
+    setYoutubeUrl("");
+    toast.success("YouTube video added");
+  };
+
+  const removeYoutubeUrl = (index: number) => {
+    setYoutubeUrls(youtubeUrls.filter((_, i) => i !== index));
+  };
+
+  const previewYoutubeVideo = (url: string) => {
+    const videoId = extractYoutubeVideoId(url);
+    if (!videoId) return;
+    
+    Swal.fire({
+      html: `<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;">
+        <iframe 
+          src="https://www.youtube.com/embed/${videoId}?autoplay=1" 
+          style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+          allowfullscreen
+        ></iframe>
+      </div>`,
+      width: '80%',
+      showCloseButton: true,
+      showConfirmButton: false,
+      background: '#000',
+      customClass: {
+        popup: 'youtube-preview-popup',
+        closeButton: 'youtube-close-button'
+      }
+    });
+  };
+
   const openPreviewModal = (post: PlatformPost) => {
     setPreviewPost(post);
   };
@@ -679,6 +744,83 @@ const PlatformPosts = () => {
                   </div>
                 )}
 
+                {/* YouTube URL Input */}
+                <div className="p-4 bg-muted/30 rounded-lg space-y-3 border border-muted">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Youtube className="h-5 w-5 text-destructive" />
+                    <span className="text-sm font-medium text-foreground">Add YouTube Video</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Paste YouTube URL (e.g., https://youtube.com/watch?v=...)"
+                      value={youtubeUrl}
+                      onChange={(e) => setYoutubeUrl(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleAddYoutubeUrl();
+                        }
+                      }}
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleAddYoutubeUrl}
+                      disabled={!youtubeUrl.trim()}
+                      className="gap-2"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Add
+                    </Button>
+                  </div>
+                  
+                  {/* Added YouTube Videos */}
+                  {youtubeUrls.length > 0 && (
+                    <div className="space-y-2 mt-3">
+                      <span className="text-xs text-muted-foreground">Added Videos ({youtubeUrls.length})</span>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        {youtubeUrls.map((url, index) => {
+                          const videoId = extractYoutubeVideoId(url);
+                          return (
+                            <div key={index} className="relative group">
+                              <div 
+                                className="h-24 w-full rounded-lg border overflow-hidden cursor-pointer bg-background"
+                                onClick={() => previewYoutubeVideo(url)}
+                              >
+                                <img
+                                  src={`https://img.youtube.com/vi/${videoId}/mqdefault.jpg`}
+                                  alt="YouTube thumbnail"
+                                  className="h-full w-full object-cover"
+                                />
+                                <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <Eye className="h-6 w-6 text-white" />
+                                </div>
+                              </div>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  removeYoutubeUrl(index);
+                                }}
+                                className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                              <Badge 
+                                variant="secondary" 
+                                className="absolute bottom-1 left-1 text-[10px] px-1 py-0 bg-destructive/90 text-destructive-foreground"
+                              >
+                                <Youtube className="h-2.5 w-2.5 mr-0.5" />
+                                YouTube
+                              </Badge>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 {/* Schedule Post */}
                 <div className="p-4 bg-slate-50 rounded-lg space-y-3">
                   <div className="flex items-center justify-between">
@@ -735,6 +877,8 @@ const PlatformPosts = () => {
                     setIsScheduled(false);
                     setScheduledDate("");
                     setScheduledTime("");
+                    setYoutubeUrl("");
+                    setYoutubeUrls([]);
                   }}>
                     Cancel
                   </Button>
