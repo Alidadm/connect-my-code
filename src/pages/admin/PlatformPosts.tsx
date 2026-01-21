@@ -93,6 +93,12 @@ const PlatformPosts = () => {
   const [editDraggedIndex, setEditDraggedIndex] = useState<number | null>(null);
   const [editDragOverIndex, setEditDragOverIndex] = useState<number | null>(null);
   
+  // Keyboard selection state for YouTube videos
+  const [selectedYoutubeIndex, setSelectedYoutubeIndex] = useState<number | null>(null);
+  const [editSelectedYoutubeIndex, setEditSelectedYoutubeIndex] = useState<number | null>(null);
+  const youtubeContainerRef = useRef<HTMLDivElement>(null);
+  const editYoutubeContainerRef = useRef<HTMLDivElement>(null);
+  
   const imageInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
   const audioInputRef = useRef<HTMLInputElement>(null);
@@ -610,6 +616,104 @@ const PlatformPosts = () => {
     setEditDragOverIndex(null);
   };
 
+  // Keyboard handlers for YouTube video reordering (create form)
+  const handleYoutubeKeyDown = (e: React.KeyboardEvent) => {
+    if (selectedYoutubeIndex === null || youtubeUrls.length <= 1) return;
+    
+    const currentIndex = selectedYoutubeIndex;
+    let newIndex: number | null = null;
+    
+    switch (e.key) {
+      case 'ArrowLeft':
+      case 'ArrowUp':
+        e.preventDefault();
+        if (currentIndex > 0) {
+          newIndex = currentIndex - 1;
+          // Move video left/up
+          const newUrls = [...youtubeUrls];
+          [newUrls[currentIndex], newUrls[newIndex]] = [newUrls[newIndex], newUrls[currentIndex]];
+          setYoutubeUrls(newUrls);
+          setSelectedYoutubeIndex(newIndex);
+        }
+        break;
+      case 'ArrowRight':
+      case 'ArrowDown':
+        e.preventDefault();
+        if (currentIndex < youtubeUrls.length - 1) {
+          newIndex = currentIndex + 1;
+          // Move video right/down
+          const newUrls = [...youtubeUrls];
+          [newUrls[currentIndex], newUrls[newIndex]] = [newUrls[newIndex], newUrls[currentIndex]];
+          setYoutubeUrls(newUrls);
+          setSelectedYoutubeIndex(newIndex);
+        }
+        break;
+      case 'Escape':
+        e.preventDefault();
+        setSelectedYoutubeIndex(null);
+        break;
+      case 'Delete':
+      case 'Backspace':
+        e.preventDefault();
+        removeYoutubeUrl(currentIndex);
+        setSelectedYoutubeIndex(null);
+        break;
+      case 'Enter':
+      case ' ':
+        e.preventDefault();
+        previewYoutubeVideo(youtubeUrls[currentIndex]);
+        break;
+    }
+  };
+
+  // Keyboard handlers for YouTube video reordering (edit form)
+  const handleEditYoutubeKeyDown = (e: React.KeyboardEvent) => {
+    if (editSelectedYoutubeIndex === null || editYoutubeUrls.length <= 1) return;
+    
+    const currentIndex = editSelectedYoutubeIndex;
+    let newIndex: number | null = null;
+    
+    switch (e.key) {
+      case 'ArrowLeft':
+      case 'ArrowUp':
+        e.preventDefault();
+        if (currentIndex > 0) {
+          newIndex = currentIndex - 1;
+          const newUrls = [...editYoutubeUrls];
+          [newUrls[currentIndex], newUrls[newIndex]] = [newUrls[newIndex], newUrls[currentIndex]];
+          setEditYoutubeUrls(newUrls);
+          setEditSelectedYoutubeIndex(newIndex);
+        }
+        break;
+      case 'ArrowRight':
+      case 'ArrowDown':
+        e.preventDefault();
+        if (currentIndex < editYoutubeUrls.length - 1) {
+          newIndex = currentIndex + 1;
+          const newUrls = [...editYoutubeUrls];
+          [newUrls[currentIndex], newUrls[newIndex]] = [newUrls[newIndex], newUrls[currentIndex]];
+          setEditYoutubeUrls(newUrls);
+          setEditSelectedYoutubeIndex(newIndex);
+        }
+        break;
+      case 'Escape':
+        e.preventDefault();
+        setEditSelectedYoutubeIndex(null);
+        break;
+      case 'Delete':
+      case 'Backspace':
+        e.preventDefault();
+        removeEditYoutubeUrl(currentIndex);
+        setEditSelectedYoutubeIndex(null);
+        break;
+      case 'Enter':
+      case ' ':
+        e.preventDefault();
+        previewYoutubeVideo(editYoutubeUrls[currentIndex]);
+        break;
+    }
+  };
+
   const previewYoutubeVideo = (url: string) => {
     const videoId = extractYoutubeVideoId(url);
     if (!videoId) return;
@@ -853,38 +957,56 @@ const PlatformPosts = () => {
                         <span className="text-xs text-muted-foreground">Added Videos ({youtubeUrls.length})</span>
                         <span className="text-xs text-muted-foreground flex items-center gap-1">
                           <GripVertical className="h-3 w-3" />
-                          Drag to reorder
+                          Drag or use ←→ keys
                         </span>
                       </div>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      <div 
+                        ref={youtubeContainerRef}
+                        className="grid grid-cols-2 sm:grid-cols-3 gap-2 focus:outline-none"
+                        tabIndex={0}
+                        onKeyDown={handleYoutubeKeyDown}
+                        onBlur={() => setSelectedYoutubeIndex(null)}
+                      >
                         {youtubeUrls.map((url, index) => {
                           const videoId = extractYoutubeVideoId(url);
                           const isDragging = draggedIndex === index;
                           const isDragOver = dragOverIndex === index;
+                          const isSelected = selectedYoutubeIndex === index;
                           return (
                             <div 
                               key={`${url}-${index}`} 
-                              className={`relative group transition-all duration-200 ${isDragging ? 'opacity-50 scale-95' : ''} ${isDragOver ? 'ring-2 ring-primary ring-offset-2' : ''}`}
+                              className={`relative group transition-all duration-200 cursor-pointer
+                                ${isDragging ? 'opacity-50 scale-95' : ''} 
+                                ${isDragOver ? 'ring-2 ring-primary ring-offset-2' : ''} 
+                                ${isSelected ? 'ring-2 ring-primary ring-offset-1 scale-[1.02]' : ''}`}
                               draggable
                               onDragStart={() => handleYoutubeDragStart(index)}
                               onDragOver={(e) => handleYoutubeDragOver(e, index)}
                               onDragEnd={handleYoutubeDragEnd}
                               onDragLeave={() => setDragOverIndex(null)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedYoutubeIndex(index);
+                                youtubeContainerRef.current?.focus();
+                              }}
                             >
                               {/* Drag handle */}
                               <div className="absolute top-1 left-1 z-10 bg-background/80 rounded p-0.5 cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity">
                                 <GripVertical className="h-4 w-4 text-muted-foreground" />
                               </div>
-                              <div 
-                                className="h-24 w-full rounded-lg border overflow-hidden cursor-pointer bg-background"
-                                onClick={() => previewYoutubeVideo(url)}
-                              >
+                              {/* Selection indicator */}
+                              {isSelected && (
+                                <div className="absolute top-1 right-6 z-10 bg-primary text-primary-foreground rounded px-1 py-0.5 text-[10px] font-medium">
+                                  ←→
+                                </div>
+                              )}
+                              <div className="h-24 w-full rounded-lg border overflow-hidden bg-background">
                                 <img
                                   src={`https://img.youtube.com/vi/${videoId}/mqdefault.jpg`}
                                   alt="YouTube thumbnail"
                                   className="h-full w-full object-cover"
                                 />
-                                <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div className={`absolute inset-0 flex items-center justify-center transition-opacity ${isSelected ? 'bg-primary/20 opacity-100' : 'bg-black/30 opacity-0 group-hover:opacity-100'}`}>
                                   <Eye className="h-6 w-6 text-white" />
                                 </div>
                               </div>
@@ -893,7 +1015,7 @@ const PlatformPosts = () => {
                                   e.stopPropagation();
                                   removeYoutubeUrl(index);
                                 }}
-                                className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
+                                className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-md z-20"
                               >
                                 <X className="h-3 w-3" />
                               </button>
@@ -908,6 +1030,11 @@ const PlatformPosts = () => {
                           );
                         })}
                       </div>
+                      {selectedYoutubeIndex !== null && (
+                        <p className="text-[10px] text-muted-foreground text-center">
+                          ←/→ to move • Enter to preview • Delete to remove • Esc to deselect
+                        </p>
+                      )}
                     </div>
                   )}
                 </div>
@@ -1603,38 +1730,56 @@ const PlatformPosts = () => {
                       <span className="text-xs text-muted-foreground">Added Videos ({editYoutubeUrls.length})</span>
                       <span className="text-xs text-muted-foreground flex items-center gap-1">
                         <GripVertical className="h-3 w-3" />
-                        Drag to reorder
+                        Drag or use ←→ keys
                       </span>
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    <div 
+                      ref={editYoutubeContainerRef}
+                      className="grid grid-cols-2 sm:grid-cols-3 gap-2 focus:outline-none"
+                      tabIndex={0}
+                      onKeyDown={handleEditYoutubeKeyDown}
+                      onBlur={() => setEditSelectedYoutubeIndex(null)}
+                    >
                       {editYoutubeUrls.map((url, index) => {
                         const videoId = extractYoutubeVideoId(url);
                         const isDragging = editDraggedIndex === index;
                         const isDragOver = editDragOverIndex === index;
+                        const isSelected = editSelectedYoutubeIndex === index;
                         return (
                           <div 
                             key={`${url}-${index}`} 
-                            className={`relative group transition-all duration-200 ${isDragging ? 'opacity-50 scale-95' : ''} ${isDragOver ? 'ring-2 ring-primary ring-offset-2' : ''}`}
+                            className={`relative group transition-all duration-200 cursor-pointer
+                              ${isDragging ? 'opacity-50 scale-95' : ''} 
+                              ${isDragOver ? 'ring-2 ring-primary ring-offset-2' : ''} 
+                              ${isSelected ? 'ring-2 ring-primary ring-offset-1 scale-[1.02]' : ''}`}
                             draggable
                             onDragStart={() => handleEditYoutubeDragStart(index)}
                             onDragOver={(e) => handleEditYoutubeDragOver(e, index)}
                             onDragEnd={handleEditYoutubeDragEnd}
                             onDragLeave={() => setEditDragOverIndex(null)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditSelectedYoutubeIndex(index);
+                              editYoutubeContainerRef.current?.focus();
+                            }}
                           >
                             {/* Drag handle */}
                             <div className="absolute top-1 left-1 z-10 bg-background/80 rounded p-0.5 cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity">
                               <GripVertical className="h-4 w-4 text-muted-foreground" />
                             </div>
-                            <div 
-                              className="h-20 w-full rounded-lg border overflow-hidden cursor-pointer bg-background"
-                              onClick={() => previewYoutubeVideo(url)}
-                            >
+                            {/* Selection indicator */}
+                            {isSelected && (
+                              <div className="absolute top-1 right-6 z-10 bg-primary text-primary-foreground rounded px-1 py-0.5 text-[10px] font-medium">
+                                ←→
+                              </div>
+                            )}
+                            <div className="h-20 w-full rounded-lg border overflow-hidden bg-background">
                               <img
                                 src={`https://img.youtube.com/vi/${videoId}/mqdefault.jpg`}
                                 alt="YouTube thumbnail"
                                 className="h-full w-full object-cover"
                               />
-                              <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <div className={`absolute inset-0 flex items-center justify-center transition-opacity ${isSelected ? 'bg-primary/20 opacity-100' : 'bg-black/30 opacity-0 group-hover:opacity-100'}`}>
                                 <Eye className="h-5 w-5 text-white" />
                               </div>
                             </div>
@@ -1643,7 +1788,7 @@ const PlatformPosts = () => {
                                 e.stopPropagation();
                                 removeEditYoutubeUrl(index);
                               }}
-                              className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
+                              className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-md z-20"
                             >
                               <X className="h-3 w-3" />
                             </button>
@@ -1658,6 +1803,11 @@ const PlatformPosts = () => {
                         );
                       })}
                     </div>
+                    {editSelectedYoutubeIndex !== null && (
+                      <p className="text-[10px] text-muted-foreground text-center">
+                        ←/→ to move • Enter to preview • Delete to remove • Esc to deselect
+                      </p>
+                    )}
                   </div>
                 )}
               </div>
