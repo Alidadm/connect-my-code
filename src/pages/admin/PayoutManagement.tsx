@@ -509,7 +509,7 @@ const PayoutManagement = () => {
   };
 
   return (
-    <AdminLayout>
+    <AdminLayout title="Payout Management">
       <div className="min-h-screen bg-background">
         <div className="container max-w-6xl mx-auto px-4 py-8">
           {/* Header */}

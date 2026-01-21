@@ -124,7 +124,7 @@ const EmailTemplatesPage = () => {
 
   if (loading) {
     return (
-      <AdminLayout>
+      <AdminLayout title="Email Templates">
         <div className="flex items-center justify-center min-h-screen">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
@@ -133,7 +133,7 @@ const EmailTemplatesPage = () => {
   }
 
   return (
-    <AdminLayout>
+    <AdminLayout title="Email Templates">
       <div className="min-h-screen bg-background">
         {/* Header */}
         <div className="bg-card border-b border-border px-6 py-4">
