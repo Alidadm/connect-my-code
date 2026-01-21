@@ -567,6 +567,103 @@ serve(async (req) => {
       }
     }
 
+    // Handle subscription created - create subscription record
+    if (event.type === "customer.subscription.created") {
+      const subscription = event.data.object as Stripe.Subscription;
+      logStep("Processing subscription created", { 
+        subscriptionId: subscription.id,
+        status: subscription.status,
+        customerId: subscription.customer
+      });
+
+      // Get customer email to find the user
+      const customerId = typeof subscription.customer === "string" ? subscription.customer : subscription.customer?.id;
+      if (!customerId) {
+        logStep("No customer ID found on subscription");
+        return new Response(JSON.stringify({ received: true }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
+
+      const customer = await stripe.customers.retrieve(customerId);
+      if (customer.deleted || !customer.email) {
+        logStep("Customer deleted or no email", { customerId });
+        return new Response(JSON.stringify({ received: true }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
+
+      logStep("Found customer for subscription", { email: customer.email });
+
+      // Find the user profile by email
+      const { data: authUsers, error: authError } = await supabaseClient.auth.admin.listUsers();
+      if (authError) {
+        logStep("Error fetching auth users", { error: authError.message });
+        throw new Error(`Failed to fetch users: ${authError.message}`);
+      }
+
+      const user = authUsers.users.find(u => u.email?.toLowerCase() === customer.email?.toLowerCase());
+      if (!user) {
+        logStep("No user found for subscription email", { email: customer.email });
+        return new Response(JSON.stringify({ received: true }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
+
+      logStep("Found user for subscription", { userId: user.id });
+
+      // Check if subscription already exists
+      const { data: existingSub } = await supabaseClient
+        .from("subscriptions")
+        .select("id")
+        .eq("provider_subscription_id", subscription.id)
+        .single();
+
+      if (existingSub) {
+        logStep("Subscription record already exists", { id: existingSub.id });
+      } else {
+        // Get the first subscription item to get price/amount info
+        const subscriptionItem = subscription.items?.data?.[0];
+        const amount = subscriptionItem?.price?.unit_amount 
+          ? subscriptionItem.price.unit_amount / 100 
+          : 9.99;
+        const currency = subscriptionItem?.price?.currency?.toUpperCase() || "USD";
+
+        logStep("Inserting subscription record", { 
+          userId: user.id,
+          subscriptionId: subscription.id,
+          amount,
+          currency,
+          periodStart: subscription.current_period_start,
+          periodEnd: subscription.current_period_end
+        });
+
+        const { data: insertedSub, error: subError } = await supabaseClient
+          .from("subscriptions")
+          .insert({
+            user_id: user.id,
+            status: subscription.status === "active" ? "active" : "pending",
+            payment_provider: "stripe",
+            provider_subscription_id: subscription.id,
+            amount,
+            currency,
+            current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+            current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+          })
+          .select()
+          .single();
+
+        if (subError) {
+          logStep("Failed to create subscription record", { error: subError.message, code: subError.code });
+        } else {
+          logStep("Created subscription record successfully", { id: insertedSub?.id });
+        }
+      }
+    }
+
     // Handle subscription deleted/canceled
     if (event.type === "customer.subscription.deleted") {
       const subscription = event.data.object as Stripe.Subscription;
