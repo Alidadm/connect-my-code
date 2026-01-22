@@ -1,4 +1,4 @@
-import { Search, MoreVertical, Bell, Cake, TrendingUp, MessageCircle, Heart, Users, Circle, Send, PenLine, Settings2, Check, CalendarClock, Gamepad2, Play, Clock, Grid3X3, Trash2, LayoutGrid } from "lucide-react";
+import { Search, MoreVertical, Bell, Cake, TrendingUp, MessageCircle, Heart, Users, Send, PenLine, Settings2, Check, CalendarClock, Gamepad2, Play, Clock, Grid3X3, Trash2, LayoutGrid } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ScheduleBirthdayWishDialog } from "@/components/birthday/ScheduleBirthdayWishDialog";
+import { OnlineIndicator } from "@/components/ui/online-indicator";
 
 interface MessageWithSender {
   id: string;
@@ -740,12 +741,7 @@ export const RightSidebar = () => {
                     </Avatar>
                     {/* Only show online indicator if user allows it */}
                     {friend.showOnlineStatus && (
-                      <Circle 
-                        className={cn(
-                          "absolute bottom-0 right-0 h-3 w-3 fill-current border-2 border-card rounded-full",
-                          friend.isOnline ? "text-green-500" : "text-gray-400"
-                        )} 
-                      />
+                      <OnlineIndicator isOnline={friend.isOnline} size="sm" />
                     )}
                   </div>
                   <span className="text-[10px] text-muted-foreground truncate max-w-full text-center">
