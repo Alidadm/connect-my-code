@@ -384,12 +384,18 @@ const GroupDetail = () => {
         setIsUploading(false);
       }
 
+      // Auto-capitalize first letter of content
+      const trimmedContent = postContent.trim();
+      const capitalizedContent = trimmedContent.length > 0 
+        ? trimmedContent.charAt(0).toUpperCase() + trimmedContent.slice(1)
+        : null;
+
       const { error } = await supabase
         .from("group_posts")
         .insert({
           group_id: group.id,
           user_id: user.id,
-          content: postContent || null,
+          content: capitalizedContent,
           media_urls: mediaUrls.length > 0 ? mediaUrls : null
         });
 

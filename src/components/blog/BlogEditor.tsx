@@ -152,10 +152,16 @@ export const BlogEditor = ({ blogId, onSave }: BlogEditorProps) => {
 
     setIsSaving(true);
     try {
+      // Auto-capitalize first letter of title
+      const trimmedTitle = title.trim();
+      const capitalizedTitle = trimmedTitle.length > 0 
+        ? trimmedTitle.charAt(0).toUpperCase() + trimmedTitle.slice(1)
+        : trimmedTitle;
+
       const blogData = {
         user_id: user.id,
-        title: title.trim(),
-        slug: slug.trim() || title.toLowerCase().replace(/\s+/g, "-"),
+        title: capitalizedTitle,
+        slug: slug.trim() || capitalizedTitle.toLowerCase().replace(/\s+/g, "-"),
         excerpt: excerpt.trim() || null,
         cover_image_url: coverImage.trim() || null,
         category_id: categoryId || null,
