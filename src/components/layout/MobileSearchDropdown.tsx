@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Search, Users, User } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -6,6 +6,8 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "react-i18next";
+import { useOnlinePresence } from "@/hooks/useOnlinePresence";
+import { OnlineIndicator } from "@/components/ui/online-indicator";
 
 interface Friend {
   user_id: string;
@@ -33,6 +35,18 @@ export const MobileSearchDropdown = ({ onClose }: MobileSearchDropdownProps) => 
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Track online presence
+  const { onlineUsers, fetchLastSeen } = useOnlinePresence();
+
+  // Fetch last seen for friends when they change
+  const friendUserIds = useMemo(() => friends.map(f => f.user_id), [friends]);
+  
+  useEffect(() => {
+    if (friendUserIds.length > 0) {
+      fetchLastSeen(friendUserIds);
+    }
+  }, [friendUserIds, fetchLastSeen]);
 
   // Focus input on mount
   useEffect(() => {
@@ -214,12 +228,15 @@ export const MobileSearchDropdown = ({ onClose }: MobileSearchDropdownProps) => 
                       className="flex items-center gap-3 px-3 py-2.5 hover:bg-secondary/50 active:bg-secondary cursor-pointer transition-colors"
                       onClick={() => handleMemberClick(friend.username)}
                     >
-                      <Avatar className="h-9 w-9">
-                        <AvatarImage src={friend.avatar_url || ""} />
-                        <AvatarFallback className="bg-gradient-to-br from-primary to-dolphy-purple text-primary-foreground text-sm">
-                          {getInitials(friend.display_name)}
-                        </AvatarFallback>
-                      </Avatar>
+                      <div className="relative">
+                        <Avatar className="h-9 w-9">
+                          <AvatarImage src={friend.avatar_url || ""} />
+                          <AvatarFallback className="bg-gradient-to-br from-primary to-dolphy-purple text-primary-foreground text-sm">
+                            {getInitials(friend.display_name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <OnlineIndicator isOnline={onlineUsers.has(friend.user_id)} size="sm" />
+                      </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">
                           {friend.display_name || t("common.unknownUser", { defaultValue: "Unknown User" })}
