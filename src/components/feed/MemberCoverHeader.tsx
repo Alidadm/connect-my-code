@@ -175,17 +175,17 @@ export const MemberCoverHeader = ({ activeTab: externalActiveTab, onTabChange }:
 
       {/* Profile Info Section */}
       <div className="relative bg-card border-t border-border">
-        <div className="flex flex-col sm:flex-row items-start sm:items-end">
+        <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4 pb-4">
           {/* Avatar - overlapping the cover */}
-          <div className="relative -mt-12 ml-4 sm:ml-6 flex-shrink-0">
+          <div className="relative -mt-16 ml-4 sm:ml-6 flex-shrink-0">
             <div 
               className={`group relative ${user ? "cursor-pointer" : ""}`}
               onClick={() => user && navigate("/dashboard")}
               title={user ? t("profile.changeAvatar", "Change avatar") : undefined}
             >
-              <Avatar className="h-24 w-24 sm:h-28 sm:w-28 ring-4 ring-card shadow-lg">
+              <Avatar className="h-28 w-28 sm:h-32 sm:w-32 ring-4 ring-card shadow-xl border-2 border-primary/20">
                 <AvatarImage src={avatarUrl || undefined} alt={`${displayName}'s avatar`} />
-                <AvatarFallback className="bg-muted" showCameraIcon />
+                <AvatarFallback className="bg-gradient-to-br from-primary/20 to-secondary/20 text-2xl" showCameraIcon />
               </Avatar>
               {user && (
                 <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -196,90 +196,88 @@ export const MemberCoverHeader = ({ activeTab: externalActiveTab, onTabChange }:
           </div>
 
           {/* Name and Location */}
-          <div className="flex-1 min-w-0 px-4 py-3 sm:pb-0 sm:pt-3">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-6">
-              <div>
-                <div className="flex items-center gap-2">
-                  <Link 
-                    to={user && username ? `/${username}` : "#"}
-                    className="text-lg sm:text-xl font-semibold text-foreground hover:text-primary transition-colors truncate"
-                  >
-                    {displayName}
-                  </Link>
-                  {isVerified && (
-                    <BadgeCheck
-                      className="h-5 w-5 text-primary flex-shrink-0"
-                      aria-label="Verified"
-                    />
-                  )}
-                </div>
-                {location && (
-                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                    <MapPin className="h-3.5 w-3.5" />
-                    <span>{location}</span>
-                  </div>
+          <div className="flex-1 min-w-0 px-4 sm:px-0 pt-2 sm:pt-4 sm:pb-2">
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                <Link 
+                  to={user && username ? `/${username}` : "#"}
+                  className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-primary via-primary to-accent bg-clip-text text-transparent hover:from-accent hover:to-primary transition-all duration-300 truncate"
+                >
+                  {displayName}
+                </Link>
+                {isVerified && (
+                  <BadgeCheck
+                    className="h-5 w-5 sm:h-6 sm:w-6 text-primary flex-shrink-0"
+                    aria-label="Verified"
+                  />
                 )}
               </div>
+              {location && (
+                <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                  <MapPin className="h-4 w-4 text-primary/70" />
+                  <span className="font-medium">{location}</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
-
-        {/* Navigation Tabs */}
-        <div className="border-t border-border mt-2">
-          <nav className="flex items-center overflow-x-auto scrollbar-hide">
-            <div className="flex items-center px-4 sm:px-6">
-              {/* Spacer for avatar alignment */}
-              <div className="w-24 sm:w-28 flex-shrink-0" />
-              
-              {/* Tabs */}
-              <ul className="flex items-center gap-1 sm:gap-2 py-1">
-                {tabs.map((tab) => (
-                  <li key={tab.id}>
-                    <button
-                      onClick={() => handleTabClick(tab.id)}
-                      disabled={tab.disabled}
-                      className={`relative px-3 sm:px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
-                        tab.disabled
-                          ? "text-muted-foreground/50 cursor-not-allowed"
-                          : tab.id === "about" && aboutOpen
-                            ? "text-primary"
-                            : activeTab === tab.id && tab.id !== "about"
-                              ? "text-primary"
-                              : "text-muted-foreground hover:text-foreground"
-                      }`}
-                    >
-                      <span className="flex items-center gap-1.5">
-                        {tab.label}
-                        {tab.id === "about" && (
-                          aboutOpen ? (
-                            <ChevronUp className="h-4 w-4" />
-                          ) : (
-                            <ChevronDown className="h-4 w-4" />
-                          )
-                        )}
-                        {tab.count !== undefined && (
-                          <span className={`inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-medium rounded ${
-                            tab.disabled ? "bg-muted/50" : "bg-muted"
-                          }`}>
-                            {tab.count}
-                          </span>
-                        )}
-                      </span>
-                      {tab.id === "about" && aboutOpen && (
-                        <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-r-[6px] border-b-[6px] border-l-transparent border-r-transparent border-b-primary" />
-                      )}
-                      {activeTab === tab.id && !tab.disabled && tab.id !== "about" && (
-                        <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-r-[6px] border-b-[6px] border-l-transparent border-r-transparent border-b-primary" />
-                      )}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </nav>
-        </div>
-
       </div>
+
+      {/* Navigation Tabs */}
+      <div className="border-t border-border">
+        <nav className="flex items-center overflow-x-auto scrollbar-hide">
+          <div className="flex items-center px-4 sm:px-6">
+            {/* Spacer for avatar alignment */}
+            <div className="w-28 sm:w-32 flex-shrink-0" />
+            
+            {/* Tabs */}
+            <ul className="flex items-center gap-1 sm:gap-2 py-1">
+              {tabs.map((tab) => (
+                <li key={tab.id}>
+                  <button
+                    onClick={() => handleTabClick(tab.id)}
+                    disabled={tab.disabled}
+                    className={`relative px-3 sm:px-4 py-3 text-sm font-semibold transition-colors whitespace-nowrap ${
+                      tab.disabled
+                        ? "text-muted-foreground/50 cursor-not-allowed"
+                        : tab.id === "about" && aboutOpen
+                          ? "text-primary"
+                          : activeTab === tab.id && tab.id !== "about"
+                            ? "text-primary"
+                            : "text-muted-foreground hover:text-primary"
+                    }`}
+                  >
+                    <span className="flex items-center gap-1.5">
+                      {tab.label}
+                      {tab.id === "about" && (
+                        aboutOpen ? (
+                          <ChevronUp className="h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4" />
+                        )
+                      )}
+                      {tab.count !== undefined && (
+                        <span className={`inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-semibold rounded-full ${
+                          tab.disabled ? "bg-muted/50 text-muted-foreground" : "bg-primary/10 text-primary"
+                        }`}>
+                          {tab.count}
+                        </span>
+                      )}
+                    </span>
+                    {tab.id === "about" && aboutOpen && (
+                      <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-primary rounded-full" />
+                    )}
+                    {activeTab === tab.id && !tab.disabled && tab.id !== "about" && (
+                      <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-primary rounded-full" />
+                    )}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </nav>
+      </div>
+
 
       {/* About Section - Slide Down Overlay (overlaps content below) */}
       <div
