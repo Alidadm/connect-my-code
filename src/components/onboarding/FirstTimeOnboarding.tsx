@@ -6,10 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Loader2, Globe, User, Camera, Check } from "lucide-react";
+import { Loader2, Globe, User, Camera, Check, Mail, RefreshCw } from "lucide-react";
 import { supportedLanguages, LanguageCode } from "@/lib/i18n";
 import { useTranslation } from "react-i18next";
-import { format, parse } from "date-fns";
+import { format } from "date-fns";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
 interface FirstTimeOnboardingProps {
   onComplete: () => void;
@@ -19,11 +20,20 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
   const { user, profile, refreshProfile } = useAuth();
   const { i18n, t } = useTranslation();
   
-  const [step, setStep] = useState<"language" | "profile">("language");
+  const [step, setStep] = useState<"language" | "email" | "profile">("language");
   const [selectedLanguage, setSelectedLanguage] = useState<LanguageCode>("en");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  
+  // Email verification
+  const [emailToVerify, setEmailToVerify] = useState("");
+  const [verificationCode, setVerificationCode] = useState("");
+  const [sendingCode, setSendingCode] = useState(false);
+  const [verifyingCode, setVerifyingCode] = useState(false);
+  const [codeSent, setCodeSent] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [emailVerified, setEmailVerified] = useState(false);
   
   // Profile form data
   const [firstName, setFirstName] = useState("");
@@ -39,6 +49,14 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
     checkOnboardingStatus();
   }, [user]);
 
+  // Resend cooldown timer
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendCooldown]);
+
   const checkOnboardingStatus = async () => {
     if (!user) {
       setLoading(false);
@@ -49,13 +67,18 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
       // Check if onboarding is already completed
       const { data: profileData } = await supabase
         .from("profiles")
-        .select("onboarding_completed, first_name, last_name, avatar_url")
+        .select("onboarding_completed, first_name, last_name, avatar_url, email_verified")
         .eq("user_id", user.id)
         .single();
 
       if (profileData?.onboarding_completed) {
         onComplete();
         return;
+      }
+
+      // Check if email is already verified
+      if (profileData?.email_verified) {
+        setEmailVerified(true);
       }
 
       // Load existing profile data
@@ -82,10 +105,12 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
 
           if (response.ok) {
             const privateData = await response.json();
-            if (privateData.email) setEmail(privateData.email);
+            if (privateData.email) {
+              setEmail(privateData.email);
+              setEmailToVerify(privateData.email);
+            }
             if (privateData.phone) setPhone(privateData.phone);
             if (privateData.birthday) {
-              // Format date for input (YYYY-MM-DD)
               const date = new Date(privateData.birthday);
               setBirthday(format(date, "yyyy-MM-dd"));
             }
@@ -98,6 +123,7 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
       // Set email from auth user if not in private profile
       if (!email && user.email) {
         setEmail(user.email);
+        setEmailToVerify(user.email);
       }
 
       // Get current language
@@ -137,12 +163,106 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
       }
 
       toast.success(t("settings.languageChanged") || "Language saved!");
-      setStep("profile");
+      
+      // If email already verified, skip to profile
+      if (emailVerified) {
+        setStep("profile");
+      } else {
+        setStep("email");
+      }
     } catch (error) {
       console.error("Error saving language:", error);
       toast.error("Failed to save language preference");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleSendCode = async () => {
+    if (!emailToVerify || !emailToVerify.includes("@")) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+
+    setSendingCode(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        throw new Error("No valid session");
+      }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-email-verification-code`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ email: emailToVerify }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to send code");
+      }
+
+      setCodeSent(true);
+      setResendCooldown(60);
+      toast.success("Verification code sent to your email!");
+    } catch (error: any) {
+      console.error("Error sending code:", error);
+      toast.error(error.message || "Failed to send verification code");
+    } finally {
+      setSendingCode(false);
+    }
+  };
+
+  const handleVerifyCode = async () => {
+    if (verificationCode.length !== 6) {
+      toast.error("Please enter the 6-digit code");
+      return;
+    }
+
+    setVerifyingCode(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        throw new Error("No valid session");
+      }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-email-code`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ 
+            code: verificationCode,
+            email: emailToVerify 
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Invalid verification code");
+      }
+
+      setEmailVerified(true);
+      setEmail(emailToVerify);
+      toast.success("Email verified successfully!");
+      setStep("profile");
+    } catch (error: any) {
+      console.error("Error verifying code:", error);
+      toast.error(error.message || "Invalid or expired code");
+    } finally {
+      setVerifyingCode(false);
     }
   };
 
@@ -185,11 +305,6 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
       return;
     }
 
-    if (!email.trim() || !email.includes("@")) {
-      toast.error("Please enter a valid email address");
-      return;
-    }
-
     if (!birthday) {
       toast.error("Please enter your date of birth");
       return;
@@ -224,7 +339,7 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
               "Authorization": `Bearer ${session.access_token}`,
             },
             body: JSON.stringify({
-              email: email.trim(),
+              email: email.trim() || emailToVerify.trim(),
               phone: phone.trim() || null,
               birthday: birthday,
             }),
@@ -255,29 +370,45 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
     );
   }
 
+  const getStepNumber = () => {
+    if (step === "language") return 1;
+    if (step === "email") return 2;
+    return 3;
+  };
+
+  const totalSteps = emailVerified ? 2 : 3;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 backdrop-blur-sm">
       <div className="w-full max-w-lg mx-4 bg-card rounded-2xl shadow-2xl border overflow-hidden">
         {/* Header */}
         <div className="bg-gradient-to-r from-primary to-primary/80 p-6 text-primary-foreground">
           <h1 className="text-2xl font-bold">
-            {step === "language" ? "🌍 Welcome! Choose Your Language" : "👤 Complete Your Profile"}
+            {step === "language" && "🌍 Welcome! Choose Your Language"}
+            {step === "email" && "📧 Verify Your Email"}
+            {step === "profile" && "👤 Complete Your Profile"}
           </h1>
           <p className="text-primary-foreground/80 mt-1">
-            {step === "language" 
-              ? "Select your preferred language to continue" 
-              : "Please verify and complete your profile information"}
+            {step === "language" && "Select your preferred language to continue"}
+            {step === "email" && "We'll send a verification code to your email"}
+            {step === "profile" && "Please verify and complete your profile information"}
           </p>
           {/* Progress indicator */}
           <div className="flex gap-2 mt-4">
-            <div className={`h-1.5 flex-1 rounded-full ${step === "language" ? "bg-primary-foreground" : "bg-primary-foreground/50"}`} />
-            <div className={`h-1.5 flex-1 rounded-full ${step === "profile" ? "bg-primary-foreground" : "bg-primary-foreground/30"}`} />
+            {Array.from({ length: totalSteps }).map((_, idx) => (
+              <div 
+                key={idx}
+                className={`h-1.5 flex-1 rounded-full transition-colors ${
+                  idx < getStepNumber() ? "bg-primary-foreground" : "bg-primary-foreground/30"
+                }`} 
+              />
+            ))}
           </div>
         </div>
 
         {/* Content */}
         <div className="p-6 max-h-[60vh] overflow-y-auto">
-          {step === "language" ? (
+          {step === "language" && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 {supportedLanguages.map((lang) => (
@@ -306,7 +437,137 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
                 ))}
               </div>
             </div>
-          ) : (
+          )}
+
+          {step === "email" && (
+            <div className="space-y-6">
+              {!codeSent ? (
+                <>
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Mail className="h-8 w-8 text-primary" />
+                    </div>
+                    <p className="text-muted-foreground">
+                      We'll send a 6-digit verification code to your email address.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="emailVerify">Email Address</Label>
+                    <Input
+                      id="emailVerify"
+                      type="email"
+                      value={emailToVerify}
+                      onChange={(e) => setEmailToVerify(e.target.value)}
+                      placeholder="your@email.com"
+                    />
+                  </div>
+
+                  <Button
+                    onClick={handleSendCode}
+                    disabled={sendingCode || !emailToVerify}
+                    className="w-full"
+                  >
+                    {sendingCode ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Mail className="mr-2 h-4 w-4" />
+                        Send Verification Code
+                      </>
+                    )}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Check className="h-8 w-8 text-primary" />
+                    </div>
+                    <p className="font-medium">Code sent!</p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Check your inbox at <strong>{emailToVerify}</strong>
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-center block">Enter 6-digit code</Label>
+                    <div className="flex justify-center">
+                      <InputOTP
+                        maxLength={6}
+                        value={verificationCode}
+                        onChange={(value) => setVerificationCode(value)}
+                      >
+                        <InputOTPGroup>
+                          <InputOTPSlot index={0} />
+                          <InputOTPSlot index={1} />
+                          <InputOTPSlot index={2} />
+                          <InputOTPSlot index={3} />
+                          <InputOTPSlot index={4} />
+                          <InputOTPSlot index={5} />
+                        </InputOTPGroup>
+                      </InputOTP>
+                    </div>
+                  </div>
+
+                  <Button
+                    onClick={handleVerifyCode}
+                    disabled={verifyingCode || verificationCode.length !== 6}
+                    className="w-full"
+                  >
+                    {verifyingCode ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Verifying...
+                      </>
+                    ) : (
+                      <>
+                        <Check className="mr-2 h-4 w-4" />
+                        Verify Code
+                      </>
+                    )}
+                  </Button>
+
+                  <div className="flex items-center justify-center gap-2 text-sm">
+                    <span className="text-muted-foreground">Didn't receive it?</span>
+                    <Button
+                      variant="link"
+                      size="sm"
+                      onClick={handleSendCode}
+                      disabled={resendCooldown > 0 || sendingCode}
+                      className="p-0 h-auto"
+                    >
+                      {resendCooldown > 0 ? (
+                        `Resend in ${resendCooldown}s`
+                      ) : (
+                        <>
+                          <RefreshCw className="mr-1 h-3 w-3" />
+                          Resend code
+                        </>
+                      )}
+                    </Button>
+                  </div>
+
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setCodeSent(false);
+                      setVerificationCode("");
+                    }}
+                    className="w-full text-muted-foreground"
+                  >
+                    Change email address
+                  </Button>
+                </>
+              )}
+            </div>
+          )}
+
+          {step === "profile" && (
             <div className="space-y-6">
               {/* Avatar */}
               <div className="flex flex-col items-center gap-3">
@@ -361,16 +622,19 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
                 </div>
               </div>
 
-              {/* Email */}
+              {/* Email - readonly since verified */}
               <div className="space-y-2">
-                <Label htmlFor="email">Email Address *</Label>
+                <Label htmlFor="email">Email Address ✓</Label>
                 <Input
                   id="email"
                   type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="your@email.com"
+                  value={email || emailToVerify}
+                  disabled
+                  className="bg-muted"
                 />
+                <p className="text-xs text-primary flex items-center gap-1">
+                  <Check className="h-3 w-3" /> Email verified
+                </p>
               </div>
 
               {/* Phone */}
@@ -402,7 +666,7 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
 
         {/* Footer */}
         <div className="p-6 bg-muted/30 border-t flex justify-end gap-3">
-          {step === "language" ? (
+          {step === "language" && (
             <Button
               onClick={handleLanguageSave}
               disabled={saving}
@@ -420,7 +684,9 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
                 </>
               )}
             </Button>
-          ) : (
+          )}
+
+          {step === "profile" && (
             <Button
               onClick={handleProfileSave}
               disabled={saving}
