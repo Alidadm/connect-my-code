@@ -396,8 +396,42 @@ const Friends = () => {
         f.requester_id === user.id ? f.addressee_id : f.requester_id
       );
 
+      // If user has no friends, show random suggestions instead
       if (myFriendIds.length === 0) {
-        setSuggestions([]);
+        // Fetch random users excluding the current user
+        const { data: randomProfiles } = await supabase
+          .from("safe_profiles")
+          .select("user_id, display_name, first_name, last_name, avatar_url, username")
+          .neq("user_id", user.id)
+          .limit(10);
+
+        if (randomProfiles && randomProfiles.length > 0) {
+          // Check for existing pending requests to exclude those users
+          const { data: pendingData } = await supabase
+            .from("friendships")
+            .select("requester_id, addressee_id")
+            .eq("status", "pending")
+            .or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`);
+
+          const pendingUserIds = new Set(
+            (pendingData || []).flatMap(p => [p.requester_id, p.addressee_id])
+          );
+
+          const filteredProfiles = randomProfiles.filter(
+            p => !pendingUserIds.has(p.user_id)
+          );
+
+          const randomSuggestions: Suggestion[] = filteredProfiles.map(profile => ({
+            user_id: profile.user_id,
+            profile,
+            mutualFriendsCount: 0,
+            mutualFriendNames: [],
+          }));
+
+          setSuggestions(randomSuggestions);
+        } else {
+          setSuggestions([]);
+        }
         setSuggestionsLoading(false);
         return;
       }
