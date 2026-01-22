@@ -1,10 +1,10 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useMemo } from "react";
 import { 
   User, Settings, Bell, Shield, Palette, Layout, Camera, Save,
   ChevronRight, Eye, EyeOff, Lock, Mail, Phone, Globe, Calendar,
   Home, CreditCard, Users, Heart, MessageCircle, LogOut, Clock,
   CheckCircle2, XCircle, Loader2, ExternalLink, Languages, UsersRound,
-  Building2, Info, Youtube
+  Building2, Info, Youtube, AlertTriangle
 } from "lucide-react";
 import { format, isValid as isValidDate, parseISO } from "date-fns";
 import { GroupsManagement } from "@/components/dashboard/GroupsManagement";
@@ -32,6 +32,17 @@ import { validateUsername } from "@/lib/username";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { formatPhoneNumberIntl, isValidPhoneNumber } from "react-phone-number-input";
+import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 type TabType = "profile" | "account" | "about" | "privacy" | "notifications" | "appearance" | "groups" | "business" | "watch-history";
 
@@ -165,6 +176,25 @@ const MemberDashboard = () => {
   
   // Cover editor state
   const [coverEditorOpen, setCoverEditorOpen] = useState(false);
+
+  // Track if profile form has unsaved changes
+  const hasUnsavedProfileChanges = useMemo(() => {
+    if (!profile) return false;
+    return (
+      formData.display_name !== (profile.display_name || "") ||
+      formData.username !== (profile.username || "") ||
+      formData.bio !== (profile.bio || "") ||
+      formData.location !== (profile.location || "") ||
+      formData.first_name !== (profile.first_name || "") ||
+      formData.last_name !== (profile.last_name || "")
+    );
+  }, [formData, profile]);
+
+  // Use the unsaved changes hook for navigation blocking
+  const { isBlocked, proceed, reset } = useUnsavedChanges({
+    hasUnsavedChanges: hasUnsavedProfileChanges && activeTab === "profile",
+    message: "You have unsaved profile changes. Are you sure you want to leave?",
+  });
 
   // Fetch pending join requests count
   React.useEffect(() => {
@@ -363,9 +393,17 @@ const MemberDashboard = () => {
 
   const renderProfileTab = () => (
     <div className="space-y-6">
+      {/* Unsaved Changes Indicator */}
+      {hasUnsavedProfileChanges && (
+        <div className="flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg text-amber-700 dark:text-amber-400">
+          <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+          <span className="text-sm">You have unsaved changes. Don't forget to save!</span>
+        </div>
+      )}
+      
       {/* Member Since Info */}
-      <div className="pb-4 border-b border-slate-200">
-        <p className="text-sm text-slate-400">Member since {profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : "N/A"}</p>
+      <div className="pb-4 border-b border-border">
+        <p className="text-sm text-muted-foreground">Member since {profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : "N/A"}</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1547,6 +1585,27 @@ const MemberDashboard = () => {
           userId={user?.id}
           currentCover={profile?.cover_url || undefined}
         />
+
+        {/* Unsaved Changes Warning Dialog */}
+        <AlertDialog open={isBlocked} onOpenChange={(open) => !open && reset()}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-amber-500" />
+                Unsaved Changes
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                You have unsaved changes in your profile. If you leave now, your changes will be lost.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={reset}>Stay on Page</AlertDialogCancel>
+              <AlertDialogAction onClick={proceed} className="bg-destructive hover:bg-destructive/90">
+                Leave Without Saving
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         {/* Content Area */}
         <ScrollArea className="flex-1 p-8">
