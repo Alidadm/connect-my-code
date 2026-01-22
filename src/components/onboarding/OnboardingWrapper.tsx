@@ -1,7 +1,18 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { FirstTimeOnboarding } from "./FirstTimeOnboarding";
 import { PayoutSetupModal } from "@/components/payout/PayoutSetupModal";
+
+// Routes where onboarding should never appear
+const EXCLUDED_ROUTES = [
+  "/signup",
+  "/login",
+  "/verify-email",
+  "/confirm-email",
+  "/forgot-password",
+  "/reset-password",
+];
 
 interface OnboardingWrapperProps {
   children: React.ReactNode;
@@ -9,9 +20,21 @@ interface OnboardingWrapperProps {
 
 export const OnboardingWrapper = ({ children }: OnboardingWrapperProps) => {
   const { user, loading: authLoading } = useAuth();
+  const location = useLocation();
   const [step, setStep] = useState<"checking" | "onboarding" | "payout" | "complete">("checking");
 
+  // Check if current route should skip onboarding
+  const isExcludedRoute = EXCLUDED_ROUTES.some(route => 
+    location.pathname === route || location.pathname.startsWith(route)
+  );
+
   useEffect(() => {
+    // Skip onboarding on excluded routes
+    if (isExcludedRoute) {
+      setStep("complete");
+      return;
+    }
+
     if (!authLoading && user) {
       // Start with onboarding check
       setStep("onboarding");
@@ -19,7 +42,7 @@ export const OnboardingWrapper = ({ children }: OnboardingWrapperProps) => {
       // No user, skip all onboarding
       setStep("complete");
     }
-  }, [user, authLoading]);
+  }, [user, authLoading, isExcludedRoute]);
 
   const handleOnboardingComplete = () => {
     // After onboarding, show payout setup
