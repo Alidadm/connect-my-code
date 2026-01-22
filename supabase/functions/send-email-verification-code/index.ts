@@ -86,6 +86,10 @@ serve(async (req) => {
 
     logStep("Verification code stored");
 
+    // Get the app URL for the button link
+    const appUrl = Deno.env.get("SUPABASE_URL")?.replace(".supabase.co", ".lovableproject.com") || "https://dolphysn.com";
+    const verifyUrl = `${appUrl.replace("/functions/v1", "")}`;
+
     // Send email via Resend
     const emailResponse = await resend.emails.send({
       from: "DolphySN <noreply@dolphysn.com>",
@@ -115,6 +119,14 @@ serve(async (req) => {
               <p style="color: #6b7280; font-size: 14px; text-align: center; margin: 20px 0 0;">
                 This code expires in <strong>10 minutes</strong>
               </p>
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${verifyUrl}" style="display: inline-block; background: linear-gradient(135deg, #1c76e6 0%, #6366f1 100%); color: white; text-decoration: none; padding: 14px 40px; border-radius: 8px; font-weight: 600; font-size: 16px;">
+                  Go to App & Enter Code
+                </a>
+              </div>
+              <p style="color: #9ca3af; font-size: 13px; text-align: center; margin: 0;">
+                Copy the code above and enter it in the app
+              </p>
               <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
               <p style="color: #9ca3af; font-size: 12px; text-align: center; margin: 0;">
                 If you didn't request this code, please ignore this email.
@@ -124,7 +136,7 @@ serve(async (req) => {
         </body>
         </html>
       `,
-      text: `Your DolphySN verification code is: ${code}\n\nThis code expires in 10 minutes.\n\nIf you didn't request this code, please ignore this email.`,
+      text: `Your DolphySN verification code is: ${code}\n\nThis code expires in 10 minutes.\n\nGo to the app to enter your code: ${verifyUrl}\n\nIf you didn't request this code, please ignore this email.`,
     });
 
     logStep("Email sent successfully", { id: emailResponse.data?.id });
