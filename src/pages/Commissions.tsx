@@ -117,7 +117,7 @@ See you inside DolphySN.`;
     }
   }, [location.hash]);
   const baseUrl = window.location.origin;
-  const referralUrl = profile?.username ? `${baseUrl}/${profile.username}` : "";
+  const referralUrl = profile?.referral_code ? `${baseUrl}/signup?ref=${profile.referral_code}` : "";
 
   const handleCopyUrl = () => {
     if (referralUrl) {
@@ -665,7 +665,7 @@ See you inside DolphySN.`;
                     referralUrl
                   ) : (
                     <span className="text-muted-foreground italic">
-                      Please set a username in your profile settings to get your referral link
+                      No referral code found. Please contact support.
                     </span>
                   )}
                 </div>
