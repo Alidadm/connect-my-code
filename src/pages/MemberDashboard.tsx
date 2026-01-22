@@ -126,8 +126,6 @@ const MemberDashboard = () => {
   const [newEmail, setNewEmail] = useState("");
   const [newPhone, setNewPhone] = useState("");
   const [newBirthday, setNewBirthday] = useState("");
-  const [updatingEmail, setUpdatingEmail] = useState(false);
-  const [updatingPhone, setUpdatingPhone] = useState(false);
   const [updatingBirthday, setUpdatingBirthday] = useState(false);
 
   // Phone verification state
@@ -138,6 +136,14 @@ const MemberDashboard = () => {
   const [phoneCodeSent, setPhoneCodeSent] = useState(false);
   const [phoneResendCooldown, setPhoneResendCooldown] = useState(0);
 
+  // Email verification state
+  const [emailVerifyStep, setEmailVerifyStep] = useState<"idle" | "code">("idle");
+  const [emailVerifyCode, setEmailVerifyCode] = useState("");
+  const [sendingEmailCode, setSendingEmailCode] = useState(false);
+  const [verifyingEmailCode, setVerifyingEmailCode] = useState(false);
+  const [emailCodeSent, setEmailCodeSent] = useState(false);
+  const [emailResendCooldown, setEmailResendCooldown] = useState(0);
+
   // Cooldown timer for phone resend
   React.useEffect(() => {
     if (phoneResendCooldown > 0) {
@@ -145,6 +151,14 @@ const MemberDashboard = () => {
       return () => clearTimeout(timer);
     }
   }, [phoneResendCooldown]);
+
+  // Cooldown timer for email resend
+  React.useEffect(() => {
+    if (emailResendCooldown > 0) {
+      const timer = setTimeout(() => setEmailResendCooldown(emailResendCooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [emailResendCooldown]);
   
   // Avatar editor state
   const [avatarEditorOpen, setAvatarEditorOpen] = useState(false);
@@ -485,30 +499,76 @@ const MemberDashboard = () => {
   );
 
   const renderAccountTab = () => {
-    const handleUpdateEmail = async () => {
+    // Step 1: Send code to new email for email change
+    const handleSendEmailCode = async () => {
       if (!newEmail || newEmail === (privateProfile?.email || user?.email)) {
         setEditingEmail(false);
         return;
       }
-      setUpdatingEmail(true);
+
+      // Basic email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(newEmail)) {
+        toast.error("Please enter a valid email address");
+        return;
+      }
+
+      setSendingEmailCode(true);
       try {
-        const { error } = await supabase.functions.invoke('store-private-profile', {
-          body: { email: newEmail }
+        const { error } = await supabase.functions.invoke('send-email-change-code', {
+          body: { newEmail: newEmail.toLowerCase() }
         });
         if (error) throw error;
-        
-        const { data: refreshed, error: refreshError } = await supabase.functions.invoke('get-my-private-profile');
-        if (refreshError) throw refreshError;
-        setPrivateProfile(refreshed ?? null);
-        
-        toast.success("Email updated successfully!");
-        setEditingEmail(false);
-      } catch (error) {
-        console.error("Error updating email:", error);
-        toast.error("Failed to update email");
+
+        setEmailCodeSent(true);
+        setEmailVerifyStep("code");
+        setEmailResendCooldown(60);
+        toast.success("Verification code sent to your new email!");
+      } catch (error: any) {
+        console.error("Error sending email code:", error);
+        toast.error(error.message || "Failed to send verification code");
       } finally {
-        setUpdatingEmail(false);
+        setSendingEmailCode(false);
       }
+    };
+
+    // Step 2: Verify the OTP and update email
+    const handleVerifyEmailCode = async () => {
+      if (emailVerifyCode.length !== 6) {
+        toast.error("Please enter the 6-digit code");
+        return;
+      }
+      setVerifyingEmailCode(true);
+      try {
+        const { data, error } = await supabase.functions.invoke('verify-email-change-code', {
+          body: { code: emailVerifyCode }
+        });
+        if (error) throw error;
+        if (!data?.success) throw new Error(data?.error || "Verification failed");
+
+        // Refresh private profile
+        const { data: refreshed } = await supabase.functions.invoke('get-my-private-profile');
+        setPrivateProfile(refreshed ?? null);
+
+        toast.success("Email address updated and verified!");
+        setEditingEmail(false);
+        setEmailVerifyStep("idle");
+        setEmailVerifyCode("");
+        setEmailCodeSent(false);
+        await refreshProfile();
+      } catch (error: any) {
+        console.error("Error verifying email code:", error);
+        toast.error(error.message || "Invalid or expired code");
+      } finally {
+        setVerifyingEmailCode(false);
+      }
+    };
+
+    const handleCancelEmailEdit = () => {
+      setEditingEmail(false);
+      setEmailVerifyStep("idle");
+      setEmailVerifyCode("");
+      setEmailCodeSent(false);
     };
 
     // Step 1: Send code to email for phone change
@@ -857,41 +917,97 @@ const MemberDashboard = () => {
             <div className="flex-1">
               <h4 className="font-medium text-slate-800">Email Address</h4>
               {editingEmail ? (
-                <Input
-                  type="email"
-                  value={newEmail}
-                  onChange={(e) => setNewEmail(e.target.value)}
-                  className="mt-1 max-w-xs"
-                  placeholder="Enter new email"
-                />
+                emailVerifyStep === "code" ? (
+                  <div className="mt-2 space-y-2">
+                    <p className="text-xs text-slate-500">Enter the 6-digit code sent to <strong>{newEmail}</strong></p>
+                    <Input
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={6}
+                      value={emailVerifyCode}
+                      onChange={(e) => setEmailVerifyCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                      placeholder="000000"
+                      className="max-w-[120px] text-center tracking-widest"
+                    />
+                    {emailResendCooldown > 0 ? (
+                      <p className="text-xs text-slate-400">Resend in {emailResendCooldown}s</p>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handleSendEmailCode}
+                        disabled={sendingEmailCode}
+                        className="text-xs text-primary hover:underline"
+                      >
+                        Resend code
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <Input
+                    type="email"
+                    value={newEmail}
+                    onChange={(e) => setNewEmail(e.target.value)}
+                    className="mt-1 max-w-xs"
+                    placeholder="Enter new email"
+                  />
+                )
               ) : (
                 <p className="text-sm text-slate-500">{privateProfile?.email || user?.email || "Not set"}</p>
               )}
             </div>
-            {profile?.email_verified && !editingEmail && (
-              <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full font-medium">Verified</span>
+            {!editingEmail && (
+              profile?.email_verified ? (
+                <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full font-medium flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" /> Verified
+                </span>
+              ) : (
+                <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs rounded-full font-medium flex items-center gap-1">
+                  <XCircle className="w-3 h-3" /> Unverified
+                </span>
+              )
             )}
             {editingEmail ? (
               <div className="flex gap-2">
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  onClick={() => setEditingEmail(false)}
-                  disabled={updatingEmail}
+                  onClick={handleCancelEmailEdit}
+                  disabled={sendingEmailCode || verifyingEmailCode}
                 >
                   Cancel
                 </Button>
-                <Button 
-                  size="sm" 
-                  onClick={handleUpdateEmail}
-                  disabled={updatingEmail}
-                  className="bg-gradient-to-r from-blue-500 to-cyan-500"
-                >
-                  {updatingEmail ? "Saving..." : "Save"}
-                </Button>
+                {emailVerifyStep === "code" ? (
+                  <Button 
+                    size="sm" 
+                    onClick={handleVerifyEmailCode}
+                    disabled={verifyingEmailCode || emailVerifyCode.length !== 6}
+                    className="bg-gradient-to-r from-blue-500 to-cyan-500"
+                  >
+                    {verifyingEmailCode ? "Verifying..." : "Verify"}
+                  </Button>
+                ) : (
+                  <Button 
+                    size="sm" 
+                    onClick={handleSendEmailCode}
+                    disabled={sendingEmailCode}
+                    className="bg-gradient-to-r from-blue-500 to-cyan-500"
+                  >
+                    {sendingEmailCode ? "Sending..." : "Send Code"}
+                  </Button>
+                )}
               </div>
             ) : (
-              <Button variant="outline" size="sm" onClick={() => { setNewEmail(privateProfile?.email || user?.email || ""); setEditingEmail(true); }}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setNewEmail(privateProfile?.email || user?.email || "");
+                  setEditingEmail(true);
+                  setEmailVerifyStep("idle");
+                  setEmailVerifyCode("");
+                  setEmailCodeSent(false);
+                }}
+              >
                 Update
               </Button>
             )}
@@ -944,8 +1060,16 @@ const MemberDashboard = () => {
                 <p className="text-sm text-slate-600 font-medium">{formatPhoneDisplay(privateProfile?.phone || null)}</p>
               )}
             </div>
-            {profile?.phone_verified && !editingPhone && (
-              <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full font-medium">Verified</span>
+            {!editingPhone && (
+              profile?.phone_verified ? (
+                <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full font-medium flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" /> Verified
+                </span>
+              ) : privateProfile?.phone ? (
+                <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs rounded-full font-medium flex items-center gap-1">
+                  <XCircle className="w-3 h-3" /> Unverified
+                </span>
+              ) : null
             )}
             {editingPhone ? (
               <div className="flex gap-2">
