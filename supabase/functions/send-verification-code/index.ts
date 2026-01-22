@@ -24,6 +24,11 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
+    const resendApiKey = Deno.env.get("RESEND_API_KEY");
+    if (!resendApiKey) {
+      throw new Error("RESEND_API_KEY is not configured");
+    }
+
     // Use service role to bypass RLS
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -51,7 +56,25 @@ serve(async (req) => {
     const { phone } = await req.json();
     if (!phone) throw new Error("Phone number is required");
 
-    logStep("Sending code to phone", { phone: phone.slice(0, 4) + "****" });
+    logStep("Sending code for phone", { phone: phone.slice(0, 4) + "****" });
+
+    // Get user's email from profiles_private
+    const { data: privateProfile, error: profileError } = await supabaseAdmin
+      .from("profiles_private")
+      .select("email")
+      .eq("user_id", user.id)
+      .single();
+
+    let userEmail = user.email;
+    if (privateProfile?.email) {
+      userEmail = privateProfile.email;
+    }
+
+    if (!userEmail) {
+      throw new Error("No email address found for user");
+    }
+
+    logStep("Found user email", { email: userEmail.slice(0, 3) + "***" });
 
     // Delete any existing codes for this user/phone
     await supabaseAdmin
@@ -78,18 +101,46 @@ serve(async (req) => {
 
     logStep("Verification code stored");
 
-    // TODO: Integrate with Twilio/SMS provider to actually send the code
-    // For now, we just store it and log for development
-    // In production, you would call Twilio API here:
-    // await sendSMS(phone, `Your verification code is: ${code}`);
+    // Send code via email using Resend
+    const maskedPhone = phone.slice(0, 4) + "****" + phone.slice(-2);
+    
+    const emailResponse = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${resendApiKey}`,
+      },
+      body: JSON.stringify({
+        from: "MemberHub <no-reply@resend.dev>",
+        to: [userEmail],
+        subject: `Your Phone Verification Code: ${code}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h2 style="color: #333; text-align: center;">Phone Verification Code</h2>
+            <p style="color: #666;">You are verifying the phone number: <strong>${maskedPhone}</strong></p>
+            <div style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); border-radius: 12px; padding: 30px; text-align: center; margin: 20px 0;">
+              <p style="color: rgba(255,255,255,0.9); margin: 0 0 10px 0; font-size: 14px;">Your verification code is:</p>
+              <h1 style="color: white; font-size: 36px; letter-spacing: 8px; margin: 0; font-weight: bold;">${code}</h1>
+            </div>
+            <p style="color: #888; font-size: 12px; text-align: center;">This code will expire in 10 minutes.</p>
+            <p style="color: #888; font-size: 12px; text-align: center;">If you didn't request this code, please ignore this email.</p>
+          </div>
+        `,
+        text: `Your phone verification code is: ${code}. This code will expire in 10 minutes. If you didn't request this, please ignore this email.`,
+      }),
+    });
 
-    // For development/testing, log the code (REMOVE IN PRODUCTION)
-    console.log(`[DEV ONLY] Verification code for ${phone}: ${code}`);
+    if (!emailResponse.ok) {
+      const errorText = await emailResponse.text();
+      logStep("Resend API error", { status: emailResponse.status, error: errorText });
+      throw new Error(`Failed to send email: ${errorText}`);
+    }
+
+    logStep("Verification code sent via email");
 
     return new Response(JSON.stringify({ 
       success: true, 
-      message: "Verification code sent",
-      // Never send the actual code to the client!
+      message: "Verification code sent to your email",
       expiresIn: 600 // 10 minutes in seconds
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
