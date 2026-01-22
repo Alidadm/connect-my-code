@@ -509,31 +509,43 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
 
   const profile = post.profiles;
   const timeAgo = formatDistanceToNow(new Date(post.created_at), { addSuffix: true });
+  const isPlatformPost = post.is_platform_post;
 
   return (
     <div className="bg-card rounded-xl border border-border overflow-hidden mb-4">
       {/* Header */}
       <div className="flex items-center justify-between p-4">
         <div className="flex items-center gap-3">
-          <Avatar className="h-10 w-10">
-            <AvatarImage src={profile?.avatar_url || ""} />
-            <AvatarFallback className="bg-primary text-primary-foreground">
-              {profile?.display_name?.[0]?.toUpperCase() || "U"}
-            </AvatarFallback>
-          </Avatar>
+          {isPlatformPost ? (
+            // Admin/Platform post - show blue "D" icon, no personal avatar
+            <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center">
+              <span className="text-primary-foreground font-bold text-lg">D</span>
+            </div>
+          ) : (
+            <Avatar className="h-10 w-10">
+              <AvatarImage src={profile?.avatar_url || ""} />
+              <AvatarFallback className="bg-primary text-primary-foreground">
+                {profile?.display_name?.[0]?.toUpperCase() || "U"}
+              </AvatarFallback>
+            </Avatar>
+          )}
           <div>
             <div className="flex items-center gap-1.5 font-semibold text-foreground">
-              {profile?.display_name || "Unknown User"}
-              {post.is_platform_post && (
+              {isPlatformPost ? (
+                // Platform posts show badge only, no personal name
                 <Badge variant="secondary" className="text-xs gap-1 bg-primary/10 text-primary border-primary/20">
                   <Megaphone className="h-3 w-3" />
                   Platform
                 </Badge>
-              )}
-              {isMuted && (
-                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs bg-muted text-muted-foreground" title={t('privacy.mutedUser', 'Muted user')}>
-                  <VolumeX className="h-3 w-3" />
-                </span>
+              ) : (
+                <>
+                  {profile?.display_name || "Unknown User"}
+                  {isMuted && (
+                    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs bg-muted text-muted-foreground" title={t('privacy.mutedUser', 'Muted user')}>
+                      <VolumeX className="h-3 w-3" />
+                    </span>
+                  )}
+                </>
               )}
             </div>
             <div className="text-xs text-muted-foreground">{timeAgo}</div>
