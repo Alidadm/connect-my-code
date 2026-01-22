@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { GameSidebarVisibilityProvider } from "@/hooks/useGameSidebarVisibility";
 import { OnboardingWrapper } from "@/components/onboarding/OnboardingWrapper";
@@ -48,116 +48,77 @@ import CookiesPolicy from "./pages/CookiesPolicy";
 
 const queryClient = new QueryClient();
 
+// Root layout component that wraps all routes with providers
+const RootLayout = () => (
+  <AuthProvider>
+    <GameSidebarVisibilityProvider>
+      <OnboardingWrapper>
+        <Outlet />
+      </OnboardingWrapper>
+    </GameSidebarVisibilityProvider>
+  </AuthProvider>
+);
+
+// Admin layout wrapper
+const AdminLayout = ({ children }: { children: React.ReactNode }) => (
+  <AdminRouteGuard>{children}</AdminRouteGuard>
+);
+
+const router = createBrowserRouter([
+  {
+    element: <RootLayout />,
+    children: [
+      { path: "/", element: <Index /> },
+      { path: "/about", element: <About /> },
+      { path: "/friends", element: <Friends /> },
+      { path: "/login", element: <Login /> },
+      { path: "/signup", element: <Signup /> },
+      { path: "/forgot-password", element: <ForgotPassword /> },
+      { path: "/reset-password", element: <ResetPassword /> },
+      { path: "/pricing", element: <Pricing /> },
+      { path: "/commissions", element: <Commissions /> },
+      { path: "/saved", element: <Saved /> },
+      { path: "/games", element: <Games /> },
+      { path: "/blogs", element: <Blogs /> },
+      { path: "/blogs/new", element: <BlogEdit /> },
+      { path: "/blogs/edit/:blogId", element: <BlogEdit /> },
+      { path: "/blogs/:blogId", element: <BlogView /> },
+      { path: "/groups", element: <Groups /> },
+      { path: "/groups/:groupId", element: <GroupDetail /> },
+      { path: "/groups/:groupId/post/:postId", element: <GroupPostView /> },
+      { path: "/groups/:groupId/settings", element: <GroupSettings /> },
+      { path: "/dashboard", element: <MemberDashboard /> },
+      { path: "/settings", element: <Settings /> },
+      { path: "/privacy", element: <Privacy /> },
+      { path: "/help", element: <HelpSupport /> },
+      { path: "/feedback", element: <Feedback /> },
+      { path: "/adminindex", element: <AdminLayout><AdminIndex /></AdminLayout> },
+      { path: "/admin/users/list", element: <AdminLayout><UserList /></AdminLayout> },
+      { path: "/admin/email-templates", element: <AdminLayout><EmailTemplates /></AdminLayout> },
+      { path: "/admin/payouts", element: <AdminLayout><PayoutManagement /></AdminLayout> },
+      { path: "/admin/platform-posts", element: <AdminLayout><PlatformPosts /></AdminLayout> },
+      { path: "/admin/short-videos", element: <AdminLayout><ShortVideos /></AdminLayout> },
+      { path: "/admin/legal-pages", element: <AdminLayout><LegalPagesEditor /></AdminLayout> },
+      { path: "/terms", element: <Terms /> },
+      { path: "/privacy-policy", element: <PrivacyPolicy /> },
+      { path: "/cookies-policy", element: <CookiesPolicy /> },
+      { path: "/confirm-email", element: <ConfirmEmail /> },
+      { path: "/verify-email", element: <VerifyEmail /> },
+      { path: "/business/:businessId", element: <BusinessProfile /> },
+      { path: "/:username", element: <UserProfile /> },
+      { path: "*", element: <NotFound /> },
+    ],
+  },
+]);
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <GameSidebarVisibilityProvider>
-          <OnboardingWrapper>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/friends" element={<Friends />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/pricing" element={<Pricing />} />
-            <Route path="/commissions" element={<Commissions />} />
-            <Route path="/saved" element={<Saved />} />
-            <Route path="/games" element={<Games />} />
-            <Route path="/blogs" element={<Blogs />} />
-            <Route path="/blogs/new" element={<BlogEdit />} />
-            <Route path="/blogs/edit/:blogId" element={<BlogEdit />} />
-            <Route path="/blogs/:blogId" element={<BlogView />} />
-            <Route path="/groups" element={<Groups />} />
-            <Route path="/groups/:groupId" element={<GroupDetail />} />
-            <Route path="/groups/:groupId/post/:postId" element={<GroupPostView />} />
-            <Route path="/groups/:groupId/settings" element={<GroupSettings />} />
-            <Route path="/dashboard" element={<MemberDashboard />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/privacy" element={<Privacy />} />
-            <Route path="/help" element={<HelpSupport />} />
-            <Route path="/feedback" element={<Feedback />} />
-            <Route
-              path="/adminindex"
-              element={
-                <AdminRouteGuard>
-                  <AdminIndex />
-                </AdminRouteGuard>
-              }
-            />
-            <Route
-              path="/admin/users/list"
-              element={
-                <AdminRouteGuard>
-                  <UserList />
-                </AdminRouteGuard>
-              }
-            />
-            <Route
-              path="/admin/email-templates"
-              element={
-                <AdminRouteGuard>
-                  <EmailTemplates />
-                </AdminRouteGuard>
-              }
-            />
-            <Route
-              path="/admin/payouts"
-              element={
-                <AdminRouteGuard>
-                  <PayoutManagement />
-                </AdminRouteGuard>
-              }
-            />
-            <Route
-              path="/admin/platform-posts"
-              element={
-                <AdminRouteGuard>
-                  <PlatformPosts />
-                </AdminRouteGuard>
-              }
-            />
-            <Route
-              path="/admin/short-videos"
-              element={
-                <AdminRouteGuard>
-                  <ShortVideos />
-                </AdminRouteGuard>
-              }
-            />
-            <Route
-              path="/admin/legal-pages"
-              element={
-                <AdminRouteGuard>
-                  <LegalPagesEditor />
-                </AdminRouteGuard>
-              }
-            />
-            <Route path="/terms" element={<Terms />} />
-            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-            <Route path="/cookies-policy" element={<CookiesPolicy />} />
-            <Route path="/confirm-email" element={<ConfirmEmail />} />
-            <Route path="/verify-email" element={<VerifyEmail />} />
-            {/* Public business profile route */}
-            <Route path="/business/:businessId" element={<BusinessProfile />} />
-            {/* Public profile route - must be BEFORE the catch-all */}
-            <Route path="/:username" element={<UserProfile />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          </OnboardingWrapper>
-          </GameSidebarVisibilityProvider>
-        </AuthProvider>
-      </BrowserRouter>
+      <RouterProvider router={router} />
     </TooltipProvider>
   </QueryClientProvider>
 );
 
 export default App;
-
-
