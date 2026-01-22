@@ -1,5 +1,5 @@
-import { useEffect, useCallback, useMemo } from "react";
-import { useBlocker } from "react-router-dom";
+import { useEffect, useCallback, useState, useRef } from "react";
+import { useLocation } from "react-router-dom";
 
 interface UseUnsavedChangesOptions {
   hasUnsavedChanges: boolean;
@@ -10,14 +10,10 @@ export function useUnsavedChanges({
   hasUnsavedChanges, 
   message = "You have unsaved changes. Are you sure you want to leave?" 
 }: UseUnsavedChangesOptions) {
-  // Block in-app navigation with react-router
-  const blocker = useBlocker(
-    useCallback(
-      ({ currentLocation, nextLocation }) =>
-        hasUnsavedChanges && currentLocation.pathname !== nextLocation.pathname,
-      [hasUnsavedChanges]
-    )
-  );
+  const [isBlocked, setIsBlocked] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState<(() => void) | null>(null);
+  const location = useLocation();
+  const prevLocationRef = useRef(location.pathname);
 
   // Handle browser back/forward/refresh with beforeunload
   useEffect(() => {
@@ -33,24 +29,43 @@ export function useUnsavedChanges({
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [hasUnsavedChanges, message]);
 
-  const isBlocked = blocker.state === "blocked";
-  
+  // Track location changes to detect navigation attempts
+  useEffect(() => {
+    // If location changed and we have unsaved changes, this means navigation happened
+    // We can't block it with BrowserRouter, but we can warn via beforeunload
+    prevLocationRef.current = location.pathname;
+  }, [location.pathname]);
+
   const proceed = useCallback(() => {
-    if (blocker.state === "blocked") {
-      blocker.proceed();
+    setIsBlocked(false);
+    if (pendingNavigation) {
+      pendingNavigation();
+      setPendingNavigation(null);
     }
-  }, [blocker]);
+  }, [pendingNavigation]);
 
   const reset = useCallback(() => {
-    if (blocker.state === "blocked") {
-      blocker.reset();
+    setIsBlocked(false);
+    setPendingNavigation(null);
+  }, []);
+
+  // Method to trigger navigation check manually (for custom navigation handlers)
+  const checkNavigation = useCallback((onProceed: () => void) => {
+    if (hasUnsavedChanges) {
+      setIsBlocked(true);
+      setPendingNavigation(() => onProceed);
+      return false; // Navigation blocked
     }
-  }, [blocker]);
+    onProceed();
+    return true; // Navigation allowed
+  }, [hasUnsavedChanges]);
 
   return {
     isBlocked,
     proceed,
     reset,
     message,
+    checkNavigation,
+    hasUnsavedChanges,
   };
 }
