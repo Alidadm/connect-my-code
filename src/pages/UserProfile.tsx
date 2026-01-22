@@ -604,55 +604,57 @@ const UserProfile = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto">
-        {/* Cover Image */}
-        <div className="relative h-48 sm:h-64 bg-gradient-to-br from-primary/30 to-primary/10 group">
-          {profile?.cover_url ? (
-            <img 
-              src={profile.cover_url} 
-              alt="Cover" 
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5" />
-          )}
-          
-          {/* Back Button */}
-          <Link to="/" className="absolute top-4 left-4">
-            <Button variant="secondary" size="sm" className="shadow-lg">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
-            </Button>
-          </Link>
+        {/* Profile Card Container */}
+        <section className="mb-4 overflow-visible rounded-xl bg-card shadow-sm relative">
+          {/* Cover Image */}
+          <div className="relative h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/30 to-primary/10 group rounded-t-xl">
+            {profile?.cover_url ? (
+              <img 
+                src={profile.cover_url} 
+                alt="Cover" 
+                className="w-full h-full object-cover rounded-t-xl"
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20 rounded-t-xl" />
+            )}
+            
+            {/* Back Button */}
+            <Link to="/" className="absolute top-4 left-4">
+              <Button variant="secondary" size="sm" className="shadow-lg">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back
+              </Button>
+            </Link>
 
-          {/* Action buttons on cover */}
-          {isOwnProfile ? (
-            // Edit Cover Button - Only show for own profile
-            <Button
-              variant="secondary"
-              size="sm"
-              className="absolute bottom-4 right-4 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
-              onClick={() => setShowCoverEditor(true)}
-            >
-              <Camera className="w-4 h-4 mr-2" />
-              Edit Cover
-            </Button>
-          ) : user && (
-            // Favorite button for other profiles
-            <Button
-              variant="secondary"
-              size="icon"
-              className={cn(
-                "absolute bottom-4 right-4 shadow-lg h-10 w-10",
-                isFavorite && "text-yellow-500"
-              )}
-              onClick={toggleFavorite}
-              disabled={favoriteLoading}
-              title={isFavorite ? t("favorites.remove", { defaultValue: "Remove from favorites" }) : t("favorites.add", { defaultValue: "Add to favorites" })}
-            >
-              <Star className={cn("w-5 h-5", isFavorite && "fill-current")} />
-            </Button>
-          )}
-        </div>
+            {/* Action buttons on cover */}
+            {isOwnProfile ? (
+              // Edit Cover Button - Only show for own profile
+              <Button
+                variant="secondary"
+                size="sm"
+                className="absolute bottom-4 right-4 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={() => setShowCoverEditor(true)}
+              >
+                <Camera className="w-4 h-4 mr-2" />
+                Edit Cover
+              </Button>
+            ) : user && (
+              // Favorite button for other profiles
+              <Button
+                variant="secondary"
+                size="icon"
+                className={cn(
+                  "absolute bottom-4 right-4 shadow-lg h-10 w-10 rounded-full bg-muted hover:bg-muted/80",
+                  isFavorite && "text-yellow-500"
+                )}
+                onClick={toggleFavorite}
+                disabled={favoriteLoading}
+                title={isFavorite ? t("favorites.remove", { defaultValue: "Remove from favorites" }) : t("favorites.add", { defaultValue: "Add to favorites" })}
+              >
+                <Star className={cn("w-5 h-5", isFavorite && "fill-current")} />
+              </Button>
+            )}
+          </div>
 
         {/* Cover Editor Modal */}
         <CoverEditor
@@ -673,158 +675,165 @@ const UserProfile = () => {
         />
 
         {/* Profile Header */}
-        <div className="px-4 pb-4 bg-card border-b">
-          <div className="flex flex-col sm:flex-row sm:items-end gap-4 -mt-16 sm:-mt-20">
-            {/* Avatar */}
-            <div className="relative group/avatar">
-              <Avatar className="w-32 h-32 border-4 border-background shadow-xl">
-                <AvatarImage src={profile?.avatar_url || ""} />
-                <AvatarFallback className="text-4xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground">
-                  {profile?.display_name?.charAt(0) || profile?.username?.charAt(0) || "U"}
-                </AvatarFallback>
-              </Avatar>
-              {isOwnProfile && (
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  className="absolute bottom-0 right-0 w-8 h-8 rounded-full shadow-lg opacity-0 group-hover/avatar:opacity-100 transition-opacity"
-                  onClick={() => setShowAvatarEditor(true)}
-                >
-                  <Camera className="w-4 h-4" />
-                </Button>
-              )}
-            </div>
-
-            {/* Profile Info */}
-            <div className="flex-1 pt-2 sm:pt-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-2xl font-bold">
-                  {profile?.display_name || profile?.username || "Unknown User"}
-                </h1>
-                {profile?.is_verified && (
-                  <CheckCircle2 className="w-5 h-5 text-primary fill-primary/20" />
-                )}
-                {isMuted && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-muted text-muted-foreground" title={t('privacy.mutedUser', 'You have muted this user')}>
-                    <VolumeX className="h-3 w-3" />
-                    {t('privacy.muted', 'Muted')}
-                  </span>
+        <div className="relative bg-card border-t border-border">
+          <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4 pb-4">
+            {/* Avatar - overlapping the cover */}
+            <div className="relative -mt-16 ml-4 sm:ml-6 flex-shrink-0">
+              <div className={`group/avatar relative ${isOwnProfile ? "cursor-pointer" : ""}`}>
+                <Avatar className="h-28 w-28 sm:h-32 sm:w-32 ring-4 ring-card shadow-xl border-2 border-primary/20">
+                  <AvatarImage src={profile?.avatar_url || ""} alt={`${profile?.display_name}'s avatar`} />
+                  <AvatarFallback className="bg-gradient-to-br from-primary/20 to-secondary/20 text-2xl">
+                    {profile?.display_name?.charAt(0) || profile?.username?.charAt(0) || "U"}
+                  </AvatarFallback>
+                </Avatar>
+                {isOwnProfile && (
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    className="absolute bottom-0 right-0 w-8 h-8 rounded-full shadow-lg opacity-0 group-hover/avatar:opacity-100 transition-opacity"
+                    onClick={() => setShowAvatarEditor(true)}
+                  >
+                    <Camera className="w-4 h-4" />
+                  </Button>
                 )}
               </div>
-              <p className="text-muted-foreground">@{profile?.username}</p>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex gap-2 pt-2 sm:pt-0">
-              {isOwnProfile ? (
-                <Link to="/dashboard">
-                  <Button variant="outline">{t("profile.editProfile", { defaultValue: "Edit Profile" })}</Button>
-                </Link>
-              ) : (
-                <>
-                  {renderFriendButton()}
-                  {/* Favorite button */}
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button 
-                          variant="outline" 
-                          size="icon" 
-                          onClick={toggleFavorite}
-                          disabled={favoriteLoading}
-                          className={isFavorite ? "text-yellow-500 hover:text-yellow-600" : ""}
-                          title={isFavorite ? t("favorites.remove", { defaultValue: "Remove from favorites" }) : t("favorites.add", { defaultValue: "Add to favorites" })}
-                        >
-                          <Star className={`w-4 h-4 ${isFavorite ? "fill-current" : ""}`} />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>{isFavorite ? t("favorites.remove", { defaultValue: "Remove from favorites" }) : t("favorites.add", { defaultValue: "Add to favorites" })}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                  {/* Message button - respect DM privacy settings */}
-                  {profilePrivacySettings.allow_direct_messages || friendshipStatus === "accepted" ? (
-                    <MessagesSheet 
-                      initialUserId={profile?.user_id}
-                      initialUser={{
-                        display_name: profile?.display_name || null,
-                        avatar_url: profile?.avatar_url || null,
-                        username: profile?.username || null,
-                      }}
-                    >
-                      <Button variant="outline" size="icon" title={t("profile.message", { defaultValue: "Message" })}>
-                        <MessageCircle className="w-4 h-4" />
-                      </Button>
-                    </MessagesSheet>
+            {/* Name, Username, and Action Buttons */}
+            <div className="flex-1 min-w-0 px-4 sm:px-0 pt-2 sm:pt-4 sm:pb-2">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                {/* Name and Username */}
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-primary via-primary to-accent bg-clip-text text-transparent">
+                      {profile?.display_name || profile?.username || "Unknown User"}
+                    </h1>
+                    {profile?.is_verified && (
+                      <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-primary flex-shrink-0" />
+                    )}
+                    {isMuted && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-muted text-muted-foreground" title={t('privacy.mutedUser', 'You have muted this user')}>
+                        <VolumeX className="h-3 w-3" />
+                        {t('privacy.muted', 'Muted')}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-muted-foreground text-sm">@{profile?.username}</p>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-2 flex-shrink-0">
+                  {isOwnProfile ? (
+                    <Link to="/dashboard">
+                      <Button variant="outline">{t("profile.editProfile", { defaultValue: "Edit Profile" })}</Button>
+                    </Link>
                   ) : (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button variant="outline" size="icon" disabled className="opacity-50">
+                    <>
+                      {renderFriendButton()}
+                      {/* Favorite button */}
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              variant="outline" 
+                              size="icon" 
+                              onClick={toggleFavorite}
+                              disabled={favoriteLoading}
+                              className={isFavorite ? "text-yellow-500 hover:text-yellow-600" : ""}
+                              title={isFavorite ? t("favorites.remove", { defaultValue: "Remove from favorites" }) : t("favorites.add", { defaultValue: "Add to favorites" })}
+                            >
+                              <Star className={`w-4 h-4 ${isFavorite ? "fill-current" : ""}`} />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>{isFavorite ? t("favorites.remove", { defaultValue: "Remove from favorites" }) : t("favorites.add", { defaultValue: "Add to favorites" })}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                      {/* Message button - respect DM privacy settings */}
+                      {profilePrivacySettings.allow_direct_messages || friendshipStatus === "accepted" ? (
+                        <MessagesSheet 
+                          initialUserId={profile?.user_id}
+                          initialUser={{
+                            display_name: profile?.display_name || null,
+                            avatar_url: profile?.avatar_url || null,
+                            username: profile?.username || null,
+                          }}
+                        >
+                          <Button variant="outline" size="icon" title={t("profile.message", { defaultValue: "Message" })}>
                             <MessageCircle className="w-4 h-4" />
                           </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>{t("privacy.dmDisabled", { defaultValue: "This user has disabled direct messages" })}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                        </MessagesSheet>
+                      ) : (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button variant="outline" size="icon" disabled className="opacity-50">
+                                <MessageCircle className="w-4 h-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{t("privacy.dmDisabled", { defaultValue: "This user has disabled direct messages" })}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="icon" title={t("profile.more", { defaultValue: "More options" })}>
+                            <MoreHorizontal className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48 bg-popover">
+                          <DropdownMenuItem 
+                            onClick={muteUser} 
+                            className="cursor-pointer"
+                            disabled={blockMuteLoading}
+                          >
+                            {isMuted ? (
+                              <>
+                                <Volume2 className="h-4 w-4 mr-2" />
+                                {t('privacy.unmute', 'Unmute user')}
+                              </>
+                            ) : (
+                              <>
+                                <VolumeX className="h-4 w-4 mr-2" />
+                                {t('privacy.mute', 'Mute user')}
+                              </>
+                            )}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={blockUser} 
+                            className="cursor-pointer text-destructive focus:text-destructive"
+                            disabled={blockMuteLoading}
+                          >
+                            {isBlocked ? (
+                              <>
+                                <UserX className="h-4 w-4 mr-2" />
+                                {t('privacy.unblock', 'Unblock user')}
+                              </>
+                            ) : (
+                              <>
+                                <Ban className="h-4 w-4 mr-2" />
+                                {t('privacy.block', 'Block user')}
+                              </>
+                            )}
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem className="cursor-pointer text-muted-foreground">
+                            {t('profile.reportUser', 'Report user')}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </>
                   )}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="icon" title={t("profile.more", { defaultValue: "More options" })}>
-                        <MoreHorizontal className="w-4 h-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48 bg-popover">
-                      <DropdownMenuItem 
-                        onClick={muteUser} 
-                        className="cursor-pointer"
-                        disabled={blockMuteLoading}
-                      >
-                        {isMuted ? (
-                          <>
-                            <Volume2 className="h-4 w-4 mr-2" />
-                            {t('privacy.unmute', 'Unmute user')}
-                          </>
-                        ) : (
-                          <>
-                            <VolumeX className="h-4 w-4 mr-2" />
-                            {t('privacy.mute', 'Mute user')}
-                          </>
-                        )}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        onClick={blockUser} 
-                        className="cursor-pointer text-destructive focus:text-destructive"
-                        disabled={blockMuteLoading}
-                      >
-                        {isBlocked ? (
-                          <>
-                            <UserX className="h-4 w-4 mr-2" />
-                            {t('privacy.unblock', 'Unblock user')}
-                          </>
-                        ) : (
-                          <>
-                            <Ban className="h-4 w-4 mr-2" />
-                            {t('privacy.block', 'Block user')}
-                          </>
-                        )}
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem className="cursor-pointer text-muted-foreground">
-                        {t('profile.reportUser', 'Report user')}
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </>
-              )}
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Bio & Meta */}
-          <div className="mt-4 space-y-3">
+          {/* Bio, Location & Meta */}
+          <div className="px-4 sm:px-6 pb-4 space-y-3">
             {profile?.bio && (
               <p className="text-foreground">{profile.bio}</p>
             )}
@@ -839,14 +848,18 @@ const UserProfile = () => {
                       className="w-5 h-auto rounded-sm"
                     />
                   )}
-                  <MapPin className="w-4 h-4" />
-                  {profile?.location ? `${profile.location}, ` : "City, "}
-                  {profile?.country ? (countryNames[profile.country] || profile.country) : ""}
+                  <MapPin className="w-4 h-4 text-primary/70" />
+                  <span className="font-medium">
+                    {profile?.location ? `${profile.location}, ` : ""}
+                    {profile?.country ? (countryNames[profile.country] || profile.country) : ""}
+                  </span>
                 </span>
               )}
-              <span className="flex items-center gap-1">
-                <Calendar className="w-4 h-4" />
-                Joined {new Date(profile?.created_at || "").toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+              <span className="flex items-center gap-1.5">
+                <Calendar className="w-4 h-4 text-primary/70" />
+                <span className="font-medium">
+                  Joined {new Date(profile?.created_at || "").toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                </span>
               </span>
             </div>
 
@@ -954,6 +967,7 @@ const UserProfile = () => {
             )}
           </div>
         </div>
+        </section>
 
         {/* Tab Navigation */}
         <div className="border-b bg-card sticky top-0 z-10">
