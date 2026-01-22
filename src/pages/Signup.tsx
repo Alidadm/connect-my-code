@@ -609,13 +609,14 @@ export const Signup = () => {
                     setReferralValidated(null);
                   }}
                   onBlur={() => validateReferralCode(referralCode)}
+                  disabled={!!searchParams.get("ref")}
                   className={`${
                     referralValidated === true
                       ? "border-green-500 focus-visible:ring-green-500"
                       : referralValidated === false
                       ? "border-destructive focus-visible:ring-destructive"
                       : ""
-                  }`}
+                  } ${searchParams.get("ref") ? "bg-muted cursor-not-allowed" : ""}`}
                 />
                 {referralValidated === true && (
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500 text-sm">✓ Valid</span>
@@ -624,7 +625,10 @@ export const Signup = () => {
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-destructive text-sm">Invalid</span>
                 )}
               </div>
-              <p className="text-xs text-muted-foreground">Have a friend on DolphySN? Enter their referral code!</p>
+              <p className="text-xs text-muted-foreground">
+                Have a friend on DolphySN? Enter their referral code.<br />
+                If you don't have one, just leave this field blank.
+              </p>
             </div>
 
             <Button 
