@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { ProfileHoverCard } from "@/components/friends/ProfileHoverCard";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { OnlineIndicator } from "@/components/ui/online-indicator";
+import { OnlineIndicator, LastSeenText } from "@/components/ui/online-indicator";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -116,7 +116,7 @@ const Friends = () => {
   const isInitialLoadRef = useRef(true);
 
   // Online presence tracking
-  const { isUserOnline, getOnlineCount } = useOnlinePresence();
+  const { isUserOnline, getLastSeen, fetchLastSeen } = useOnlinePresence();
 
   // Get all user IDs to track for online status
   const allUserIds = useMemo(() => {
@@ -127,6 +127,13 @@ const Friends = () => {
     sentRequests.forEach(r => ids.add(r.addressee_id));
     return Array.from(ids);
   }, [friends, suggestions, pendingRequests, sentRequests]);
+
+  // Fetch last seen data when user IDs change
+  useEffect(() => {
+    if (allUserIds.length > 0) {
+      fetchLastSeen(allUserIds);
+    }
+  }, [allUserIds, fetchLastSeen]);
 
   // Filter friends based on search query
   const filteredFriends = friends.filter((friend) => {
@@ -817,9 +824,16 @@ const Friends = () => {
                           <p className="font-semibold truncate hover:underline">
                             {getDisplayName(request.profile)}
                           </p>
-                          {request.profile?.username && (
-                            <p className="text-sm text-muted-foreground">@{request.profile.username}</p>
-                          )}
+                          <div className="flex items-center gap-2 flex-wrap">
+                            {request.profile?.username && (
+                              <p className="text-sm text-muted-foreground">@{request.profile.username}</p>
+                            )}
+                            <span className="text-muted-foreground">·</span>
+                            <LastSeenText 
+                              isOnline={isUserOnline(request.requester_id)}
+                              lastSeen={getLastSeen(request.requester_id)}
+                            />
+                          </div>
                         </div>
 
                         <div className="flex items-center gap-2">
@@ -909,9 +923,16 @@ const Friends = () => {
                           <p className="font-semibold truncate hover:underline">
                             {getDisplayName(friend.profile)}
                           </p>
-                          {friend.profile?.username && (
-                            <p className="text-sm text-muted-foreground">@{friend.profile.username}</p>
-                          )}
+                          <div className="flex items-center gap-2">
+                            {friend.profile?.username && (
+                              <p className="text-sm text-muted-foreground">@{friend.profile.username}</p>
+                            )}
+                            <span className="text-muted-foreground">·</span>
+                            <LastSeenText 
+                              isOnline={isUserOnline(friend.friend_user_id)}
+                              lastSeen={getLastSeen(friend.friend_user_id)}
+                            />
+                          </div>
                         </div>
 
                         <Button
@@ -991,9 +1012,16 @@ const Friends = () => {
                           <p className="font-semibold truncate hover:underline">
                             {getDisplayName(request.profile)}
                           </p>
-                          {request.profile?.username && (
-                            <p className="text-sm text-muted-foreground">@{request.profile.username}</p>
-                          )}
+                          <div className="flex items-center gap-2 flex-wrap">
+                            {request.profile?.username && (
+                              <p className="text-sm text-muted-foreground">@{request.profile.username}</p>
+                            )}
+                            <span className="text-muted-foreground">·</span>
+                            <LastSeenText 
+                              isOnline={isUserOnline(request.addressee_id)}
+                              lastSeen={getLastSeen(request.addressee_id)}
+                            />
+                          </div>
                         </div>
 
                         <Button
