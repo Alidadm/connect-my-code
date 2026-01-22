@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { MessageCircle, Share2, MoreVertical, Bookmark, FileText, Music, Pencil, Trash2, Copy, Facebook, Twitter, Link2, Check, Ban, VolumeX, Volume2, UserX, Megaphone, Youtube, Play, Eye, ThumbsUp, ThumbsDown, EyeOff, BookmarkPlus } from "lucide-react";
+import { MessageCircle, Share2, MoreVertical, Bookmark, FileText, Music, Pencil, Trash2, Copy, Facebook, Twitter, Link2, Check, Ban, VolumeX, Volume2, UserX, Megaphone, Youtube, Play, Eye, ThumbsUp, ThumbsDown, EyeOff, BookmarkPlus, Flag } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -236,6 +236,95 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
       console.error("Error hiding post:", error);
       toast({
         title: t('common.error', 'Error'),
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleReportPost = async () => {
+    if (!user) {
+      toast({
+        title: t('auth.loginRequired', 'Login required'),
+        description: t('auth.loginToReport', 'Please log in to report this post.'),
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const reportReasons = [
+      { value: 'spam', label: t('feed.reportReasons.spam', 'Spam or misleading') },
+      { value: 'harassment', label: t('feed.reportReasons.harassment', 'Harassment or bullying') },
+      { value: 'hate_speech', label: t('feed.reportReasons.hateSpeech', 'Hate speech') },
+      { value: 'violence', label: t('feed.reportReasons.violence', 'Violence or dangerous content') },
+      { value: 'nudity', label: t('feed.reportReasons.nudity', 'Nudity or sexual content') },
+      { value: 'false_info', label: t('feed.reportReasons.falseInfo', 'False information') },
+      { value: 'intellectual_property', label: t('feed.reportReasons.intellectualProperty', 'Intellectual property violation') },
+      { value: 'other', label: t('feed.reportReasons.other', 'Other') },
+    ];
+
+    const { value: reason } = await Swal.fire({
+      title: t('feed.reportPostTitle', 'Report Post'),
+      text: t('feed.reportPostDesc', 'Why are you reporting this post?'),
+      input: 'select',
+      inputOptions: Object.fromEntries(reportReasons.map(r => [r.value, r.label])),
+      inputPlaceholder: t('feed.selectReason', 'Select a reason'),
+      showCancelButton: true,
+      confirmButtonText: t('common.next', 'Next'),
+      cancelButtonText: t('common.cancel', 'Cancel'),
+      confirmButtonColor: '#ef4444',
+      inputValidator: (value) => {
+        if (!value) {
+          return t('feed.selectReasonRequired', 'Please select a reason');
+        }
+        return null;
+      }
+    });
+
+    if (!reason) return;
+
+    // Ask for additional details
+    const { value: description } = await Swal.fire({
+      title: t('feed.additionalDetails', 'Additional Details'),
+      text: t('feed.additionalDetailsDesc', 'Provide any additional information (optional)'),
+      input: 'textarea',
+      inputPlaceholder: t('feed.describeIssue', 'Describe the issue...'),
+      showCancelButton: true,
+      confirmButtonText: t('feed.submitReport', 'Submit Report'),
+      cancelButtonText: t('common.cancel', 'Cancel'),
+      confirmButtonColor: '#ef4444',
+    });
+
+    if (description === undefined) return; // User cancelled
+
+    try {
+      const { error } = await supabase.from('post_reports').insert({
+        user_id: user.id,
+        post_id: post.id,
+        reason,
+        description: description?.trim() || null,
+      });
+
+      if (error) {
+        if (error.code === '23505') {
+          // Duplicate report
+          toast({
+            title: t('feed.alreadyReported', 'Already reported'),
+            description: t('feed.alreadyReportedDesc', 'You have already reported this post.'),
+          });
+          return;
+        }
+        throw error;
+      }
+
+      toast({
+        title: t('feed.reportSubmitted', 'Report submitted'),
+        description: t('feed.reportSubmittedDesc', 'Thank you for helping keep our community safe.'),
+      });
+    } catch (error) {
+      console.error('Error reporting post:', error);
+      toast({
+        title: t('common.error', 'Error'),
+        description: t('feed.reportFailed', 'Failed to submit report. Please try again.'),
         variant: 'destructive',
       });
     }
@@ -779,13 +868,21 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
                     </>
                   )}
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer text-muted-foreground">
+                <DropdownMenuItem 
+                  onClick={handleReportPost}
+                  className="cursor-pointer text-muted-foreground"
+                >
+                  <Flag className="h-4 w-4 mr-2" />
                   {t('feed.reportPost', 'Report post')}
                 </DropdownMenuItem>
               </>
             )}
             {!isOwner && !user && (
-              <DropdownMenuItem className="cursor-pointer text-muted-foreground">
+              <DropdownMenuItem 
+                onClick={handleReportPost}
+                className="cursor-pointer text-muted-foreground"
+              >
+                <Flag className="h-4 w-4 mr-2" />
                 {t('feed.reportPost', 'Report post')}
               </DropdownMenuItem>
             )}
