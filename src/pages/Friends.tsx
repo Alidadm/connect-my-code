@@ -1,11 +1,13 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
+import { useOnlinePresence } from "@/hooks/useOnlinePresence";
 import { supabase } from "@/integrations/supabase/client";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { ProfileHoverCard } from "@/components/friends/ProfileHoverCard";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { OnlineIndicator } from "@/components/ui/online-indicator";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -112,6 +114,19 @@ const Friends = () => {
   const [newRequestAnimation, setNewRequestAnimation] = useState(false);
   const previousPendingCountRef = useRef<number>(0);
   const isInitialLoadRef = useRef(true);
+
+  // Online presence tracking
+  const { isUserOnline, getOnlineCount } = useOnlinePresence();
+
+  // Get all user IDs to track for online status
+  const allUserIds = useMemo(() => {
+    const ids = new Set<string>();
+    friends.forEach(f => ids.add(f.friend_user_id));
+    suggestions.forEach(s => ids.add(s.user_id));
+    pendingRequests.forEach(r => ids.add(r.requester_id));
+    sentRequests.forEach(r => ids.add(r.addressee_id));
+    return Array.from(ids);
+  }, [friends, suggestions, pendingRequests, sentRequests]);
 
   // Filter friends based on search query
   const filteredFriends = friends.filter((friend) => {
@@ -780,13 +795,20 @@ const Friends = () => {
                         key={request.id} 
                         className="flex items-center gap-4 p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
                       >
-                        <Avatar 
-                          className="h-12 w-12 cursor-pointer"
-                          onClick={() => navigateToProfile(request.profile?.username)}
-                        >
-                          <AvatarImage src={request.profile?.avatar_url || undefined} />
-                          <AvatarFallback>{getInitials(request.profile)}</AvatarFallback>
-                        </Avatar>
+                        <div className="relative">
+                          <Avatar 
+                            className="h-12 w-12 cursor-pointer"
+                            onClick={() => navigateToProfile(request.profile?.username)}
+                          >
+                            <AvatarImage src={request.profile?.avatar_url || undefined} />
+                            <AvatarFallback>{getInitials(request.profile)}</AvatarFallback>
+                          </Avatar>
+                          <OnlineIndicator 
+                            isOnline={isUserOnline(request.requester_id)} 
+                            size="sm"
+                            className="bottom-0 right-0"
+                          />
+                        </div>
                         
                         <div 
                           className="flex-1 min-w-0 cursor-pointer"
@@ -865,13 +887,20 @@ const Friends = () => {
                         key={friend.id} 
                         className="flex items-center gap-4 p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
                       >
-                        <Avatar 
-                          className="h-12 w-12 cursor-pointer"
-                          onClick={() => navigateToProfile(friend.profile?.username)}
-                        >
-                          <AvatarImage src={friend.profile?.avatar_url || undefined} />
-                          <AvatarFallback>{getInitials(friend.profile)}</AvatarFallback>
-                        </Avatar>
+                        <div className="relative">
+                          <Avatar 
+                            className="h-12 w-12 cursor-pointer"
+                            onClick={() => navigateToProfile(friend.profile?.username)}
+                          >
+                            <AvatarImage src={friend.profile?.avatar_url || undefined} />
+                            <AvatarFallback>{getInitials(friend.profile)}</AvatarFallback>
+                          </Avatar>
+                          <OnlineIndicator 
+                            isOnline={isUserOnline(friend.friend_user_id)} 
+                            size="sm"
+                            className="bottom-0 right-0"
+                          />
+                        </div>
                         
                         <div 
                           className="flex-1 min-w-0 cursor-pointer"
@@ -940,13 +969,20 @@ const Friends = () => {
                         key={request.id} 
                         className="flex items-center gap-4 p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
                       >
-                        <Avatar 
-                          className="h-12 w-12 cursor-pointer"
-                          onClick={() => navigateToProfile(request.profile?.username)}
-                        >
-                          <AvatarImage src={request.profile?.avatar_url || undefined} />
-                          <AvatarFallback>{getInitials(request.profile)}</AvatarFallback>
-                        </Avatar>
+                        <div className="relative">
+                          <Avatar 
+                            className="h-12 w-12 cursor-pointer"
+                            onClick={() => navigateToProfile(request.profile?.username)}
+                          >
+                            <AvatarImage src={request.profile?.avatar_url || undefined} />
+                            <AvatarFallback>{getInitials(request.profile)}</AvatarFallback>
+                          </Avatar>
+                          <OnlineIndicator 
+                            isOnline={isUserOnline(request.addressee_id)} 
+                            size="sm"
+                            className="bottom-0 right-0"
+                          />
+                        </div>
                         
                         <div 
                           className="flex-1 min-w-0 cursor-pointer"
@@ -1022,18 +1058,25 @@ const Friends = () => {
                     <div 
                       className="flex flex-col items-center p-4 rounded-xl border bg-card hover:bg-accent/50 transition-colors text-center cursor-pointer"
                     >
-                      <Avatar 
-                        className="h-20 w-20 ring-2 ring-border hover:ring-primary transition-all"
-                        onClick={() => navigateToProfile(suggestion.profile.username)}
-                      >
-                        <AvatarImage 
-                          src={suggestion.profile.avatar_url || undefined} 
-                          className="object-cover"
+                      <div className="relative">
+                        <Avatar 
+                          className="h-20 w-20 ring-2 ring-border hover:ring-primary transition-all"
+                          onClick={() => navigateToProfile(suggestion.profile.username)}
+                        >
+                          <AvatarImage 
+                            src={suggestion.profile.avatar_url || undefined} 
+                            className="object-cover"
+                          />
+                          <AvatarFallback className="text-xl bg-gradient-to-br from-primary to-primary/60 text-primary-foreground">
+                            {getInitials(suggestion.profile)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <OnlineIndicator 
+                          isOnline={isUserOnline(suggestion.user_id)} 
+                          size="md"
+                          className="bottom-1 right-1"
                         />
-                        <AvatarFallback className="text-xl bg-gradient-to-br from-primary to-primary/60 text-primary-foreground">
-                          {getInitials(suggestion.profile)}
-                        </AvatarFallback>
-                      </Avatar>
+                      </div>
                       
                       <div 
                         className="mt-3 w-full"
