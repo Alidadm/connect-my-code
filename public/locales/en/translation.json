@@ -314,7 +314,19 @@
     "audio": "Audio",
     "docs": "Docs",
     "maxFileSize": "Max 50MB per file",
-    "maxFiles": "Up to 10 files"
+    "maxFiles": "Up to 10 files",
+    "interested": "Interested",
+    "interestedDesc": "More of your posts will be like this.",
+    "removeInterested": "Remove interested",
+    "notInterested": "Not interested",
+    "notInterestedDesc": "You will see fewer posts like this.",
+    "removeNotInterested": "Remove not interested",
+    "preferenceRemoved": "Preference removed",
+    "hidePost": "Hide post",
+    "postHidden": "Post hidden",
+    "postHiddenDesc": "You won't see this post anymore.",
+    "savePost": "Save post",
+    "removeFromSaved": "Remove from saved"
   },
   "friends": {
     "addFriend": "Add Friend",

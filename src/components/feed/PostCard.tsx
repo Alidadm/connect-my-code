@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { MessageCircle, Share2, MoreVertical, Bookmark, FileText, Music, Pencil, Trash2, Copy, Facebook, Twitter, Link2, Check, Ban, VolumeX, Volume2, UserX, Megaphone, Youtube, Play, Eye } from "lucide-react";
+import { MessageCircle, Share2, MoreVertical, Bookmark, FileText, Music, Pencil, Trash2, Copy, Facebook, Twitter, Link2, Check, Ban, VolumeX, Volume2, UserX, Megaphone, Youtube, Play, Eye, ThumbsUp, ThumbsDown, EyeOff, BookmarkPlus } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -54,27 +54,47 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
   const [postContent, setPostContent] = useState(post.content);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showComments, setShowComments] = useState(false);
+  const [isHidden, setIsHidden] = useState(false);
+  const [preference, setPreference] = useState<'interested' | 'not_interested' | null>(null);
 
   const isOwner = user?.id === post.user_id;
   const { isBlocked, isMuted, blockUser, muteUser, loading: blockMuteLoading } = useBlockMute(post.user_id);
   const { isVideoViewed, markVideoAsViewed } = useViewedVideos();
+  
+  const authorName = post.profiles?.display_name || post.profiles?.username || t('common.user', 'User');
 
-  // Check if user has bookmarked this post
+  // Check if user has bookmarked this post and load preferences/hidden status
   useEffect(() => {
-    const checkBookmarkStatus = async () => {
+    const checkPostStatus = async () => {
       if (!user) return;
       
-      const { data } = await supabase
-        .from("bookmarks")
-        .select("id")
-        .eq("post_id", post.id)
-        .eq("user_id", user.id)
-        .maybeSingle();
+      const [bookmarkResult, preferenceResult, hiddenResult] = await Promise.all([
+        supabase
+          .from("bookmarks")
+          .select("id")
+          .eq("post_id", post.id)
+          .eq("user_id", user.id)
+          .maybeSingle(),
+        supabase
+          .from("post_preferences")
+          .select("preference")
+          .eq("post_id", post.id)
+          .eq("user_id", user.id)
+          .maybeSingle(),
+        supabase
+          .from("hidden_posts")
+          .select("id")
+          .eq("post_id", post.id)
+          .eq("user_id", user.id)
+          .maybeSingle(),
+      ]);
       
-      setIsBookmarked(!!data);
+      setIsBookmarked(!!bookmarkResult.data);
+      setPreference(preferenceResult.data?.preference as 'interested' | 'not_interested' | null);
+      setIsHidden(!!hiddenResult.data);
     };
 
-    checkBookmarkStatus();
+    checkPostStatus();
   }, [post.id, user]);
 
   const handleBookmark = async () => {
@@ -110,6 +130,111 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
       toast({
         title: t('common.error', 'Error'),
         description: t('feed.bookmarkFailed', 'Failed to update bookmark. Please try again.'),
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleInterested = async () => {
+    if (!user) return;
+
+    try {
+      if (preference === 'interested') {
+        // Remove preference
+        await supabase
+          .from("post_preferences")
+          .delete()
+          .eq("post_id", post.id)
+          .eq("user_id", user.id);
+        
+        setPreference(null);
+        toast({
+          title: t('feed.preferenceRemoved', 'Preference removed'),
+        });
+      } else {
+        // Upsert interested preference
+        await supabase
+          .from("post_preferences")
+          .upsert({
+            post_id: post.id,
+            user_id: user.id,
+            preference: 'interested',
+          }, { onConflict: 'user_id,post_id' });
+        
+        setPreference('interested');
+        toast({
+          title: t('feed.interested', 'Interested'),
+          description: t('feed.interestedDesc', 'More of your posts will be like this.'),
+        });
+      }
+    } catch (error) {
+      console.error("Error setting preference:", error);
+      toast({
+        title: t('common.error', 'Error'),
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleNotInterested = async () => {
+    if (!user) return;
+
+    try {
+      if (preference === 'not_interested') {
+        // Remove preference
+        await supabase
+          .from("post_preferences")
+          .delete()
+          .eq("post_id", post.id)
+          .eq("user_id", user.id);
+        
+        setPreference(null);
+        toast({
+          title: t('feed.preferenceRemoved', 'Preference removed'),
+        });
+      } else {
+        // Upsert not interested preference
+        await supabase
+          .from("post_preferences")
+          .upsert({
+            post_id: post.id,
+            user_id: user.id,
+            preference: 'not_interested',
+          }, { onConflict: 'user_id,post_id' });
+        
+        setPreference('not_interested');
+        toast({
+          title: t('feed.notInterested', 'Not interested'),
+          description: t('feed.notInterestedDesc', 'You will see fewer posts like this.'),
+        });
+      }
+    } catch (error) {
+      console.error("Error setting preference:", error);
+      toast({
+        title: t('common.error', 'Error'),
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleHidePost = async () => {
+    if (!user) return;
+
+    try {
+      await supabase.from("hidden_posts").insert({
+        post_id: post.id,
+        user_id: user.id,
+      });
+      
+      setIsHidden(true);
+      toast({
+        title: t('feed.postHidden', 'Post hidden'),
+        description: t('feed.postHiddenDesc', 'You won\'t see this post anymore.'),
+      });
+    } catch (error) {
+      console.error("Error hiding post:", error);
+      toast({
+        title: t('common.error', 'Error'),
         variant: 'destructive',
       });
     }
@@ -511,6 +636,11 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
   const timeAgo = formatDistanceToNow(new Date(post.created_at), { addSuffix: true });
   const isPlatformPost = post.is_platform_post;
 
+  // Don't render if post is hidden
+  if (isHidden) {
+    return null;
+  }
+
   return (
     <div className="bg-card rounded-xl border border-border overflow-hidden mb-4">
       {/* Header */}
@@ -578,6 +708,60 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
             {!isOwner && user && (
               <>
                 <DropdownMenuItem 
+                  onClick={handleInterested}
+                  className={`cursor-pointer ${preference === 'interested' ? 'text-primary' : ''}`}
+                >
+                  <ThumbsUp className={`h-4 w-4 mr-2 ${preference === 'interested' ? 'fill-current' : ''}`} />
+                  {preference === 'interested' 
+                    ? t('feed.removeInterested', 'Remove interested')
+                    : t('feed.interested', 'Interested')}
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={handleNotInterested}
+                  className={`cursor-pointer ${preference === 'not_interested' ? 'text-muted-foreground' : ''}`}
+                >
+                  <ThumbsDown className={`h-4 w-4 mr-2 ${preference === 'not_interested' ? 'fill-current' : ''}`} />
+                  {preference === 'not_interested'
+                    ? t('feed.removeNotInterested', 'Remove not interested')
+                    : t('feed.notInterested', 'Not interested')}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  onClick={handleHidePost}
+                  className="cursor-pointer"
+                >
+                  <EyeOff className="h-4 w-4 mr-2" />
+                  {t('feed.hidePost', 'Hide post')}
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={handleBookmark}
+                  className={`cursor-pointer ${isBookmarked ? 'text-primary' : ''}`}
+                >
+                  <BookmarkPlus className={`h-4 w-4 mr-2 ${isBookmarked ? 'fill-current' : ''}`} />
+                  {isBookmarked 
+                    ? t('feed.removeFromSaved', 'Remove from saved')
+                    : t('feed.savePost', 'Save post')}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  onClick={blockUser} 
+                  className="cursor-pointer text-destructive focus:text-destructive"
+                  disabled={blockMuteLoading}
+                >
+                  {isBlocked ? (
+                    <>
+                      <UserX className="h-4 w-4 mr-2" />
+                      {t('privacy.unblockUser', 'Unblock')} {authorName}
+                    </>
+                  ) : (
+                    <>
+                      <Ban className="h-4 w-4 mr-2" />
+                      {t('privacy.blockUser', 'Block')} {authorName}
+                    </>
+                  )}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
                   onClick={muteUser} 
                   className="cursor-pointer"
                   disabled={blockMuteLoading}
@@ -594,24 +778,6 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
                     </>
                   )}
                 </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={blockUser} 
-                  className="cursor-pointer text-destructive focus:text-destructive"
-                  disabled={blockMuteLoading}
-                >
-                  {isBlocked ? (
-                    <>
-                      <UserX className="h-4 w-4 mr-2" />
-                      {t('privacy.unblock', 'Unblock user')}
-                    </>
-                  ) : (
-                    <>
-                      <Ban className="h-4 w-4 mr-2" />
-                      {t('privacy.block', 'Block user')}
-                    </>
-                  )}
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
                 <DropdownMenuItem className="cursor-pointer text-muted-foreground">
                   {t('feed.reportPost', 'Report post')}
                 </DropdownMenuItem>
