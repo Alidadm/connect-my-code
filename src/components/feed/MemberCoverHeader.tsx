@@ -173,28 +173,10 @@ export const MemberCoverHeader = ({ activeTab: externalActiveTab, onTabChange, o
           <div className="h-full w-full bg-gradient-to-br from-primary/20 to-secondary/20" />
         )}
 
-        {/* Action buttons on the cover - bottom right */}
+        {/* Action button on the cover - Settings only (Add Friend, Favorite, Message are for other users' profiles) */}
         <div className="absolute bottom-4 right-4 flex items-center gap-2">
           <button
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-[#fa6342] text-white shadow-lg hover:bg-[#e55535] transition-colors"
-            title={t("profile.addFriend", "Add Friend")}
-          >
-            <UserPlus className="h-5 w-5" />
-          </button>
-          <button
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-[#7c5ac2] text-white shadow-lg hover:bg-[#6a4aad] transition-colors"
-            title={t("profile.favorite", "Favorite")}
-          >
-            <Star className="h-5 w-5" />
-          </button>
-          <button
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-[#38b8ff] text-white shadow-lg hover:bg-[#2aa3e9] transition-colors"
-            title={t("profile.message", "Message")}
-          >
-            <MessageCircle className="h-5 w-5" />
-          </button>
-          <button
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-[#6b7280] text-white shadow-lg hover:bg-[#5b6370] transition-colors"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-foreground shadow-lg hover:bg-muted/80 transition-colors"
             title={t("profile.settings", "Settings")}
             onClick={() => navigate("/dashboard")}
           >
