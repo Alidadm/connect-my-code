@@ -1,15 +1,17 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { BadgeCheck, UserPlus, Star, MessageCircle, Settings, MapPin, ChevronDown, ChevronUp, Camera } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 import { ProfileAboutSection } from "./ProfileAboutSection";
+import { cn } from "@/lib/utils";
 
 interface MemberCoverHeaderProps {
   activeTab?: string;
   onTabChange?: (tab: string) => void;
+  onStickyChange?: (isSticky: boolean) => void;
 }
 
 const demoProfile = {
@@ -28,13 +30,16 @@ interface ProfileStats {
   blogsCount: number;
 }
 
-export const MemberCoverHeader = ({ activeTab: externalActiveTab, onTabChange }: MemberCoverHeaderProps = {}) => {
+export const MemberCoverHeader = ({ activeTab: externalActiveTab, onTabChange, onStickyChange }: MemberCoverHeaderProps = {}) => {
   const { t } = useTranslation();
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const [internalActiveTab, setInternalActiveTab] = useState("feed");
   const [stats, setStats] = useState<ProfileStats>({ friendsCount: 0, postsCount: 0, blogsCount: 0 });
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [isSticky, setIsSticky] = useState(false);
+  const tabsRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
 
   // Use external tab if provided, otherwise use internal state
   const activeTab = externalActiveTab ?? internalActiveTab;
@@ -93,6 +98,30 @@ export const MemberCoverHeader = ({ activeTab: externalActiveTab, onTabChange }:
     fetchStats();
   }, [user]);
 
+  // Handle sticky tabs on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!tabsRef.current || !headerRef.current) return;
+      
+      const headerRect = headerRef.current.getBoundingClientRect();
+      const tabsRect = tabsRef.current.getBoundingClientRect();
+      
+      // Get the header height (accounting for the main site header ~64px)
+      const siteHeaderHeight = 64;
+      const shouldBeSticky = headerRect.bottom <= siteHeaderHeight;
+      
+      if (shouldBeSticky !== isSticky) {
+        setIsSticky(shouldBeSticky);
+        onStickyChange?.(shouldBeSticky);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll(); // Check initial state
+    
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [isSticky, onStickyChange]);
+
   const tabs = [
     { id: "feed", label: t("profile.feed", "Feed") },
     { id: "about", label: t("profile.about", "About"), isToggle: true },
@@ -127,6 +156,7 @@ export const MemberCoverHeader = ({ activeTab: externalActiveTab, onTabChange }:
 
   return (
     <section
+      ref={headerRef}
       aria-label="Profile header"
       className="mb-4 overflow-visible rounded-xl bg-card shadow-sm relative"
     >
@@ -223,9 +253,18 @@ export const MemberCoverHeader = ({ activeTab: externalActiveTab, onTabChange }:
         </div>
       </div>
 
-      {/* Navigation Tabs */}
-      <div className="border-t border-border">
-        <nav className="flex justify-center overflow-x-auto scrollbar-hide">
+      {/* Navigation Tabs - Sticky when scrolling */}
+      <div 
+        ref={tabsRef}
+        className={cn(
+          "border-t border-border transition-all duration-300",
+          isSticky && "fixed top-16 left-0 right-0 z-40 bg-card/95 backdrop-blur-md shadow-md border-b animate-fade-in"
+        )}
+      >
+        <nav className={cn(
+          "flex justify-center overflow-x-auto scrollbar-hide",
+          isSticky && "max-w-2xl mx-auto"
+        )}>
           {/* Tabs */}
           <ul className="flex items-center gap-1 sm:gap-2 py-1 px-4">
             {tabs.map((tab) => (
@@ -233,15 +272,13 @@ export const MemberCoverHeader = ({ activeTab: externalActiveTab, onTabChange }:
                 <button
                   onClick={() => handleTabClick(tab.id)}
                   disabled={tab.disabled}
-                  className={`relative px-3 sm:px-4 py-3 text-sm font-semibold transition-colors whitespace-nowrap ${
-                    tab.disabled
-                      ? "text-muted-foreground/50 cursor-not-allowed"
-                      : tab.id === "about" && aboutOpen
-                        ? "text-primary"
-                        : activeTab === tab.id && tab.id !== "about"
-                          ? "text-primary"
-                          : "text-muted-foreground hover:text-primary"
-                  }`}
+                  className={cn(
+                    "relative px-3 sm:px-4 py-3 text-sm font-semibold transition-all duration-200 whitespace-nowrap",
+                    tab.disabled && "text-muted-foreground/50 cursor-not-allowed",
+                    !tab.disabled && tab.id === "about" && aboutOpen && "text-primary",
+                    !tab.disabled && activeTab === tab.id && tab.id !== "about" && "text-primary",
+                    !tab.disabled && !(tab.id === "about" && aboutOpen) && !(activeTab === tab.id && tab.id !== "about") && "text-muted-foreground hover:text-primary"
+                  )}
                 >
                   <span className="flex items-center gap-1.5">
                     {tab.label}
@@ -253,9 +290,10 @@ export const MemberCoverHeader = ({ activeTab: externalActiveTab, onTabChange }:
                       )
                     )}
                     {tab.count !== undefined && (
-                      <span className={`inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-semibold rounded-full ${
+                      <span className={cn(
+                        "inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-semibold rounded-full",
                         tab.disabled ? "bg-muted/50 text-muted-foreground" : "bg-primary/10 text-primary"
-                      }`}>
+                      )}>
                         {tab.count}
                       </span>
                     )}
@@ -272,6 +310,9 @@ export const MemberCoverHeader = ({ activeTab: externalActiveTab, onTabChange }:
           </ul>
         </nav>
       </div>
+      
+      {/* Spacer when tabs are sticky to prevent content jump */}
+      {isSticky && <div className="h-12" />}
 
 
       {/* About Section - Slide Down Overlay (overlaps content below) */}
