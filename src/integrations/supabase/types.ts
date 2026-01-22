@@ -1888,6 +1888,7 @@ export type Database = {
           is_verified: boolean | null
           last_name: string | null
           location: string | null
+          onboarding_completed: boolean | null
           phone_verified: boolean | null
           referral_code: string | null
           referrer_id: string | null
@@ -1911,6 +1912,7 @@ export type Database = {
           is_verified?: boolean | null
           last_name?: string | null
           location?: string | null
+          onboarding_completed?: boolean | null
           phone_verified?: boolean | null
           referral_code?: string | null
           referrer_id?: string | null
@@ -1934,6 +1936,7 @@ export type Database = {
           is_verified?: boolean | null
           last_name?: string | null
           location?: string | null
+          onboarding_completed?: boolean | null
           phone_verified?: boolean | null
           referral_code?: string | null
           referrer_id?: string | null
