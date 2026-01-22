@@ -346,12 +346,15 @@ export const BusinessManagement = () => {
         </div>
         
         {formData.business_card_url ? (
-          <div className="rounded-lg overflow-hidden border border-border">
+          <div className="rounded-lg overflow-hidden border border-border bg-muted/10">
             <img
               src={formData.business_card_url}
               alt="Business card"
-              className="w-full h-auto max-w-xl mx-auto"
-              style={{ imageRendering: "auto" }}
+              className="w-full h-auto min-h-[200px] object-contain"
+              style={{ 
+                imageRendering: "-webkit-optimize-contrast",
+                maxHeight: "400px"
+              }}
             />
           </div>
         ) : (
