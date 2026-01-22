@@ -54,8 +54,8 @@ export const Signup = () => {
     const urlRef = searchParams.get("ref");
     if (urlRef) {
       setReferralCode(urlRef);
-      // Validate the referral code from URL
-      validateReferralCode(urlRef);
+      // Validate the referral code from URL (silently, no toast)
+      validateReferralCode(urlRef, true);
     }
   }, [searchParams]);
   
@@ -71,7 +71,7 @@ export const Signup = () => {
   });
 
   // Validate referral code
-  const validateReferralCode = async (code: string) => {
+  const validateReferralCode = async (code: string, isFromUrl = false) => {
     if (!code.trim()) {
       setReferralValidated(null);
       return;
@@ -87,13 +87,25 @@ export const Signup = () => {
       if (error) {
         console.error("Error validating referral code:", error);
         setReferralValidated(false);
+        if (!isFromUrl) {
+          toast.error("We couldn't verify this referral code. Please check and try again.");
+        }
         return;
       }
       
-      setReferralValidated(!!data);
+      const isValid = !!data;
+      setReferralValidated(isValid);
+      
+      // Show error toast only for manually entered invalid codes
+      if (!isValid && !isFromUrl) {
+        toast.error("This referral code doesn't exist in our system. Please double-check the code or leave it blank.");
+      }
     } catch (err) {
       console.error("Error validating referral code:", err);
       setReferralValidated(false);
+      if (!isFromUrl) {
+        toast.error("We couldn't verify this referral code. Please try again.");
+      }
     }
   };
 
