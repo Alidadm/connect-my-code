@@ -30,6 +30,7 @@ import { useGameNotifications } from "@/hooks/useGameNotifications";
 import { useSavedGames } from "@/hooks/useSavedGames";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { FavoritesSection } from "./FavoritesSection";
 import type { TFunction } from "i18next";
 
 const formatTime = (seconds: number): string => {
@@ -169,6 +170,11 @@ export const LeftSidebar = () => {
             );
           })}
         </nav>
+
+        {/* Favorites Section */}
+        <div className="mb-4">
+          <FavoritesSection />
+        </div>
 
         {/* Continue Playing - Show saved games */}
         {user && savedSudokuGames.length > 0 && (

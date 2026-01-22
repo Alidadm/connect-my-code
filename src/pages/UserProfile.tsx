@@ -35,6 +35,8 @@ import { useFavorites } from "@/hooks/useFavorites";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
+import { cn } from "@/lib/utils";
+import { MessagesSheet } from "@/components/messages/MessagesSheet";
 
 type FriendshipStatus = "none" | "pending_sent" | "pending_received" | "accepted";
 type ProfileTab = "posts" | "photos" | "videos" | "friends" | "mutual";
@@ -622,8 +624,9 @@ const UserProfile = () => {
             </Button>
           </Link>
 
-          {/* Edit Cover Button - Only show for own profile */}
-          {isOwnProfile && (
+          {/* Action buttons on cover */}
+          {isOwnProfile ? (
+            // Edit Cover Button - Only show for own profile
             <Button
               variant="secondary"
               size="sm"
@@ -632,6 +635,21 @@ const UserProfile = () => {
             >
               <Camera className="w-4 h-4 mr-2" />
               Edit Cover
+            </Button>
+          ) : user && (
+            // Favorite button for other profiles
+            <Button
+              variant="secondary"
+              size="icon"
+              className={cn(
+                "absolute bottom-4 right-4 shadow-lg h-10 w-10",
+                isFavorite && "text-yellow-500"
+              )}
+              onClick={toggleFavorite}
+              disabled={favoriteLoading}
+              title={isFavorite ? t("favorites.remove", { defaultValue: "Remove from favorites" }) : t("favorites.add", { defaultValue: "Add to favorites" })}
+            >
+              <Star className={cn("w-5 h-5", isFavorite && "fill-current")} />
             </Button>
           )}
         </div>
@@ -727,9 +745,18 @@ const UserProfile = () => {
                   </TooltipProvider>
                   {/* Message button - respect DM privacy settings */}
                   {profilePrivacySettings.allow_direct_messages || friendshipStatus === "accepted" ? (
-                    <Button variant="outline" size="icon" title={t("profile.message", { defaultValue: "Message" })}>
-                      <MessageCircle className="w-4 h-4" />
-                    </Button>
+                    <MessagesSheet 
+                      initialUserId={profile?.user_id}
+                      initialUser={{
+                        display_name: profile?.display_name || null,
+                        avatar_url: profile?.avatar_url || null,
+                        username: profile?.username || null,
+                      }}
+                    >
+                      <Button variant="outline" size="icon" title={t("profile.message", { defaultValue: "Message" })}>
+                        <MessageCircle className="w-4 h-4" />
+                      </Button>
+                    </MessagesSheet>
                   ) : (
                     <TooltipProvider>
                       <Tooltip>
