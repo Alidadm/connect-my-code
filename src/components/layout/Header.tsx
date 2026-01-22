@@ -1,4 +1,4 @@
-import { Bell, Bookmark, ChevronDown, LogOut, Settings, User, ExternalLink, Shield, LayoutDashboard, UserPlus, Check, Lock, HelpCircle, MessageSquarePlus, Search, Newspaper, Info, Menu } from "lucide-react";
+import { Bell, Bookmark, ChevronDown, LogOut, Settings, User, ExternalLink, Shield, LayoutDashboard, UserPlus, Check, Lock, HelpCircle, MessageSquarePlus, Search, Newspaper, Info, Menu, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -19,6 +19,8 @@ import { toast } from "sonner";
 import { SearchDropdown } from "./SearchDropdown";
 import { MobileSearchDropdown } from "./MobileSearchDropdown";
 import { MobileDrawer } from "./MobileDrawer";
+import { MessagesSheet } from "@/components/messages/MessagesSheet";
+import { useDirectMessages } from "@/hooks/useDirectMessages";
 
 interface FriendRequest {
   id: string;
@@ -45,6 +47,7 @@ export const Header = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [friendRequests, setFriendRequests] = useState<FriendRequest[]>([]);
   const { t } = useTranslation();
+  const { totalUnreadCount } = useDirectMessages();
 
   // Fetch pending friend requests
   useEffect(() => {
@@ -222,6 +225,28 @@ export const Header = () => {
             >
               <Shield className="h-5 w-5" />
             </Button>
+          )}
+
+          {/* Messages - Direct Messaging */}
+          {user && (
+            <MessagesSheet>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="text-muted-foreground hover:text-foreground hover:bg-secondary h-9 w-9 sm:h-10 sm:w-10 relative"
+                title={t("messages.title", { defaultValue: "Messages" })}
+              >
+                <MessageCircle className="h-5 w-5" />
+                {totalUnreadCount > 0 && (
+                  <Badge 
+                    variant="destructive" 
+                    className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs"
+                  >
+                    {totalUnreadCount > 9 ? "9+" : totalUnreadCount}
+                  </Badge>
+                )}
+              </Button>
+            </MessagesSheet>
           )}
 
           {/* Friend Request Notifications */}
