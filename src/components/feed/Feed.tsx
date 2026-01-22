@@ -449,8 +449,8 @@ export const Feed = () => {
 
           {user ? <PostCreator onPostCreated={() => fetchPosts(0, false)} /> : <DemoPostCreator />}
 
-          {/* Filter tabs */}
-          <div className="flex items-center justify-end mb-4 gap-2">
+          {/* Filter tabs - hidden for now */}
+          {/* <div className="flex items-center justify-end mb-4 gap-2">
             <span className="text-sm text-muted-foreground">{t("feed.sortBy")}:</span>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -474,7 +474,7 @@ export const Feed = () => {
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
-          </div>
+          </div> */}
 
           {/* Posts */}
           {loading && !isRefreshing ? (
