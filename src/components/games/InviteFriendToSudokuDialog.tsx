@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, forwardRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -26,7 +26,7 @@ interface InviteFriendToSudokuDialogProps {
   onGameCreated: (gameId: string) => void;
 }
 
-export const InviteFriendToSudokuDialog = ({
+const InviteFriendToSudokuDialogContent = ({
   open,
   onOpenChange,
   difficulty,
@@ -193,3 +193,11 @@ export const InviteFriendToSudokuDialog = ({
     </Dialog>
   );
 };
+
+export const InviteFriendToSudokuDialog = forwardRef<HTMLDivElement, InviteFriendToSudokuDialogProps>(
+  (props, ref) => {
+    return <InviteFriendToSudokuDialogContent {...props} />;
+  }
+);
+
+InviteFriendToSudokuDialog.displayName = "InviteFriendToSudokuDialog";

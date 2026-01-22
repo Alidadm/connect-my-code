@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, forwardRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -28,7 +28,7 @@ interface InviteFriendToMemoryDialogProps {
   onGameCreated: (gameId: string) => void;
 }
 
-export const InviteFriendToMemoryDialog = ({
+const InviteFriendToMemoryDialogContent = ({
   open,
   onOpenChange,
   onGameCreated,
@@ -184,3 +184,11 @@ export const InviteFriendToMemoryDialog = ({
     </Dialog>
   );
 };
+
+export const InviteFriendToMemoryDialog = forwardRef<HTMLDivElement, InviteFriendToMemoryDialogProps>(
+  (props, ref) => {
+    return <InviteFriendToMemoryDialogContent {...props} />;
+  }
+);
+
+InviteFriendToMemoryDialog.displayName = "InviteFriendToMemoryDialog";

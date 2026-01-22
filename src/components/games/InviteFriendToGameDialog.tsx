@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, forwardRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -21,7 +21,7 @@ interface InviteFriendToGameDialogProps {
   onGameCreated: (gameId: string) => void;
 }
 
-export const InviteFriendToGameDialog = ({ open, onOpenChange, onGameCreated }: InviteFriendToGameDialogProps) => {
+const InviteFriendToGameDialogContent = ({ open, onOpenChange, onGameCreated }: InviteFriendToGameDialogProps) => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const [friends, setFriends] = useState<Friend[]>([]);
@@ -158,3 +158,11 @@ export const InviteFriendToGameDialog = ({ open, onOpenChange, onGameCreated }: 
     </Dialog>
   );
 };
+
+export const InviteFriendToGameDialog = forwardRef<HTMLDivElement, InviteFriendToGameDialogProps>(
+  (props, ref) => {
+    return <InviteFriendToGameDialogContent {...props} />;
+  }
+);
+
+InviteFriendToGameDialog.displayName = "InviteFriendToGameDialog";
