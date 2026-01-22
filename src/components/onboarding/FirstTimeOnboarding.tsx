@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Loader2, Globe, User, Camera, Check, Mail, RefreshCw } from "lucide-react";
 import { supportedLanguages, LanguageCode } from "@/lib/i18n";
 import { useTranslation } from "react-i18next";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
 interface FirstTimeOnboardingProps {
@@ -113,7 +113,8 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
               setPhone(privateData.phone);
             }
             if (privateData.birthday) {
-              const date = new Date(privateData.birthday);
+              // Use parseISO to avoid timezone shifts with date-only strings
+              const date = parseISO(privateData.birthday);
               setBirthday(format(date, "yyyy-MM-dd"));
             }
           }

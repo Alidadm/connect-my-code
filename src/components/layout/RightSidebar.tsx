@@ -13,7 +13,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { fetchBatchPrivacySettings } from "@/hooks/useUserPrivacySettings";
 import { useSavedGames } from "@/hooks/useSavedGames";
 import { useGameSidebarVisibility } from "@/hooks/useGameSidebarVisibility";
-import { formatDistanceToNow, format, isToday, isTomorrow, addDays, isSameDay, differenceInDays } from "date-fns";
+import { formatDistanceToNow, format, isToday, isTomorrow, addDays, isSameDay, differenceInDays, parseISO } from "date-fns";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -369,7 +369,8 @@ export const RightSidebar = () => {
             privateProfiles.forEach(pp => {
               if (!pp.birthday) return;
               
-              const birthday = new Date(pp.birthday);
+              // Use parseISO to avoid timezone shifts with date-only strings
+              const birthday = parseISO(pp.birthday);
               // Normalize birthday to this year
               let thisYearBday = new Date(today.getFullYear(), birthday.getMonth(), birthday.getDate());
               
