@@ -90,11 +90,32 @@ serve(async (req) => {
           .eq("referred_user_id", userId)
           .eq("status", "pending");
 
-        // 4. Delete user data from all tables (using service role to bypass RLS)
+        // 4. Delete commissions where this user was the referred user (orphan prevention)
+        await supabaseClient
+          .from("commissions")
+          .delete()
+          .eq("referred_user_id", userId);
+
+        // 5. Delete user data from all tables (using service role to bypass RLS)
+        // First delete dependent records to avoid FK constraint issues
+        const { data: userPosts } = await supabaseClient
+          .from("posts")
+          .select("id")
+          .eq("user_id", userId);
+        
+        const postIds = userPosts?.map(p => p.id) || [];
+        if (postIds.length > 0) {
+          await supabaseClient.from("post_likes").delete().in("post_id", postIds);
+          await supabaseClient.from("post_comments").delete().in("post_id", postIds);
+          await supabaseClient.from("post_reactions").delete().in("post_id", postIds);
+        }
+
+        // Now delete all user data
         await Promise.allSettled([
           supabaseClient.from("posts").delete().eq("user_id", userId),
           supabaseClient.from("post_likes").delete().eq("user_id", userId),
           supabaseClient.from("post_comments").delete().eq("user_id", userId),
+          supabaseClient.from("post_reactions").delete().eq("user_id", userId),
           supabaseClient.from("stories").delete().eq("user_id", userId),
           supabaseClient.from("story_views").delete().eq("viewer_id", userId),
           supabaseClient.from("messages").delete().or(`sender_id.eq.${userId},receiver_id.eq.${userId}`),
@@ -105,6 +126,7 @@ serve(async (req) => {
           supabaseClient.from("subscriptions").delete().eq("user_id", userId),
           supabaseClient.from("user_roles").delete().eq("user_id", userId),
           supabaseClient.from("profiles_private").delete().eq("user_id", userId),
+          supabaseClient.from("blogs").delete().eq("author_id", userId),
           supabaseClient.from("profiles").delete().eq("user_id", userId),
         ]);
 
