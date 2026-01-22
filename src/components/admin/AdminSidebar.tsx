@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { 
-  LayoutDashboard, Users, Megaphone, Video, Wallet, Mail, LogOut
+  LayoutDashboard, Users, Megaphone, Video, Wallet, Mail, LogOut, FileText
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,6 +13,7 @@ const sidebarLinks = [
   { name: "Short Videos", path: "/admin/short-videos", icon: Video },
   { name: "Payouts", path: "/admin/payouts", icon: Wallet },
   { name: "Email Templates", path: "/admin/email-templates", icon: Mail },
+  { name: "Legal Pages", path: "/admin/legal-pages", icon: FileText },
 ];
 
 export const AdminSidebar = () => {
