@@ -6,6 +6,7 @@ import { useOnlinePresence } from "@/hooks/useOnlinePresence";
 import { supabase } from "@/integrations/supabase/client";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { ProfileHoverCard } from "@/components/friends/ProfileHoverCard";
+import { FriendsHeader } from "@/components/friends/FriendsHeader";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { OnlineIndicator, LastSeenText } from "@/components/ui/online-indicator";
 import { Button } from "@/components/ui/button";
@@ -714,20 +715,22 @@ const Friends = () => {
   return (
     <MainLayout>
       <div className="max-w-4xl mx-auto p-4 space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <Users className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-bold">{t("nav.friends", { defaultValue: "Friends" })}</h1>
-          </div>
-          <div className="relative w-full sm:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder={t("friends.searchPlaceholder", { defaultValue: "Search friends..." })}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
-            />
-          </div>
+        {/* Profile-style Header */}
+        <FriendsHeader 
+          friendsCount={friends.length}
+          pendingCount={pendingRequests.length}
+          sentCount={sentRequests.length}
+        />
+
+        {/* Search Bar */}
+        <div className="relative w-full">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder={t("friends.searchPlaceholder", { defaultValue: "Search friends..." })}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9"
+          />
         </div>
 
         <Tabs defaultValue="requests" className="w-full">
