@@ -61,7 +61,8 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
   const { isBlocked, isMuted, blockUser, muteUser, loading: blockMuteLoading } = useBlockMute(post.user_id);
   const { isVideoViewed, markVideoAsViewed } = useViewedVideos();
   
-  const authorName = post.profiles?.display_name || post.profiles?.username || t('common.user', 'User');
+  const fullName = post.profiles?.display_name || post.profiles?.username || t('common.user', 'User');
+  const authorFirstName = fullName.split(' ')[0];
 
   // Check if user has bookmarked this post and load preferences/hidden status
   useEffect(() => {
@@ -751,12 +752,12 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
                   {isBlocked ? (
                     <>
                       <UserX className="h-4 w-4 mr-2" />
-                      {t('privacy.unblockUser', 'Unblock')} {authorName}
+                      {t('privacy.unblockUser', 'Unblock')} {authorFirstName}
                     </>
                   ) : (
                     <>
                       <Ban className="h-4 w-4 mr-2" />
-                      {t('privacy.blockUser', 'Block')} {authorName}
+                      {t('privacy.blockUser', 'Block')} {authorFirstName}
                     </>
                   )}
                 </DropdownMenuItem>
