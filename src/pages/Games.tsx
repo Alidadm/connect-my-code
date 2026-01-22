@@ -703,12 +703,12 @@ const GamesContent = () => {
                     {activeGameType === "tictactoe" ? (
                       <>
                         <Grid3X3 className="w-5 h-5" />
-                        {t("games.ticTacToe", { defaultValue: "Tic-Tac-Toe" })}
+                        {t("games.ticTacToe.title", { defaultValue: "Tic-Tac-Toe" })}
                       </>
                     ) : (
                       <>
                         <LayoutGrid className="w-5 h-5" />
-                        {t("games.memoryMatch", { defaultValue: "Memory Match" })}
+                        {t("games.memoryMatch.title", { defaultValue: "Memory Match" })}
                       </>
                     )}
                   </CardTitle>
