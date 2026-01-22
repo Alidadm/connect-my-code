@@ -1299,8 +1299,14 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
           }
         }
         
+        // Auto-capitalize first letter of content
+        const trimmedContent = content.trim();
+        const capitalizedContent = trimmedContent.length > 0 
+          ? trimmedContent.charAt(0).toUpperCase() + trimmedContent.slice(1)
+          : trimmedContent;
+        
         return { 
-          content: content.trim(), 
+          content: capitalizedContent, 
           visibility, 
           mediaUrls: uploadedUrls,
           customListIds: selectedCustomLists.map(l => l.id),
