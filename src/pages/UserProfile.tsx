@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { 
   MapPin, Calendar, Users, 
   MessageCircle, UserPlus, MoreHorizontal, ArrowLeft,
-  CheckCircle2, Camera, UserCheck, Clock, UserMinus, Ban, VolumeX, Volume2, UserX
+  CheckCircle2, Camera, UserCheck, Clock, UserMinus, Ban, VolumeX, Volume2, UserX, Star
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -31,6 +31,7 @@ import { ProfileTabContent } from "@/components/feed/ProfileTabContent";
 import { PostCard } from "@/components/feed/PostCard";
 import { useBlockMute } from "@/hooks/useBlockMute";
 import { useUserPrivacySettings } from "@/hooks/useUserPrivacySettings";
+import { useFavorites } from "@/hooks/useFavorites";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
@@ -101,6 +102,9 @@ const UserProfile = () => {
 
   // Block/Mute hook
   const { isBlocked, isMuted, blockUser, muteUser, loading: blockMuteLoading } = useBlockMute(profile?.user_id);
+  
+  // Favorites hook
+  const { isFavorite, toggleFavorite, loading: favoriteLoading } = useFavorites(profile?.user_id);
   
   // Privacy settings hook - check if user allows DMs
   const { settings: profilePrivacySettings } = useUserPrivacySettings(profile?.user_id);
@@ -701,6 +705,26 @@ const UserProfile = () => {
               ) : (
                 <>
                   {renderFriendButton()}
+                  {/* Favorite button */}
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          size="icon" 
+                          onClick={toggleFavorite}
+                          disabled={favoriteLoading}
+                          className={isFavorite ? "text-yellow-500 hover:text-yellow-600" : ""}
+                          title={isFavorite ? t("favorites.remove", { defaultValue: "Remove from favorites" }) : t("favorites.add", { defaultValue: "Add to favorites" })}
+                        >
+                          <Star className={`w-4 h-4 ${isFavorite ? "fill-current" : ""}`} />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{isFavorite ? t("favorites.remove", { defaultValue: "Remove from favorites" }) : t("favorites.add", { defaultValue: "Add to favorites" })}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                   {/* Message button - respect DM privacy settings */}
                   {profilePrivacySettings.allow_direct_messages || friendshipStatus === "accepted" ? (
                     <Button variant="outline" size="icon" title={t("profile.message", { defaultValue: "Message" })}>
