@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { Mail, User, ArrowRight, Calendar, Lock, Home, CreditCard, Loader2, Gift, Camera, SkipForward } from "lucide-react";
+import { Mail, User, ArrowRight, Calendar, Lock, Home, CreditCard, Loader2, Gift, Camera, SkipForward, Check } from "lucide-react";
 import { isValidPhoneNumber } from 'react-phone-number-input';
 import { SlideAlert } from "@/components/ui/slide-alert";
 import { Button } from "@/components/ui/button";
@@ -48,6 +48,7 @@ export const Signup = () => {
   const [referralValidated, setReferralValidated] = useState<boolean | null>(null);
   const [avatarEditorOpen, setAvatarEditorOpen] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   
   // Get referral code from URL if present
   useEffect(() => {
@@ -645,10 +646,39 @@ export const Signup = () => {
               </p>
             </div>
 
+            {/* Terms Acceptance Checkbox */}
+            <div className="flex items-start gap-3 p-4 bg-muted/50 rounded-lg border border-border">
+              <button
+                type="button"
+                onClick={() => setTermsAccepted(!termsAccepted)}
+                className={`flex-shrink-0 w-5 h-5 rounded border-2 transition-colors flex items-center justify-center mt-0.5 ${
+                  termsAccepted 
+                    ? "bg-primary border-primary text-primary-foreground" 
+                    : "border-muted-foreground hover:border-primary"
+                }`}
+              >
+                {termsAccepted && <Check className="h-3 w-3" />}
+              </button>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                I agree to the{" "}
+                <a href="/terms" target="_blank" className="text-primary hover:underline font-medium">
+                  Terms of Service
+                </a>
+                ,{" "}
+                <a href="/privacy-policy" target="_blank" className="text-primary hover:underline font-medium">
+                  Privacy Policy
+                </a>
+                , and{" "}
+                <a href="/cookies-policy" target="_blank" className="text-primary hover:underline font-medium">
+                  Cookies Policy
+                </a>
+              </p>
+            </div>
+
             <Button 
               type="submit" 
               className="w-full dolphy-gradient hover:opacity-90 transition-opacity"
-              disabled={isLoading}
+              disabled={isLoading || !termsAccepted}
             >
               {isLoading ? "Creating account..." : "Create Account"}
               <ArrowRight className="ml-2 h-4 w-4" />
