@@ -8,6 +8,7 @@ import { PullToRefreshIndicator } from "./PullToRefreshIndicator";
 import { ProfileTabContent } from "./ProfileTabContent";
 import { TodaysBirthdays } from "./TodaysBirthdays";
 import { ShortVideosRow } from "./ShortVideosRow";
+import { ScrollProgressIndicator } from "./ScrollProgressIndicator";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, ChevronDown, Check } from "lucide-react";
@@ -423,6 +424,9 @@ export const Feed = () => {
 
   return (
     <div ref={containerRef} className="max-w-2xl mx-auto scroll-smooth">
+      {/* Scroll progress indicator */}
+      <ScrollProgressIndicator />
+      
       {/* Pull to refresh indicator */}
       <PullToRefreshIndicator
         pullDistance={pullDistance}
