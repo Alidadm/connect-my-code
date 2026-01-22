@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { MainLayout } from "@/components/layout/MainLayout";
+import { ProfileHoverCard } from "@/components/friends/ProfileHoverCard";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -88,6 +89,9 @@ interface Suggestion {
     last_name: string | null;
     avatar_url: string | null;
     username: string | null;
+    cover_url: string | null;
+    bio: string | null;
+    location: string | null;
   };
   mutualFriendsCount: number;
   mutualFriendNames: string[];
@@ -398,10 +402,10 @@ const Friends = () => {
 
       // If user has no friends, show random suggestions instead
       if (myFriendIds.length === 0) {
-        // Fetch random users excluding the current user
+        // Fetch random users excluding the current user (with full profile data for hover cards)
         const { data: randomProfiles } = await supabase
-          .from("safe_profiles")
-          .select("user_id, display_name, first_name, last_name, avatar_url, username")
+          .from("profiles")
+          .select("user_id, display_name, first_name, last_name, avatar_url, username, cover_url, bio, location")
           .neq("user_id", user.id)
           .limit(10);
 
@@ -423,7 +427,12 @@ const Friends = () => {
 
           const randomSuggestions: Suggestion[] = filteredProfiles.map(profile => ({
             user_id: profile.user_id,
-            profile,
+            profile: {
+              ...profile,
+              cover_url: profile.cover_url || null,
+              bio: profile.bio || null,
+              location: profile.location || null,
+            },
             mutualFriendsCount: 0,
             mutualFriendNames: [],
           }));
@@ -493,10 +502,10 @@ const Friends = () => {
         return;
       }
 
-      // Fetch profiles for suggested users
+      // Fetch profiles for suggested users (including cover, bio, location for hover card)
       const { data: suggestedProfiles } = await supabase
-        .from("safe_profiles")
-        .select("user_id, display_name, first_name, last_name, avatar_url, username")
+        .from("profiles")
+        .select("user_id, display_name, first_name, last_name, avatar_url, username, cover_url, bio, location")
         .in("user_id", suggestedUserIds);
 
       // Fetch profiles for mutual friends (to show names)
@@ -522,7 +531,12 @@ const Friends = () => {
           const mutualFriendIds = mutualFriendsMap.get(userId) || [];
           return {
             user_id: userId,
-            profile,
+            profile: {
+              ...profile,
+              cover_url: profile.cover_url || null,
+              bio: profile.bio || null,
+              location: profile.location || null,
+            },
             mutualFriendsCount: mutualFriendIds.length,
             mutualFriendNames: mutualFriendIds.slice(0, 3).map(getMutualFriendName),
           };
@@ -998,50 +1012,60 @@ const Friends = () => {
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                 {filteredSuggestions.map((suggestion) => (
-                  <div 
-                    key={suggestion.user_id} 
-                    className="flex flex-col items-center p-4 rounded-xl border bg-card hover:bg-accent/50 transition-colors text-center"
+                  <ProfileHoverCard
+                    key={suggestion.user_id}
+                    profile={suggestion.profile}
+                    mutualFriendsCount={suggestion.mutualFriendsCount}
+                    onAddFriend={() => handleSendFriendRequest(suggestion.user_id)}
+                    isAddingFriend={processingIds.has(suggestion.user_id)}
                   >
-                    <Avatar 
-                      className="h-20 w-20 cursor-pointer ring-2 ring-border hover:ring-primary transition-all"
-                      onClick={() => navigateToProfile(suggestion.profile.username)}
-                    >
-                      <AvatarImage 
-                        src={suggestion.profile.avatar_url || undefined} 
-                        className="object-cover"
-                      />
-                      <AvatarFallback className="text-xl bg-gradient-to-br from-primary to-primary/60 text-primary-foreground">
-                        {getInitials(suggestion.profile)}
-                      </AvatarFallback>
-                    </Avatar>
-                    
                     <div 
-                      className="mt-3 w-full cursor-pointer"
-                      onClick={() => navigateToProfile(suggestion.profile.username)}
+                      className="flex flex-col items-center p-4 rounded-xl border bg-card hover:bg-accent/50 transition-colors text-center cursor-pointer"
                     >
-                      <p className="font-semibold truncate hover:underline text-sm">
-                        {getDisplayName(suggestion.profile)}
-                      </p>
-                      {suggestion.mutualFriendsCount > 0 && (
-                        <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground mt-1">
-                          <Users className="h-3 w-3" />
-                          <span>
-                            {suggestion.mutualFriendsCount} {t("friends.mutual", { defaultValue: "mutual" })}
-                          </span>
-                        </div>
-                      )}
-                    </div>
+                      <Avatar 
+                        className="h-20 w-20 ring-2 ring-border hover:ring-primary transition-all"
+                        onClick={() => navigateToProfile(suggestion.profile.username)}
+                      >
+                        <AvatarImage 
+                          src={suggestion.profile.avatar_url || undefined} 
+                          className="object-cover"
+                        />
+                        <AvatarFallback className="text-xl bg-gradient-to-br from-primary to-primary/60 text-primary-foreground">
+                          {getInitials(suggestion.profile)}
+                        </AvatarFallback>
+                      </Avatar>
+                      
+                      <div 
+                        className="mt-3 w-full"
+                        onClick={() => navigateToProfile(suggestion.profile.username)}
+                      >
+                        <p className="font-semibold truncate hover:underline text-sm">
+                          {getDisplayName(suggestion.profile)}
+                        </p>
+                        {suggestion.mutualFriendsCount > 0 && (
+                          <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground mt-1">
+                            <Users className="h-3 w-3" />
+                            <span>
+                              {suggestion.mutualFriendsCount} {t("friends.mutual", { defaultValue: "mutual" })}
+                            </span>
+                          </div>
+                        )}
+                      </div>
 
-                    <Button
-                      size="sm"
-                      onClick={() => handleSendFriendRequest(suggestion.user_id)}
-                      disabled={processingIds.has(suggestion.user_id)}
-                      className="gap-1 mt-3 w-full"
-                    >
-                      <UserPlus className="h-4 w-4" />
-                      {t("friends.add", { defaultValue: "Add" })}
-                    </Button>
-                  </div>
+                      <Button
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSendFriendRequest(suggestion.user_id);
+                        }}
+                        disabled={processingIds.has(suggestion.user_id)}
+                        className="gap-1 mt-3 w-full"
+                      >
+                        <UserPlus className="h-4 w-4" />
+                        {t("friends.add", { defaultValue: "Add" })}
+                      </Button>
+                    </div>
+                  </ProfileHoverCard>
                 ))}
               </div>
             )}
