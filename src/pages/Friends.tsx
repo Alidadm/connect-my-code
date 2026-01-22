@@ -996,38 +996,39 @@ const Friends = () => {
                 }</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                 {filteredSuggestions.map((suggestion) => (
                   <div 
                     key={suggestion.user_id} 
-                    className="flex items-center gap-4 p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+                    className="flex flex-col items-center p-4 rounded-xl border bg-card hover:bg-accent/50 transition-colors text-center"
                   >
                     <Avatar 
-                      className="h-12 w-12 cursor-pointer"
+                      className="h-20 w-20 cursor-pointer ring-2 ring-border hover:ring-primary transition-all"
                       onClick={() => navigateToProfile(suggestion.profile.username)}
                     >
-                      <AvatarImage src={suggestion.profile.avatar_url || undefined} />
-                      <AvatarFallback>{getInitials(suggestion.profile)}</AvatarFallback>
+                      <AvatarImage 
+                        src={suggestion.profile.avatar_url || undefined} 
+                        className="object-cover"
+                      />
+                      <AvatarFallback className="text-xl bg-gradient-to-br from-primary to-primary/60 text-primary-foreground">
+                        {getInitials(suggestion.profile)}
+                      </AvatarFallback>
                     </Avatar>
                     
                     <div 
-                      className="flex-1 min-w-0 cursor-pointer"
+                      className="mt-3 w-full cursor-pointer"
                       onClick={() => navigateToProfile(suggestion.profile.username)}
                     >
-                      <p className="font-semibold truncate hover:underline">
+                      <p className="font-semibold truncate hover:underline text-sm">
                         {getDisplayName(suggestion.profile)}
                       </p>
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <Users className="h-3 w-3" />
-                        <span>
-                          {suggestion.mutualFriendsCount} {t("friends.mutualFriends", { defaultValue: "mutual friends" })}
-                        </span>
-                      </div>
-                      {suggestion.mutualFriendNames.length > 0 && (
-                        <p className="text-xs text-muted-foreground truncate mt-0.5">
-                          {suggestion.mutualFriendNames.join(", ")}
-                          {suggestion.mutualFriendsCount > 3 && ` +${suggestion.mutualFriendsCount - 3}`}
-                        </p>
+                      {suggestion.mutualFriendsCount > 0 && (
+                        <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground mt-1">
+                          <Users className="h-3 w-3" />
+                          <span>
+                            {suggestion.mutualFriendsCount} {t("friends.mutual", { defaultValue: "mutual" })}
+                          </span>
+                        </div>
                       )}
                     </div>
 
@@ -1035,7 +1036,7 @@ const Friends = () => {
                       size="sm"
                       onClick={() => handleSendFriendRequest(suggestion.user_id)}
                       disabled={processingIds.has(suggestion.user_id)}
-                      className="gap-1"
+                      className="gap-1 mt-3 w-full"
                     >
                       <UserPlus className="h-4 w-4" />
                       {t("friends.add", { defaultValue: "Add" })}
