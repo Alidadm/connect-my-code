@@ -340,6 +340,7 @@ export const Signup = () => {
             last_name: formData.lastName,
             country: country,
             username: username,
+            terms_accepted_at: new Date().toISOString(),
             ...(referrerId && { referrer_id: referrerId }),
           })
           .eq('user_id', data.user.id);
