@@ -26,6 +26,7 @@ import LegalPagesEditor from "./pages/admin/LegalPagesEditor";
 import PayoutManagement from "./pages/admin/PayoutManagement";
 import PlatformPosts from "./pages/admin/PlatformPosts";
 import ShortVideos from "./pages/admin/ShortVideos";
+import DataCleanup from "./pages/admin/DataCleanup";
 import MemberDashboard from "./pages/MemberDashboard";
 import UserProfile from "./pages/UserProfile";
 import ConfirmEmail from "./pages/ConfirmEmail";
@@ -99,6 +100,7 @@ const router = createBrowserRouter([
       { path: "/admin/platform-posts", element: <AdminLayout><PlatformPosts /></AdminLayout> },
       { path: "/admin/short-videos", element: <AdminLayout><ShortVideos /></AdminLayout> },
       { path: "/admin/legal-pages", element: <AdminLayout><LegalPagesEditor /></AdminLayout> },
+      { path: "/admin/data-cleanup", element: <AdminLayout><DataCleanup /></AdminLayout> },
       { path: "/terms", element: <Terms /> },
       { path: "/privacy-policy", element: <PrivacyPolicy /> },
       { path: "/cookies-policy", element: <CookiesPolicy /> },
