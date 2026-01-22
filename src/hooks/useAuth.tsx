@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import i18n from "@/lib/i18n";
 
 interface Profile {
   id: string;
@@ -64,6 +65,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // Fetch and apply user's language preference
+  const syncUserLanguage = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("user_settings")
+        .select("language")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      if (!error && data?.language && data.language !== i18n.language) {
+        await i18n.changeLanguage(data.language);
+      }
+    } catch (error) {
+      console.error("Error syncing user language:", error);
+    }
+  };
+
   const refreshProfile = async () => {
     if (user) {
       await fetchProfile(user.id);
@@ -81,6 +99,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           // Use setTimeout to avoid Supabase deadlock
           setTimeout(() => {
             fetchProfile(session.user.id);
+            syncUserLanguage(session.user.id);
           }, 0);
         } else {
           setProfile(null);
@@ -97,6 +116,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (session?.user) {
         fetchProfile(session.user.id);
+        syncUserLanguage(session.user.id);
       }
 
       setLoading(false);

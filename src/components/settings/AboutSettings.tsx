@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useQuery } from "@tanstack/react-query";
+import { supportedLanguages } from "@/lib/i18n";
 
 interface ProfileDetails {
   full_name: string;
@@ -254,11 +255,11 @@ export const AboutSettings = () => {
     });
   };
 
-  const addLanguage = () => {
-    if (newLanguage.trim() && !formData.languages.includes(newLanguage.trim())) {
+  const addLanguage = (langName: string) => {
+    if (langName && !formData.languages.includes(langName)) {
       setFormData({
         ...formData,
-        languages: [...formData.languages, newLanguage.trim()]
+        languages: [...formData.languages, langName]
       });
       setNewLanguage("");
     }
@@ -400,15 +401,28 @@ export const AboutSettings = () => {
               ))}
             </div>
             <div className="flex gap-2">
-              <Input
-                value={newLanguage}
-                onChange={(e) => setNewLanguage(e.target.value)}
-                placeholder="Add language (e.g., English)"
-                onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addLanguage())}
-              />
-              <Button type="button" variant="outline" onClick={addLanguage}>
-                <Plus className="w-4 h-4" />
-              </Button>
+              <Select value="" onValueChange={(value) => addLanguage(value)}>
+                <SelectTrigger className="flex-1">
+                  <SelectValue placeholder="Select a language to add" />
+                </SelectTrigger>
+                <SelectContent>
+                  {supportedLanguages
+                    .filter(lang => !formData.languages.includes(lang.name))
+                    .map((lang) => (
+                      <SelectItem key={lang.code} value={lang.name}>
+                        <div className="flex items-center gap-2">
+                          <img 
+                            src={`https://flagcdn.com/w20/${lang.flag}.png`}
+                            alt={lang.name}
+                            className="w-4 h-auto rounded-sm"
+                          />
+                          <span>{lang.nativeName}</span>
+                          <span className="text-muted-foreground text-sm">({lang.name})</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
             </div>
             <p className="text-xs text-muted-foreground">Multiple languages will display as: English / Spanish</p>
           </div>
