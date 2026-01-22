@@ -14,6 +14,9 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
 
+// Default platform cover image (same as member profile default)
+const DEFAULT_COVER_URL = "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=1200&h=400&fit=crop";
+
 interface BusinessWithOwner {
   id: string;
   name: string;
@@ -127,18 +130,13 @@ export default function BusinessProfile() {
 
         {/* Cover & Header */}
         <div className="bg-card rounded-xl overflow-hidden border border-border">
-          {/* Cover Image */}
-          <div className={cn(
-            "h-48 md:h-64 bg-gradient-to-br from-primary/30 via-primary/20 to-primary/10 relative",
-            business.cover_url && "bg-none"
-          )}>
-            {business.cover_url && (
-              <img
-                src={business.cover_url}
-                alt={`${business.name} cover`}
-                className="w-full h-full object-cover"
-              />
-            )}
+          {/* Cover Image - use default platform cover if none set */}
+          <div className="h-48 md:h-64 relative">
+            <img
+              src={business.cover_url || DEFAULT_COVER_URL}
+              alt={`${business.name} cover`}
+              className="w-full h-full object-cover"
+            />
           </div>
 
           {/* Business Info Header */}
