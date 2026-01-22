@@ -21,6 +21,7 @@ import GroupSettings from "./pages/GroupSettings";
 import AdminIndex from "./pages/AdminIndex";
 import UserList from "./pages/admin/UserList";
 import EmailTemplates from "./pages/admin/EmailTemplates";
+import LegalPagesEditor from "./pages/admin/LegalPagesEditor";
 import PayoutManagement from "./pages/admin/PayoutManagement";
 import PlatformPosts from "./pages/admin/PlatformPosts";
 import ShortVideos from "./pages/admin/ShortVideos";
@@ -40,6 +41,9 @@ import Blogs from "./pages/Blogs";
 import BlogEdit from "./pages/BlogEdit";
 import BlogView from "./pages/BlogView";
 import About from "./pages/About";
+import Terms from "./pages/Terms";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import CookiesPolicy from "./pages/CookiesPolicy";
 
 const queryClient = new QueryClient();
 
@@ -124,6 +128,17 @@ const App = () => (
                 </AdminRouteGuard>
               }
             />
+            <Route
+              path="/admin/legal-pages"
+              element={
+                <AdminRouteGuard>
+                  <LegalPagesEditor />
+                </AdminRouteGuard>
+              }
+            />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/cookies-policy" element={<CookiesPolicy />} />
             <Route path="/confirm-email" element={<ConfirmEmail />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
             {/* Public business profile route */}

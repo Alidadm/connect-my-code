@@ -784,6 +784,14 @@ export const Signup = () => {
               <p className="text-center text-xs text-muted-foreground mt-6">
                 Secure payment processing. Cancel anytime.
               </p>
+
+              <div className="flex justify-center gap-4 mt-4 text-xs text-muted-foreground">
+                <a href="/terms" target="_blank" className="hover:text-primary underline">Terms of Service</a>
+                <span>•</span>
+                <a href="/privacy-policy" target="_blank" className="hover:text-primary underline">Privacy Policy</a>
+                <span>•</span>
+                <a href="/cookies-policy" target="_blank" className="hover:text-primary underline">Cookies Policy</a>
+              </div>
             </>
           )}
         </div>
