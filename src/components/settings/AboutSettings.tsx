@@ -15,7 +15,7 @@ import {
   X, Plus, Eye, EyeOff
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supportedLanguages } from "@/lib/i18n";
 
 interface ProfileDetails {
@@ -65,6 +65,7 @@ const genderOptions = ["Male", "Female", "Non-binary", "Prefer not to say", "Cus
 
 export const AboutSettings = () => {
   const { user, profile } = useAuth();
+  const queryClient = useQueryClient();
   const [saving, setSaving] = useState(false);
   const [newCitizenship, setNewCitizenship] = useState("");
   const [newLanguage, setNewLanguage] = useState("");
@@ -230,6 +231,10 @@ export const AboutSettings = () => {
       if (error) throw error;
       toast.success("About information saved successfully!");
       refetchDetails();
+      
+      // Invalidate ProfileAboutSection queries so member page updates
+      queryClient.invalidateQueries({ queryKey: ["profile-details-about", user.id] });
+      queryClient.invalidateQueries({ queryKey: ["profile-about", user.id] });
     } catch (error) {
       console.error("Error saving profile details:", error);
       toast.error("Failed to save information");
@@ -289,6 +294,9 @@ export const AboutSettings = () => {
       refetchFamily();
       setShowFamilySearch(false);
       setFamilySearchQuery("");
+      
+      // Invalidate ProfileAboutSection family query
+      queryClient.invalidateQueries({ queryKey: ["family-members-about", user.id] });
     } catch (error: any) {
       if (error.code === "23505") {
         toast.error("This person is already added as a family member");
@@ -308,6 +316,9 @@ export const AboutSettings = () => {
       if (error) throw error;
       toast.success("Family member removed");
       refetchFamily();
+      
+      // Invalidate ProfileAboutSection family query
+      queryClient.invalidateQueries({ queryKey: ["family-members-about", user?.id] });
     } catch (error) {
       toast.error("Failed to remove family member");
     }

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 import { 
   User, 
   MapPin, 
@@ -24,6 +25,23 @@ import { format, differenceInYears } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
+// Map field types to dashboard settings sections
+type SettingsSection = "about" | "account";
+const fieldToSection: Record<string, SettingsSection> = {
+  fullName: "about",
+  workplace: "about",
+  school: "about",
+  highSchool: "about",
+  college: "about",
+  city: "about",
+  hometown: "about",
+  relationship: "about",
+  family: "about",
+  phone: "account",
+  email: "account",
+  birthday: "account",
+};
+
 interface ProfileAboutSectionProps {
   userId: string | undefined;
 }
@@ -40,7 +58,13 @@ const tabs: { id: TabId; label: string }[] = [
 
 export const ProfileAboutSection = ({ userId }: ProfileAboutSectionProps) => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<TabId>("overview");
+
+  const handleEditClick = (fieldKey: string) => {
+    const section = fieldToSection[fieldKey] || "about";
+    navigate(`/dashboard?tab=${section}`);
+  };
 
   // Fetch profile data
   const { data: profile, isLoading } = useQuery({
@@ -160,13 +184,15 @@ export const ProfileAboutSection = ({ userId }: ProfileAboutSectionProps) => {
     text, 
     subtext,
     isAdd = false,
+    fieldKey,
   }: { 
     icon: React.ComponentType<{ className?: string }>; 
     text: string;
     subtext?: string;
     isAdd?: boolean;
-  }) => (
-    <div className="flex items-center py-2.5 group">
+    fieldKey?: string;
+  }) => {
+    const content = (
       <div className="flex items-center gap-3">
         {isAdd ? (
           <div className="flex items-center justify-center w-7 h-7 rounded-full border border-primary">
@@ -184,8 +210,25 @@ export const ProfileAboutSection = ({ userId }: ProfileAboutSectionProps) => {
           )}
         </div>
       </div>
-    </div>
-  );
+    );
+
+    if (isAdd && fieldKey) {
+      return (
+        <button
+          onClick={() => handleEditClick(fieldKey)}
+          className="flex items-center py-2.5 group w-full text-left hover:bg-muted/50 rounded-md px-2 -mx-2 transition-colors cursor-pointer"
+        >
+          {content}
+        </button>
+      );
+    }
+
+    return (
+      <div className="flex items-center py-2.5 group">
+        {content}
+      </div>
+    );
+  };
 
   const renderContent = () => {
     switch (activeTab) {
@@ -196,14 +239,14 @@ export const ProfileAboutSection = ({ userId }: ProfileAboutSectionProps) => {
             {profileDetails?.full_name ? (
               <InfoRow icon={User} text={profileDetails.full_name} subtext="Full name" />
             ) : (
-              <InfoRow icon={Plus} text={t("about.addFullName", "Add full name")} isAdd />
+              <InfoRow icon={Plus} text={t("about.addFullName", "Add full name")} isAdd fieldKey="fullName" />
             )}
 
             {/* Work */}
             {profileDetails?.current_work ? (
               <InfoRow icon={Briefcase} text={`Works at ${profileDetails.current_work}`} />
             ) : (
-              <InfoRow icon={Plus} text={t("about.addWorkplace", "Add a workplace")} isAdd />
+              <InfoRow icon={Plus} text={t("about.addWorkplace", "Add a workplace")} isAdd fieldKey="workplace" />
             )}
 
             {/* Education */}
@@ -212,7 +255,7 @@ export const ProfileAboutSection = ({ userId }: ProfileAboutSectionProps) => {
             ) : profileDetails?.high_school ? (
               <InfoRow icon={GraduationCap} text={`Went to ${profileDetails.high_school}`} />
             ) : (
-              <InfoRow icon={Plus} text={t("about.addSchool", "Add school")} isAdd />
+              <InfoRow icon={Plus} text={t("about.addSchool", "Add school")} isAdd fieldKey="school" />
             )}
 
             {/* Current residence */}
@@ -221,21 +264,21 @@ export const ProfileAboutSection = ({ userId }: ProfileAboutSectionProps) => {
             ) : profile?.location ? (
               <InfoRow icon={Home} text={`Lives in ${profile.location}`} />
             ) : (
-              <InfoRow icon={Plus} text={t("about.addCity", "Add current city")} isAdd />
+              <InfoRow icon={Plus} text={t("about.addCity", "Add current city")} isAdd fieldKey="city" />
             )}
 
             {/* Birthplace */}
             {profileDetails?.birthplace ? (
               <InfoRow icon={MapPin} text={`From ${profileDetails.birthplace}`} />
             ) : (
-              <InfoRow icon={Plus} text={t("about.addHometown", "Add hometown")} isAdd />
+              <InfoRow icon={Plus} text={t("about.addHometown", "Add hometown")} isAdd fieldKey="hometown" />
             )}
 
             {/* Relationship */}
             {profileDetails?.relationship_status ? (
               <InfoRow icon={Heart} text={profileDetails.relationship_status} />
             ) : (
-              <InfoRow icon={Plus} text={t("about.addRelationship", "Add relationship status")} isAdd />
+              <InfoRow icon={Plus} text={t("about.addRelationship", "Add relationship status")} isAdd fieldKey="relationship" />
             )}
           </div>
         );
@@ -248,7 +291,7 @@ export const ProfileAboutSection = ({ userId }: ProfileAboutSectionProps) => {
               {profileDetails?.current_work ? (
                 <InfoRow icon={Briefcase} text={`Works at ${profileDetails.current_work}`} />
               ) : (
-                <InfoRow icon={Plus} text={t("about.addWorkplace", "Add a workplace")} isAdd />
+                <InfoRow icon={Plus} text={t("about.addWorkplace", "Add a workplace")} isAdd fieldKey="workplace" />
               )}
             </div>
             <div>
@@ -256,12 +299,12 @@ export const ProfileAboutSection = ({ userId }: ProfileAboutSectionProps) => {
               {profileDetails?.high_school ? (
                 <InfoRow icon={GraduationCap} text={profileDetails.high_school} subtext="High School" />
               ) : (
-                <InfoRow icon={Plus} text={t("about.addHighSchool", "Add a high school")} isAdd />
+                <InfoRow icon={Plus} text={t("about.addHighSchool", "Add a high school")} isAdd fieldKey="highSchool" />
               )}
               {profileDetails?.college ? (
                 <InfoRow icon={GraduationCap} text={profileDetails.college} subtext="College" />
               ) : (
-                <InfoRow icon={Plus} text={t("about.addCollege", "Add a college")} isAdd />
+                <InfoRow icon={Plus} text={t("about.addCollege", "Add a college")} isAdd fieldKey="college" />
               )}
               {profileDetails?.major && (
                 <InfoRow icon={GraduationCap} text={profileDetails.major} subtext="Major" />
@@ -279,12 +322,12 @@ export const ProfileAboutSection = ({ userId }: ProfileAboutSectionProps) => {
             ) : profile?.location ? (
               <InfoRow icon={Home} text={profile.location} subtext="Current city" />
             ) : (
-              <InfoRow icon={Plus} text={t("about.addCity", "Add current city")} isAdd />
+              <InfoRow icon={Plus} text={t("about.addCity", "Add current city")} isAdd fieldKey="city" />
             )}
             {profileDetails?.birthplace ? (
               <InfoRow icon={MapPin} text={profileDetails.birthplace} subtext="Hometown" />
             ) : (
-              <InfoRow icon={Plus} text={t("about.addHometown", "Add hometown")} isAdd />
+              <InfoRow icon={Plus} text={t("about.addHometown", "Add hometown")} isAdd fieldKey="hometown" />
             )}
           </div>
         );
@@ -366,7 +409,7 @@ export const ProfileAboutSection = ({ userId }: ProfileAboutSectionProps) => {
               {profileDetails?.relationship_status ? (
                 <InfoRow icon={Heart} text={profileDetails.relationship_status} />
               ) : (
-                <InfoRow icon={Plus} text={t("about.addRelationship", "Add relationship status")} isAdd />
+                <InfoRow icon={Plus} text={t("about.addRelationship", "Add relationship status")} isAdd fieldKey="relationship" />
               )}
             </div>
             <div>
@@ -387,7 +430,7 @@ export const ProfileAboutSection = ({ userId }: ProfileAboutSectionProps) => {
                   ))}
                 </div>
               ) : (
-                <InfoRow icon={Plus} text={t("about.addFamily", "Add a family member")} isAdd />
+                <InfoRow icon={Plus} text={t("about.addFamily", "Add a family member")} isAdd fieldKey="family" />
               )}
             </div>
           </div>
