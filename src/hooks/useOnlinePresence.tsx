@@ -10,14 +10,83 @@ interface PresenceState {
   }[];
 }
 
-export const useOnlinePresence = (userIdsToTrack: string[] = []) => {
+interface UserPresenceData {
+  user_id: string;
+  is_online: boolean;
+  last_seen_at: string;
+}
+
+export const useOnlinePresence = () => {
   const { user } = useAuth();
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
+  const [lastSeenMap, setLastSeenMap] = useState<Map<string, string>>(new Map());
   const [channel, setChannel] = useState<RealtimeChannel | null>(null);
 
-  // Track current user's presence
+  // Update presence in database
+  const updatePresenceInDb = useCallback(async (isOnline: boolean) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from("user_presence")
+        .upsert({
+          user_id: user.id,
+          is_online: isOnline,
+          last_seen_at: new Date().toISOString(),
+        }, {
+          onConflict: "user_id",
+        });
+
+      if (error) {
+        console.error("Error updating presence:", error);
+      }
+    } catch (err) {
+      console.error("Failed to update presence:", err);
+    }
+  }, [user]);
+
+  // Fetch last seen data for specific users
+  const fetchLastSeen = useCallback(async (userIds: string[]) => {
+    if (userIds.length === 0) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("user_presence")
+        .select("user_id, is_online, last_seen_at")
+        .in("user_id", userIds);
+
+      if (error) {
+        console.error("Error fetching last seen:", error);
+        return;
+      }
+
+      if (data) {
+        const newLastSeenMap = new Map(lastSeenMap);
+        const newOnlineUsers = new Set(onlineUsers);
+
+        data.forEach((presence: UserPresenceData) => {
+          newLastSeenMap.set(presence.user_id, presence.last_seen_at);
+          if (presence.is_online) {
+            newOnlineUsers.add(presence.user_id);
+          } else {
+            newOnlineUsers.delete(presence.user_id);
+          }
+        });
+
+        setLastSeenMap(newLastSeenMap);
+        setOnlineUsers(newOnlineUsers);
+      }
+    } catch (err) {
+      console.error("Failed to fetch last seen:", err);
+    }
+  }, [lastSeenMap, onlineUsers]);
+
+  // Track current user's presence with Realtime
   useEffect(() => {
     if (!user) return;
+
+    // Set user as online when component mounts
+    updatePresenceInDb(true);
 
     const presenceChannel = supabase.channel("online-users", {
       config: {
@@ -47,6 +116,12 @@ export const useOnlinePresence = (userIdsToTrack: string[] = []) => {
           next.delete(key);
           return next;
         });
+        // Update last seen when user goes offline
+        setLastSeenMap((prev) => {
+          const next = new Map(prev);
+          next.set(key, new Date().toISOString());
+          return next;
+        });
       })
       .subscribe(async (status) => {
         if (status === "SUBSCRIBED") {
@@ -59,10 +134,70 @@ export const useOnlinePresence = (userIdsToTrack: string[] = []) => {
 
     setChannel(presenceChannel);
 
-    return () => {
-      presenceChannel.unsubscribe();
+    // Subscribe to presence table changes
+    const dbChannel = supabase
+      .channel("presence-db-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "user_presence",
+        },
+        (payload) => {
+          if (payload.new && typeof payload.new === "object" && "user_id" in payload.new) {
+            const presence = payload.new as UserPresenceData;
+            setLastSeenMap((prev) => {
+              const next = new Map(prev);
+              next.set(presence.user_id, presence.last_seen_at);
+              return next;
+            });
+            setOnlineUsers((prev) => {
+              const next = new Set(prev);
+              if (presence.is_online) {
+                next.add(presence.user_id);
+              } else {
+                next.delete(presence.user_id);
+              }
+              return next;
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    // Handle page visibility change
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        updatePresenceInDb(false);
+      } else {
+        updatePresenceInDb(true);
+      }
     };
-  }, [user]);
+
+    // Handle before unload
+    const handleBeforeUnload = () => {
+      // Use sendBeacon for reliable offline update
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/user_presence?user_id=eq.${user.id}`;
+      const data = JSON.stringify({
+        is_online: false,
+        last_seen_at: new Date().toISOString(),
+      });
+      
+      navigator.sendBeacon && navigator.sendBeacon(url, new Blob([data], { type: "application/json" }));
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      updatePresenceInDb(false);
+      presenceChannel.unsubscribe();
+      dbChannel.unsubscribe();
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [user, updatePresenceInDb]);
 
   // Check if a specific user is online
   const isUserOnline = useCallback(
@@ -70,6 +205,14 @@ export const useOnlinePresence = (userIdsToTrack: string[] = []) => {
       return onlineUsers.has(userId);
     },
     [onlineUsers]
+  );
+
+  // Get last seen timestamp for a user
+  const getLastSeen = useCallback(
+    (userId: string) => {
+      return lastSeenMap.get(userId) || null;
+    },
+    [lastSeenMap]
   );
 
   // Get count of online users from a list
@@ -83,7 +226,9 @@ export const useOnlinePresence = (userIdsToTrack: string[] = []) => {
   return {
     onlineUsers,
     isUserOnline,
+    getLastSeen,
     getOnlineCount,
+    fetchLastSeen,
     totalOnline: onlineUsers.size,
   };
 };
