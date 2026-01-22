@@ -25,6 +25,7 @@ const favoriteProjects = [
   { name: "Platform Posts", starred: true, path: "/admin/platform-posts", icon: "megaphone" },
   { name: "Short Videos", starred: true, path: "/admin/short-videos", icon: "video" },
   { name: "Payouts", starred: true, path: "/admin/payouts", icon: "paypal" },
+  { name: "Legal Pages", starred: true, path: "/admin/legal-pages", icon: "filetext" },
 ];
 
 const userManagementMenu = [
@@ -32,6 +33,7 @@ const userManagementMenu = [
   { name: "User List", icon: ListOrdered, path: "/admin/users/list" },
   { name: "User Alert", icon: AlertTriangle, path: "/admin/users/alerts" },
   { name: "Email Templates", icon: Mail, path: "/admin/email-templates" },
+  { name: "Legal Pages", icon: FileText, path: "/admin/legal-pages" },
 ];
 
 const adminMenuSections = [
