@@ -841,16 +841,10 @@ const UserProfile = () => {
             <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
               {(profile?.location || profile?.country) && (
                 <span className="flex items-center gap-1.5">
-                  {profile?.country && (
-                    <img 
-                      src={`https://flagcdn.com/w20/${profile.country.toLowerCase()}.png`}
-                      alt={countryNames[profile.country] || profile.country}
-                      className="w-5 h-auto rounded-sm"
-                    />
-                  )}
-                  <MapPin className="w-4 h-4 text-primary/70" />
-                  <span className="font-medium">
-                    {profile?.location ? `${profile.location}, ` : ""}
+                  <MapPin className="w-4 h-4 text-primary" />
+                  <span className="font-medium text-foreground">
+                    {profile?.location ? `${profile.location}` : ""}
+                    {profile?.location && profile?.country ? ", " : ""}
                     {profile?.country ? (countryNames[profile.country] || profile.country) : ""}
                   </span>
                 </span>
