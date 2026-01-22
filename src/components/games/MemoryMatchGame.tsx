@@ -306,7 +306,7 @@ export const MemoryMatchGame = ({ gameId, onBack }: MemoryMatchGameProps) => {
             {t("games.back", { defaultValue: "Back" })}
           </Button>
           <div className="flex items-center gap-2">
-            <CardTitle className="text-lg">{t("games.memoryMatch", { defaultValue: "Memory Match" })}</CardTitle>
+            <CardTitle className="text-lg">{t("games.memoryMatch.title", { defaultValue: "Memory Match" })}</CardTitle>
             <span className="text-xs px-2 py-1 rounded-full bg-muted flex items-center gap-1">
               {gameDifficulty === "easy" && <Sparkles className="w-3 h-3" />}
               {gameDifficulty === "medium" && <Brain className="w-3 h-3" />}
