@@ -17,6 +17,16 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supportedLanguages } from "@/lib/i18n";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface ProfileDetails {
   full_name: string;
@@ -72,6 +82,7 @@ export const AboutSettings = () => {
   const [showFamilySearch, setShowFamilySearch] = useState(false);
   const [familySearchQuery, setFamilySearchQuery] = useState("");
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [selectedFamilyRelationship, setSelectedFamilyRelationship] = useState("Brother");
   const [hasInitialized, setHasInitialized] = useState(false);
 
@@ -233,6 +244,7 @@ export const AboutSettings = () => {
 
       if (error) throw error;
       toast.success("About information saved successfully!");
+      setShowConfirmDialog(false);
       refetchDetails();
       
       // Invalidate ProfileAboutSection queries so member page updates
@@ -696,7 +708,7 @@ export const AboutSettings = () => {
 
       <Separator />
 
-      <Button onClick={handleSave} disabled={saving} className="w-full">
+      <Button onClick={() => setShowConfirmDialog(true)} disabled={saving} className="w-full">
         {saving ? (
           <>
             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -709,6 +721,31 @@ export const AboutSettings = () => {
           </>
         )}
       </Button>
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Save Changes?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to save your About information? This will update your public profile.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleSave}>
+              {saving ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Confirm Save"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
