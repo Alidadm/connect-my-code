@@ -166,3 +166,174 @@
     animation: float-fast 2s ease-in-out infinite;
   }
 }
+
+/* SweetAlert2 Custom Styling */
+.swal2-popup {
+  background: hsl(var(--card)) !important;
+  color: hsl(var(--card-foreground)) !important;
+  border-radius: 1rem !important;
+  border: 1px solid hsl(var(--border)) !important;
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.25),
+    0 0 0 1px hsl(var(--primary) / 0.1),
+    0 10px 40px -10px hsl(var(--primary) / 0.15) !important;
+  padding: 2rem !important;
+}
+
+.swal2-title {
+  color: hsl(var(--foreground)) !important;
+  font-weight: 600 !important;
+  font-size: 1.375rem !important;
+}
+
+.swal2-html-container {
+  color: hsl(var(--muted-foreground)) !important;
+  font-size: 0.9375rem !important;
+  line-height: 1.6 !important;
+}
+
+.swal2-confirm {
+  background: linear-gradient(135deg, hsl(var(--primary)), hsl(211 79% 45%)) !important;
+  border: none !important;
+  border-radius: 0.5rem !important;
+  padding: 0.75rem 1.5rem !important;
+  font-weight: 500 !important;
+  box-shadow: 0 4px 14px 0 hsl(var(--primary) / 0.4) !important;
+  transition: all 0.2s ease !important;
+}
+
+.swal2-confirm:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 20px 0 hsl(var(--primary) / 0.5) !important;
+}
+
+.swal2-cancel {
+  background: hsl(var(--secondary)) !important;
+  color: hsl(var(--secondary-foreground)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 0.5rem !important;
+  padding: 0.75rem 1.5rem !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease !important;
+}
+
+.swal2-cancel:hover {
+  background: hsl(var(--muted)) !important;
+  border-color: hsl(var(--primary) / 0.3) !important;
+}
+
+.swal2-deny {
+  background: hsl(var(--destructive)) !important;
+  color: hsl(var(--destructive-foreground)) !important;
+  border: none !important;
+  border-radius: 0.5rem !important;
+  padding: 0.75rem 1.5rem !important;
+  font-weight: 500 !important;
+}
+
+.swal2-input,
+.swal2-textarea,
+.swal2-select {
+  background: hsl(var(--background)) !important;
+  color: hsl(var(--foreground)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 0.5rem !important;
+  padding: 0.75rem !important;
+  font-size: 0.9375rem !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.swal2-input:focus,
+.swal2-textarea:focus,
+.swal2-select:focus {
+  border-color: hsl(var(--primary)) !important;
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.15) !important;
+  outline: none !important;
+}
+
+.swal2-input::placeholder,
+.swal2-textarea::placeholder {
+  color: hsl(var(--muted-foreground)) !important;
+}
+
+.swal2-validation-message {
+  background: hsl(var(--destructive) / 0.1) !important;
+  color: hsl(var(--destructive)) !important;
+  border-radius: 0.5rem !important;
+  margin: 1rem 0 !important;
+  padding: 0.75rem 1rem !important;
+}
+
+.swal2-icon {
+  border-color: hsl(var(--primary) / 0.3) !important;
+}
+
+.swal2-icon.swal2-success {
+  border-color: hsl(var(--dolphy-success) / 0.3) !important;
+}
+
+.swal2-icon.swal2-success .swal2-success-ring {
+  border-color: hsl(var(--dolphy-success) / 0.3) !important;
+}
+
+.swal2-icon.swal2-success [class^=swal2-success-line] {
+  background-color: hsl(var(--dolphy-success)) !important;
+}
+
+.swal2-icon.swal2-warning {
+  border-color: hsl(var(--dolphy-warning)) !important;
+  color: hsl(var(--dolphy-warning)) !important;
+}
+
+.swal2-icon.swal2-error {
+  border-color: hsl(var(--destructive)) !important;
+}
+
+.swal2-icon.swal2-error [class^=swal2-x-mark-line] {
+  background-color: hsl(var(--destructive)) !important;
+}
+
+.swal2-icon.swal2-info {
+  border-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary)) !important;
+}
+
+.swal2-icon.swal2-question {
+  border-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary)) !important;
+}
+
+.swal2-close {
+  color: hsl(var(--muted-foreground)) !important;
+  transition: color 0.2s ease !important;
+}
+
+.swal2-close:hover {
+  color: hsl(var(--foreground)) !important;
+}
+
+.swal2-footer {
+  border-top: 1px solid hsl(var(--border)) !important;
+  color: hsl(var(--muted-foreground)) !important;
+}
+
+.swal2-footer a {
+  color: hsl(var(--primary)) !important;
+}
+
+.swal2-timer-progress-bar {
+  background: hsl(var(--primary)) !important;
+}
+
+.swal2-loader {
+  border-color: hsl(var(--primary)) transparent hsl(var(--primary)) transparent !important;
+}
+
+/* Dark mode specific adjustments */
+.dark .swal2-popup {
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.5),
+    0 0 0 1px hsl(var(--primary) / 0.2),
+    0 10px 40px -10px hsl(var(--primary) / 0.2),
+    inset 0 1px 0 0 hsl(0 0% 100% / 0.05) !important;
+}
