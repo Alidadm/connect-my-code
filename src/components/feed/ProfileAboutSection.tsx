@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import { 
   User, 
   MapPin, 
@@ -59,6 +60,7 @@ const tabs: { id: TabId; label: string }[] = [
 export const ProfileAboutSection = ({ userId }: ProfileAboutSectionProps) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<TabId>("overview");
 
   const handleEditClick = (fieldKey: string) => {
@@ -102,22 +104,24 @@ export const ProfileAboutSection = ({ userId }: ProfileAboutSectionProps) => {
     enabled: !!userId,
   });
 
-  // Fetch private profile for phone/email (only if visibility is enabled)
+  // Fetch private profile for phone/email/birthday.
+  // NOTE: Direct table reads are typically blocked by security policies.
+  // We only fetch *your own* private profile via the backend function.
   const { data: privateProfile } = useQuery({
-    queryKey: ["profile-private-about", userId],
+    queryKey: ["profile-private-about", userId, user?.id],
     queryFn: async () => {
-      if (!userId) return null;
-      
-      const { data, error } = await supabase
-        .from("profiles_private")
-        .select("phone, email, birthday")
-        .eq("user_id", userId)
-        .maybeSingle();
-      
+      if (!userId || !user || userId !== user.id) return null;
+
+      const { data, error } = await supabase.functions.invoke("get-my-private-profile");
       if (error) return null;
-      return data;
+
+      return {
+        phone: (data as any)?.phone ?? null,
+        email: (data as any)?.email ?? null,
+        birthday: (data as any)?.birthday ?? null,
+      };
     },
-    enabled: !!userId,
+    enabled: !!userId && !!user && userId === user.id,
   });
 
   // Fetch family members
@@ -178,6 +182,11 @@ export const ProfileAboutSection = ({ userId }: ProfileAboutSectionProps) => {
   };
 
   const age = calculateAge(privateProfile?.birthday || null);
+
+  const showEmail = profileDetails?.show_email === true;
+  const showPhone = profileDetails?.show_phone === true;
+  const emailToShow = showEmail ? privateProfile?.email ?? null : null;
+  const phoneToShow = showPhone ? privateProfile?.phone ?? null : null;
 
   const InfoRow = ({ 
     icon: Icon, 
@@ -333,22 +342,17 @@ export const ProfileAboutSection = ({ userId }: ProfileAboutSectionProps) => {
         );
 
       case "contact":
-        const showEmail = profileDetails?.show_email === true;
-        const showPhone = profileDetails?.show_phone === true;
-        const hasEmail = showEmail && privateProfile?.email;
-        const hasPhone = showPhone && privateProfile?.phone;
-        
         return (
           <div className="space-y-4">
             <div>
               <h4 className="text-sm font-semibold text-foreground mb-3">Contact info</h4>
-              {hasEmail && (
-                <InfoRow icon={Mail} text={privateProfile.email} subtext="Email" />
+              {emailToShow && (
+                <InfoRow icon={Mail} text={emailToShow} subtext="Email" />
               )}
-              {hasPhone && (
-                <InfoRow icon={Phone} text={privateProfile.phone} subtext="Mobile" />
+              {phoneToShow && (
+                <InfoRow icon={Phone} text={phoneToShow} subtext="Mobile" />
               )}
-              {!hasEmail && !hasPhone && !profileDetails?.website && !profileDetails?.social_network_id && (
+              {!emailToShow && !phoneToShow && !profileDetails?.website && !profileDetails?.social_network_id && (
                 <p className="text-sm text-muted-foreground py-2">No contact info to show</p>
               )}
               {profileDetails?.website && (
