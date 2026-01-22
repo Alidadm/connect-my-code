@@ -71,6 +71,7 @@ export const AboutSettings = () => {
   const [newLanguage, setNewLanguage] = useState("");
   const [showFamilySearch, setShowFamilySearch] = useState(false);
   const [familySearchQuery, setFamilySearchQuery] = useState("");
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const [selectedFamilyRelationship, setSelectedFamilyRelationship] = useState("Brother");
   const [hasInitialized, setHasInitialized] = useState(false);
 
@@ -93,7 +94,7 @@ export const AboutSettings = () => {
   });
 
   // Fetch profile details
-  const { data: profileDetails, refetch: refetchDetails } = useQuery({
+  const { data: profileDetails, refetch: refetchDetails, isLoading: isLoadingDetails, isFetched } = useQuery({
     queryKey: ["profile-details", user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
@@ -110,6 +111,7 @@ export const AboutSettings = () => {
       return data;
     },
     enabled: !!user?.id,
+    staleTime: 0, // Always fetch fresh data
   });
 
   // Fetch family members
@@ -178,16 +180,17 @@ export const AboutSettings = () => {
     enabled: !!user?.id && showFamilySearch,
   });
 
-  // Update form when data loads - auto-populate from profile if no existing data
+  // Update form when data loads - ONLY initialize once after query completes
   useEffect(() => {
-    if (hasInitialized) return;
+    // Wait for the query to complete before initializing
+    if (!isFetched || initialLoadComplete) return;
     
     if (profileDetails) {
-      // Use existing profile_details data
+      // Use existing profile_details data - prioritize saved data
       setFormData({
         full_name: profileDetails.full_name || "",
         website: profileDetails.website || "",
-        social_network_id: profileDetails.social_network_id || profile?.username ? `@${profile.username}` : "",
+        social_network_id: profileDetails.social_network_id || (profile?.username ? `@${profile.username}` : ""),
         citizenships: profileDetails.citizenships || [],
         languages: profileDetails.languages || [],
         gender: profileDetails.gender || "",
@@ -196,14 +199,13 @@ export const AboutSettings = () => {
         major: profileDetails.major || "",
         current_work: profileDetails.current_work || "",
         birthplace: profileDetails.birthplace || "",
-        current_residence: profileDetails.current_residence || profile?.location || "",
+        current_residence: profileDetails.current_residence || "",
         relationship_status: profileDetails.relationship_status || "",
         show_email: profileDetails.show_email || false,
         show_phone: profileDetails.show_phone || false,
       });
-      setHasInitialized(true);
-    } else if (profile && !profileDetails) {
-      // No existing profile_details - auto-populate from profile
+    } else if (profile) {
+      // No existing profile_details - auto-populate from profile as defaults only
       const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(" ");
       setFormData(prev => ({
         ...prev,
@@ -211,9 +213,10 @@ export const AboutSettings = () => {
         social_network_id: profile.username ? `@${profile.username}` : "",
         current_residence: profile.location || "",
       }));
-      setHasInitialized(true);
     }
-  }, [profileDetails, profile, hasInitialized]);
+    setInitialLoadComplete(true);
+    setHasInitialized(true);
+  }, [isFetched, profileDetails, profile, initialLoadComplete]);
 
   const handleSave = async () => {
     if (!user?.id) return;
@@ -323,6 +326,16 @@ export const AboutSettings = () => {
       toast.error("Failed to remove family member");
     }
   };
+
+  // Show loading state while fetching initial data
+  if (isLoadingDetails && !initialLoadComplete) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+        <span className="ml-2 text-muted-foreground">Loading your information...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
