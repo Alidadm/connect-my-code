@@ -225,56 +225,51 @@ export const MemberCoverHeader = ({ activeTab: externalActiveTab, onTabChange }:
 
       {/* Navigation Tabs */}
       <div className="border-t border-border">
-        <nav className="flex items-center overflow-x-auto scrollbar-hide">
-          <div className="flex items-center px-4 sm:px-6">
-            {/* Spacer for avatar alignment */}
-            <div className="w-28 sm:w-32 flex-shrink-0" />
-            
-            {/* Tabs */}
-            <ul className="flex items-center gap-1 sm:gap-2 py-1">
-              {tabs.map((tab) => (
-                <li key={tab.id}>
-                  <button
-                    onClick={() => handleTabClick(tab.id)}
-                    disabled={tab.disabled}
-                    className={`relative px-3 sm:px-4 py-3 text-sm font-semibold transition-colors whitespace-nowrap ${
-                      tab.disabled
-                        ? "text-muted-foreground/50 cursor-not-allowed"
-                        : tab.id === "about" && aboutOpen
+        <nav className="flex justify-center overflow-x-auto scrollbar-hide">
+          {/* Tabs */}
+          <ul className="flex items-center gap-1 sm:gap-2 py-1 px-4">
+            {tabs.map((tab) => (
+              <li key={tab.id}>
+                <button
+                  onClick={() => handleTabClick(tab.id)}
+                  disabled={tab.disabled}
+                  className={`relative px-3 sm:px-4 py-3 text-sm font-semibold transition-colors whitespace-nowrap ${
+                    tab.disabled
+                      ? "text-muted-foreground/50 cursor-not-allowed"
+                      : tab.id === "about" && aboutOpen
+                        ? "text-primary"
+                        : activeTab === tab.id && tab.id !== "about"
                           ? "text-primary"
-                          : activeTab === tab.id && tab.id !== "about"
-                            ? "text-primary"
-                            : "text-muted-foreground hover:text-primary"
-                    }`}
-                  >
-                    <span className="flex items-center gap-1.5">
-                      {tab.label}
-                      {tab.id === "about" && (
-                        aboutOpen ? (
-                          <ChevronUp className="h-4 w-4" />
-                        ) : (
-                          <ChevronDown className="h-4 w-4" />
-                        )
-                      )}
-                      {tab.count !== undefined && (
-                        <span className={`inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-semibold rounded-full ${
-                          tab.disabled ? "bg-muted/50 text-muted-foreground" : "bg-primary/10 text-primary"
-                        }`}>
-                          {tab.count}
-                        </span>
-                      )}
-                    </span>
-                    {tab.id === "about" && aboutOpen && (
-                      <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-primary rounded-full" />
+                          : "text-muted-foreground hover:text-primary"
+                  }`}
+                >
+                  <span className="flex items-center gap-1.5">
+                    {tab.label}
+                    {tab.id === "about" && (
+                      aboutOpen ? (
+                        <ChevronUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      )
                     )}
-                    {activeTab === tab.id && !tab.disabled && tab.id !== "about" && (
-                      <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-primary rounded-full" />
+                    {tab.count !== undefined && (
+                      <span className={`inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-semibold rounded-full ${
+                        tab.disabled ? "bg-muted/50 text-muted-foreground" : "bg-primary/10 text-primary"
+                      }`}>
+                        {tab.count}
+                      </span>
                     )}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
+                  </span>
+                  {tab.id === "about" && aboutOpen && (
+                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-primary rounded-full" />
+                  )}
+                  {activeTab === tab.id && !tab.disabled && tab.id !== "about" && (
+                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-primary rounded-full" />
+                  )}
+                </button>
+              </li>
+            ))}
+          </ul>
         </nav>
       </div>
 
