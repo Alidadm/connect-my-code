@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { GameSidebarVisibilityProvider } from "@/hooks/useGameSidebarVisibility";
+import { OnboardingWrapper } from "@/components/onboarding/OnboardingWrapper";
 import AdminRouteGuard from "@/components/admin/AdminRouteGuard";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
@@ -55,6 +56,7 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <GameSidebarVisibilityProvider>
+          <OnboardingWrapper>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/about" element={<About />} />
@@ -148,6 +150,7 @@ const App = () => (
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </OnboardingWrapper>
           </GameSidebarVisibilityProvider>
         </AuthProvider>
       </BrowserRouter>
