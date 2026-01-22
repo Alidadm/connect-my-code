@@ -611,17 +611,19 @@ export const Signup = () => {
                   onBlur={() => validateReferralCode(referralCode)}
                   disabled={!!searchParams.get("ref")}
                   className={`${
-                    referralValidated === true
+                    searchParams.get("ref")
+                      ? "bg-muted cursor-not-allowed opacity-60"
+                      : referralValidated === true
                       ? "border-green-500 focus-visible:ring-green-500"
                       : referralValidated === false
                       ? "border-destructive focus-visible:ring-destructive"
                       : ""
-                  } ${searchParams.get("ref") ? "bg-muted cursor-not-allowed" : ""}`}
+                  }`}
                 />
-                {referralValidated === true && (
+                {referralValidated === true && !searchParams.get("ref") && (
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500 text-sm">✓ Valid</span>
                 )}
-                {referralValidated === false && (
+                {referralValidated === false && !searchParams.get("ref") && (
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-destructive text-sm">Invalid</span>
                 )}
               </div>
