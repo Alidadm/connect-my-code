@@ -333,15 +333,23 @@ export const ProfileAboutSection = ({ userId }: ProfileAboutSectionProps) => {
         );
 
       case "contact":
+        const showEmail = profileDetails?.show_email === true;
+        const showPhone = profileDetails?.show_phone === true;
+        const hasEmail = showEmail && privateProfile?.email;
+        const hasPhone = showPhone && privateProfile?.phone;
+        
         return (
           <div className="space-y-4">
             <div>
               <h4 className="text-sm font-semibold text-foreground mb-3">Contact info</h4>
-              {profileDetails?.show_email && privateProfile?.email && (
+              {hasEmail && (
                 <InfoRow icon={Mail} text={privateProfile.email} subtext="Email" />
               )}
-              {profileDetails?.show_phone && privateProfile?.phone && (
+              {hasPhone && (
                 <InfoRow icon={Phone} text={privateProfile.phone} subtext="Mobile" />
+              )}
+              {!hasEmail && !hasPhone && !profileDetails?.website && !profileDetails?.social_network_id && (
+                <p className="text-sm text-muted-foreground py-2">No contact info to show</p>
               )}
               {profileDetails?.website && (
                 <InfoRow icon={Globe} text={profileDetails.website} subtext="Website" />
