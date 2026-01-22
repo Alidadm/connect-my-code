@@ -567,7 +567,7 @@ const GamesContent = () => {
               className="gap-2"
             >
               <Grid3X3 className="w-4 h-4" />
-              {t("games.ticTacToe", { defaultValue: "Tic-Tac-Toe" })}
+              {t("games.ticTacToe.title", { defaultValue: "Tic-Tac-Toe" })}
             </Button>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -599,7 +599,7 @@ const GamesContent = () => {
               className="gap-2"
             >
               <LayoutGrid className="w-4 h-4" />
-              {t("games.memoryMatch", { defaultValue: "Memory Match" })}
+              {t("games.memoryMatch.title", { defaultValue: "Memory Match" })}
             </Button>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -631,7 +631,7 @@ const GamesContent = () => {
               className="gap-2"
             >
               <Hash className="w-4 h-4" />
-              {t("games.sudoku", { defaultValue: "Sudoku" })}
+              {t("games.sudoku.title", { defaultValue: "Sudoku" })}
             </Button>
             <Tooltip>
               <TooltipTrigger asChild>
