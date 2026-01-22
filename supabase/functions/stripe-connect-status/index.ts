@@ -74,40 +74,71 @@ serve(async (req) => {
       apiVersion: "2023-10-16",
     });
 
-    // Get account details
-    const account = await stripe.accounts.retrieve(privateProfile.stripe_connect_id);
+    // Get account details - handle cases where account was revoked/deleted
+    try {
+      const account = await stripe.accounts.retrieve(privateProfile.stripe_connect_id);
 
-    const isComplete = account.details_submitted && account.payouts_enabled;
-    
-    logStep("Account status retrieved", { 
-      accountId: account.id,
-      detailsSubmitted: account.details_submitted,
-      payoutsEnabled: account.payouts_enabled
-    });
+      const isComplete = account.details_submitted && account.payouts_enabled;
+      
+      logStep("Account status retrieved", { 
+        accountId: account.id,
+        detailsSubmitted: account.details_submitted,
+        payoutsEnabled: account.payouts_enabled
+      });
 
-    return new Response(
-      JSON.stringify({ 
-        connected: true,
-        status: isComplete ? "active" : "pending",
-        details_submitted: account.details_submitted,
-        payouts_enabled: account.payouts_enabled,
-        account_id: account.id,
-        message: isComplete 
-          ? "Stripe account is active and ready for payouts" 
-          : "Stripe account setup is incomplete"
-      }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
-    );
+      return new Response(
+        JSON.stringify({ 
+          connected: true,
+          status: isComplete ? "active" : "pending",
+          details_submitted: account.details_submitted,
+          payouts_enabled: account.payouts_enabled,
+          account_id: account.id,
+          message: isComplete 
+            ? "Stripe account is active and ready for payouts" 
+            : "Stripe account setup is incomplete"
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+      );
+    } catch (stripeError: any) {
+      // Handle revoked or deleted Stripe Connect accounts
+      const errorMessage = stripeError?.message || String(stripeError);
+      logStep("Stripe account error", { message: errorMessage });
+      
+      if (errorMessage.includes("does not have access") || 
+          errorMessage.includes("revoked") || 
+          errorMessage.includes("does not exist")) {
+        // Clear the invalid Stripe Connect ID from the database
+        await supabaseClient
+          .from("profiles_private")
+          .update({ stripe_connect_id: null })
+          .eq("user_id", user.id);
+        
+        logStep("Cleared invalid Stripe Connect ID");
+        
+        return new Response(
+          JSON.stringify({ 
+            connected: false,
+            status: "disconnected",
+            message: "Your Stripe account connection was revoked. Please reconnect."
+          }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+        );
+      }
+      
+      // Re-throw other Stripe errors
+      throw stripeError;
+    }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logStep("ERROR", { message: errorMessage });
     
     return new Response(
-      JSON.stringify({ error: errorMessage }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: error instanceof Error && error.message.includes("Unauthorized") ? 401 : 400,
-      }
+      JSON.stringify({ 
+        connected: false,
+        status: "error",
+        message: "Failed to check Stripe status"
+      }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );
   }
 });
