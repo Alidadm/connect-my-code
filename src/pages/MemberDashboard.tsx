@@ -4,7 +4,7 @@ import {
   ChevronRight, Eye, EyeOff, Lock, Mail, Phone, Globe, Calendar,
   Home, CreditCard, Users, Heart, MessageCircle, LogOut, Clock,
   CheckCircle2, XCircle, Loader2, ExternalLink, Languages, UsersRound,
-  Building2, Info, Youtube, AlertTriangle
+  Building2, Info, Youtube, AlertTriangle, RotateCcw
 } from "lucide-react";
 import { format, isValid as isValidDate, parseISO } from "date-fns";
 import { GroupsManagement } from "@/components/dashboard/GroupsManagement";
@@ -337,6 +337,22 @@ const MemberDashboard = () => {
     return () => clearTimeout(timeoutId);
   }, [checkUsernameAvailability]);
 
+  // Discard changes and reset form to original profile values
+  const handleDiscardChanges = useCallback(() => {
+    if (profile) {
+      setFormData({
+        display_name: profile.display_name || "",
+        username: profile.username || "",
+        bio: profile.bio || "",
+        location: profile.location || "",
+        first_name: profile.first_name || "",
+        last_name: profile.last_name || "",
+      });
+      setUsernameStatus({ checking: false, available: null, error: null });
+      toast.info("Changes discarded");
+    }
+  }, [profile]);
+
   const handleSaveProfile = async () => {
     if (!user) return;
     
@@ -525,14 +541,28 @@ const MemberDashboard = () => {
         <p className="text-xs text-slate-400">Enter your city. Country is detected automatically.</p>
       </div>
 
-      <Button 
-        onClick={handleSaveProfile} 
-        disabled={saving}
-        className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white shadow-lg shadow-blue-500/25"
-      >
-        <Save className="w-4 h-4 mr-2" />
-        {saving ? "Saving..." : "Save Changes"}
-      </Button>
+      <div className="flex gap-3">
+        <Button 
+          onClick={handleSaveProfile} 
+          disabled={saving}
+          className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white shadow-lg shadow-blue-500/25"
+        >
+          <Save className="w-4 h-4 mr-2" />
+          {saving ? "Saving..." : "Save Changes"}
+        </Button>
+        
+        {hasUnsavedProfileChanges && (
+          <Button 
+            variant="outline"
+            onClick={handleDiscardChanges}
+            disabled={saving}
+            className="border-muted-foreground/30 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
+          >
+            <RotateCcw className="w-4 h-4 mr-2" />
+            Discard Changes
+          </Button>
+        )}
+      </div>
     </div>
   );
 
