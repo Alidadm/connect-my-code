@@ -22,7 +22,7 @@ import {
   Mail
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { format, differenceInYears } from "date-fns";
+import { format, differenceInYears, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -171,11 +171,11 @@ export const ProfileAboutSection = ({ userId }: ProfileAboutSectionProps) => {
     );
   }
 
-  // Calculate age from birthday
+  // Calculate age from birthday - use parseISO to avoid timezone shifts
   const calculateAge = (birthday: string | null) => {
     if (!birthday) return null;
     try {
-      return differenceInYears(new Date(), new Date(birthday));
+      return differenceInYears(new Date(), parseISO(birthday));
     } catch {
       return null;
     }
@@ -388,7 +388,7 @@ export const ProfileAboutSection = ({ userId }: ProfileAboutSectionProps) => {
                     <div className="flex items-center gap-8">
                       <div>
                         <span className="text-sm text-foreground">
-                          {format(new Date(privateProfile.birthday), "MMMM d, yyyy")}
+                          {format(parseISO(privateProfile.birthday), "MMMM d, yyyy")}
                         </span>
                         <p className="text-xs text-muted-foreground">Birthday</p>
                       </div>
