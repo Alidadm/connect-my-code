@@ -26,6 +26,9 @@ import { BusinessCardUploader } from "./BusinessCardUploader";
 import { BusinessCoverEditor } from "./BusinessCoverEditor";
 import Swal from "sweetalert2";
 
+// Default platform cover image (same as member profile default)
+const DEFAULT_COVER_URL = "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=1200&h=400&fit=crop";
+
 // Map category icons to Lucide components
 const getCategoryIcon = (iconName: string | null) => {
   // For simplicity, return a default icon
@@ -168,21 +171,16 @@ export const BusinessManagement = () => {
     <div className="space-y-6">
       {/* Header Card with Cover */}
       <div className="relative rounded-xl overflow-hidden border border-border">
-        {/* Cover Image */}
+        {/* Cover Image - always show default if no custom cover */}
         <div
-          className={cn(
-            "h-32 bg-gradient-to-br from-primary/30 via-primary/20 to-primary/10 relative cursor-pointer group",
-            formData.cover_url && "bg-none"
-          )}
+          className="h-32 relative cursor-pointer group"
           onClick={() => setCoverEditorOpen(true)}
         >
-          {formData.cover_url && (
-            <img
-              src={formData.cover_url}
-              alt="Business cover"
-              className="w-full h-full object-cover"
-            />
-          )}
+          <img
+            src={formData.cover_url || DEFAULT_COVER_URL}
+            alt="Business cover"
+            className="w-full h-full object-cover"
+          />
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
             <Button variant="secondary" size="sm">
               <Camera className="h-4 w-4 mr-2" />
