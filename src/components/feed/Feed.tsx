@@ -21,6 +21,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+// Section IDs for smooth scrolling
+const SECTION_IDS = {
+  feed: "feed-section",
+  posts: "feed-section",
+  photos: "photos-section",
+  videos: "videos-section",
+  friends: "friends-section",
+  blogs: "blogs-section",
+};
+
 interface Post {
   id: string;
   content: string | null;
@@ -102,8 +112,10 @@ export const Feed = () => {
   const [filter, setFilter] = useState<FilterType>("recent");
   const [activeTab, setActiveTab] = useState("feed");
   const [blockedUserIds, setBlockedUserIds] = useState<Set<string>>(new Set());
+  const [isTabsSticky, setIsTabsSticky] = useState(false);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
+  const contentRef = useRef<HTMLDivElement | null>(null);
 
   // Fetch blocked and muted user IDs
   const fetchBlockedUsers = useCallback(async () => {
@@ -390,8 +402,27 @@ export const Feed = () => {
     threshold: 80,
   });
 
+  // Handle tab change with smooth scroll
+  const handleTabChange = useCallback((tab: string) => {
+    setActiveTab(tab);
+    
+    // Smooth scroll to content section after a brief delay for state update
+    setTimeout(() => {
+      if (contentRef.current) {
+        const headerOffset = 80; // Account for sticky header
+        const elementPosition = contentRef.current.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+        
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: "smooth"
+        });
+      }
+    }, 100);
+  }, []);
+
   return (
-    <div ref={containerRef} className="max-w-2xl mx-auto">
+    <div ref={containerRef} className="max-w-2xl mx-auto scroll-smooth">
       {/* Pull to refresh indicator */}
       <PullToRefreshIndicator
         pullDistance={pullDistance}
@@ -399,11 +430,16 @@ export const Feed = () => {
         threshold={80}
       />
 
-      <MemberCoverHeader activeTab={activeTab} onTabChange={setActiveTab} />
-      
-      {/* Show tab content based on active tab */}
-      {activeTab === "feed" || activeTab === "posts" ? (
-        <>
+      <MemberCoverHeader 
+        activeTab={activeTab} 
+        onTabChange={handleTabChange}
+        onStickyChange={setIsTabsSticky}
+      />
+      {/* Content Section */}
+      <div ref={contentRef} id={SECTION_IDS[activeTab as keyof typeof SECTION_IDS] || "feed-section"}>
+        {/* Show tab content based on active tab */}
+        {activeTab === "feed" || activeTab === "posts" ? (
+          <>
           {/* Today's Birthdays section */}
           <TodaysBirthdays />
 
@@ -484,12 +520,13 @@ export const Feed = () => {
             </>
           )}
         </>
-      ) : (
-        /* Show Photos, Videos, or Friends content */
-        <div className="bg-card rounded-xl shadow-sm mt-4">
-          <ProfileTabContent activeTab={activeTab} />
-        </div>
-      )}
+        ) : (
+          /* Show Photos, Videos, or Friends content */
+          <div className="bg-card rounded-xl shadow-sm mt-4 animate-fade-in">
+            <ProfileTabContent activeTab={activeTab} />
+          </div>
+        )}
+      </div>
     </div>
   );
 };
