@@ -6,6 +6,7 @@ import {
   CheckCircle2, XCircle, Loader2, ExternalLink, Languages, UsersRound,
   Building2, Info, Youtube
 } from "lucide-react";
+import { format, isValid as isValidDate, parseISO } from "date-fns";
 import { GroupsManagement } from "@/components/dashboard/GroupsManagement";
 import { BusinessManagement } from "@/components/business/BusinessManagement";
 import { AboutSettings } from "@/components/settings/AboutSettings";
@@ -15,6 +16,7 @@ import { CoverEditor } from "@/components/cover/CoverEditor";
 import Swal from "sweetalert2";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PhoneInputField } from "@/components/ui/phone-input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -29,6 +31,7 @@ import { toast } from "sonner";
 import { validateUsername } from "@/lib/username";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { formatPhoneNumberIntl, isValidPhoneNumber } from "react-phone-number-input";
 
 type TabType = "profile" | "account" | "about" | "privacy" | "notifications" | "appearance" | "groups" | "business" | "watch-history";
 
@@ -184,6 +187,25 @@ const MemberDashboard = () => {
     };
     fetchPrivateProfile();
   }, [user]);
+
+  const normalizePhoneForStorage = useCallback((phone: string) => {
+    const trimmed = (phone || "").trim();
+    if (!trimmed) return "";
+    if (trimmed.startsWith("+")) return trimmed;
+    const digits = trimmed.replace(/\D/g, "");
+    if (digits.length === 10) return `+1${digits}`;
+    if (digits.length === 11 && digits.startsWith("1")) return `+${digits}`;
+    return trimmed;
+  }, []);
+
+  const formatPhoneDisplay = useCallback((phone: string | null) => {
+    if (!phone) return "Not set";
+    const normalized = normalizePhoneForStorage(phone);
+    if (normalized.startsWith("+") && isValidPhoneNumber(normalized)) {
+      return formatPhoneNumberIntl(normalized);
+    }
+    return phone;
+  }, [normalizePhoneForStorage]);
 
   // Update form when profile loads
   React.useEffect(() => {
@@ -459,8 +481,9 @@ const MemberDashboard = () => {
         });
         if (error) throw error;
         
-        const { data } = await supabase.functions.invoke('get-my-private-profile');
-        if (data?.data) setPrivateProfile(data.data);
+        const { data: refreshed, error: refreshError } = await supabase.functions.invoke('get-my-private-profile');
+        if (refreshError) throw refreshError;
+        setPrivateProfile(refreshed ?? null);
         
         toast.success("Email updated successfully!");
         setEditingEmail(false);
@@ -473,19 +496,27 @@ const MemberDashboard = () => {
     };
 
     const handleUpdatePhone = async () => {
-      if (!newPhone || newPhone === privateProfile?.phone) {
+      const normalized = normalizePhoneForStorage(newPhone);
+      if (!normalized || normalized === normalizePhoneForStorage(privateProfile?.phone || "")) {
         setEditingPhone(false);
         return;
       }
+
+      if (!normalized.startsWith("+") || !isValidPhoneNumber(normalized)) {
+        toast.error("Please enter a valid phone number");
+        return;
+      }
+
       setUpdatingPhone(true);
       try {
         const { error } = await supabase.functions.invoke('store-private-profile', {
-          body: { phone: newPhone }
+          body: { phone: normalized }
         });
         if (error) throw error;
         
-        const { data } = await supabase.functions.invoke('get-my-private-profile');
-        if (data?.data) setPrivateProfile(data.data);
+        const { data: refreshed, error: refreshError } = await supabase.functions.invoke('get-my-private-profile');
+        if (refreshError) throw refreshError;
+        setPrivateProfile(refreshed ?? null);
         
         toast.success("Phone number updated successfully!");
         setEditingPhone(false);
@@ -509,8 +540,9 @@ const MemberDashboard = () => {
         });
         if (error) throw error;
         
-        const { data } = await supabase.functions.invoke('get-my-private-profile');
-        if (data?.data) setPrivateProfile(data.data);
+        const { data: refreshed, error: refreshError } = await supabase.functions.invoke('get-my-private-profile');
+        if (refreshError) throw refreshError;
+        setPrivateProfile(refreshed ?? null);
         
         toast.success("Birthday updated successfully!");
         setEditingBirthday(false);
@@ -525,8 +557,10 @@ const MemberDashboard = () => {
     const formatBirthdayDisplay = (birthday: string | null) => {
       if (!birthday) return "Not set";
       try {
-        const date = new Date(birthday);
-        return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        // Avoid timezone shifting ("YYYY-MM-DD" is a date-only value)
+        const parsed = parseISO(birthday);
+        if (!isValidDate(parsed)) return birthday;
+        return format(parsed, "MMMM d, yyyy");
       } catch {
         return birthday;
       }
@@ -818,15 +852,15 @@ const MemberDashboard = () => {
             <div className="flex-1">
               <h4 className="font-medium text-slate-800">Phone Number</h4>
               {editingPhone ? (
-                <Input
-                  type="tel"
-                  value={newPhone}
-                  onChange={(e) => setNewPhone(e.target.value)}
-                  className="mt-1 max-w-xs"
-                  placeholder="Enter new phone number"
-                />
+                <div className="mt-1 max-w-xs">
+                  <PhoneInputField
+                    value={newPhone}
+                    onChange={(val) => setNewPhone(val || "")}
+                    placeholder="Phone number"
+                  />
+                </div>
               ) : (
-                <p className="text-sm text-slate-600 font-medium">{privateProfile?.phone || "Not set"}</p>
+                <p className="text-sm text-slate-600 font-medium">{formatPhoneDisplay(privateProfile?.phone || null)}</p>
               )}
             </div>
             {profile?.phone_verified && !editingPhone && (
@@ -852,7 +886,14 @@ const MemberDashboard = () => {
                 </Button>
               </div>
             ) : (
-              <Button variant="outline" size="sm" onClick={() => { setNewPhone(privateProfile?.phone || ""); setEditingPhone(true); }}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setNewPhone(normalizePhoneForStorage(privateProfile?.phone || ""));
+                  setEditingPhone(true);
+                }}
+              >
                 Update
               </Button>
             )}
