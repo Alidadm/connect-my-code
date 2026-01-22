@@ -129,6 +129,22 @@ const MemberDashboard = () => {
   const [updatingEmail, setUpdatingEmail] = useState(false);
   const [updatingPhone, setUpdatingPhone] = useState(false);
   const [updatingBirthday, setUpdatingBirthday] = useState(false);
+
+  // Phone verification state
+  const [phoneVerifyStep, setPhoneVerifyStep] = useState<"idle" | "code">("idle");
+  const [phoneVerifyCode, setPhoneVerifyCode] = useState("");
+  const [sendingPhoneCode, setSendingPhoneCode] = useState(false);
+  const [verifyingPhoneCode, setVerifyingPhoneCode] = useState(false);
+  const [phoneCodeSent, setPhoneCodeSent] = useState(false);
+  const [phoneResendCooldown, setPhoneResendCooldown] = useState(0);
+
+  // Cooldown timer for phone resend
+  React.useEffect(() => {
+    if (phoneResendCooldown > 0) {
+      const timer = setTimeout(() => setPhoneResendCooldown(phoneResendCooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [phoneResendCooldown]);
   
   // Avatar editor state
   const [avatarEditorOpen, setAvatarEditorOpen] = useState(false);
@@ -495,7 +511,8 @@ const MemberDashboard = () => {
       }
     };
 
-    const handleUpdatePhone = async () => {
+    // Step 1: Send code to email for phone change
+    const handleSendPhoneCode = async () => {
       const normalized = normalizePhoneForStorage(newPhone);
       if (!normalized || normalized === normalizePhoneForStorage(privateProfile?.phone || "")) {
         setEditingPhone(false);
@@ -507,25 +524,62 @@ const MemberDashboard = () => {
         return;
       }
 
-      setUpdatingPhone(true);
+      setSendingPhoneCode(true);
       try {
-        const { error } = await supabase.functions.invoke('store-private-profile', {
-          body: { phone: normalized }
+        const { error } = await supabase.functions.invoke('send-phone-change-code', {
+          body: { newPhone: normalized }
         });
         if (error) throw error;
-        
-        const { data: refreshed, error: refreshError } = await supabase.functions.invoke('get-my-private-profile');
-        if (refreshError) throw refreshError;
-        setPrivateProfile(refreshed ?? null);
-        
-        toast.success("Phone number updated successfully!");
-        setEditingPhone(false);
-      } catch (error) {
-        console.error("Error updating phone:", error);
-        toast.error("Failed to update phone number");
+
+        setPhoneCodeSent(true);
+        setPhoneVerifyStep("code");
+        setPhoneResendCooldown(60);
+        toast.success("Verification code sent to your email!");
+      } catch (error: any) {
+        console.error("Error sending phone code:", error);
+        toast.error(error.message || "Failed to send verification code");
       } finally {
-        setUpdatingPhone(false);
+        setSendingPhoneCode(false);
       }
+    };
+
+    // Step 2: Verify the OTP and update phone
+    const handleVerifyPhoneCode = async () => {
+      if (phoneVerifyCode.length !== 6) {
+        toast.error("Please enter the 6-digit code");
+        return;
+      }
+      setVerifyingPhoneCode(true);
+      try {
+        const { data, error } = await supabase.functions.invoke('verify-phone-change-code', {
+          body: { code: phoneVerifyCode }
+        });
+        if (error) throw error;
+        if (!data?.success) throw new Error(data?.error || "Verification failed");
+
+        // Refresh private profile
+        const { data: refreshed } = await supabase.functions.invoke('get-my-private-profile');
+        setPrivateProfile(refreshed ?? null);
+
+        toast.success("Phone number updated and verified!");
+        setEditingPhone(false);
+        setPhoneVerifyStep("idle");
+        setPhoneVerifyCode("");
+        setPhoneCodeSent(false);
+        await refreshProfile();
+      } catch (error: any) {
+        console.error("Error verifying phone code:", error);
+        toast.error(error.message || "Invalid or expired code");
+      } finally {
+        setVerifyingPhoneCode(false);
+      }
+    };
+
+    const handleCancelPhoneEdit = () => {
+      setEditingPhone(false);
+      setPhoneVerifyStep("idle");
+      setPhoneVerifyCode("");
+      setPhoneCodeSent(false);
     };
 
     const handleUpdateBirthday = async () => {
@@ -852,13 +906,40 @@ const MemberDashboard = () => {
             <div className="flex-1">
               <h4 className="font-medium text-slate-800">Phone Number</h4>
               {editingPhone ? (
-                <div className="mt-1 max-w-xs">
-                  <PhoneInputField
-                    value={newPhone}
-                    onChange={(val) => setNewPhone(val || "")}
-                    placeholder="Phone number"
-                  />
-                </div>
+                phoneVerifyStep === "code" ? (
+                  <div className="mt-2 space-y-2">
+                    <p className="text-xs text-slate-500">Enter the 6-digit code sent to your email</p>
+                    <Input
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={6}
+                      value={phoneVerifyCode}
+                      onChange={(e) => setPhoneVerifyCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                      placeholder="000000"
+                      className="max-w-[120px] text-center tracking-widest"
+                    />
+                    {phoneResendCooldown > 0 ? (
+                      <p className="text-xs text-slate-400">Resend in {phoneResendCooldown}s</p>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handleSendPhoneCode}
+                        disabled={sendingPhoneCode}
+                        className="text-xs text-primary hover:underline"
+                      >
+                        Resend code
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="mt-1 max-w-xs">
+                    <PhoneInputField
+                      value={newPhone}
+                      onChange={(val) => setNewPhone(val || "")}
+                      placeholder="Phone number"
+                    />
+                  </div>
+                )
               ) : (
                 <p className="text-sm text-slate-600 font-medium">{formatPhoneDisplay(privateProfile?.phone || null)}</p>
               )}
@@ -871,19 +952,30 @@ const MemberDashboard = () => {
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  onClick={() => setEditingPhone(false)}
-                  disabled={updatingPhone}
+                  onClick={handleCancelPhoneEdit}
+                  disabled={sendingPhoneCode || verifyingPhoneCode}
                 >
                   Cancel
                 </Button>
-                <Button 
-                  size="sm" 
-                  onClick={handleUpdatePhone}
-                  disabled={updatingPhone}
-                  className="bg-gradient-to-r from-purple-500 to-pink-500"
-                >
-                  {updatingPhone ? "Saving..." : "Save"}
-                </Button>
+                {phoneVerifyStep === "code" ? (
+                  <Button 
+                    size="sm" 
+                    onClick={handleVerifyPhoneCode}
+                    disabled={verifyingPhoneCode || phoneVerifyCode.length !== 6}
+                    className="bg-gradient-to-r from-purple-500 to-pink-500"
+                  >
+                    {verifyingPhoneCode ? "Verifying..." : "Verify"}
+                  </Button>
+                ) : (
+                  <Button 
+                    size="sm" 
+                    onClick={handleSendPhoneCode}
+                    disabled={sendingPhoneCode}
+                    className="bg-gradient-to-r from-purple-500 to-pink-500"
+                  >
+                    {sendingPhoneCode ? "Sending..." : "Send Code"}
+                  </Button>
+                )}
               </div>
             ) : (
               <Button
@@ -892,6 +984,9 @@ const MemberDashboard = () => {
                 onClick={() => {
                   setNewPhone(normalizePhoneForStorage(privateProfile?.phone || ""));
                   setEditingPhone(true);
+                  setPhoneVerifyStep("idle");
+                  setPhoneVerifyCode("");
+                  setPhoneCodeSent(false);
                 }}
               >
                 Update
