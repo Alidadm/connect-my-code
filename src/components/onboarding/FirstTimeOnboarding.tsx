@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Loader2, Globe, User, Camera, Check, Phone, RefreshCw } from "lucide-react";
+import { Loader2, Globe, User, Camera, Check, Mail, RefreshCw } from "lucide-react";
 import { supportedLanguages, LanguageCode } from "@/lib/i18n";
 import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
@@ -20,21 +20,20 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
   const { user, profile, refreshProfile } = useAuth();
   const { i18n, t } = useTranslation();
   
-  const [step, setStep] = useState<"language" | "phone" | "profile">("language");
+  const [step, setStep] = useState<"language" | "email" | "profile">("language");
   const [selectedLanguage, setSelectedLanguage] = useState<LanguageCode>("en");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   
-  // Phone verification
-  const [phoneToVerify, setPhoneToVerify] = useState("");
-  const [userEmail, setUserEmail] = useState("");
+  // Email verification
+  const [emailToVerify, setEmailToVerify] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
   const [sendingCode, setSendingCode] = useState(false);
   const [verifyingCode, setVerifyingCode] = useState(false);
   const [codeSent, setCodeSent] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
-  const [phoneVerified, setPhoneVerified] = useState(false);
+  const [emailVerified, setEmailVerified] = useState(false);
   
   // Profile form data
   const [firstName, setFirstName] = useState("");
@@ -68,7 +67,7 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
       // Check if onboarding is already completed
       const { data: profileData } = await supabase
         .from("profiles")
-        .select("onboarding_completed, first_name, last_name, avatar_url, phone_verified")
+        .select("onboarding_completed, first_name, last_name, avatar_url, email_verified")
         .eq("user_id", user.id)
         .single();
 
@@ -77,9 +76,9 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
         return;
       }
 
-      // Check if phone is already verified
-      if (profileData?.phone_verified) {
-        setPhoneVerified(true);
+      // Check if email is already verified
+      if (profileData?.email_verified) {
+        setEmailVerified(true);
       }
 
       // Load existing profile data
@@ -108,11 +107,10 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
             const privateData = await response.json();
             if (privateData.email) {
               setEmail(privateData.email);
-              setUserEmail(privateData.email);
+              setEmailToVerify(privateData.email);
             }
             if (privateData.phone) {
               setPhone(privateData.phone);
-              setPhoneToVerify(privateData.phone);
             }
             if (privateData.birthday) {
               const date = new Date(privateData.birthday);
@@ -125,9 +123,9 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
       }
 
       // Set email from auth user if not in private profile
-      if (!userEmail && user.email) {
+      if (!emailToVerify && user.email) {
         setEmail(user.email);
-        setUserEmail(user.email);
+        setEmailToVerify(user.email);
       }
 
       // Get current language
@@ -174,11 +172,11 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
       const langName = supportedLanguages.find(l => l.code === selectedLanguage)?.nativeName || selectedLanguage;
       toast.success(`Language changed to ${langName}`);
       
-      // If phone already verified, skip to profile
-      if (phoneVerified) {
+      // If email already verified, skip to profile
+      if (emailVerified) {
         setStep("profile");
       } else {
-        setStep("phone");
+        setStep("email");
       }
     } catch (error) {
       console.error("Error saving language:", error);
@@ -189,8 +187,8 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
   };
 
   const handleSendCode = async () => {
-    if (!phoneToVerify || phoneToVerify.length < 10) {
-      toast.error(t("onboarding.enterValidPhone", "Please enter a valid phone number"));
+    if (!emailToVerify || !emailToVerify.includes("@")) {
+      toast.error(t("onboarding.enterValidEmail", "Please enter a valid email address"));
       return;
     }
 
@@ -202,14 +200,14 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
       }
 
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-verification-code`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-email-verification-code`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${session.access_token}`,
           },
-          body: JSON.stringify({ phone: phoneToVerify }),
+          body: JSON.stringify({ email: emailToVerify }),
         }
       );
 
@@ -244,7 +242,7 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
       }
 
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-phone-code`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-email-code`,
         {
           method: "POST",
           headers: {
@@ -253,7 +251,7 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
           },
           body: JSON.stringify({ 
             code: verificationCode,
-            phone: phoneToVerify 
+            email: emailToVerify 
           }),
         }
       );
@@ -264,9 +262,9 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
         throw new Error(result.error || t("onboarding.codeInvalid", "Invalid verification code"));
       }
 
-      setPhoneVerified(true);
-      setPhone(phoneToVerify);
-      toast.success(t("onboarding.phoneVerified", "Phone number verified successfully!"));
+      setEmailVerified(true);
+      setEmail(emailToVerify);
+      toast.success(t("onboarding.emailVerified", "Email verified successfully!"));
       setStep("profile");
     } catch (error: any) {
       console.error("Error verifying code:", error);
@@ -349,8 +347,8 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
               "Authorization": `Bearer ${session.access_token}`,
             },
             body: JSON.stringify({
-              email: email.trim() || userEmail.trim(),
-              phone: phone.trim() || phoneToVerify.trim() || null,
+              email: email.trim() || emailToVerify.trim(),
+              phone: phone.trim() || null,
               birthday: birthday,
             }),
           }
@@ -382,11 +380,11 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
 
   const getStepNumber = () => {
     if (step === "language") return 1;
-    if (step === "phone") return 2;
+    if (step === "email") return 2;
     return 3;
   };
 
-  const totalSteps = phoneVerified ? 2 : 3;
+  const totalSteps = emailVerified ? 2 : 3;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 backdrop-blur-sm">
@@ -395,12 +393,12 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
         <div className="bg-gradient-to-r from-primary to-primary/80 p-6 text-primary-foreground">
           <h1 className="text-2xl font-bold">
             {step === "language" && `🌍 ${t("onboarding.welcomeLanguage", "Welcome! Choose Your Language")}`}
-            {step === "phone" && `📱 ${t("onboarding.verifyPhone", "Verify Your Phone Number")}`}
+            {step === "email" && `📧 ${t("onboarding.verifyEmail", "Verify Your Email")}`}
             {step === "profile" && `👤 ${t("onboarding.completeProfile", "Complete Your Profile")}`}
           </h1>
           <p className="text-primary-foreground/80 mt-1">
             {step === "language" && t("onboarding.selectLanguage", "Select your preferred language to continue")}
-            {step === "phone" && t("onboarding.phoneCodeDesc", "We'll send a verification code to your email to verify your phone")}
+            {step === "email" && t("onboarding.emailCodeDesc", "We'll send a verification code to your email")}
             {step === "profile" && t("onboarding.verifyProfileDesc", "Please verify and complete your profile information")}
           </p>
           {/* Progress indicator */}
@@ -449,36 +447,33 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
             </div>
           )}
 
-          {step === "phone" && (
+          {step === "email" && (
             <div className="space-y-6">
               {!codeSent ? (
                 <>
                   <div className="text-center">
                     <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Phone className="h-8 w-8 text-primary" />
+                      <Mail className="h-8 w-8 text-primary" />
                     </div>
                     <p className="text-muted-foreground">
-                      {t("onboarding.phoneCodeDesc", "We'll send a 6-digit verification code to your email to verify your phone number.")}
+                      {t("onboarding.emailCodeDesc", "We'll send a 6-digit verification code to your email address.")}
                     </p>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="phoneVerify">{t("onboarding.phoneNumber", "Phone Number")}</Label>
+                    <Label htmlFor="emailVerify">{t("onboarding.emailAddress", "Email Address")}</Label>
                     <Input
-                      id="phoneVerify"
-                      type="tel"
-                      value={phoneToVerify}
-                      onChange={(e) => setPhoneToVerify(e.target.value)}
-                      placeholder="+1 234 567 8900"
+                      id="emailVerify"
+                      type="email"
+                      value={emailToVerify}
+                      onChange={(e) => setEmailToVerify(e.target.value)}
+                      placeholder="your@email.com"
                     />
-                    <p className="text-xs text-muted-foreground">
-                      {t("onboarding.codeWillBeSentTo", "Code will be sent to:")} <strong>{userEmail}</strong>
-                    </p>
                   </div>
 
                   <Button
                     onClick={handleSendCode}
-                    disabled={sendingCode || !phoneToVerify}
+                    disabled={sendingCode || !emailToVerify}
                     className="w-full"
                   >
                     {sendingCode ? (
@@ -488,7 +483,7 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
                       </>
                     ) : (
                       <>
-                        <Phone className="mr-2 h-4 w-4" />
+                        <Mail className="mr-2 h-4 w-4" />
                         {t("onboarding.sendCode", "Send Verification Code")}
                       </>
                     )}
@@ -497,22 +492,21 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
               ) : (
                 <>
                   <div className="text-center">
-                    <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Check className="h-8 w-8 text-primary" />
+                    <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Check className="h-8 w-8 text-green-600 dark:text-green-400" />
                     </div>
-                    <p className="font-medium">{t("onboarding.codeSent", "Code sent!")}</p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {t("onboarding.checkInbox", "Check your inbox at")} <strong>{userEmail}</strong>
+                    <p className="text-muted-foreground">
+                      {t("onboarding.codeSentTo", "Code sent to")} <strong>{emailToVerify}</strong>
                     </p>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label className="text-center block">{t("onboarding.enterCode", "Enter 6-digit code")}</Label>
+                  <div className="space-y-4">
+                    <Label className="text-center block">{t("onboarding.enterVerificationCode", "Enter Verification Code")}</Label>
                     <div className="flex justify-center">
-                      <InputOTP
-                        maxLength={6}
+                      <InputOTP 
+                        maxLength={6} 
                         value={verificationCode}
-                        onChange={(value) => setVerificationCode(value)}
+                        onChange={setVerificationCode}
                       >
                         <InputOTPGroup>
                           <InputOTPSlot index={0} />
@@ -544,37 +538,26 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
                     )}
                   </Button>
 
-                  <div className="flex items-center justify-center gap-2 text-sm">
-                    <span className="text-muted-foreground">{t("onboarding.didntReceive", "Didn't receive it?")}</span>
+                  <div className="text-center">
                     <Button
-                      variant="link"
+                      variant="ghost"
                       size="sm"
                       onClick={handleSendCode}
                       disabled={resendCooldown > 0 || sendingCode}
-                      className="p-0 h-auto"
                     >
                       {resendCooldown > 0 ? (
-                        t("onboarding.resendIn", "Resend in {{seconds}}s").replace("{{seconds}}", String(resendCooldown))
+                        <>
+                          <RefreshCw className="mr-2 h-4 w-4" />
+                          {t("onboarding.resendIn", "Resend in")} {resendCooldown}s
+                        </>
                       ) : (
                         <>
-                          <RefreshCw className="mr-1 h-3 w-3" />
-                          {t("onboarding.resendCode", "Resend code")}
+                          <RefreshCw className="mr-2 h-4 w-4" />
+                          {t("onboarding.resendCode", "Resend Code")}
                         </>
                       )}
                     </Button>
                   </div>
-
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setCodeSent(false);
-                      setVerificationCode("");
-                    }}
-                    className="w-full text-muted-foreground"
-                  >
-                    {t("onboarding.changePhone", "Change phone number")}
-                  </Button>
                 </>
               )}
             </div>
@@ -582,26 +565,15 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
 
           {step === "profile" && (
             <div className="space-y-6">
-              {/* Avatar */}
-              <div className="flex flex-col items-center gap-3">
+              {/* Avatar Upload */}
+              <div className="flex flex-col items-center gap-4">
                 <div className="relative">
-                  <Avatar className="h-24 w-24 border-4 border-primary/20">
+                  <Avatar className="h-24 w-24">
                     <AvatarImage src={avatarUrl || undefined} />
-                    <AvatarFallback className="bg-primary/10 text-primary text-2xl">
-                      {firstName?.[0]?.toUpperCase() || lastName?.[0]?.toUpperCase() || <User className="h-8 w-8" />}
+                    <AvatarFallback className="text-2xl bg-primary/10">
+                      {firstName?.[0]?.toUpperCase() || <User className="h-10 w-10" />}
                     </AvatarFallback>
                   </Avatar>
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={uploadingAvatar}
-                    className="absolute -bottom-1 -right-1 p-2 bg-primary text-primary-foreground rounded-full shadow-lg hover:bg-primary/90 transition-colors"
-                  >
-                    {uploadingAvatar ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Camera className="h-4 w-4" />
-                    )}
-                  </button>
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -609,11 +581,26 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
                     onChange={handleAvatarUpload}
                     className="hidden"
                   />
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                    className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingAvatar}
+                  >
+                    {uploadingAvatar ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Camera className="h-4 w-4" />
+                    )}
+                  </Button>
                 </div>
-                <p className="text-sm text-muted-foreground">{t("onboarding.uploadPhoto", "Upload your profile photo")}</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("onboarding.uploadPhoto", "Upload a profile photo")}
+                </p>
               </div>
 
-              {/* Name fields */}
+              {/* Name Fields */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="firstName">{t("onboarding.firstName", "First Name")} *</Label>
@@ -621,7 +608,7 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
                     id="firstName"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
-                    placeholder={t("onboarding.firstName", "First Name")}
+                    placeholder="John"
                   />
                 </div>
                 <div className="space-y-2">
@@ -630,59 +617,48 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
                     id="lastName"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
-                    placeholder={t("onboarding.lastName", "Last Name")}
+                    placeholder="Doe"
                   />
                 </div>
               </div>
 
-              {/* Email */}
+              {/* Email (Read-only) */}
               <div className="space-y-2">
-                <Label htmlFor="email">{t("onboarding.emailAddress", "Email Address")}</Label>
+                <Label htmlFor="email">{t("onboarding.email", "Email")}</Label>
                 <Input
                   id="email"
                   type="email"
-                  value={email || userEmail}
+                  value={email || emailToVerify}
                   disabled
                   className="bg-muted"
                 />
-              </div>
-
-              {/* Phone - readonly since verified */}
-              <div className="space-y-2">
-                <Label htmlFor="phone">{t("onboarding.phoneNumber", "Phone Number")} ✓</Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  value={phone || phoneToVerify}
-                  disabled
-                  className="bg-muted"
-                />
-                <p className="text-xs text-primary flex items-center gap-1">
-                  <Check className="h-3 w-3" /> {t("onboarding.phoneVerifiedLabel", "Phone verified")}
-                </p>
+                {emailVerified && (
+                  <p className="text-xs text-green-600 flex items-center gap-1">
+                    <Check className="h-3 w-3" /> {t("onboarding.verified", "Verified")}
+                  </p>
+                )}
               </div>
 
               {/* Phone */}
               <div className="space-y-2">
-                <Label htmlFor="phone">{t("onboarding.phoneNumber", "Phone Number")}</Label>
+                <Label htmlFor="phone">{t("onboarding.phone", "Phone Number")}</Label>
                 <Input
                   id="phone"
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+1 (555) 000-0000"
+                  placeholder="+1 234 567 8900"
                 />
               </div>
 
               {/* Birthday */}
               <div className="space-y-2">
-                <Label htmlFor="birthday">{t("onboarding.dateOfBirth", "Date of Birth")} *</Label>
+                <Label htmlFor="birthday">{t("onboarding.birthday", "Date of Birth")} *</Label>
                 <Input
                   id="birthday"
                   type="date"
                   value={birthday}
                   onChange={(e) => setBirthday(e.target.value)}
-                  max={format(new Date(), "yyyy-MM-dd")}
                 />
               </div>
             </div>
@@ -690,13 +666,9 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
         </div>
 
         {/* Footer */}
-        <div className="p-6 bg-muted/30 border-t flex justify-end gap-3">
+        <div className="p-6 bg-muted/50 border-t">
           {step === "language" && (
-            <Button
-              onClick={handleLanguageSave}
-              disabled={saving}
-              className="min-w-[140px]"
-            >
+            <Button onClick={handleLanguageSave} disabled={saving} className="w-full">
               {saving ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -712,11 +684,7 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
           )}
 
           {step === "profile" && (
-            <Button
-              onClick={handleProfileSave}
-              disabled={saving}
-              className="min-w-[140px]"
-            >
+            <Button onClick={handleProfileSave} disabled={saving} className="w-full">
               {saving ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
