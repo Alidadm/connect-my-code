@@ -757,43 +757,6 @@ export const RightSidebar = () => {
           </div>
         )}
 
-        {/* Trending Posts */}
-        {trendingPosts.length > 0 && (
-          <div className="bg-card rounded-xl p-4 mb-4 border border-border">
-            <div className="flex items-center gap-2 mb-3">
-              <TrendingUp className="h-5 w-5 text-orange-500" />
-              <h3 className="font-semibold text-foreground">{t("sidebar.trending", "Trending")}</h3>
-            </div>
-            <div className="space-y-2">
-              {trendingPosts.slice(0, 4).map((post, index) => (
-                <div
-                  key={post.id}
-                  onClick={() => navigate(`/?post=${post.id}`)}
-                  className="flex items-start gap-3 p-2 -mx-2 rounded-lg hover:bg-secondary/50 cursor-pointer transition-colors"
-                >
-                  <span className="text-lg font-bold text-muted-foreground w-5">
-                    {index + 1}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-foreground line-clamp-2">
-                      {truncateMessage(post.content, 60)}
-                    </p>
-                    <div className="flex items-center gap-3 mt-1">
-                      <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <Heart className="h-3 w-3" />
-                        {post.likes_count}
-                      </span>
-                      <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <MessageCircle className="h-3 w-3" />
-                        {post.comments_count}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Notifications */}
         <div className="bg-card rounded-xl p-4 mb-4 border border-border">
