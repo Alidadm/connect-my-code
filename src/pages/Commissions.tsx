@@ -659,7 +659,15 @@ See you inside DolphySN.`;
               <Label className="text-sm text-muted-foreground mb-2 block">Your Referral Link</Label>
               <div className="flex items-center gap-2">
                 <div className="flex-1 bg-muted rounded-md px-3 py-2 text-sm font-mono truncate">
-                  {referralUrl || "Loading..."}
+                  {authLoading ? (
+                    "Loading..."
+                  ) : referralUrl ? (
+                    referralUrl
+                  ) : (
+                    <span className="text-muted-foreground italic">
+                      Please set a username in your profile settings to get your referral link
+                    </span>
+                  )}
                 </div>
                 <Button 
                   variant="outline" 
