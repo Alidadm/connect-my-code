@@ -402,7 +402,7 @@ export const CreateGroupModal = ({ open, onOpenChange, onGroupCreated }: CreateG
                         </span>
                       </SelectValue>
                     </SelectTrigger>
-                    <SelectContent className="bg-background border">
+                    <SelectContent className="bg-background border max-w-[280px] z-50">
                       {categories.map((cat) => (
                         <SelectItem key={cat.id} value={cat.name}>
                           <span className="flex items-center gap-2">
