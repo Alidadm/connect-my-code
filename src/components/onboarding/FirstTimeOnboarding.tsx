@@ -140,7 +140,11 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
   const handleLanguageSave = async () => {
     setSaving(true);
     try {
+      // Change language and wait for it to fully load
       await i18n.changeLanguage(selectedLanguage);
+      
+      // Force a small delay to ensure translations are loaded
+      await new Promise(resolve => setTimeout(resolve, 100));
       
       // Save language preference to user settings
       if (user) {
@@ -162,7 +166,9 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
         }
       }
 
-      toast.success(t("settings.languageChanged") || "Language saved!");
+      // Get the language name for toast
+      const langName = supportedLanguages.find(l => l.code === selectedLanguage)?.nativeName || selectedLanguage;
+      toast.success(`Language changed to ${langName}`);
       
       // If email already verified, skip to profile
       if (emailVerified) {
@@ -180,7 +186,7 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
 
   const handleSendCode = async () => {
     if (!emailToVerify || !emailToVerify.includes("@")) {
-      toast.error("Please enter a valid email address");
+      toast.error(t("onboarding.enterValidEmail", "Please enter a valid email address"));
       return;
     }
 
@@ -206,15 +212,15 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || "Failed to send code");
+        throw new Error(result.error || t("onboarding.codeSendFailed", "Failed to send code"));
       }
 
       setCodeSent(true);
       setResendCooldown(60);
-      toast.success("Verification code sent to your email!");
+      toast.success(t("onboarding.codeSentSuccess", "Verification code sent to your email!"));
     } catch (error: any) {
       console.error("Error sending code:", error);
-      toast.error(error.message || "Failed to send verification code");
+      toast.error(error.message || t("onboarding.codeSendFailed", "Failed to send verification code"));
     } finally {
       setSendingCode(false);
     }
@@ -222,7 +228,7 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
 
   const handleVerifyCode = async () => {
     if (verificationCode.length !== 6) {
-      toast.error("Please enter the 6-digit code");
+      toast.error(t("onboarding.enterCode", "Please enter the 6-digit code"));
       return;
     }
 
@@ -251,16 +257,16 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || "Invalid verification code");
+        throw new Error(result.error || t("onboarding.codeInvalid", "Invalid verification code"));
       }
 
       setEmailVerified(true);
       setEmail(emailToVerify);
-      toast.success("Email verified successfully!");
+      toast.success(t("onboarding.codeVerified", "Email verified successfully!"));
       setStep("profile");
     } catch (error: any) {
       console.error("Error verifying code:", error);
-      toast.error(error.message || "Invalid or expired code");
+      toast.error(error.message || t("onboarding.codeInvalid", "Invalid or expired code"));
     } finally {
       setVerifyingCode(false);
     }
@@ -301,12 +307,12 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
 
     // Validate required fields
     if (!firstName.trim() || !lastName.trim()) {
-      toast.error("Please enter your full name");
+      toast.error(t("onboarding.enterFullName", "Please enter your full name"));
       return;
     }
 
     if (!birthday) {
-      toast.error("Please enter your date of birth");
+      toast.error(t("onboarding.enterBirthday", "Please enter your date of birth"));
       return;
     }
 
@@ -352,11 +358,11 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
       }
 
       await refreshProfile();
-      toast.success("Profile saved successfully!");
+      toast.success(t("onboarding.profileSaved", "Profile saved successfully!"));
       onComplete();
     } catch (error) {
       console.error("Error saving profile:", error);
-      toast.error("Failed to save profile");
+      toast.error(t("onboarding.profileSaveFailed", "Failed to save profile"));
     } finally {
       setSaving(false);
     }
@@ -384,14 +390,14 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
         {/* Header */}
         <div className="bg-gradient-to-r from-primary to-primary/80 p-6 text-primary-foreground">
           <h1 className="text-2xl font-bold">
-            {step === "language" && "🌍 Welcome! Choose Your Language"}
-            {step === "email" && "📧 Verify Your Email"}
-            {step === "profile" && "👤 Complete Your Profile"}
+            {step === "language" && `🌍 ${t("onboarding.welcomeLanguage", "Welcome! Choose Your Language")}`}
+            {step === "email" && `📧 ${t("onboarding.verifyEmail", "Verify Your Email")}`}
+            {step === "profile" && `👤 ${t("onboarding.completeProfile", "Complete Your Profile")}`}
           </h1>
           <p className="text-primary-foreground/80 mt-1">
-            {step === "language" && "Select your preferred language to continue"}
-            {step === "email" && "We'll send a verification code to your email"}
-            {step === "profile" && "Please verify and complete your profile information"}
+            {step === "language" && t("onboarding.selectLanguage", "Select your preferred language to continue")}
+            {step === "email" && t("onboarding.sendCodeDesc", "We'll send a verification code to your email")}
+            {step === "profile" && t("onboarding.verifyProfileDesc", "Please verify and complete your profile information")}
           </p>
           {/* Progress indicator */}
           <div className="flex gap-2 mt-4">
@@ -448,12 +454,12 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
                       <Mail className="h-8 w-8 text-primary" />
                     </div>
                     <p className="text-muted-foreground">
-                      We'll send a 6-digit verification code to your email address.
+                      {t("onboarding.sendCodeDesc", "We'll send a 6-digit verification code to your email address.")}
                     </p>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="emailVerify">Email Address</Label>
+                    <Label htmlFor="emailVerify">{t("onboarding.emailAddress", "Email Address")}</Label>
                     <Input
                       id="emailVerify"
                       type="email"
@@ -471,12 +477,12 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
                     {sendingCode ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Sending...
+                        {t("onboarding.sending", "Sending...")}
                       </>
                     ) : (
                       <>
                         <Mail className="mr-2 h-4 w-4" />
-                        Send Verification Code
+                        {t("onboarding.sendCode", "Send Verification Code")}
                       </>
                     )}
                   </Button>
@@ -487,14 +493,14 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
                     <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                       <Check className="h-8 w-8 text-primary" />
                     </div>
-                    <p className="font-medium">Code sent!</p>
+                    <p className="font-medium">{t("onboarding.codeSent", "Code sent!")}</p>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Check your inbox at <strong>{emailToVerify}</strong>
+                      {t("onboarding.checkInbox", "Check your inbox at")} <strong>{emailToVerify}</strong>
                     </p>
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-center block">Enter 6-digit code</Label>
+                    <Label className="text-center block">{t("onboarding.enterCode", "Enter 6-digit code")}</Label>
                     <div className="flex justify-center">
                       <InputOTP
                         maxLength={6}
@@ -521,18 +527,18 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
                     {verifyingCode ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Verifying...
+                        {t("onboarding.verifying", "Verifying...")}
                       </>
                     ) : (
                       <>
                         <Check className="mr-2 h-4 w-4" />
-                        Verify Code
+                        {t("onboarding.verifyCode", "Verify Code")}
                       </>
                     )}
                   </Button>
 
                   <div className="flex items-center justify-center gap-2 text-sm">
-                    <span className="text-muted-foreground">Didn't receive it?</span>
+                    <span className="text-muted-foreground">{t("onboarding.didntReceive", "Didn't receive it?")}</span>
                     <Button
                       variant="link"
                       size="sm"
@@ -541,11 +547,11 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
                       className="p-0 h-auto"
                     >
                       {resendCooldown > 0 ? (
-                        `Resend in ${resendCooldown}s`
+                        t("onboarding.resendIn", "Resend in {{seconds}}s").replace("{{seconds}}", String(resendCooldown))
                       ) : (
                         <>
                           <RefreshCw className="mr-1 h-3 w-3" />
-                          Resend code
+                          {t("onboarding.resendCode", "Resend code")}
                         </>
                       )}
                     </Button>
@@ -560,7 +566,7 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
                     }}
                     className="w-full text-muted-foreground"
                   >
-                    Change email address
+                    {t("onboarding.changeEmail", "Change email address")}
                   </Button>
                 </>
               )}
@@ -597,34 +603,34 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
                     className="hidden"
                   />
                 </div>
-                <p className="text-sm text-muted-foreground">Upload your profile photo</p>
+                <p className="text-sm text-muted-foreground">{t("onboarding.uploadPhoto", "Upload your profile photo")}</p>
               </div>
 
               {/* Name fields */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name *</Label>
+                  <Label htmlFor="firstName">{t("onboarding.firstName", "First Name")} *</Label>
                   <Input
                     id="firstName"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
-                    placeholder="Enter first name"
+                    placeholder={t("onboarding.firstName", "First Name")}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name *</Label>
+                  <Label htmlFor="lastName">{t("onboarding.lastName", "Last Name")} *</Label>
                   <Input
                     id="lastName"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
-                    placeholder="Enter last name"
+                    placeholder={t("onboarding.lastName", "Last Name")}
                   />
                 </div>
               </div>
 
               {/* Email - readonly since verified */}
               <div className="space-y-2">
-                <Label htmlFor="email">Email Address ✓</Label>
+                <Label htmlFor="email">{t("onboarding.emailAddress", "Email Address")} ✓</Label>
                 <Input
                   id="email"
                   type="email"
@@ -633,13 +639,13 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
                   className="bg-muted"
                 />
                 <p className="text-xs text-primary flex items-center gap-1">
-                  <Check className="h-3 w-3" /> Email verified
+                  <Check className="h-3 w-3" /> {t("onboarding.emailVerified", "Email verified")}
                 </p>
               </div>
 
               {/* Phone */}
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
+                <Label htmlFor="phone">{t("onboarding.phoneNumber", "Phone Number")}</Label>
                 <Input
                   id="phone"
                   type="tel"
@@ -651,7 +657,7 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
 
               {/* Birthday */}
               <div className="space-y-2">
-                <Label htmlFor="birthday">Date of Birth *</Label>
+                <Label htmlFor="birthday">{t("onboarding.dateOfBirth", "Date of Birth")} *</Label>
                 <Input
                   id="birthday"
                   type="date"
@@ -675,12 +681,12 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
               {saving ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
+                  {t("onboarding.saving", "Saving...")}
                 </>
               ) : (
                 <>
                   <Globe className="mr-2 h-4 w-4" />
-                  Continue
+                  {t("onboarding.continue", "Continue")}
                 </>
               )}
             </Button>
@@ -695,12 +701,12 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
               {saving ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
+                  {t("onboarding.saving", "Saving...")}
                 </>
               ) : (
                 <>
                   <Check className="mr-2 h-4 w-4" />
-                  Save & Continue
+                  {t("onboarding.saveAndContinue", "Save & Continue")}
                 </>
               )}
             </Button>
