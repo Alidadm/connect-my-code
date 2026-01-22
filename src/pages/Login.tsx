@@ -6,10 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { useTranslation } from "react-i18next";
 
+// Login page always uses English - language selection happens after login during onboarding
 export const Login = () => {
-  const { t } = useTranslation();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -51,14 +50,14 @@ export const Login = () => {
       }
 
       toast({
-        title: t("login.welcomeBack"),
-        description: t("login.successMessage"),
+        title: "Welcome back!",
+        description: "You have successfully logged in.",
       });
 
       navigate("/");
     } catch (error: any) {
       toast({
-        title: t("login.failed"),
+        title: "Login failed",
         description: error.message,
         variant: "destructive",
       });
@@ -72,9 +71,9 @@ export const Login = () => {
       {/* Left side - Visual */}
       <div className="hidden lg:flex flex-1 dolphy-gradient items-center justify-center p-12">
         <div className="text-center text-primary-foreground max-w-md">
-          <h2 className="text-4xl font-bold mb-4">{t("login.welcomeTitle")}</h2>
-          <p className="text-lg opacity-90 whitespace-pre-line">
-            {t("login.welcomeSubtitle")}
+          <h2 className="text-4xl font-bold mb-4">Welcome Back!</h2>
+          <p className="text-lg opacity-90">
+            Sign in to continue your journey with our community. Connect, share, and explore.
           </p>
         </div>
       </div>
@@ -90,14 +89,14 @@ export const Login = () => {
             <span className="text-2xl font-bold text-foreground">DolphySN</span>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">{t("login.title")}</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Log in</h1>
           <p className="text-muted-foreground mb-6 sm:mb-8">
-            {t("login.subtitle")}
+            Enter your credentials to access your account
           </p>
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">{t("auth.email")}</Label>
+              <Label htmlFor="email">Email</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -114,9 +113,9 @@ export const Login = () => {
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password">{t("auth.password")}</Label>
+                <Label htmlFor="password">Password</Label>
                 <Link to="/forgot-password" className="text-sm text-primary hover:underline">
-                  {t("auth.forgotPassword")}
+                  Forgot password?
                 </Link>
               </div>
               <div className="relative">
@@ -141,15 +140,15 @@ export const Login = () => {
             </div>
 
             <Button type="submit" className="w-full dolphy-gradient hover:opacity-90 transition-opacity" disabled={isLoading}>
-              {isLoading ? t("login.loggingIn") : t("common.logIn")}
+              {isLoading ? "Logging in..." : "Log In"}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </form>
 
           <p className="text-center text-sm text-muted-foreground mt-6">
-            {t("auth.dontHaveAccount")}{" "}
+            Don't have an account?{" "}
             <Link to="/signup" className="text-primary hover:underline font-medium">
-              {t("common.signUp")}
+              Sign Up
             </Link>
           </p>
         </div>

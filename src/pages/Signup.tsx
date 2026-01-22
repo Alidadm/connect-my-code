@@ -111,6 +111,24 @@ export const Signup = () => {
   };
 
   const checkDuplicates = useCallback(async (): Promise<boolean> => {
+    // Check if email already exists via backend function
+    if (formData.email) {
+      try {
+        const { data, error } = await supabase.functions.invoke('check-email-exists', {
+          body: { email: formData.email }
+        });
+
+        if (!error && data?.exists) {
+          setAlertMessage("This email address is already registered. Please use a different email or log in to your existing account.");
+          setShowAlert(true);
+          return false;
+        }
+      } catch (err) {
+        console.error('Error checking email:', err);
+        // Continue with signup if check fails
+      }
+    }
+
     // Check if phone already exists via backend function (phone is in profiles_private)
     if (formData.mobile) {
       try {
@@ -129,9 +147,8 @@ export const Signup = () => {
       }
     }
 
-    // Email duplicate check is handled by Supabase Auth during signup
     return true;
-  }, [formData.mobile]);
+  }, [formData.email, formData.mobile]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
