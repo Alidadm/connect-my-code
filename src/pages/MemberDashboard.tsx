@@ -4,9 +4,10 @@ import {
   ChevronRight, Eye, EyeOff, Lock, Mail, Phone, Globe, Calendar,
   Home, CreditCard, Users, Heart, MessageCircle, LogOut, Clock,
   CheckCircle2, XCircle, Loader2, ExternalLink, Languages, UsersRound,
-  Building2, Info, Youtube, AlertTriangle, RotateCcw
+  Building2, Info, Youtube, AlertTriangle, RotateCcw, Menu, X
 } from "lucide-react";
 import { format, isValid as isValidDate, parseISO } from "date-fns";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { GroupsManagement } from "@/components/dashboard/GroupsManagement";
 import { BusinessManagement } from "@/components/business/BusinessManagement";
 import { AboutSettings } from "@/components/settings/AboutSettings";
@@ -87,7 +88,9 @@ const MemberDashboard = () => {
   const navigate = useNavigate();
   const { user, profile, refreshProfile } = useAuth();
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState<TabType>("profile");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   
   // Private profile data (email, phone, birthday)
@@ -1431,10 +1434,49 @@ const MemberDashboard = () => {
     }
   };
 
+  // Handle tab change and close sidebar on mobile
+  const handleTabChange = (tabId: TabType) => {
+    setActiveTab(tabId);
+    if (isMobile) {
+      setSidebarOpen(false);
+    }
+  };
+
   return (
     <div className="flex h-screen bg-slate-50 overflow-hidden">
+      {/* Mobile Header with Menu Toggle */}
+      {isMobile && (
+        <div className="fixed top-0 left-0 right-0 z-40 bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
+              <span className="text-white font-bold text-sm">W</span>
+            </div>
+            <h1 className="font-semibold text-slate-800 text-sm">{t("dashboard.title")}</h1>
+          </div>
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="p-2 rounded-lg hover:bg-slate-100 transition-colors"
+          >
+            {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        </div>
+      )}
+
+      {/* Mobile Overlay */}
+      {isMobile && sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 pt-14"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Left Sidebar */}
-      <div className="w-72 bg-white border-r border-slate-200 flex flex-col">
+      <div className={cn(
+        "bg-white border-r border-slate-200 flex flex-col transition-transform duration-300 ease-in-out",
+        isMobile 
+          ? "fixed inset-y-0 left-0 z-50 w-72 pt-14 transform" + (sidebarOpen ? " translate-x-0" : " -translate-x-full")
+          : "w-72 relative"
+      )}>
         {/* Header */}
         <div className="p-6 border-b border-slate-100">
           <div className="flex items-center gap-3">
@@ -1472,7 +1514,7 @@ const MemberDashboard = () => {
             {getMenuItems(t).map((item) => (
               <button
                 key={item.id}
-                onClick={() => setActiveTab(item.id)}
+                onClick={() => handleTabChange(item.id)}
                 className={cn(
                   "w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all text-left",
                   activeTab === item.id
@@ -1529,7 +1571,10 @@ const MemberDashboard = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className={cn(
+        "flex-1 flex flex-col overflow-hidden",
+        isMobile && "pt-14"
+      )}>
         {/* Cover Photo with Avatar Header */}
         <div className="relative">
           {/* Cover Photo */}
