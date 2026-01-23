@@ -1,21 +1,25 @@
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
-import { Settings as SettingsIcon, Bell, Sun, Globe, Volume2, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Settings as SettingsIcon, Bell, Sun, Globe, Volume2, Loader2, Check } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTranslation } from "react-i18next";
 import { Separator } from "@/components/ui/separator";
 import { useUserSettings } from "@/hooks/useUserSettings";
+import { useLanguage } from "@/hooks/useLanguage";
+import { cn } from "@/lib/utils";
+import type { LanguageCode } from "@/lib/i18n";
 
 const Settings = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { settings, loading: settingsLoading, saving, updateSetting } = useUserSettings();
+  const { currentCode, changeLanguage, supportedLanguages } = useLanguage();
+  const [changingLanguage, setChangingLanguage] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -23,9 +27,17 @@ const Settings = () => {
     }
   }, [user, authLoading, navigate]);
 
-  const handleLanguageChange = (value: string) => {
-    i18n.changeLanguage(value);
-    updateSetting("language", value);
+  const handleLanguageChange = async (langCode: LanguageCode) => {
+    if (langCode === currentCode) return;
+    
+    setChangingLanguage(true);
+    try {
+      await changeLanguage(langCode);
+      // Also update user settings to keep in sync
+      await updateSetting("language", langCode);
+    } finally {
+      setChangingLanguage(false);
+    }
   };
 
   if (authLoading || settingsLoading) {
@@ -187,27 +199,46 @@ const Settings = () => {
             <CardTitle className="flex items-center gap-2">
               <Globe className="w-5 h-5" />
               {t("settings.language", { defaultValue: "Language" })}
+              {changingLanguage && <Loader2 className="w-4 h-4 animate-spin" />}
             </CardTitle>
-            <CardDescription>{t("settings.languageDesc", { defaultValue: "Choose your preferred language" })}</CardDescription>
+            <CardDescription>{t("settings.languageDesc", { defaultValue: "Choose your preferred language. All text will update immediately." })}</CardDescription>
           </CardHeader>
           <CardContent>
-            <Select value={settings.language} onValueChange={handleLanguageChange}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select language" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="en">English</SelectItem>
-                <SelectItem value="es">Español</SelectItem>
-                <SelectItem value="fr">Français</SelectItem>
-                <SelectItem value="de">Deutsch</SelectItem>
-                <SelectItem value="pt">Português</SelectItem>
-                <SelectItem value="zh">中文</SelectItem>
-                <SelectItem value="ar">العربية</SelectItem>
-                <SelectItem value="hi">हिन्दी</SelectItem>
-                <SelectItem value="ja">日本語</SelectItem>
-                <SelectItem value="ko">한국어</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              {supportedLanguages.map((lang) => {
+                const isSelected = currentCode === lang.code;
+                return (
+                  <button
+                    key={lang.code}
+                    onClick={() => handleLanguageChange(lang.code)}
+                    disabled={changingLanguage}
+                    className={cn(
+                      "relative flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all",
+                      "hover:border-primary/50 hover:bg-accent/50",
+                      "disabled:opacity-50 disabled:cursor-not-allowed",
+                      isSelected 
+                        ? "border-primary bg-primary/10 shadow-sm" 
+                        : "border-border bg-card"
+                    )}
+                  >
+                    {isSelected && (
+                      <div className="absolute top-2 right-2">
+                        <Check className="w-4 h-4 text-primary" />
+                      </div>
+                    )}
+                    <img 
+                      src={`https://flagcdn.com/w40/${lang.flag}.png`}
+                      alt={lang.name}
+                      className="w-8 h-auto rounded shadow-sm"
+                    />
+                    <div className="text-center">
+                      <p className="font-medium text-sm">{lang.nativeName}</p>
+                      <p className="text-xs text-muted-foreground">{lang.name}</p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           </CardContent>
         </Card>
       </div>

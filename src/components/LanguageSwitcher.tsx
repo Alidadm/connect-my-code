@@ -1,4 +1,3 @@
-import { useTranslation } from 'react-i18next';
 import { Globe, Check } from 'lucide-react';
 import {
   DropdownMenu,
@@ -7,8 +6,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { supportedLanguages, type LanguageCode } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/hooks/useLanguage';
+import type { LanguageCode } from '@/lib/i18n';
 
 interface LanguageSwitcherProps {
   variant?: 'icon' | 'full';
@@ -16,11 +16,10 @@ interface LanguageSwitcherProps {
 }
 
 export const LanguageSwitcher = ({ variant = 'icon', className }: LanguageSwitcherProps) => {
-  const { i18n } = useTranslation();
-  const currentLang = supportedLanguages.find(l => l.code === i18n.language) || supportedLanguages[0];
+  const { currentLanguage, currentCode, changeLanguage, supportedLanguages } = useLanguage();
 
-  const changeLanguage = (langCode: LanguageCode) => {
-    i18n.changeLanguage(langCode);
+  const handleChangeLanguage = (langCode: LanguageCode) => {
+    changeLanguage(langCode);
   };
 
   return (
@@ -40,11 +39,11 @@ export const LanguageSwitcher = ({ variant = 'icon', className }: LanguageSwitch
             className={cn("gap-2", className)}
           >
             <img 
-              src={`https://flagcdn.com/w20/${currentLang.flag}.png`}
-              alt={currentLang.name}
+              src={`https://flagcdn.com/w20/${currentLanguage.flag}.png`}
+              alt={currentLanguage.name}
               className="w-5 h-auto rounded-sm"
             />
-            <span>{currentLang.nativeName}</span>
+            <span>{currentLanguage.nativeName}</span>
           </Button>
         )}
       </DropdownMenuTrigger>
@@ -52,7 +51,7 @@ export const LanguageSwitcher = ({ variant = 'icon', className }: LanguageSwitch
         {supportedLanguages.map((lang) => (
           <DropdownMenuItem
             key={lang.code}
-            onClick={() => changeLanguage(lang.code)}
+            onClick={() => handleChangeLanguage(lang.code)}
             className="flex items-center gap-3 cursor-pointer"
           >
             <img 
@@ -64,7 +63,7 @@ export const LanguageSwitcher = ({ variant = 'icon', className }: LanguageSwitch
               <span className="font-medium">{lang.nativeName}</span>
               <span className="text-muted-foreground ml-2 text-sm">({lang.name})</span>
             </div>
-            {i18n.language === lang.code && (
+            {currentCode === lang.code && (
               <Check className="h-4 w-4 text-primary" />
             )}
           </DropdownMenuItem>
