@@ -129,7 +129,21 @@
     "saving": "保存中...",
     "profileUpdated": "个人资料更新成功！",
     "updateFailed": "更新个人资料失败",
-    "enterCity": "输入您的城市。国家会自动检测。"
+    "enterCity": "输入您的城市。国家会自动检测。",
+    "feed": "动态",
+    "about": "关于",
+    "photos": "照片",
+    "videos": "视频",
+    "friends": "好友",
+    "posts": "帖子",
+    "blogs": "博客",
+    "noPhotos": "暂无照片",
+    "noVideos": "暂无视频",
+    "noFriends": "暂无好友",
+    "findFriends": "寻找好友",
+    "noBlogs": "暂无博客",
+    "settings": "设置",
+    "changeAvatar": "更换头像"
   },
   "account": {
     "title": "账户",
@@ -203,6 +217,7 @@
   },
   "nav": {
     "feed": "动态",
+    "about": "关于",
     "friends": "好友",
     "events": "活动",
     "commissions": "佣金",
@@ -217,6 +232,7 @@
     "saved": "已保存"
   },
   "sidebar": {
+    "sudoku": "数独",
     "pagesYouLike": "您喜欢的页面",
     "yourGroups": "您的群组",
     "follower": "粉丝",
@@ -444,10 +460,5 @@
     "memoryMatch": {
       "title": "记忆配对"
     }
-  },
-  "sidebar": {
-    "sudoku": "数独",
-    "continue": "继续",
-    "continuePlaying": "继续游戏"
   }
 }

@@ -195,9 +195,15 @@
     "noFriends": "No friends yet",
     "findFriends": "Find friends",
     "feed": "Feed",
+    "about": "About",
     "photos": "Photos",
     "videos": "Videos",
+    "friends": "Friends",
     "posts": "Posts",
+    "blogs": "Blogs",
+    "noBlogs": "No blogs yet",
+    "settings": "Settings",
+    "changeAvatar": "Change avatar",
     "addFriend": "Add Friend",
     "favorite": "Favorite",
     "message": "Message"
@@ -361,6 +367,7 @@
   },
   "nav": {
     "feed": "Feed",
+    "about": "About",
     "friends": "Friends",
     "events": "Events",
     "commissions": "Commissions",
@@ -370,7 +377,9 @@
     "files": "Files",
     "messages": "Messages",
     "notifications": "Notifications",
-    "profile": "Profile"
+    "profile": "Profile",
+    "games": "Games",
+    "saved": "Saved"
   },
   "birthday": {
     "scheduleWish": "Schedule Birthday Wish",

@@ -3,10 +3,12 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
+import { I18nextProvider } from "react-i18next";
 import { AuthProvider } from "@/hooks/useAuth";
 import { GameSidebarVisibilityProvider } from "@/hooks/useGameSidebarVisibility";
 import { OnboardingWrapper } from "@/components/onboarding/OnboardingWrapper";
 import AdminRouteGuard from "@/components/admin/AdminRouteGuard";
+import { adminI18n } from "@/lib/adminI18n";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -63,7 +65,9 @@ const RootLayout = () => (
 
 // Admin layout wrapper
 const AdminLayout = ({ children }: { children: React.ReactNode }) => (
-  <AdminRouteGuard>{children}</AdminRouteGuard>
+  <I18nextProvider i18n={adminI18n}>
+    <AdminRouteGuard>{children}</AdminRouteGuard>
+  </I18nextProvider>
 );
 
 const router = createBrowserRouter([
