@@ -1616,27 +1616,31 @@ const MemberDashboard = () => {
             </button>
           </div>
           
-          {/* Profile Info next to avatar */}
-          <div className="absolute -bottom-12 left-36 flex items-end gap-4">
-            <div>
-              <h2 className="text-xl font-bold text-slate-800">{formData.display_name || "Your Name"}</h2>
-              <p className="text-sm text-slate-500">@{formData.username || "username"}</p>
+          {/* Profile Info next to avatar - hidden on mobile/tablet */}
+          {!isMobile && (
+            <div className="absolute -bottom-12 left-36 flex items-end gap-4">
+              <div>
+                <h2 className="text-xl font-bold text-slate-800">{formData.display_name || "Your Name"}</h2>
+                <p className="text-sm text-slate-500">@{formData.username || "username"}</p>
+              </div>
             </div>
-          </div>
+          )}
           
-          {/* Tab Title on the right */}
-          <div className="absolute -bottom-12 right-8 text-right">
-            <h3 className="text-lg font-semibold text-slate-700">
-              {getMenuItems(t).find(item => item.id === activeTab)?.label}
-            </h3>
-            <p className="text-xs text-slate-400">
-              {getMenuItems(t).find(item => item.id === activeTab)?.description}
-            </p>
-          </div>
+          {/* Tab Title on the right - hidden on mobile/tablet */}
+          {!isMobile && (
+            <div className="absolute -bottom-12 right-8 text-right">
+              <h3 className="text-lg font-semibold text-slate-700">
+                {getMenuItems(t).find(item => item.id === activeTab)?.label}
+              </h3>
+              <p className="text-xs text-slate-400">
+                {getMenuItems(t).find(item => item.id === activeTab)?.description}
+              </p>
+            </div>
+          )}
         </div>
         
-        {/* Spacer for avatar overlap */}
-        <div className="h-16 bg-white border-b border-slate-200" />
+        {/* Spacer for avatar overlap - smaller on mobile */}
+        <div className={cn("bg-white border-b border-slate-200", isMobile ? "h-14" : "h-16")} />
 
         {/* Avatar Editor Modal */}
         <AvatarEditor
@@ -1683,8 +1687,8 @@ const MemberDashboard = () => {
         </AlertDialog>
 
         {/* Content Area */}
-        <ScrollArea className="flex-1 p-8">
-          <div className="max-w-2xl">
+        <ScrollArea className={cn("flex-1", isMobile ? "p-4" : "p-8")}>
+          <div className={cn(isMobile ? "w-full" : "max-w-2xl")}>
             {renderTabContent()}
           </div>
         </ScrollArea>
