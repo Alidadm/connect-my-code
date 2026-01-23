@@ -105,7 +105,21 @@
     "saving": "保存中...",
     "profileUpdated": "プロフィールが正常に更新されました！",
     "updateFailed": "プロフィールの更新に失敗しました",
-    "enterCity": "都市を入力してください。国は自動的に検出されます。"
+    "enterCity": "都市を入力してください。国は自動的に検出されます。",
+    "feed": "フィード",
+    "about": "概要",
+    "photos": "写真",
+    "videos": "動画",
+    "friends": "友達",
+    "posts": "投稿",
+    "blogs": "ブログ",
+    "noPhotos": "写真はまだありません",
+    "noVideos": "動画はまだありません",
+    "noFriends": "友達はまだいません",
+    "findFriends": "友達を探す",
+    "noBlogs": "ブログはまだありません",
+    "settings": "設定",
+    "changeAvatar": "アバターを変更"
   },
   "account": {
     "title": "アカウント",
@@ -183,6 +197,7 @@
   },
   "nav": {
     "feed": "フィード",
+    "about": "概要",
     "friends": "友達",
     "events": "イベント",
     "commissions": "コミッション",
@@ -197,6 +212,7 @@
     "saved": "保存済み"
   },
   "sidebar": {
+    "sudoku": "数独",
     "posts": "投稿",
     "pagesYouLike": "いいねしたページ",
     "yourGroups": "あなたのグループ",
@@ -363,10 +379,5 @@
     "memoryMatch": {
       "title": "神経衰弱"
     }
-  },
-  "sidebar": {
-    "sudoku": "数独",
-    "continue": "続ける",
-    "continuePlaying": "プレイを続ける"
   }
 }

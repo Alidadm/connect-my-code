@@ -28,6 +28,9 @@ export const useLanguage = () => {
   const changeLanguage = useCallback(
     async (langCode: LanguageCode) => {
       try {
+        // No-op if already selected
+        if (i18n.language === langCode) return true;
+
         // 1. Change i18n language (triggers re-render for components using useTranslation)
         await i18n.changeLanguage(langCode);
 
@@ -64,6 +67,10 @@ export const useLanguage = () => {
 
         // 5. Dispatch custom event for any components that need to manually respond
         window.dispatchEvent(new CustomEvent("languageChanged", { detail: langCode }));
+
+        // 6. Force a full reload to avoid any stale, partially-translated UI
+        // (e.g., labels computed outside React render scope).
+        window.location.reload();
 
         return true;
       } catch (error) {

@@ -123,13 +123,13 @@ export const MemberCoverHeader = ({ activeTab: externalActiveTab, onTabChange, o
   }, [isSticky, onStickyChange]);
 
   const tabs = [
-    { id: "feed", label: t("profile.feed", "Feed") },
-    { id: "about", label: t("profile.about", "About"), isToggle: true },
-    { id: "photos", label: t("profile.photos", "Photos") },
-    { id: "videos", label: t("profile.videos", "Videos") },
-    { id: "friends", label: t("profile.friends", "Friends"), count: stats.friendsCount },
-    { id: "posts", label: t("profile.posts", "Posts"), count: stats.postsCount },
-    { id: "blogs", label: t("profile.blogs", "Blogs"), count: stats.blogsCount, disabled: stats.blogsCount === 0 },
+    { id: "feed", label: t("profile.feed", { defaultValue: "Feed" }) },
+    { id: "about", label: t("profile.about", { defaultValue: "About" }), isToggle: true },
+    { id: "photos", label: t("profile.photos", { defaultValue: "Photos" }) },
+    { id: "videos", label: t("profile.videos", { defaultValue: "Videos" }) },
+    { id: "friends", label: t("profile.friends", { defaultValue: "Friends" }), count: stats.friendsCount },
+    { id: "posts", label: t("profile.posts", { defaultValue: "Posts" }), count: stats.postsCount },
+    { id: "blogs", label: t("profile.blogs", { defaultValue: "Blogs" }), count: stats.blogsCount, disabled: stats.blogsCount === 0 },
   ];
 
   const handleTabClick = (tabId: string) => {
@@ -177,7 +177,7 @@ export const MemberCoverHeader = ({ activeTab: externalActiveTab, onTabChange, o
         <div className="absolute bottom-4 right-4 flex items-center gap-2">
           <button
             className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-foreground shadow-lg hover:bg-muted/80 transition-colors"
-            title={t("profile.settings", "Settings")}
+            title={t("profile.settings", { defaultValue: "Settings" })}
             onClick={() => navigate("/dashboard")}
           >
             <Settings className="h-5 w-5" />
@@ -193,7 +193,7 @@ export const MemberCoverHeader = ({ activeTab: externalActiveTab, onTabChange, o
             <div 
               className={`group relative ${user ? "cursor-pointer" : ""}`}
               onClick={() => user && navigate("/dashboard")}
-              title={user ? t("profile.changeAvatar", "Change avatar") : undefined}
+                title={user ? t("profile.changeAvatar", { defaultValue: "Change avatar" }) : undefined}
             >
               <Avatar className="h-28 w-28 sm:h-32 sm:w-32 ring-4 ring-card shadow-xl border-2 border-primary/20">
                 <AvatarImage src={avatarUrl || undefined} alt={`${displayName}'s avatar`} />

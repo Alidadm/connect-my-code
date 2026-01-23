@@ -129,7 +129,21 @@
     "saving": "Salvando...",
     "profileUpdated": "Perfil atualizado com sucesso!",
     "updateFailed": "Falha ao atualizar perfil",
-    "enterCity": "Digite sua cidade. O país é detectado automaticamente."
+    "enterCity": "Digite sua cidade. O país é detectado automaticamente.",
+    "feed": "Feed",
+    "about": "Sobre",
+    "photos": "Fotos",
+    "videos": "Vídeos",
+    "friends": "Amigos",
+    "posts": "Publicações",
+    "blogs": "Blogs",
+    "noPhotos": "Ainda não há fotos",
+    "noVideos": "Ainda não há vídeos",
+    "noFriends": "Ainda não há amigos",
+    "findFriends": "Encontrar amigos",
+    "noBlogs": "Ainda não há blogs",
+    "settings": "Configurações",
+    "changeAvatar": "Alterar avatar"
   },
   "account": {
     "title": "Conta",
@@ -203,6 +217,7 @@
   },
   "nav": {
     "feed": "Feed",
+    "about": "Sobre",
     "friends": "Amigos",
     "events": "Eventos",
     "commissions": "Comissões",
@@ -217,6 +232,7 @@
     "saved": "Salvos"
   },
   "sidebar": {
+    "sudoku": "Sudoku",
     "pagesYouLike": "Páginas que você curte",
     "yourGroups": "Seus Grupos",
     "follower": "Seguidor",
@@ -444,10 +460,5 @@
     "memoryMatch": {
       "title": "Jogo da Memória"
     }
-  },
-  "sidebar": {
-    "sudoku": "Sudoku",
-    "continue": "Continuar",
-    "continuePlaying": "Continuar Jogando"
   }
 }
