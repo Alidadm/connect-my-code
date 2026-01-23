@@ -38,7 +38,7 @@ export const initI18n = () => {
       // Lazy load only the active language
       load: 'languageOnly',
       
-      // Detection options
+      // Detection options - prioritize localStorage
       detection: {
         order: ['localStorage', 'navigator', 'htmlTag'],
         lookupLocalStorage: 'i18nextLng',
@@ -54,11 +54,34 @@ export const initI18n = () => {
         escapeValue: false, // React already escapes values
       },
       
-      // React options
+      // React options - disable suspense for smoother transitions
       react: {
-        useSuspense: true,
+        useSuspense: false,
+        bindI18n: 'languageChanged loaded',
+        bindI18nStore: 'added removed',
+        transEmptyNodeValue: '',
+        transSupportBasicHtmlNodes: true,
+        transKeepBasicHtmlNodesFor: ['br', 'strong', 'i', 'p', 'span'],
       },
     });
+};
+
+// Helper to ensure translations are loaded before rendering
+export const ensureLanguageLoaded = async (langCode: LanguageCode): Promise<boolean> => {
+  if (!i18n.isInitialized) {
+    await initI18n();
+  }
+  
+  if (i18n.language !== langCode) {
+    await i18n.changeLanguage(langCode);
+  }
+  
+  // Ensure the language bundle is loaded
+  if (!i18n.hasResourceBundle(langCode, 'translation')) {
+    await i18n.loadLanguages(langCode);
+  }
+  
+  return true;
 };
 
 export default i18n;
