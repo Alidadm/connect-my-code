@@ -435,6 +435,8 @@
     "openingEmail": "Ouverture de votre client email...",
     "enterEmail": "Veuillez entrer une adresse email",
     "defaultSubject": "Rejoignez-moi sur DolphySN!",
-    "defaultMessage": "Salut! J'utilise DolphySN et je pense que ça pourrait te plaire aussi. Inscris-toi avec mon lien de parrainage ci-dessous et on peut se connecter!"
+    "defaultMessage": "Salut! J'utilise DolphySN et je pense que ça pourrait te plaire aussi. Inscris-toi avec mon lien de parrainage ci-dessous et on peut se connecter!",
+    "defaultEmailSubject": "Construisez Votre Revenu Mensuel avec DolphySN",
+    "defaultEmailMessage": "Bonjour à tous,\n\nDolphySN.com est un nouveau réseau social conçu pour les personnes qui veulent se connecter, grandir et gagner un vrai revenu mensuel en même temps.\n\nQuand vous rejoignez via mon lien, votre adhésion n'est que de 9,99$ par mois. Après votre inscription, vous pouvez inviter n'importe qui — amis, followers, ou même des personnes que vous n'avez jamais rencontrées.\n\nPour chaque personne qui s'abonne via votre lien, vous gagnez 5$ chaque mois tant qu'ils restent actifs.\n\nExemple:\nSi 20 personnes vous rejoignent, c'est 100$ chaque mois (20 × 5$).\nÀ mesure que votre réseau grandit, votre revenu mensuel grandit aussi — avec les membres existants et les nouveaux membres.\n\nCommencez à construire votre réseau et votre revenu dès aujourd'hui.\nRejoignez ici: {{referral_link}}\n\nÀ bientôt sur DolphySN!"
   }
 }

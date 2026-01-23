@@ -66,9 +66,9 @@ const Commissions = () => {
     isLoading: boolean;
   }>({ hasStripe: false, hasPaypal: false, isLoading: true });
   
-  // Default email template
-  const defaultEmailSubject = "Build Your Monthly Income with DolphySN";
-  const defaultEmailMessage = `Hi everyone,
+  // Default email template - using translation keys
+  const getDefaultEmailSubject = () => t("commissions.defaultEmailSubject", "Build Your Monthly Income with DolphySN");
+  const getDefaultEmailMessage = () => t("commissions.defaultEmailMessage", `Hi everyone,
 
 DolphySN.com is a new social network built for people who want to connect, grow, and earn real monthly income at the same time.
 
@@ -83,18 +83,22 @@ As your downline grows, your monthly income grows too — from both existing mem
 Start building your network and your income today.
 Join here: {{referral_link}}
 
-See you inside DolphySN.`;
+See you inside DolphySN.`);
 
   // Email form state - load from localStorage or use defaults
   const [emailTo, setEmailTo] = useState("");
   const [emailSubject, setEmailSubject] = useState(() => {
-    return localStorage.getItem("referral_email_subject") || defaultEmailSubject;
+    return localStorage.getItem("referral_email_subject") || "";
   });
   const [showPreview, setShowPreview] = useState(false);
   const [emailMessage, setEmailMessage] = useState(() => {
-    return localStorage.getItem("referral_email_message") || defaultEmailMessage;
+    return localStorage.getItem("referral_email_message") || "";
   });
   const [sendingEmail, setSendingEmail] = useState(false);
+
+  // Get current subject/message with fallback to translated defaults
+  const getCurrentSubject = () => emailSubject || getDefaultEmailSubject();
+  const getCurrentMessage = () => emailMessage || getDefaultEmailMessage();
 
   // Save to localStorage when subject or message changes
   useEffect(() => {
@@ -152,12 +156,13 @@ See you inside DolphySN.`;
       }
 
       // Replace {{referral_link}} placeholder with actual referral URL
-      const processedMessage = emailMessage.replace(/\{\{referral_link\}\}/g, referralUrl);
+      const currentMessage = getCurrentMessage();
+      const processedMessage = currentMessage.replace(/\{\{referral_link\}\}/g, referralUrl);
 
       const response = await supabase.functions.invoke("send-referral-invite", {
         body: {
           recipientEmail: emailTo,
-          subject: emailSubject,
+          subject: getCurrentSubject(),
           message: processedMessage,
         },
       });
@@ -180,16 +185,16 @@ See you inside DolphySN.`;
 
   const handleCancelEmail = () => {
     setEmailTo("");
-    setEmailSubject(defaultEmailSubject);
-    setEmailMessage(defaultEmailMessage);
+    setEmailSubject("");
+    setEmailMessage("");
     // Clear localStorage to reset to defaults
     localStorage.removeItem("referral_email_subject");
     localStorage.removeItem("referral_email_message");
   };
 
   const handleResetToDefault = () => {
-    setEmailSubject(defaultEmailSubject);
-    setEmailMessage(defaultEmailMessage);
+    setEmailSubject("");
+    setEmailMessage("");
     // Clear localStorage to reset to defaults
     localStorage.removeItem("referral_email_subject");
     localStorage.removeItem("referral_email_message");
@@ -557,7 +562,7 @@ See you inside DolphySN.`;
               <Input
                 id="emailSubject"
                 type="text"
-                placeholder="Email subject"
+                placeholder={getDefaultEmailSubject()}
                 value={emailSubject}
                 onChange={(e) => setEmailSubject(e.target.value)}
               />
@@ -567,7 +572,7 @@ See you inside DolphySN.`;
               <Label htmlFor="emailMessage">{t("commissions.message")}</Label>
               <Textarea
                 id="emailMessage"
-                placeholder="Write your message..."
+                placeholder={getDefaultEmailMessage()}
                 value={emailMessage}
                 onChange={(e) => setEmailMessage(e.target.value)}
                 className="min-h-[300px] h-full resize-none"
@@ -623,16 +628,16 @@ See you inside DolphySN.`;
                   </div>
                   
                   <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">Subject</Label>
+                    <Label className="text-xs text-muted-foreground">{t("commissions.subject")}</Label>
                     <div className="bg-muted rounded-md px-3 py-2 text-sm font-medium">
-                      {emailSubject}
+                      {getCurrentSubject()}
                     </div>
                   </div>
                   
                   <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">Message</Label>
+                    <Label className="text-xs text-muted-foreground">{t("commissions.message")}</Label>
                     <div className="bg-muted rounded-md px-4 py-3 text-sm whitespace-pre-wrap">
-                      {emailMessage.replace(/\{\{referral_link\}\}/g, referralUrl || "[Your referral link]")}
+                      {getCurrentMessage().replace(/\{\{referral_link\}\}/g, referralUrl || "[Your referral link]")}
                     </div>
                   </div>
                 </div>
