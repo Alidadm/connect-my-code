@@ -1,5 +1,6 @@
 import { Check, Crown, Loader2, FlaskConical, Home, UserPlus, CreditCard } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -16,17 +17,8 @@ const PayPalIcon = () => (
   </svg>
 );
 
-const features = [
-  "Unlimited posts and stories",
-  "Real-time messaging",
-  "Create and join events",
-  "Exclusive community access",
-  "Ad-free experience",
-  "Priority support",
-  "Earn referral commissions",
-];
-
 const Pricing = () => {
+  const { t } = useTranslation();
   const { user, loading: authLoading } = useAuth();
   const { subscribed, subscriptionEnd, loading: subLoading, createCheckout, openCustomerPortal, checkSubscription } = useSubscription();
   const navigate = useNavigate();
@@ -35,6 +27,15 @@ const Pricing = () => {
   const [paypalLoading, setPaypalLoading] = useState(false);
   const [testLoading, setTestLoading] = useState(false);
 
+  const features = [
+    t("pricing.features.unlimitedPosts"),
+    t("pricing.features.realTimeMessaging"),
+    t("pricing.features.createEvents"),
+    t("pricing.features.exclusiveCommunity"),
+    t("pricing.features.adFree"),
+    t("pricing.features.prioritySupport"),
+    t("pricing.features.earnReferrals"),
+  ];
   // Test function to create a sample commission via edge function
   const handleTestCommission = async () => {
     if (!user) {
@@ -61,12 +62,12 @@ const Pricing = () => {
   useEffect(() => {
     const checkout = searchParams.get("checkout");
     if (checkout === "success") {
-      toast.success("Subscription successful! Welcome to DolphySN Premium.");
+      toast.success(t("pricing.checkoutSuccess"));
       checkSubscription();
     } else if (checkout === "canceled") {
-      toast.info("Checkout was canceled.");
+      toast.info(t("pricing.checkoutCanceled"));
     }
-  }, [searchParams, checkSubscription]);
+  }, [searchParams, checkSubscription, t]);
 
   const handleSubscribe = async () => {
     if (!user) {
@@ -129,11 +130,12 @@ const Pricing = () => {
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            Join <span className="text-primary">DolphySN</span> Premium
+            {t("pricing.title").split("DolphySN").map((part, i) => 
+              i === 0 ? part : <><span className="text-primary">DolphySN</span>{part}</>
+            )}
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Connect with friends, share moments, and earn money through referrals. 
-            One simple subscription unlocks everything.
+            {t("pricing.subtitle")}
           </p>
         </div>
 
@@ -143,17 +145,17 @@ const Pricing = () => {
             <div className="absolute top-4 right-4">
               <span className="bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1">
                 <Crown className="h-3 w-3" />
-                Active
+                {t("pricing.active")}
               </span>
             </div>
           )}
           
           <CardHeader className="text-center pb-8 pt-8">
-            <CardTitle className="text-2xl">Monthly Subscription</CardTitle>
-            <CardDescription>Full access to everything</CardDescription>
+            <CardTitle className="text-2xl">{t("pricing.monthlySubscription")}</CardTitle>
+            <CardDescription>{t("pricing.fullAccess")}</CardDescription>
             <div className="mt-6">
               <span className="text-5xl font-bold">$9.99</span>
-              <span className="text-muted-foreground">/month</span>
+              <span className="text-muted-foreground">{t("pricing.perMonth")}</span>
             </div>
           </CardHeader>
           
@@ -174,7 +176,7 @@ const Pricing = () => {
             {loading ? (
               <Button disabled className="w-full">
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                Loading...
+                {t("common.loading")}
               </Button>
             ) : subscribed ? (
               <>
@@ -183,17 +185,17 @@ const Pricing = () => {
                   className="w-full"
                   onClick={handleManageSubscription}
                 >
-                  Manage Subscription
+                  {t("pricing.manageSubscription")}
                 </Button>
                 {subscriptionEnd && (
                   <p className="text-xs text-muted-foreground text-center">
-                    Your subscription renews on {new Date(subscriptionEnd).toLocaleDateString()}
+                    {t("pricing.renewsOn", { date: new Date(subscriptionEnd).toLocaleDateString() })}
                   </p>
                 )}
               </>
             ) : (
               <div className="w-full space-y-3">
-                <p className="text-xs text-muted-foreground text-center mb-2">Choose your payment method</p>
+                <p className="text-xs text-muted-foreground text-center mb-2">{t("auth.choosePayment")}</p>
                 
                 {/* Stripe/Card Button */}
                 <Button 
@@ -205,15 +207,15 @@ const Pricing = () => {
                   {checkoutLoading ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      Starting checkout...
+                      {t("auth.startingCheckout")}
                     </>
                   ) : user ? (
                     <>
                       <CreditCard className="h-4 w-4 mr-2" />
-                      Pay with Card
+                      {t("auth.payWithCard")}
                     </>
                   ) : (
-                    "Sign Up to Subscribe"
+                    t("auth.signUpToSubscribe")
                   )}
                 </Button>
 
@@ -229,12 +231,12 @@ const Pricing = () => {
                     {paypalLoading ? (
                       <>
                         <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                        Connecting to PayPal...
+                        {t("auth.connectingPaypal")}
                       </>
                     ) : (
                       <>
                         <PayPalIcon />
-                        <span className="ml-2">Pay with PayPal</span>
+                        <span className="ml-2">{t("auth.payWithPaypal")}</span>
                       </>
                     )}
                   </Button>
@@ -249,7 +251,7 @@ const Pricing = () => {
           <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full">
             <Crown className="h-4 w-4" />
             <span className="text-sm font-medium">
-              Earn $5 for every friend you refer!
+              {t("pricing.referralCallout")}
             </span>
           </div>
         </div>
