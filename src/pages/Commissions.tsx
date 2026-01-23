@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -51,6 +52,7 @@ interface Commission {
 }
 
 const Commissions = () => {
+  const { t, i18n } = useTranslation();
   const { user, profile, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -286,16 +288,16 @@ See you inside DolphySN.`;
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "paid":
-        return <Badge className="bg-green-500/10 text-green-600 border-green-500/20">Paid</Badge>;
+        return <Badge className="bg-green-500/10 text-green-600 border-green-500/20">{t("commissions.paid")}</Badge>;
       case "pending":
-        return <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">Pending</Badge>;
+        return <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">{t("commissions.pending")}</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
+    return new Date(dateString).toLocaleDateString(i18n.language, {
       month: "short",
       day: "numeric",
       year: "numeric",
@@ -330,13 +332,13 @@ See you inside DolphySN.`;
           className="mb-4 -ml-2 text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Dashboard
+          {t("common.back")} {t("dashboard.title")}
         </Button>
 
         {/* Page Title */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold">Referral Commissions</h1>
-          <p className="text-muted-foreground">Track your earnings from referrals</p>
+          <h1 className="text-2xl font-bold">{t("commissions.title")}</h1>
+          <p className="text-muted-foreground">{t("commissions.subtitle")}</p>
         </div>
 
         {/* Payout Status Banners */}
@@ -413,9 +415,9 @@ See you inside DolphySN.`;
                   <Users className="h-7 w-7 text-primary" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground font-medium">Total Subscriptions</p>
+                  <p className="text-sm text-muted-foreground font-medium">{t("commissions.totalSubscriptions")}</p>
                   <p className="text-3xl font-bold">{totalReferrals}</p>
-                  <p className="text-xs text-muted-foreground">Active referrals</p>
+                  <p className="text-xs text-muted-foreground">{t("commissions.activeReferrals")}</p>
                 </div>
               </div>
             </CardContent>
@@ -428,9 +430,9 @@ See you inside DolphySN.`;
                   <DollarSign className="h-7 w-7 text-green-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground font-medium">Total Amount Earned</p>
+                  <p className="text-sm text-muted-foreground font-medium">{t("commissions.totalAmountEarned")}</p>
                   <p className="text-3xl font-bold text-green-600">{formatCurrency(totalEarnings)}</p>
-                  <p className="text-xs text-muted-foreground">Lifetime earnings</p>
+                  <p className="text-xs text-muted-foreground">{t("commissions.lifetimeEarnings")}</p>
                 </div>
               </div>
             </CardContent>
@@ -443,9 +445,9 @@ See you inside DolphySN.`;
                   <TrendingUp className="h-7 w-7 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground font-medium">This Month's Signups</p>
+                  <p className="text-sm text-muted-foreground font-medium">{t("commissions.thisMonthSignups")}</p>
                   <p className="text-3xl font-bold text-blue-600">{thisMonthSignups}</p>
-                  <p className="text-xs text-muted-foreground">{now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</p>
+                  <p className="text-xs text-muted-foreground">{now.toLocaleDateString(i18n.language, { month: 'long', year: 'numeric' })}</p>
                 </div>
               </div>
             </CardContent>
@@ -461,7 +463,7 @@ See you inside DolphySN.`;
                   <Wallet className="h-5 w-5 text-purple-600" />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Subscription Value</p>
+                  <p className="text-xs text-muted-foreground">{t("commissions.subscriptionValue")}</p>
                   <p className="text-xl font-bold">{formatCurrency(totalSubscriptionValue)}</p>
                 </div>
               </div>
@@ -475,7 +477,7 @@ See you inside DolphySN.`;
                   <Clock className="h-5 w-5 text-yellow-600" />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Pending</p>
+                  <p className="text-xs text-muted-foreground">{t("commissions.pending")}</p>
                   <p className="text-xl font-bold">{formatCurrency(pendingEarnings)}</p>
                 </div>
               </div>
@@ -489,7 +491,7 @@ See you inside DolphySN.`;
                   <CheckCircle2 className="h-5 w-5 text-green-600" />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Paid Out</p>
+                  <p className="text-xs text-muted-foreground">{t("commissions.paidOut")}</p>
                   <p className="text-xl font-bold">{formatCurrency(paidEarnings)}</p>
                 </div>
               </div>
@@ -503,7 +505,7 @@ See you inside DolphySN.`;
                   <DollarSign className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Per Referral</p>
+                  <p className="text-xs text-muted-foreground">{t("commissions.perReferral")}</p>
                   <p className="text-xl font-bold">$5.00</p>
                 </div>
               </div>
@@ -533,14 +535,14 @@ See you inside DolphySN.`;
                 <Mail className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <CardTitle className="text-lg">Referral</CardTitle>
-                <CardDescription>Invite anyone by email. When they subscribe, you earn $5 every month for as long as their subscription stays active</CardDescription>
+                <CardTitle className="text-lg">{t("commissions.referralTitle")}</CardTitle>
+                <CardDescription>{t("commissions.referralSubtitle")}</CardDescription>
               </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="emailTo">Email Address</Label>
+              <Label htmlFor="emailTo">{t("commissions.emailAddress")}</Label>
               <Input
                 id="emailTo"
                 type="email"
@@ -551,7 +553,7 @@ See you inside DolphySN.`;
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="emailSubject">Subject</Label>
+              <Label htmlFor="emailSubject">{t("commissions.subject")}</Label>
               <Input
                 id="emailSubject"
                 type="text"
@@ -562,7 +564,7 @@ See you inside DolphySN.`;
             </div>
             
             <div className="space-y-2 flex-1">
-              <Label htmlFor="emailMessage">Message</Label>
+              <Label htmlFor="emailMessage">{t("commissions.message")}</Label>
               <Textarea
                 id="emailMessage"
                 placeholder="Write your message..."
@@ -656,11 +658,11 @@ See you inside DolphySN.`;
 
             {/* Referral URL Section */}
             <div className="pt-4 border-t">
-              <Label className="text-sm text-muted-foreground mb-2 block">Your Referral Link</Label>
+              <Label className="text-sm text-muted-foreground mb-2 block">{t("commissions.yourReferralLink")}</Label>
               <div className="flex items-center gap-2">
                 <div className="flex-1 bg-muted rounded-md px-3 py-2 text-sm font-mono truncate">
                   {authLoading ? (
-                    "Loading..."
+                    t("common.loading")
                   ) : referralUrl ? (
                     referralUrl
                   ) : (
@@ -679,7 +681,7 @@ See you inside DolphySN.`;
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground mt-2">
-                Copy this link to share via text message or social media
+                {t("commissions.copyLinkHint")}
               </p>
             </div>
           </CardContent>
@@ -688,8 +690,8 @@ See you inside DolphySN.`;
         {/* Commissions List */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Commission History</CardTitle>
-            <CardDescription>All your referral earnings</CardDescription>
+            <CardTitle className="text-lg">{t("commissions.commissionHistory")}</CardTitle>
+            <CardDescription>{t("commissions.allEarnings")}</CardDescription>
           </CardHeader>
           <CardContent>
             {loading ? (
@@ -712,12 +714,12 @@ See you inside DolphySN.`;
                 <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
                   <DollarSign className="h-8 w-8 text-muted-foreground" />
                 </div>
-                <h3 className="font-semibold mb-2">No commissions yet</h3>
+                <h3 className="font-semibold mb-2">{t("commissions.noCommissionsYet")}</h3>
                 <p className="text-muted-foreground text-sm mb-4">
-                  Share your referral link to start earning!
+                  {t("commissions.shareToStart")}
                 </p>
                 <Button onClick={() => navigate("/pricing")}>
-                  Get Your Referral Link
+                  {t("commissions.getYourLink")}
                 </Button>
               </div>
             ) : (
@@ -739,7 +741,7 @@ See you inside DolphySN.`;
                       </div>
                       <div>
                         <div className="flex items-center gap-2 flex-wrap">
-                          <p className="font-medium">Referral Commission</p>
+                          <p className="font-medium">{t("commissions.referralCommission")}</p>
                           {/* Payment source badge */}
                           {commission.payment_provider && (
                             <Badge 
@@ -755,7 +757,7 @@ See you inside DolphySN.`;
                               ) : (
                                 <CreditCard className="h-3 w-3 mr-1" />
                               )}
-                              via {commission.payment_provider === 'paypal' ? 'PayPal' : 'Stripe'}
+                              via {commission.payment_provider === 'paypal' ? t("commissions.paypal") : t("commissions.creditCard")}
                             </Badge>
                           )}
                           {/* Expected payout method for pending commissions */}
