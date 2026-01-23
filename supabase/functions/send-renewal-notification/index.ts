@@ -35,6 +35,52 @@ serve(async (req) => {
 
     logStep("Processing renewal notification for", { email: email.slice(0, 3) + "***" });
 
+    // ========== DEDUPLICATION CHECK ==========
+    // Prevent sending multiple renewal emails to the same address on the same day
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    const dedupeKey = `renewal_email_${email.toLowerCase()}_${today}`;
+
+    // Check if we already sent a renewal email to this address today
+    const { data: existingNotification } = await supabaseAdmin
+      .from("platform_settings")
+      .select("setting_value")
+      .eq("setting_key", dedupeKey)
+      .single();
+
+    if (existingNotification) {
+      logStep("Duplicate email prevented - already sent today", { email: email.slice(0, 3) + "***", date: today });
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: "Renewal notification already sent today - skipped to prevent duplicate",
+          skipped: true,
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        }
+      );
+    }
+
+    // Also verify the user still exists in our system before sending
+    const { data: authUsers } = await supabaseAdmin.auth.admin.listUsers();
+    const userExists = authUsers?.users?.some(u => u.email?.toLowerCase() === email.toLowerCase());
+    
+    if (!userExists) {
+      logStep("User no longer exists - skipping email", { email: email.slice(0, 3) + "***" });
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: "User no longer exists - skipped",
+          skipped: true,
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        }
+      );
+    }
+
     // Get email template from platform_settings
     const { data: settings } = await supabaseAdmin
       .from("platform_settings")
@@ -131,6 +177,18 @@ serve(async (req) => {
 
     const resendPayload = await emailResponse.json().catch(() => null);
     logStep("Email sent successfully", { id: resendPayload?.id ?? null });
+
+    // ========== RECORD DEDUPLICATION MARKER ==========
+    // Store that we sent a renewal email to this address today (auto-expires by not having cleanup, but prevents same-day duplicates)
+    await supabaseAdmin
+      .from("platform_settings")
+      .upsert({
+        setting_key: dedupeKey,
+        setting_value: { sent_at: new Date().toISOString(), email: email.toLowerCase() },
+        updated_at: new Date().toISOString(),
+      });
+
+    logStep("Deduplication marker stored", { key: dedupeKey });
 
     return new Response(
       JSON.stringify({

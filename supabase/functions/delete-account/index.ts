@@ -7,6 +7,11 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const logStep = (step: string, details?: any) => {
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+  console.log(`[DELETE-ACCOUNT] ${step}${detailsStr}`);
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -34,35 +39,62 @@ serve(async (req) => {
     }
 
     const userId = user.id;
-    console.log(`Processing account deletion for user: ${userId}`);
+    const userEmail = user.email;
+    logStep("Processing account deletion for user", { userId, email: userEmail?.slice(0, 3) + "***" });
 
-    // 1. Get user's active subscriptions from database
+    // 1. Get user's private profile for Stripe customer ID
+    const { data: privateProfile } = await supabaseClient
+      .from("profiles_private")
+      .select("stripe_customer_id, paypal_customer_id")
+      .eq("user_id", userId)
+      .single();
+
+    logStep("Retrieved private profile", { 
+      hasStripeCustomer: !!privateProfile?.stripe_customer_id,
+      hasPaypalCustomer: !!privateProfile?.paypal_customer_id 
+    });
+
+    // 2. Get user's active subscriptions from database
     const { data: subscriptions } = await supabaseClient
       .from("subscriptions")
       .select("provider_subscription_id, payment_provider, status")
       .eq("user_id", userId)
       .in("status", ["active", "trialing"]);
 
-    // 2. Cancel Stripe subscriptions if any exist
-    if (stripeSecretKey && subscriptions && subscriptions.length > 0) {
+    // 3. Cancel Stripe subscriptions AND delete customer if exists
+    if (stripeSecretKey) {
       const stripe = new Stripe(stripeSecretKey, {
         apiVersion: "2023-10-16",
       });
 
-      for (const sub of subscriptions) {
-        if (sub.payment_provider === "stripe" && sub.provider_subscription_id) {
-          try {
-            await stripe.subscriptions.cancel(sub.provider_subscription_id);
-            console.log(`Cancelled Stripe subscription: ${sub.provider_subscription_id}`);
-          } catch (stripeError: any) {
-            console.error(`Failed to cancel Stripe subscription: ${stripeError.message}`);
-            // Continue with deletion even if Stripe cancellation fails
+      // Cancel all active subscriptions
+      if (subscriptions && subscriptions.length > 0) {
+        for (const sub of subscriptions) {
+          if (sub.payment_provider === "stripe" && sub.provider_subscription_id) {
+            try {
+              await stripe.subscriptions.cancel(sub.provider_subscription_id);
+              logStep("Cancelled Stripe subscription", { subscriptionId: sub.provider_subscription_id });
+            } catch (stripeError: any) {
+              logStep("Failed to cancel Stripe subscription", { error: stripeError.message });
+              // Continue with deletion even if cancellation fails
+            }
           }
+        }
+      }
+
+      // DELETE THE STRIPE CUSTOMER to prevent future webhook triggers
+      if (privateProfile?.stripe_customer_id) {
+        try {
+          await stripe.customers.del(privateProfile.stripe_customer_id);
+          logStep("Deleted Stripe customer", { customerId: privateProfile.stripe_customer_id });
+        } catch (stripeError: any) {
+          logStep("Failed to delete Stripe customer", { error: stripeError.message });
+          // Continue with deletion even if customer deletion fails
         }
       }
     }
 
-    // 3. Cancel any pending commissions where this user was referred
+    // 4. Cancel any pending commissions where this user was referred
     // (referrer should not receive payment for a deleted member)
     await supabaseClient
       .from("commissions")
@@ -70,36 +102,65 @@ serve(async (req) => {
       .eq("referred_user_id", userId)
       .eq("status", "pending");
 
-    console.log("Cancelled pending commissions for referred user");
+    logStep("Cancelled pending commissions for referred user");
 
-    // 4. Delete user data from all tables (using service role to bypass RLS)
+    // 5. Clean up any deduplication markers for this email
+    if (userEmail) {
+      const today = new Date().toISOString().split('T')[0];
+      const dedupeKey = `renewal_email_${userEmail.toLowerCase()}_${today}`;
+      await supabaseClient
+        .from("platform_settings")
+        .delete()
+        .eq("setting_key", dedupeKey);
+      logStep("Cleaned up email deduplication markers");
+    }
+
+    // 6. Delete user data from all tables (using service role to bypass RLS)
     const deletions = await Promise.allSettled([
       supabaseClient.from("posts").delete().eq("user_id", userId),
       supabaseClient.from("post_likes").delete().eq("user_id", userId),
       supabaseClient.from("post_comments").delete().eq("user_id", userId),
+      supabaseClient.from("post_reactions").delete().eq("user_id", userId),
       supabaseClient.from("stories").delete().eq("user_id", userId),
       supabaseClient.from("story_views").delete().eq("viewer_id", userId),
       supabaseClient.from("messages").delete().or(`sender_id.eq.${userId},receiver_id.eq.${userId}`),
       supabaseClient.from("friendships").delete().or(`requester_id.eq.${userId},addressee_id.eq.${userId}`),
       supabaseClient.from("event_rsvps").delete().eq("user_id", userId),
       supabaseClient.from("phone_verification_codes").delete().eq("user_id", userId),
+      supabaseClient.from("email_verification_codes").delete().eq("user_id", userId),
       supabaseClient.from("commissions").delete().eq("referrer_id", userId),
+      supabaseClient.from("pending_commission_notifications").delete().eq("referrer_id", userId),
       supabaseClient.from("subscriptions").delete().eq("user_id", userId),
       supabaseClient.from("user_roles").delete().eq("user_id", userId),
+      supabaseClient.from("privacy_settings").delete().eq("user_id", userId),
+      supabaseClient.from("profile_details").delete().eq("user_id", userId),
+      supabaseClient.from("bookmarks").delete().eq("user_id", userId),
+      supabaseClient.from("bookmark_collections").delete().eq("user_id", userId),
+      supabaseClient.from("blocked_users").delete().or(`user_id.eq.${userId},blocked_user_id.eq.${userId}`),
+      supabaseClient.from("muted_users").delete().or(`user_id.eq.${userId},muted_user_id.eq.${userId}`),
+      supabaseClient.from("group_members").delete().eq("user_id", userId),
+      supabaseClient.from("scheduled_birthday_wishes").delete().eq("user_id", userId),
       supabaseClient.from("profiles_private").delete().eq("user_id", userId),
       supabaseClient.from("profiles").delete().eq("user_id", userId),
     ]);
 
-    console.log("Deleted user data from tables");
+    // Log any failed deletions
+    deletions.forEach((result, index) => {
+      if (result.status === 'rejected') {
+        logStep(`Deletion ${index} failed`, { error: result.reason });
+      }
+    });
 
-    // 5. Delete the auth user
+    logStep("Deleted user data from tables");
+
+    // 7. Delete the auth user
     const { error: deleteAuthError } = await supabaseClient.auth.admin.deleteUser(userId);
     
     if (deleteAuthError) {
-      console.error(`Failed to delete auth user: ${deleteAuthError.message}`);
+      logStep("Failed to delete auth user", { error: deleteAuthError.message });
       // Don't throw - user data is already deleted
     } else {
-      console.log("Deleted auth user");
+      logStep("Deleted auth user");
     }
 
     return new Response(
@@ -114,7 +175,7 @@ serve(async (req) => {
     );
 
   } catch (error: any) {
-    console.error("Error deleting account:", error);
+    logStep("Error deleting account", { error: error.message });
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
