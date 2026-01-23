@@ -63,7 +63,8 @@
     "following": "Following",
     "trending": "Trending",
     "recent": "Recent",
-    "and": "and"
+    "and": "and",
+    "saving": "Saving..."
   },
   "header": {
     "myProfile": "My Profile",
@@ -678,5 +679,33 @@
     "sudoku": "Sudoku",
     "continue": "Continue",
     "continuePlaying": "Continue Playing"
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Manage your app preferences",
+    "appearance": "Appearance",
+    "appearanceDesc": "Customize how DolphySN looks",
+    "darkMode": "Dark Mode",
+    "darkModeDesc": "Toggle dark theme",
+    "compactMode": "Compact Mode",
+    "compactModeDesc": "Show more content with less spacing",
+    "notifications": "Notifications",
+    "notificationsDesc": "Control what notifications you receive",
+    "pushNotifications": "Push Notifications",
+    "pushNotificationsDesc": "Receive notifications on your device",
+    "emailNotifications": "Email Notifications",
+    "emailNotificationsDesc": "Receive updates via email",
+    "friendRequests": "Friend Requests",
+    "friendRequestsDesc": "Notify when someone sends a friend request",
+    "birthdayReminders": "Birthday Reminders",
+    "birthdayRemindersDesc": "Get notified about friends' birthdays",
+    "sound": "Sound",
+    "soundDesc": "Manage sound settings",
+    "notificationSound": "Notification Sound",
+    "notificationSoundDesc": "Play sound for notifications",
+    "messageSound": "Message Sound",
+    "messageSoundDesc": "Play sound for new messages",
+    "language": "Language",
+    "languageDesc": "Choose your preferred language. All text will update immediately."
   }
 }
