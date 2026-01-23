@@ -14,7 +14,8 @@
     "settings": "الإعدادات",
     "profile": "الملف الشخصي",
     "home": "الرئيسية",
-    "language": "اللغة"
+    "language": "اللغة",
+    "saving": "جاري الحفظ..."
   },
   "header": {
     "myProfile": "ملفي الشخصي",
@@ -379,5 +380,33 @@
     "memoryMatch": {
       "title": "لعبة الذاكرة"
     }
+  },
+  "settings": {
+    "title": "الإعدادات",
+    "subtitle": "إدارة تفضيلات التطبيق",
+    "appearance": "المظهر",
+    "appearanceDesc": "تخصيص مظهر DolphySN",
+    "darkMode": "الوضع الداكن",
+    "darkModeDesc": "تبديل السمة الداكنة",
+    "compactMode": "الوضع المضغوط",
+    "compactModeDesc": "عرض المزيد من المحتوى بمسافات أقل",
+    "notifications": "الإشعارات",
+    "notificationsDesc": "التحكم في الإشعارات التي تتلقاها",
+    "pushNotifications": "الإشعارات الفورية",
+    "pushNotificationsDesc": "تلقي الإشعارات على جهازك",
+    "emailNotifications": "إشعارات البريد الإلكتروني",
+    "emailNotificationsDesc": "تلقي التحديثات عبر البريد الإلكتروني",
+    "friendRequests": "طلبات الصداقة",
+    "friendRequestsDesc": "إشعار عندما يرسل شخص ما طلب صداقة",
+    "birthdayReminders": "تذكيرات أعياد الميلاد",
+    "birthdayRemindersDesc": "الحصول على إشعارات بأعياد ميلاد الأصدقاء",
+    "sound": "الصوت",
+    "soundDesc": "إدارة إعدادات الصوت",
+    "notificationSound": "صوت الإشعار",
+    "notificationSoundDesc": "تشغيل صوت للإشعارات",
+    "messageSound": "صوت الرسالة",
+    "messageSoundDesc": "تشغيل صوت للرسائل الجديدة",
+    "language": "اللغة",
+    "languageDesc": "اختر لغتك المفضلة. سيتم تحديث جميع النصوص فوراً."
   }
 }

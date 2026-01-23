@@ -22,7 +22,8 @@
     "sortBy": "Ordenar por",
     "following": "Seguindo",
     "trending": "Em alta",
-    "recent": "Recente"
+    "recent": "Recente",
+    "saving": "Salvando..."
   },
   "header": {
     "myProfile": "Meu Perfil",
@@ -460,5 +461,33 @@
     "memoryMatch": {
       "title": "Jogo da Memória"
     }
+  },
+  "settings": {
+    "title": "Configurações",
+    "subtitle": "Gerencie suas preferências do aplicativo",
+    "appearance": "Aparência",
+    "appearanceDesc": "Personalize a aparência do DolphySN",
+    "darkMode": "Modo Escuro",
+    "darkModeDesc": "Alternar tema escuro",
+    "compactMode": "Modo Compacto",
+    "compactModeDesc": "Mostrar mais conteúdo com menos espaçamento",
+    "notifications": "Notificações",
+    "notificationsDesc": "Controle quais notificações você recebe",
+    "pushNotifications": "Notificações Push",
+    "pushNotificationsDesc": "Receba notificações no seu dispositivo",
+    "emailNotifications": "Notificações por Email",
+    "emailNotificationsDesc": "Receba atualizações por email",
+    "friendRequests": "Pedidos de Amizade",
+    "friendRequestsDesc": "Notificar quando alguém enviar um pedido de amizade",
+    "birthdayReminders": "Lembretes de Aniversário",
+    "birthdayRemindersDesc": "Seja notificado sobre aniversários de amigos",
+    "sound": "Som",
+    "soundDesc": "Gerenciar configurações de som",
+    "notificationSound": "Som de Notificação",
+    "notificationSoundDesc": "Reproduzir som para notificações",
+    "messageSound": "Som de Mensagem",
+    "messageSoundDesc": "Reproduzir som para novas mensagens",
+    "language": "Idioma",
+    "languageDesc": "Escolha seu idioma preferido. Todo o texto será atualizado imediatamente."
   }
 }

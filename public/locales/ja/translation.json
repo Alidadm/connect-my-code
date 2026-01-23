@@ -14,7 +14,8 @@
     "settings": "設定",
     "profile": "プロフィール",
     "home": "ホーム",
-    "language": "言語"
+    "language": "言語",
+    "saving": "保存中..."
   },
   "header": {
     "myProfile": "マイプロフィール",
@@ -379,5 +380,33 @@
     "memoryMatch": {
       "title": "神経衰弱"
     }
+  },
+  "settings": {
+    "title": "設定",
+    "subtitle": "アプリの設定を管理",
+    "appearance": "外観",
+    "appearanceDesc": "DolphySNの見た目をカスタマイズ",
+    "darkMode": "ダークモード",
+    "darkModeDesc": "ダークテーマに切り替え",
+    "compactMode": "コンパクトモード",
+    "compactModeDesc": "間隔を狭めてより多くのコンテンツを表示",
+    "notifications": "通知",
+    "notificationsDesc": "受け取る通知を管理",
+    "pushNotifications": "プッシュ通知",
+    "pushNotificationsDesc": "デバイスで通知を受け取る",
+    "emailNotifications": "メール通知",
+    "emailNotificationsDesc": "メールで更新を受け取る",
+    "friendRequests": "友達リクエスト",
+    "friendRequestsDesc": "友達リクエストが届いたら通知",
+    "birthdayReminders": "誕生日リマインダー",
+    "birthdayRemindersDesc": "友達の誕生日の通知を受け取る",
+    "sound": "サウンド",
+    "soundDesc": "サウンド設定を管理",
+    "notificationSound": "通知音",
+    "notificationSoundDesc": "通知時にサウンドを再生",
+    "messageSound": "メッセージ音",
+    "messageSoundDesc": "新しいメッセージ時にサウンドを再生",
+    "language": "言語",
+    "languageDesc": "お好みの言語を選択してください。すべてのテキストがすぐに更新されます。"
   }
 }

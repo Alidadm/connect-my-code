@@ -14,7 +14,8 @@
     "settings": "설정",
     "profile": "프로필",
     "home": "홈",
-    "language": "언어"
+    "language": "언어",
+    "saving": "저장 중..."
   },
   "header": {
     "myProfile": "내 프로필",
@@ -379,5 +380,33 @@
     "memoryMatch": {
       "title": "메모리 매치"
     }
+  },
+  "settings": {
+    "title": "설정",
+    "subtitle": "앱 환경설정 관리",
+    "appearance": "외관",
+    "appearanceDesc": "DolphySN 외관 맞춤 설정",
+    "darkMode": "다크 모드",
+    "darkModeDesc": "다크 테마 전환",
+    "compactMode": "컴팩트 모드",
+    "compactModeDesc": "더 적은 간격으로 더 많은 콘텐츠 표시",
+    "notifications": "알림",
+    "notificationsDesc": "받을 알림 제어",
+    "pushNotifications": "푸시 알림",
+    "pushNotificationsDesc": "기기에서 알림 받기",
+    "emailNotifications": "이메일 알림",
+    "emailNotificationsDesc": "이메일로 업데이트 받기",
+    "friendRequests": "친구 요청",
+    "friendRequestsDesc": "누군가 친구 요청을 보내면 알림",
+    "birthdayReminders": "생일 알림",
+    "birthdayRemindersDesc": "친구 생일 알림 받기",
+    "sound": "소리",
+    "soundDesc": "소리 설정 관리",
+    "notificationSound": "알림 소리",
+    "notificationSoundDesc": "알림 시 소리 재생",
+    "messageSound": "메시지 소리",
+    "messageSoundDesc": "새 메시지 시 소리 재생",
+    "language": "언어",
+    "languageDesc": "선호하는 언어를 선택하세요. 모든 텍스트가 즉시 업데이트됩니다."
   }
 }

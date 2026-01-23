@@ -14,7 +14,8 @@
     "settings": "सेटिंग्स",
     "profile": "प्रोफ़ाइल",
     "home": "होम",
-    "language": "भाषा"
+    "language": "भाषा",
+    "saving": "सहेज रहा है..."
   },
   "header": {
     "myProfile": "मेरी प्रोफ़ाइल",
@@ -379,5 +380,33 @@
     "memoryMatch": {
       "title": "मेमोरी मैच"
     }
+  },
+  "settings": {
+    "title": "सेटिंग्स",
+    "subtitle": "अपने ऐप प्राथमिकताएं प्रबंधित करें",
+    "appearance": "दिखावट",
+    "appearanceDesc": "DolphySN का लुक कस्टमाइज़ करें",
+    "darkMode": "डार्क मोड",
+    "darkModeDesc": "डार्क थीम टॉगल करें",
+    "compactMode": "कॉम्पैक्ट मोड",
+    "compactModeDesc": "कम स्पेसिंग के साथ अधिक कंटेंट दिखाएं",
+    "notifications": "सूचनाएं",
+    "notificationsDesc": "नियंत्रित करें कि आपको कौन सी सूचनाएं मिलें",
+    "pushNotifications": "पुश सूचनाएं",
+    "pushNotificationsDesc": "अपने डिवाइस पर सूचनाएं प्राप्त करें",
+    "emailNotifications": "ईमेल सूचनाएं",
+    "emailNotificationsDesc": "ईमेल द्वारा अपडेट प्राप्त करें",
+    "friendRequests": "मित्र अनुरोध",
+    "friendRequestsDesc": "जब कोई मित्र अनुरोध भेजे तो सूचित करें",
+    "birthdayReminders": "जन्मदिन अनुस्मारक",
+    "birthdayRemindersDesc": "दोस्तों के जन्मदिन की सूचनाएं प्राप्त करें",
+    "sound": "ध्वनि",
+    "soundDesc": "ध्वनि सेटिंग्स प्रबंधित करें",
+    "notificationSound": "सूचना ध्वनि",
+    "notificationSoundDesc": "सूचनाओं के लिए ध्वनि बजाएं",
+    "messageSound": "संदेश ध्वनि",
+    "messageSoundDesc": "नए संदेशों के लिए ध्वनि बजाएं",
+    "language": "भाषा",
+    "languageDesc": "अपनी पसंदीदा भाषा चुनें। सभी टेक्स्ट तुरंत अपडेट हो जाएगा।"
   }
 }

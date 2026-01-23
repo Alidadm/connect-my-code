@@ -54,7 +54,8 @@
     "settings": "Einstellungen",
     "profile": "Profil",
     "home": "Startseite",
-    "language": "Sprache"
+    "language": "Sprache",
+    "saving": "Speichert..."
   },
   "header": {
     "myProfile": "Mein Profil",
@@ -391,5 +392,33 @@
     "memoryMatch": {
       "title": "Memory"
     }
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "subtitle": "Verwalten Sie Ihre App-Einstellungen",
+    "appearance": "Erscheinungsbild",
+    "appearanceDesc": "Passen Sie das Aussehen von DolphySN an",
+    "darkMode": "Dunkelmodus",
+    "darkModeDesc": "Dunkles Thema umschalten",
+    "compactMode": "Kompaktmodus",
+    "compactModeDesc": "Mehr Inhalt mit weniger Abstand anzeigen",
+    "notifications": "Benachrichtigungen",
+    "notificationsDesc": "Steuern Sie, welche Benachrichtigungen Sie erhalten",
+    "pushNotifications": "Push-Benachrichtigungen",
+    "pushNotificationsDesc": "Benachrichtigungen auf Ihrem Gerät erhalten",
+    "emailNotifications": "E-Mail-Benachrichtigungen",
+    "emailNotificationsDesc": "Updates per E-Mail erhalten",
+    "friendRequests": "Freundschaftsanfragen",
+    "friendRequestsDesc": "Benachrichtigen, wenn jemand eine Freundschaftsanfrage sendet",
+    "birthdayReminders": "Geburtstagserinnerungen",
+    "birthdayRemindersDesc": "Über Geburtstage von Freunden benachrichtigt werden",
+    "sound": "Ton",
+    "soundDesc": "Toneinstellungen verwalten",
+    "notificationSound": "Benachrichtigungston",
+    "notificationSoundDesc": "Ton für Benachrichtigungen abspielen",
+    "messageSound": "Nachrichtenton",
+    "messageSoundDesc": "Ton für neue Nachrichten abspielen",
+    "language": "Sprache",
+    "languageDesc": "Wählen Sie Ihre bevorzugte Sprache. Der gesamte Text wird sofort aktualisiert."
   }
 }

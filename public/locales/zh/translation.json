@@ -22,7 +22,8 @@
     "sortBy": "排序方式",
     "following": "关注中",
     "trending": "热门",
-    "recent": "最新"
+    "recent": "最新",
+    "saving": "保存中..."
   },
   "header": {
     "myProfile": "我的资料",
@@ -460,5 +461,33 @@
     "memoryMatch": {
       "title": "记忆配对"
     }
+  },
+  "settings": {
+    "title": "设置",
+    "subtitle": "管理您的应用偏好",
+    "appearance": "外观",
+    "appearanceDesc": "自定义DolphySN的外观",
+    "darkMode": "深色模式",
+    "darkModeDesc": "切换深色主题",
+    "compactMode": "紧凑模式",
+    "compactModeDesc": "以更少的间距显示更多内容",
+    "notifications": "通知",
+    "notificationsDesc": "控制您接收的通知",
+    "pushNotifications": "推送通知",
+    "pushNotificationsDesc": "在您的设备上接收通知",
+    "emailNotifications": "电子邮件通知",
+    "emailNotificationsDesc": "通过电子邮件接收更新",
+    "friendRequests": "好友请求",
+    "friendRequestsDesc": "当有人发送好友请求时通知",
+    "birthdayReminders": "生日提醒",
+    "birthdayRemindersDesc": "获取朋友生日的通知",
+    "sound": "声音",
+    "soundDesc": "管理声音设置",
+    "notificationSound": "通知声音",
+    "notificationSoundDesc": "播放通知声音",
+    "messageSound": "消息声音",
+    "messageSoundDesc": "播放新消息声音",
+    "language": "语言",
+    "languageDesc": "选择您的首选语言。所有文本将立即更新。"
   }
 }

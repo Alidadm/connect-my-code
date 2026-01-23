@@ -14,7 +14,8 @@
     "settings": "Paramètres",
     "profile": "Profil",
     "home": "Accueil",
-    "language": "Langue"
+    "language": "Langue",
+    "saving": "Enregistrement..."
   },
   "header": {
     "myProfile": "Mon Profil",
@@ -351,5 +352,33 @@
     "memoryMatch": {
       "title": "Memory"
     }
+  },
+  "settings": {
+    "title": "Paramètres",
+    "subtitle": "Gérez vos préférences d'application",
+    "appearance": "Apparence",
+    "appearanceDesc": "Personnalisez l'apparence de DolphySN",
+    "darkMode": "Mode Sombre",
+    "darkModeDesc": "Basculer le thème sombre",
+    "compactMode": "Mode Compact",
+    "compactModeDesc": "Afficher plus de contenu avec moins d'espacement",
+    "notifications": "Notifications",
+    "notificationsDesc": "Contrôlez les notifications que vous recevez",
+    "pushNotifications": "Notifications Push",
+    "pushNotificationsDesc": "Recevoir des notifications sur votre appareil",
+    "emailNotifications": "Notifications par Email",
+    "emailNotificationsDesc": "Recevoir des mises à jour par email",
+    "friendRequests": "Demandes d'Amitié",
+    "friendRequestsDesc": "Notifier quand quelqu'un envoie une demande d'ami",
+    "birthdayReminders": "Rappels d'Anniversaire",
+    "birthdayRemindersDesc": "Être notifié des anniversaires de vos amis",
+    "sound": "Son",
+    "soundDesc": "Gérer les paramètres sonores",
+    "notificationSound": "Son de Notification",
+    "notificationSoundDesc": "Jouer un son pour les notifications",
+    "messageSound": "Son de Message",
+    "messageSoundDesc": "Jouer un son pour les nouveaux messages",
+    "language": "Langue",
+    "languageDesc": "Choisissez votre langue préférée. Tout le texte sera mis à jour immédiatement."
   }
 }
