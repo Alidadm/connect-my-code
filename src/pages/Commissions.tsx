@@ -396,9 +396,9 @@ const Commissions = () => {
         {payoutStatus.hasStripe && payoutStatus.hasPaypal && (
           <Alert className="mb-6 border-green-500/50 bg-green-50 dark:bg-green-950/20">
             <CheckCircle className="h-5 w-5 text-green-600" />
-            <AlertTitle className="text-green-800 dark:text-green-200">Payout Methods Configured</AlertTitle>
+            <AlertTitle className="text-green-800 dark:text-green-200">{t("withdrawal.payoutConfigured")}</AlertTitle>
             <AlertDescription className="text-green-700 dark:text-green-300">
-              You're all set! Both Stripe and PayPal payouts are configured. You'll receive commissions automatically.
+              {t("withdrawal.allSetDesc")}
             </AlertDescription>
           </Alert>
         )}
@@ -406,14 +406,14 @@ const Commissions = () => {
         {showPayoutReminder && (
           <Alert className="mb-6 border-amber-500/50 bg-amber-50 dark:bg-amber-950/20">
             <AlertCircle className="h-5 w-5 text-amber-600" />
-            <AlertTitle className="text-amber-800 dark:text-amber-200">Complete Your Payout Setup</AlertTitle>
+            <AlertTitle className="text-amber-800 dark:text-amber-200">{t("withdrawal.completeSetup")}</AlertTitle>
             <AlertDescription className="text-amber-700 dark:text-amber-300">
               <p className="mb-3">
                 {!payoutStatus.hasStripe && !payoutStatus.hasPaypal
-                  ? "You haven't set up any payout methods yet. Add your bank account or PayPal email to receive commissions."
+                  ? t("withdrawal.noMethodsYet")
                   : !payoutStatus.hasStripe
-                  ? "Connect your bank account via Stripe to receive commissions from credit card payments."
-                  : "Add your PayPal email to receive commissions from PayPal payments."}
+                  ? t("withdrawal.connectBankDesc")
+                  : t("withdrawal.addPaypalDesc")}
               </p>
               <div className="flex flex-wrap gap-2">
                 {!payoutStatus.hasStripe && (
@@ -425,13 +425,12 @@ const Commissions = () => {
                       const stripeSection = document.getElementById("stripe-auto-payout-section");
                       if (stripeSection) {
                         stripeSection.scrollIntoView({ behavior: "smooth", block: "center" });
-                        // Trigger highlight state
                         window.dispatchEvent(new CustomEvent("highlight-stripe-input"));
                       }
                     }}
                   >
                     <CreditCard className="h-4 w-4 mr-2" />
-                    Connect Bank Account
+                    {t("withdrawal.connectBankAccount")}
                   </Button>
                 )}
                 {!payoutStatus.hasPaypal && (
@@ -443,13 +442,12 @@ const Commissions = () => {
                       const paypalSection = document.getElementById("paypal-auto-payout-section");
                       if (paypalSection) {
                         paypalSection.scrollIntoView({ behavior: "smooth", block: "center" });
-                        // Trigger highlight state
                         window.dispatchEvent(new CustomEvent("highlight-paypal-input"));
                       }
                     }}
                   >
                     <Wallet className="h-4 w-4 mr-2" />
-                    Add PayPal Email
+                    {t("withdrawal.addPaypalEmail")}
                   </Button>
                 )}
               </div>
