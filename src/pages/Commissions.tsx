@@ -51,6 +51,28 @@ interface Commission {
   payment_provider: string | null;
 }
 
+const REFERRAL_EMAIL_SUBJECT_KEY = "referral_email_subject";
+const REFERRAL_EMAIL_MESSAGE_KEY = "referral_email_message";
+const REFERRAL_EMAIL_CUSTOMIZED_KEY = "referral_email_customized";
+
+const DEFAULT_EMAIL_SUBJECT_FALLBACK = "Build Your Monthly Income with DolphySN";
+const DEFAULT_EMAIL_MESSAGE_FALLBACK = `Hi everyone,
+
+DolphySN.com is a new social network built for people who want to connect, grow, and earn real monthly income at the same time.
+
+When you join through my link below, your membership is only $9.99 per month. After you sign up, you can invite anyone — friends, followers, or even people you've never met.
+
+For every person who subscribes through your link, you earn $5 every month as long as they stay active.
+
+Example:
+If 20 people join under you, that's $100 every month (20 × $5).
+As your downline grows, your monthly income grows too — from both existing members and new members.
+
+Start building your network and your income today.
+Join here: {{referral_link}}
+
+See you inside DolphySN.`;
+
 const Commissions = () => {
   const { t, i18n } = useTranslation();
   const { user, profile, loading: authLoading } = useAuth();
@@ -67,47 +89,67 @@ const Commissions = () => {
   }>({ hasStripe: false, hasPaypal: false, isLoading: true });
   
   // Default email template - using translation keys
-  const getDefaultEmailSubject = () => t("commissions.defaultEmailSubject", "Build Your Monthly Income with DolphySN");
-  const getDefaultEmailMessage = () => t("commissions.defaultEmailMessage", `Hi everyone,
+  const getDefaultEmailSubject = () => t("commissions.defaultEmailSubject", DEFAULT_EMAIL_SUBJECT_FALLBACK);
+  const getDefaultEmailMessage = () => t("commissions.defaultEmailMessage", DEFAULT_EMAIL_MESSAGE_FALLBACK);
 
-DolphySN.com is a new social network built for people who want to connect, grow, and earn real monthly income at the same time.
-
-When you join through my link below, your membership is only $9.99 per month. After you sign up, you can invite anyone — friends, followers, or even people you've never met.
-
-For every person who subscribes through your link, you earn $5 every month as long as they stay active.
-
-Example:
-If 20 people join under you, that's $100 every month (20 × $5).
-As your downline grows, your monthly income grows too — from both existing members and new members.
-
-Start building your network and your income today.
-Join here: {{referral_link}}
-
-See you inside DolphySN.`);
-
-  // Email form state - load from localStorage or use defaults
+  // Email form state
   const [emailTo, setEmailTo] = useState("");
+  const [isEmailTemplateCustomized, setIsEmailTemplateCustomized] = useState(() => {
+    const customized = localStorage.getItem(REFERRAL_EMAIL_CUSTOMIZED_KEY);
+    if (customized !== null) return customized === "true";
+    // Back-compat: if older builds saved a non-empty template, treat as customized.
+    const legacySubject = localStorage.getItem(REFERRAL_EMAIL_SUBJECT_KEY) || "";
+    const legacyMessage = localStorage.getItem(REFERRAL_EMAIL_MESSAGE_KEY) || "";
+    const hasLegacy = Boolean(legacySubject || legacyMessage);
+    if (!hasLegacy) return false;
+
+    // If the stored values are exactly the old hardcoded defaults, we should treat it as *not* customized
+    // so it can follow the currently selected language.
+    const legacySubjectIsDefault = legacySubject === DEFAULT_EMAIL_SUBJECT_FALLBACK;
+    const legacyMessageIsDefault = legacyMessage === DEFAULT_EMAIL_MESSAGE_FALLBACK;
+
+    // Customized if the user stored anything that differs from the default fallbacks.
+    const subjectLooksCustomized = Boolean(legacySubject) && !legacySubjectIsDefault;
+    const messageLooksCustomized = Boolean(legacyMessage) && !legacyMessageIsDefault;
+    return subjectLooksCustomized || messageLooksCustomized;
+  });
   const [emailSubject, setEmailSubject] = useState(() => {
-    return localStorage.getItem("referral_email_subject") || "";
+    return localStorage.getItem(REFERRAL_EMAIL_SUBJECT_KEY) || "";
   });
   const [showPreview, setShowPreview] = useState(false);
   const [emailMessage, setEmailMessage] = useState(() => {
-    return localStorage.getItem("referral_email_message") || "";
+    return localStorage.getItem(REFERRAL_EMAIL_MESSAGE_KEY) || "";
   });
   const [sendingEmail, setSendingEmail] = useState(false);
 
-  // Get current subject/message with fallback to translated defaults
-  const getCurrentSubject = () => emailSubject || getDefaultEmailSubject();
-  const getCurrentMessage = () => emailMessage || getDefaultEmailMessage();
+  // Derived values: keep defaults fully reactive to language changes unless the user customized them.
+  const emailSubjectValue = isEmailTemplateCustomized ? emailSubject : getDefaultEmailSubject();
+  const emailMessageValue = isEmailTemplateCustomized ? emailMessage : getDefaultEmailMessage();
 
-  // Save to localStorage when subject or message changes
+  // Get current subject/message with fallback to translated defaults (even if customized is empty)
+  const getCurrentSubject = () => (emailSubjectValue.trim() ? emailSubjectValue : getDefaultEmailSubject());
+  const getCurrentMessage = () => (emailMessageValue.trim() ? emailMessageValue : getDefaultEmailMessage());
+
+  // Persist customization state & (only if customized) the actual template
   useEffect(() => {
-    localStorage.setItem("referral_email_subject", emailSubject);
-  }, [emailSubject]);
+    localStorage.setItem(REFERRAL_EMAIL_CUSTOMIZED_KEY, String(isEmailTemplateCustomized));
+  }, [isEmailTemplateCustomized]);
 
   useEffect(() => {
-    localStorage.setItem("referral_email_message", emailMessage);
-  }, [emailMessage]);
+    if (!isEmailTemplateCustomized) {
+      localStorage.removeItem(REFERRAL_EMAIL_SUBJECT_KEY);
+      return;
+    }
+    localStorage.setItem(REFERRAL_EMAIL_SUBJECT_KEY, emailSubject);
+  }, [emailSubject, isEmailTemplateCustomized]);
+
+  useEffect(() => {
+    if (!isEmailTemplateCustomized) {
+      localStorage.removeItem(REFERRAL_EMAIL_MESSAGE_KEY);
+      return;
+    }
+    localStorage.setItem(REFERRAL_EMAIL_MESSAGE_KEY, emailMessage);
+  }, [emailMessage, isEmailTemplateCustomized]);
 
   // Scroll to hash element when page loads
   useEffect(() => {
@@ -185,19 +227,23 @@ See you inside DolphySN.`);
 
   const handleCancelEmail = () => {
     setEmailTo("");
+    setIsEmailTemplateCustomized(false);
     setEmailSubject("");
     setEmailMessage("");
     // Clear localStorage to reset to defaults
-    localStorage.removeItem("referral_email_subject");
-    localStorage.removeItem("referral_email_message");
+    localStorage.removeItem(REFERRAL_EMAIL_CUSTOMIZED_KEY);
+    localStorage.removeItem(REFERRAL_EMAIL_SUBJECT_KEY);
+    localStorage.removeItem(REFERRAL_EMAIL_MESSAGE_KEY);
   };
 
   const handleResetToDefault = () => {
+    // Switch back to defaults (which will follow the currently selected language)
+    setIsEmailTemplateCustomized(false);
     setEmailSubject("");
     setEmailMessage("");
-    // Clear localStorage to reset to defaults
-    localStorage.removeItem("referral_email_subject");
-    localStorage.removeItem("referral_email_message");
+    localStorage.removeItem(REFERRAL_EMAIL_CUSTOMIZED_KEY);
+    localStorage.removeItem(REFERRAL_EMAIL_SUBJECT_KEY);
+    localStorage.removeItem(REFERRAL_EMAIL_MESSAGE_KEY);
   };
 
   useEffect(() => {
@@ -563,8 +609,11 @@ See you inside DolphySN.`);
                 id="emailSubject"
                 type="text"
                 placeholder={getDefaultEmailSubject()}
-                value={emailSubject}
-                onChange={(e) => setEmailSubject(e.target.value)}
+                value={emailSubjectValue}
+                onChange={(e) => {
+                  setIsEmailTemplateCustomized(true);
+                  setEmailSubject(e.target.value);
+                }}
               />
             </div>
             
@@ -573,8 +622,11 @@ See you inside DolphySN.`);
               <Textarea
                 id="emailMessage"
                 placeholder={getDefaultEmailMessage()}
-                value={emailMessage}
-                onChange={(e) => setEmailMessage(e.target.value)}
+                value={emailMessageValue}
+                onChange={(e) => {
+                  setIsEmailTemplateCustomized(true);
+                  setEmailMessage(e.target.value);
+                }}
                 className="min-h-[300px] h-full resize-none"
               />
             </div>
