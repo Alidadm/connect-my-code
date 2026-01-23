@@ -26,6 +26,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { generateUsername, generateAlternativeUsernames } from "@/lib/username";
 import { AvatarEditor } from "@/components/avatar/AvatarEditor";
+import { ReferralDownlineDiagram } from "@/components/signup/ReferralDownlineDiagram";
 
 // PayPal SVG icon
 const PayPalIcon = () => (
@@ -845,14 +846,9 @@ export const Signup = () => {
         </div>
       </div>
 
-      {/* Right side - Visual */}
-      <div className="hidden lg:flex flex-1 dolphy-gradient items-center justify-center p-12">
-        <div className="text-center text-primary-foreground max-w-md">
-          <h2 className="text-4xl font-bold mb-4">Connect with friends and the world around you</h2>
-          <p className="text-lg opacity-90">
-            Share moments, discover stories, and build meaningful connections on DolphySN.
-          </p>
-        </div>
+      {/* Right side - Referral Downline Diagram */}
+      <div className="hidden lg:flex flex-1 dolphy-gradient items-center justify-center p-8 overflow-y-auto">
+        <ReferralDownlineDiagram />
       </div>
 
       {/* Verification Prompt Dialog */}
