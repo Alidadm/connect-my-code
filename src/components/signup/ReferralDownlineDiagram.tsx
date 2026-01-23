@@ -5,7 +5,7 @@ export const ReferralDownlineDiagram = () => {
     <div className="text-center text-primary-foreground max-w-lg px-4">
       {/* Subscription Price */}
       <h2 className="text-2xl sm:text-3xl font-bold mb-8">
-        $9.99 / month per member (DolphyNS subscription)
+        $9.99 / month per member (DolphySN subscription)
       </h2>
 
       {/* Diagram Container */}
