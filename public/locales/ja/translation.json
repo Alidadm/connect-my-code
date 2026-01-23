@@ -192,13 +192,24 @@
     "files": "ファイル",
     "messages": "メッセージ",
     "notifications": "通知",
-    "profile": "プロフィール"
+    "profile": "プロフィール",
+    "games": "ゲーム",
+    "saved": "保存済み"
   },
   "sidebar": {
     "posts": "投稿",
     "pagesYouLike": "いいねしたページ",
     "yourGroups": "あなたのグループ",
-    "viewAll": "すべて見る"
+    "viewAll": "すべて見る",
+    "owner": "オーナー",
+    "membersCount": "{{count}} メンバー",
+    "noGroupsYet": "まだグループを作成していません",
+    "createGroup": "グループを作成",
+    "groupsYouLike": "いいねしたグループ",
+    "continuePlaying": "プレイを続ける",
+    "continue": "続ける",
+    "favorites": "お気に入り",
+    "noFavorites": "まだお気に入りがありません"
   },
   "messages": {
     "title": "メッセージ",

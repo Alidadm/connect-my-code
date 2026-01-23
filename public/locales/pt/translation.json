@@ -212,7 +212,9 @@
     "files": "Arquivos",
     "messages": "Mensagens",
     "notifications": "Notificações",
-    "profile": "Perfil"
+    "profile": "Perfil",
+    "games": "Jogos",
+    "saved": "Salvos"
   },
   "sidebar": {
     "pagesYouLike": "Páginas que você curte",
@@ -220,7 +222,16 @@
     "follower": "Seguidor",
     "post": "Publicação",
     "posts": "Publicações",
-    "viewAll": "Ver tudo"
+    "viewAll": "Ver tudo",
+    "owner": "Proprietário",
+    "membersCount": "{{count}} membros",
+    "noGroupsYet": "Você ainda não criou nenhum grupo",
+    "createGroup": "Criar Grupo",
+    "groupsYouLike": "Grupos que você curte",
+    "continuePlaying": "Continuar Jogando",
+    "continue": "Continuar",
+    "favorites": "Favoritos",
+    "noFavorites": "Nenhum favorito ainda"
   },
   "messages": {
     "title": "Mensagens",

@@ -198,9 +198,9 @@ export const LeftSidebar = () => {
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5">
-                        <span className="text-sm font-medium text-foreground">Sudoku</span>
+                        <span className="text-sm font-medium text-foreground">{t("games.sudoku.title", { defaultValue: "Sudoku" })}</span>
                         <span className="text-[10px] font-medium bg-primary/10 text-primary px-1.5 py-0.5 rounded-full capitalize">
-                          {game.difficulty}
+                          {t(`games.difficulty.${game.difficulty}`, { defaultValue: game.difficulty })}
                         </span>
                       </div>
                       <div className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -328,10 +328,12 @@ export const LeftSidebar = () => {
                       <div className="flex items-center gap-1.5">
                         <span className="text-sm font-medium text-foreground truncate">{group.name}</span>
                         <span className="text-[10px] font-medium bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 px-1.5 py-0.5 rounded-full flex-shrink-0">
-                          Owner
+                          {t("sidebar.owner", { defaultValue: "Owner" })}
                         </span>
                       </div>
-                      <span className="text-xs text-muted-foreground">{(group.member_count || 0).toLocaleString()} members</span>
+                      <span className="text-xs text-muted-foreground">
+                        {t("sidebar.membersCount", { count: group.member_count || 0, defaultValue: "{{count}} members" })}
+                      </span>
                     </div>
                   </div>
                 ))}
@@ -387,7 +389,9 @@ export const LeftSidebar = () => {
                   </Avatar>
                   <div className="min-w-0 flex-1">
                     <span className="text-sm font-medium text-foreground truncate block">{group.name}</span>
-                    <span className="text-xs text-muted-foreground">{(group.member_count || 0).toLocaleString()} members</span>
+                    <span className="text-xs text-muted-foreground">
+                      {t("sidebar.membersCount", { count: group.member_count || 0, defaultValue: "{{count}} members" })}
+                    </span>
                   </div>
                 </div>
               ))}
