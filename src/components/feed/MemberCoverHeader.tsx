@@ -244,36 +244,36 @@ export const MemberCoverHeader = ({ activeTab: externalActiveTab, onTabChange, o
         )}
       >
         <nav className={cn(
-          "flex justify-center overflow-x-auto scrollbar-hide",
-          isSticky && "max-w-2xl mx-auto"
+          "flex overflow-x-auto scrollbar-hide",
+          isSticky ? "max-w-2xl mx-auto justify-center" : "justify-start sm:justify-center"
         )}>
           {/* Tabs */}
-          <ul className="flex items-center gap-1 sm:gap-2 py-1 px-4">
+          <ul className="flex items-center gap-0.5 sm:gap-2 py-1 px-2 sm:px-4">
             {tabs.map((tab) => (
               <li key={tab.id}>
                 <button
                   onClick={() => handleTabClick(tab.id)}
                   disabled={tab.disabled}
                   className={cn(
-                    "relative px-3 sm:px-4 py-3 text-sm font-semibold transition-all duration-200 whitespace-nowrap",
+                    "relative px-2 sm:px-4 py-3 text-xs sm:text-sm font-semibold transition-all duration-200 whitespace-nowrap",
                     tab.disabled && "text-muted-foreground/50 cursor-not-allowed",
                     !tab.disabled && tab.id === "about" && aboutOpen && "text-primary",
                     !tab.disabled && activeTab === tab.id && tab.id !== "about" && "text-primary",
                     !tab.disabled && !(tab.id === "about" && aboutOpen) && !(activeTab === tab.id && tab.id !== "about") && "text-muted-foreground hover:text-primary"
                   )}
                 >
-                  <span className="flex items-center gap-1.5">
+                  <span className="flex items-center gap-1">
                     {tab.label}
                     {tab.id === "about" && (
                       aboutOpen ? (
-                        <ChevronUp className="h-4 w-4" />
+                        <ChevronUp className="h-3 w-3 sm:h-4 sm:w-4" />
                       ) : (
-                        <ChevronDown className="h-4 w-4" />
+                        <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4" />
                       )
                     )}
                     {tab.count !== undefined && (
                       <span className={cn(
-                        "inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-semibold rounded-full",
+                        "inline-flex items-center justify-center min-w-[18px] sm:min-w-[20px] h-4 sm:h-5 px-1 sm:px-1.5 text-[10px] sm:text-xs font-semibold rounded-full",
                         tab.disabled ? "bg-muted/50 text-muted-foreground" : "bg-primary/10 text-primary"
                       )}>
                         {tab.count}
@@ -281,10 +281,10 @@ export const MemberCoverHeader = ({ activeTab: externalActiveTab, onTabChange, o
                     )}
                   </span>
                   {tab.id === "about" && aboutOpen && (
-                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-primary rounded-full" />
+                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 sm:w-8 h-0.5 bg-primary rounded-full" />
                   )}
                   {activeTab === tab.id && !tab.disabled && tab.id !== "about" && (
-                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-primary rounded-full" />
+                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 sm:w-8 h-0.5 bg-primary rounded-full" />
                   )}
                 </button>
               </li>

@@ -454,20 +454,20 @@ export const ProfileAboutSection = ({ userId }: ProfileAboutSectionProps) => {
   };
 
   return (
-    <div className="p-6 bg-card">
-      <div className="flex gap-4">
-        {/* Left Sidebar - Navigation */}
-        <div className="w-56 flex-shrink-0 border-r border-border pr-4">
-          <h3 className="text-lg font-bold text-foreground mb-3">About</h3>
-          <nav className="space-y-0.5">
+    <div className="p-4 sm:p-6 bg-card">
+      <div className="flex flex-col sm:flex-row gap-4">
+        {/* Left Sidebar - Navigation (horizontal on mobile, vertical on desktop) */}
+        <div className="sm:w-56 flex-shrink-0 sm:border-r border-border sm:pr-4">
+          <h3 className="text-lg font-bold text-foreground mb-3 hidden sm:block">About</h3>
+          <nav className="flex sm:flex-col gap-1 sm:gap-0.5 overflow-x-auto scrollbar-hide pb-2 sm:pb-0 -mx-2 px-2 sm:mx-0 sm:px-0">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  "w-full text-left px-3 py-2 rounded-md text-sm transition-colors",
+                  "whitespace-nowrap text-left px-3 py-2 rounded-md text-xs sm:text-sm transition-colors flex-shrink-0",
                   activeTab === tab.id
-                    ? "text-primary font-medium bg-primary/5 border-l-2 border-primary"
+                    ? "text-primary font-medium bg-primary/5 sm:border-l-2 sm:border-primary"
                     : "text-muted-foreground hover:bg-muted/50"
                 )}
               >
@@ -478,7 +478,7 @@ export const ProfileAboutSection = ({ userId }: ProfileAboutSectionProps) => {
         </div>
 
         {/* Right Content Area */}
-        <div className="flex-1 min-w-0 pl-4">
+        <div className="flex-1 min-w-0 sm:pl-4 border-t sm:border-t-0 pt-4 sm:pt-0">
           {renderContent()}
         </div>
       </div>
