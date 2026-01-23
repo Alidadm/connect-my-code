@@ -1,10 +1,12 @@
 import { useNavigate, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { 
   LayoutDashboard, Users, Megaphone, Video, Wallet, Mail, LogOut, FileText, Trash2, Flag
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 
 const sidebarLinks = [
   { name: "Dashboard", path: "/adminindex", icon: LayoutDashboard },
@@ -21,6 +23,34 @@ const sidebarLinks = [
 export const AdminSidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [pendingReportsCount, setPendingReportsCount] = useState(0);
+
+  useEffect(() => {
+    // Fetch initial count
+    const fetchPendingCount = async () => {
+      const { count } = await supabase
+        .from('post_reports')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pending');
+      setPendingReportsCount(count || 0);
+    };
+
+    fetchPendingCount();
+
+    // Subscribe to realtime changes
+    const channel = supabase
+      .channel('pending-reports-count')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'post_reports' },
+        () => fetchPendingCount()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -43,11 +73,11 @@ export const AdminSidebar = () => {
         </button>
       </div>
 
-      {/* Navigation */}
       <nav className="flex-1 p-4 space-y-1">
         {sidebarLinks.map((link) => {
           const isActive = location.pathname === link.path;
           const Icon = link.icon;
+          const showBadge = link.path === "/admin/reported-posts" && pendingReportsCount > 0;
           return (
             <button
               key={link.path}
@@ -60,7 +90,12 @@ export const AdminSidebar = () => {
               )}
             >
               <Icon className="h-5 w-5" />
-              {link.name}
+              <span className="flex-1 text-left">{link.name}</span>
+              {showBadge && (
+                <Badge variant="destructive" className="h-5 min-w-[20px] px-1.5 text-xs">
+                  {pendingReportsCount > 99 ? '99+' : pendingReportsCount}
+                </Badge>
+              )}
             </button>
           );
         })}
