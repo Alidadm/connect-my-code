@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -48,6 +49,7 @@ interface WithdrawalRequestSectionProps {
 }
 
 const WithdrawalRequestSection = ({ pendingEarnings, userId, onPayoutStatusChange }: WithdrawalRequestSectionProps) => {
+  const { t } = useTranslation();
   const [requests, setRequests] = useState<WithdrawalRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -370,15 +372,15 @@ const WithdrawalRequestSection = ({ pendingEarnings, userId, onPayoutStatusChang
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "completed":
-        return <Badge className="bg-green-500/10 text-green-600 border-green-500/20"><CheckCircle2 className="h-3 w-3 mr-1" />Completed</Badge>;
+        return <Badge className="bg-green-500/10 text-green-600 border-green-500/20"><CheckCircle2 className="h-3 w-3 mr-1" />{t("withdrawal.status.completed")}</Badge>;
       case "pending":
-        return <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20"><Clock className="h-3 w-3 mr-1" />Pending</Badge>;
+        return <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20"><Clock className="h-3 w-3 mr-1" />{t("withdrawal.status.pending")}</Badge>;
       case "approved":
-        return <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20"><CheckCircle2 className="h-3 w-3 mr-1" />Approved</Badge>;
+        return <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20"><CheckCircle2 className="h-3 w-3 mr-1" />{t("withdrawal.status.approved")}</Badge>;
       case "processing":
-        return <Badge className="bg-purple-500/10 text-purple-600 border-purple-500/20"><Clock className="h-3 w-3 mr-1" />Processing</Badge>;
+        return <Badge className="bg-purple-500/10 text-purple-600 border-purple-500/20"><Clock className="h-3 w-3 mr-1" />{t("withdrawal.status.processing")}</Badge>;
       case "rejected":
-        return <Badge className="bg-red-500/10 text-red-600 border-red-500/20"><XCircle className="h-3 w-3 mr-1" />Rejected</Badge>;
+        return <Badge className="bg-red-500/10 text-red-600 border-red-500/20"><XCircle className="h-3 w-3 mr-1" />{t("withdrawal.status.rejected")}</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
@@ -420,14 +422,14 @@ const WithdrawalRequestSection = ({ pendingEarnings, userId, onPayoutStatusChang
               <Wallet className="h-5 w-5 text-green-600" />
             </div>
             <div>
-              <CardTitle className="text-lg">Withdraw Earnings</CardTitle>
-              <CardDescription>Request a payout of your pending commissions</CardDescription>
+              <CardTitle className="text-lg">{t("withdrawal.title")}</CardTitle>
+              <CardDescription>{t("withdrawal.description")}</CardDescription>
             </div>
           </div>
           {!showForm && canWithdraw && (
             <Button onClick={() => setShowForm(true)}>
               <ArrowUpRight className="h-4 w-4 mr-2" />
-              Request Withdrawal
+              {t("withdrawal.requestWithdrawal")}
             </Button>
           )}
         </div>
@@ -437,10 +439,10 @@ const WithdrawalRequestSection = ({ pendingEarnings, userId, onPayoutStatusChang
         <div className="p-4 border rounded-lg bg-gradient-to-br from-blue-500/5 to-purple-500/5 border-blue-500/20 mb-6">
           <h4 className="font-medium mb-3 flex items-center gap-2">
             <Wallet className="h-4 w-4 text-blue-600" />
-            Auto-Payout Setup
+            {t("withdrawal.autoPayoutSetup")}
           </h4>
           <p className="text-sm text-muted-foreground mb-4">
-            Set up automatic payouts to receive your commissions instantly when they're earned.
+            {t("withdrawal.autoPayoutDesc")}
           </p>
 
           <div className="grid gap-4 md:grid-cols-2">
@@ -453,20 +455,20 @@ const WithdrawalRequestSection = ({ pendingEarnings, userId, onPayoutStatusChang
             >
               <div className="flex items-center gap-2 mb-2">
                 <CreditCard className="h-4 w-4 text-purple-600" />
-                <span className="font-medium text-sm">Stripe (Bank Transfer)</span>
+                <span className="font-medium text-sm">{t("withdrawal.stripeBankTransfer")}</span>
                 {isStripeReady && (
                   <Badge className="bg-green-500/10 text-green-600 border-green-500/20 text-xs">
-                    <CheckCircle2 className="h-3 w-3 mr-1" />Active
+                    <CheckCircle2 className="h-3 w-3 mr-1" />{t("withdrawal.active")}
                   </Badge>
                 )}
               </div>
               {checkingStripe ? (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Loader2 className="h-3 w-3 animate-spin" />
-                  Checking...
+                  {t("withdrawal.checking")}
                 </div>
               ) : isStripeReady ? (
-                <p className="text-xs text-green-600">Instant payouts to your bank account</p>
+                <p className="text-xs text-green-600">{t("withdrawal.instantPayouts")}</p>
               ) : (
                 <div className="space-y-2">
                   <Button 
@@ -500,17 +502,17 @@ const WithdrawalRequestSection = ({ pendingEarnings, userId, onPayoutStatusChang
             >
               <div className="flex items-center gap-2 mb-2">
                 <Mail className="h-4 w-4 text-blue-600" />
-                <span className="font-medium text-sm">PayPal (Email Transfer)</span>
+                <span className="font-medium text-sm">{t("withdrawal.paypalEmailTransfer")}</span>
                 {savedPaypalEmail && (
                   <Badge className="bg-green-500/10 text-green-600 border-green-500/20 text-xs">
-                    <CheckCircle2 className="h-3 w-3 mr-1" />Active
+                    <CheckCircle2 className="h-3 w-3 mr-1" />{t("withdrawal.active")}
                   </Badge>
                 )}
               </div>
               {loadingPaypalEmail ? (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Loader2 className="h-3 w-3 animate-spin" />
-                  Loading...
+                  {t("common.loading")}
                 </div>
               ) : savedPaypalEmail ? (
                 <div className="space-y-2">
@@ -522,18 +524,18 @@ const WithdrawalRequestSection = ({ pendingEarnings, userId, onPayoutStatusChang
                     disabled={savingPaypalEmail}
                     className="text-xs h-7 text-muted-foreground hover:text-destructive"
                   >
-                    Remove
+                    {t("common.delete")}
                   </Button>
                 </div>
               ) : (
                 <div className="space-y-2">
                   {highlightPaypal && (
-                    <p className="text-xs text-red-500 font-medium">Please enter your PayPal email to receive payouts</p>
+                    <p className="text-xs text-red-500 font-medium">{t("withdrawal.pleaseEnterPaypal")}</p>
                   )}
                   <div className="flex gap-2">
                     <Input
                       type="email"
-                      placeholder="PayPal email"
+                      placeholder={t("withdrawal.paypalEmail")}
                       value={paypalAutoEmail}
                       onChange={(e) => setPaypalAutoEmail(e.target.value)}
                       className={`h-8 text-sm ${highlightPaypal ? "border-red-500 focus-visible:ring-red-500" : ""}`}
@@ -558,25 +560,25 @@ const WithdrawalRequestSection = ({ pendingEarnings, userId, onPayoutStatusChang
           </div>
 
           <p className="text-xs text-muted-foreground mt-3">
-            💡 Stripe is preferred for instant bank deposits. PayPal is used as fallback if Stripe isn't connected.
+            💡 {t("withdrawal.stripePreferred")}
           </p>
         </div>
 
         {/* Withdrawal Form */}
         {showForm && (
           <div className="p-4 border rounded-lg bg-muted/30 mb-6">
-            <h4 className="font-medium mb-4">Request Withdrawal</h4>
+            <h4 className="font-medium mb-4">{t("withdrawal.requestWithdrawal")}</h4>
             
             <div className="space-y-4">
               <div className="flex items-center justify-between p-3 bg-background rounded-lg border">
-                <span className="text-muted-foreground">Amount to withdraw:</span>
+                <span className="text-muted-foreground">{t("withdrawal.amountToWithdraw")}</span>
                 <span className="text-xl font-bold text-green-600">{formatCurrency(pendingEarnings)}</span>
               </div>
 
               {/* Payout Method Selection */}
               <div className="space-y-3">
-                <Label>Choose Payout Method</Label>
-                <RadioGroup 
+                <Label>{t("withdrawal.choosePayoutMethod")}</Label>
+                <RadioGroup
                   value={payoutMethod} 
                   onValueChange={(value) => setPayoutMethod(value as "paypal" | "stripe")}
                   className="grid grid-cols-2 gap-4"
@@ -604,7 +606,7 @@ const WithdrawalRequestSection = ({ pendingEarnings, userId, onPayoutStatusChang
               {/* PayPal Email Input */}
               {payoutMethod === "paypal" && (
                 <div className="space-y-2">
-                  <Label htmlFor="payoutEmail">PayPal Email Address</Label>
+                  <Label htmlFor="payoutEmail">{t("withdrawal.paypalEmailAddress")}</Label>
                   <Input
                     id="payoutEmail"
                     type="email"
@@ -613,7 +615,7 @@ const WithdrawalRequestSection = ({ pendingEarnings, userId, onPayoutStatusChang
                     onChange={(e) => setPayoutEmail(e.target.value)}
                   />
                   <p className="text-xs text-muted-foreground">
-                    Enter the email address associated with your PayPal account
+                    {t("withdrawal.enterPaypalEmail")}
                   </p>
                 </div>
               )}
@@ -624,14 +626,14 @@ const WithdrawalRequestSection = ({ pendingEarnings, userId, onPayoutStatusChang
                   {checkingStripe ? (
                     <div className="flex items-center gap-2 p-3 border rounded-lg bg-muted/50">
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      <span className="text-sm">Checking Stripe account status...</span>
+                      <span className="text-sm">{t("withdrawal.checkingStripeStatus")}</span>
                     </div>
                   ) : isStripeReady ? (
                     <div className="flex items-center gap-2 p-3 border rounded-lg bg-green-500/10 border-green-500/30">
                       <CheckCircle2 className="h-5 w-5 text-green-600" />
                       <div>
-                        <p className="font-medium text-green-700">Stripe Account Connected</p>
-                        <p className="text-xs text-green-600">Ready to receive payouts directly to your bank</p>
+                        <p className="font-medium text-green-700">{t("withdrawal.stripeConnected")}</p>
+                        <p className="text-xs text-green-600">{t("withdrawal.readyToReceive")}</p>
                       </div>
                     </div>
                   ) : (
@@ -640,14 +642,14 @@ const WithdrawalRequestSection = ({ pendingEarnings, userId, onPayoutStatusChang
                       <div className="p-4 border rounded-lg bg-blue-500/5 border-blue-500/20">
                         <h5 className="font-medium text-blue-700 mb-2 flex items-center gap-2">
                           <AlertCircle className="h-4 w-4" />
-                          What to Expect
+                          {t("withdrawal.whatToExpect")}
                         </h5>
                         <ul className="text-sm text-muted-foreground space-y-2 ml-6 list-disc">
-                          <li>You'll be redirected to <strong>Stripe's secure page</strong> (not our site)</li>
-                          <li>Enter your personal info, bank account, and verify identity</li>
-                          <li>This is a one-time setup — takes about 5-10 minutes</li>
-                          <li>Once connected, commissions are deposited <strong>directly to your bank</strong></li>
-                          <li>Funds typically arrive in 2-3 business days</li>
+                          <li>{t("withdrawal.expect1")}</li>
+                          <li>{t("withdrawal.expect2")}</li>
+                          <li>{t("withdrawal.expect3")}</li>
+                          <li>{t("withdrawal.expect4")}</li>
+                          <li>{t("withdrawal.expect5")}</li>
                         </ul>
                       </div>
 
@@ -656,9 +658,9 @@ const WithdrawalRequestSection = ({ pendingEarnings, userId, onPayoutStatusChang
                         <div className="flex items-start gap-3">
                           <CreditCard className="h-5 w-5 text-purple-600 mt-0.5" />
                           <div className="flex-1">
-                            <p className="font-medium text-purple-700">Ready to Connect?</p>
+                            <p className="font-medium text-purple-700">{t("withdrawal.readyToConnect")}</p>
                             <p className="text-sm text-muted-foreground mb-3">
-                              Click below to securely link your bank account through Stripe
+                              {t("withdrawal.clickToLink")}
                             </p>
                             <Button 
                               variant="outline" 
@@ -669,12 +671,12 @@ const WithdrawalRequestSection = ({ pendingEarnings, userId, onPayoutStatusChang
                               {connectingStripe ? (
                                 <>
                                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                  Connecting...
+                                  {t("withdrawal.connecting")}
                                 </>
                               ) : (
                                 <>
                                   <ExternalLink className="h-4 w-4 mr-2" />
-                                  Connect Stripe Account
+                                  {t("withdrawal.connectStripeAccount")}
                                 </>
                               )}
                             </Button>
@@ -696,7 +698,7 @@ const WithdrawalRequestSection = ({ pendingEarnings, userId, onPayoutStatusChang
                   }
                   className="flex-1"
                 >
-                  {submitting ? "Submitting..." : "Submit Request"}
+                  {submitting ? t("withdrawal.submitting") : t("withdrawal.submitRequest")}
                 </Button>
                 <Button 
                   variant="outline" 
@@ -706,7 +708,7 @@ const WithdrawalRequestSection = ({ pendingEarnings, userId, onPayoutStatusChang
                   }}
                   className="flex-1"
                 >
-                  Cancel
+                  {t("common.cancel")}
                 </Button>
               </div>
             </div>
@@ -718,10 +720,9 @@ const WithdrawalRequestSection = ({ pendingEarnings, userId, onPayoutStatusChang
           <div className="flex items-center gap-3 p-4 border rounded-lg bg-yellow-500/5 border-yellow-500/20 mb-6">
             <AlertCircle className="h-5 w-5 text-yellow-600 shrink-0" />
             <div>
-              <p className="font-medium text-yellow-600">Minimum withdrawal not met</p>
+              <p className="font-medium text-yellow-600">{t("withdrawal.minimumNotMet")}</p>
               <p className="text-sm text-muted-foreground">
-                You need at least ${minimumWithdrawal} in pending earnings to request a withdrawal. 
-                Current balance: {formatCurrency(pendingEarnings)}
+                {t("withdrawal.needAtLeast", { amount: minimumWithdrawal, current: formatCurrency(pendingEarnings) })}
               </p>
             </div>
           </div>
@@ -731,9 +732,9 @@ const WithdrawalRequestSection = ({ pendingEarnings, userId, onPayoutStatusChang
           <div className="flex items-center gap-3 p-4 border rounded-lg bg-blue-500/5 border-blue-500/20 mb-6">
             <Clock className="h-5 w-5 text-blue-600 shrink-0" />
             <div>
-              <p className="font-medium text-blue-600">Withdrawal in progress</p>
+              <p className="font-medium text-blue-600">{t("withdrawal.inProgress")}</p>
               <p className="text-sm text-muted-foreground">
-                You have a pending withdrawal request. Please wait for it to be processed.
+                {t("withdrawal.pendingRequest")}
               </p>
             </div>
           </div>
@@ -743,7 +744,7 @@ const WithdrawalRequestSection = ({ pendingEarnings, userId, onPayoutStatusChang
         {requests.length > 0 && (
           <>
             <Separator className="my-4" />
-            <h4 className="font-medium mb-4">Withdrawal History</h4>
+            <h4 className="font-medium mb-4">{t("withdrawal.history")}</h4>
             <div className="space-y-3">
               {requests.map((request) => (
                 <div 
@@ -765,7 +766,7 @@ const WithdrawalRequestSection = ({ pendingEarnings, userId, onPayoutStatusChang
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <p className="font-medium">Withdrawal Request</p>
+                        <p className="font-medium">{t("withdrawal.withdrawalRequest")}</p>
                         {getPayoutMethodBadge(request.payout_method)}
                       </div>
                       <p className="text-sm text-muted-foreground">
@@ -774,7 +775,7 @@ const WithdrawalRequestSection = ({ pendingEarnings, userId, onPayoutStatusChang
                       </p>
                       {request.admin_notes && (
                         <p className="text-xs text-muted-foreground mt-1">
-                          Note: {request.admin_notes}
+                          {t("withdrawal.note")}: {request.admin_notes}
                         </p>
                       )}
                     </div>
@@ -794,7 +795,7 @@ const WithdrawalRequestSection = ({ pendingEarnings, userId, onPayoutStatusChang
         {/* No requests yet */}
         {!loading && requests.length === 0 && !showForm && (
           <div className="text-center py-6 text-muted-foreground">
-            <p className="text-sm">No withdrawal requests yet</p>
+            <p className="text-sm">{t("withdrawal.noRequests")}</p>
           </div>
         )}
       </CardContent>

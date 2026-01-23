@@ -14,7 +14,6 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
-import Pricing from "./pages/Pricing";
 import Commissions from "./pages/Commissions";
 import Saved from "./pages/Saved";
 import Groups from "./pages/Groups";
@@ -81,7 +80,7 @@ const router = createBrowserRouter([
       { path: "/signup", element: <Signup /> },
       { path: "/forgot-password", element: <ForgotPassword /> },
       { path: "/reset-password", element: <ResetPassword /> },
-      { path: "/pricing", element: <Pricing /> },
+      { path: "/commissions", element: <Commissions /> },
       { path: "/commissions", element: <Commissions /> },
       { path: "/saved", element: <Saved /> },
       { path: "/games", element: <Games /> },
