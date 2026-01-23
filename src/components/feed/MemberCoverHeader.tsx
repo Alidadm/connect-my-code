@@ -240,12 +240,12 @@ export const MemberCoverHeader = ({ activeTab: externalActiveTab, onTabChange, o
         ref={tabsRef}
         className={cn(
           "border-t border-border transition-all duration-300",
-          isSticky && "fixed top-[64px] left-0 right-0 z-50 bg-card/95 backdrop-blur-md shadow-md border-b animate-fade-in"
+          isSticky && "fixed top-14 sm:top-16 left-0 right-0 z-50 bg-card/95 backdrop-blur-md shadow-md border-b animate-fade-in"
         )}
       >
         <nav className={cn(
           "flex overflow-x-auto scrollbar-hide w-full",
-          isSticky ? "max-w-3xl mx-auto px-4" : "justify-start sm:justify-center"
+          isSticky ? "max-w-3xl mx-auto px-2 sm:px-4" : "justify-start sm:justify-center"
         )}>
           {/* Tabs */}
           <ul className="flex items-center gap-0.5 sm:gap-2 py-2 px-2 sm:px-4 w-full justify-center">
