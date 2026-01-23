@@ -192,13 +192,24 @@
     "files": "फ़ाइलें",
     "messages": "संदेश",
     "notifications": "सूचनाएं",
-    "profile": "प्रोफ़ाइल"
+    "profile": "प्रोफ़ाइल",
+    "games": "गेम्स",
+    "saved": "सेव किए गए"
   },
   "sidebar": {
     "posts": "पोस्ट",
     "pagesYouLike": "आपको पसंद आने वाले पेज",
     "yourGroups": "आपके समूह",
-    "viewAll": "सभी देखें"
+    "viewAll": "सभी देखें",
+    "owner": "मालिक",
+    "membersCount": "{{count}} सदस्य",
+    "noGroupsYet": "आपने अभी तक कोई समूह नहीं बनाया है",
+    "createGroup": "समूह बनाएं",
+    "groupsYouLike": "आपको पसंद आने वाले समूह",
+    "continuePlaying": "खेलना जारी रखें",
+    "continue": "जारी रखें",
+    "favorites": "पसंदीदा",
+    "noFavorites": "अभी तक कोई पसंदीदा नहीं"
   },
   "messages": {
     "title": "संदेश",

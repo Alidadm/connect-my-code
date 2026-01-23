@@ -178,13 +178,24 @@
     "files": "Archivos",
     "messages": "Mensajes",
     "notifications": "Notificaciones",
-    "profile": "Perfil"
+    "profile": "Perfil",
+    "games": "Juegos",
+    "saved": "Guardados"
   },
   "sidebar": {
     "pagesYouLike": "Páginas que te gustan",
     "yourGroups": "Tus Grupos",
     "posts": "Publicaciones",
-    "viewAll": "Ver todo"
+    "viewAll": "Ver todo",
+    "owner": "Propietario",
+    "membersCount": "{{count}} miembros",
+    "noGroupsYet": "Aún no has creado ningún grupo",
+    "createGroup": "Crear Grupo",
+    "groupsYouLike": "Grupos que te gustan",
+    "continuePlaying": "Continuar Jugando",
+    "continue": "Continuar",
+    "favorites": "Favoritos",
+    "noFavorites": "Aún no hay favoritos"
   },
   "avatar": {
     "updateAvatar": "Actualizar Avatar",

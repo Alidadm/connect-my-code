@@ -212,7 +212,9 @@
     "files": "文件",
     "messages": "消息",
     "notifications": "通知",
-    "profile": "个人资料"
+    "profile": "个人资料",
+    "games": "游戏",
+    "saved": "已保存"
   },
   "sidebar": {
     "pagesYouLike": "您喜欢的页面",
@@ -220,7 +222,16 @@
     "follower": "粉丝",
     "post": "帖子",
     "posts": "帖子",
-    "viewAll": "查看全部"
+    "viewAll": "查看全部",
+    "owner": "群主",
+    "membersCount": "{{count}} 位成员",
+    "noGroupsYet": "您还没有创建任何群组",
+    "createGroup": "创建群组",
+    "groupsYouLike": "您喜欢的群组",
+    "continuePlaying": "继续游戏",
+    "continue": "继续",
+    "favorites": "收藏",
+    "noFavorites": "暂无收藏"
   },
   "messages": {
     "title": "消息",

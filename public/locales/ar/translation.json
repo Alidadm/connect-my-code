@@ -192,13 +192,24 @@
     "files": "الملفات",
     "messages": "الرسائل",
     "notifications": "الإشعارات",
-    "profile": "الملف الشخصي"
+    "profile": "الملف الشخصي",
+    "games": "الألعاب",
+    "saved": "المحفوظ"
   },
   "sidebar": {
     "posts": "المنشورات",
     "pagesYouLike": "صفحات تعجبك",
     "yourGroups": "مجموعاتك",
-    "viewAll": "عرض الكل"
+    "viewAll": "عرض الكل",
+    "owner": "المالك",
+    "membersCount": "{{count}} أعضاء",
+    "noGroupsYet": "لم تقم بإنشاء أي مجموعات بعد",
+    "createGroup": "إنشاء مجموعة",
+    "groupsYouLike": "مجموعات تعجبك",
+    "continuePlaying": "استمر في اللعب",
+    "continue": "استمر",
+    "favorites": "المفضلة",
+    "noFavorites": "لا توجد مفضلات بعد"
   },
   "messages": {
     "title": "الرسائل",

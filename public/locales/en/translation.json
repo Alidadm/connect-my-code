@@ -408,7 +408,16 @@
     },
     "ticTacToe": "Tic-Tac-Toe",
     "noActiveGames": "No active games",
-    "startGame": "Start a Game"
+    "startGame": "Start a Game",
+    "owner": "Owner",
+    "membersCount": "{{count}} members",
+    "noGroupsYet": "You haven't created any groups yet",
+    "createGroup": "Create Group",
+    "groupsYouLike": "Groups You Like",
+    "continuePlaying": "Continue Playing",
+    "continue": "Continue",
+    "favorites": "Favorites",
+    "noFavorites": "No favorites yet"
   },
   "messages": {
     "title": "Messages",
