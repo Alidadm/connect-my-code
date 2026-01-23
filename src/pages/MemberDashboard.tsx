@@ -67,10 +67,10 @@ const countryNames: Record<string, string> = {
 const getMenuItems = (t: (key: string) => string) => [
   { id: "profile" as TabType, label: t("profile.title"), icon: User, description: t("profile.description") },
   { id: "account" as TabType, label: t("account.title"), icon: Settings, description: t("account.description") },
-  { id: "about" as TabType, label: "About", icon: Info, description: "Manage your about information" },
-  { id: "business" as TabType, label: "Business", icon: Building2, description: "Manage your business profile" },
+  { id: "about" as TabType, label: t("profile.about"), icon: Info, description: t("dashboard.aboutDescription") },
+  { id: "business" as TabType, label: t("dashboard.business"), icon: Building2, description: t("dashboard.businessDescription") },
   { id: "groups" as TabType, label: t("nav.groups"), icon: UsersRound, description: t("groups.manageGroups") },
-  { id: "watch-history" as TabType, label: "Watch History", icon: Youtube, description: "Your recently watched videos" },
+  { id: "watch-history" as TabType, label: t("dashboard.watchHistory"), icon: Youtube, description: t("dashboard.watchHistoryDescription") },
   { id: "privacy" as TabType, label: t("privacy.title"), icon: Shield, description: t("privacy.description") },
   { id: "notifications" as TabType, label: t("notifications.title"), icon: Bell, description: t("notifications.description") },
   { id: "appearance" as TabType, label: t("appearance.title"), icon: Palette, description: t("appearance.description") },
@@ -413,18 +413,18 @@ const MemberDashboard = () => {
       {hasUnsavedProfileChanges && (
         <div className="flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg text-amber-700 dark:text-amber-400">
           <AlertTriangle className="h-4 w-4 flex-shrink-0" />
-          <span className="text-sm">You have unsaved changes. Don't forget to save!</span>
+          <span className="text-sm">{t("dashboard.unsavedChanges")}</span>
         </div>
       )}
       
       {/* Member Since Info */}
       <div className="pb-4 border-b border-border">
-        <p className="text-sm text-muted-foreground">Member since {profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : "N/A"}</p>
+        <p className="text-sm text-muted-foreground">{t("profile.memberSince")} {profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : "N/A"}</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="first_name">First Name</Label>
+          <Label htmlFor="first_name">{t("profile.firstName")}</Label>
           <Input
             id="first_name"
             value={formData.first_name}
@@ -434,7 +434,7 @@ const MemberDashboard = () => {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="last_name">Last Name</Label>
+          <Label htmlFor="last_name">{t("profile.lastName")}</Label>
           <Input
             id="last_name"
             value={formData.last_name}
@@ -446,18 +446,18 @@ const MemberDashboard = () => {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="display_name">Display Name</Label>
+        <Label htmlFor="display_name">{t("profile.displayName")}</Label>
         <Input
           id="display_name"
           value={formData.display_name}
           onChange={(e) => setFormData({ ...formData, display_name: e.target.value })}
-          placeholder="Your display name"
+          placeholder={t("dashboard.yourDisplayName")}
           className="border-slate-200"
         />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="username">Username</Label>
+        <Label htmlFor="username">{t("profile.username")}</Label>
         <div className="relative">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">@</span>
           <Input
@@ -492,36 +492,36 @@ const MemberDashboard = () => {
           <p className="text-xs text-red-500">{usernameStatus.error}</p>
         )}
         {usernameStatus.available === true && formData.username !== profile?.username && !profile?.username_changed && (
-          <p className="text-xs text-emerald-600">Username is available!</p>
+          <p className="text-xs text-emerald-600">{t("profile.usernameAvailable")}</p>
         )}
         {profile?.username_changed === true ? (
           <p className="text-xs text-amber-600 flex items-center gap-1">
             <Lock className="w-3 h-3" />
-            You have already used your one-time username change.
+            {t("profile.usernameChanged")}
           </p>
         ) : (
           <p className="text-xs text-amber-600">
-            ⚠️ You can only change your username once. Choose wisely!
+            ⚠️ {t("profile.usernameWarning")}
           </p>
         )}
         <p className="text-xs text-slate-400">
-          Your profile URL: dolphysn.com/{formData.username || "username"}
+          {t("profile.profileUrl")}: dolphysn.com/{formData.username || "username"}
         </p>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="bio">Bio</Label>
+        <Label htmlFor="bio">{t("profile.bio")}</Label>
         <Textarea
           id="bio"
           value={formData.bio}
           onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-          placeholder="Tell us about yourself..."
+          placeholder={t("dashboard.bioPlaceholder")}
           className="border-slate-200 min-h-[100px]"
         />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="location">Location</Label>
+        <Label htmlFor="location">{t("profile.location")}</Label>
         <div className="relative">
           {profile?.country && countryNames[profile.country] && (
             <img 
@@ -534,11 +534,11 @@ const MemberDashboard = () => {
             id="location"
             value={formData.location}
             onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-            placeholder="City"
+            placeholder={t("dashboard.city")}
             className={profile?.country && countryNames[profile.country] ? "pl-10 border-slate-200" : "border-slate-200"}
           />
         </div>
-        <p className="text-xs text-slate-400">Enter your city. Country is detected automatically.</p>
+        <p className="text-xs text-slate-400">{t("profile.enterCity")}</p>
       </div>
 
       <div className="flex gap-3">
@@ -548,7 +548,7 @@ const MemberDashboard = () => {
           className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white shadow-lg shadow-blue-500/25"
         >
           <Save className="w-4 h-4 mr-2" />
-          {saving ? "Saving..." : "Save Changes"}
+          {saving ? t("common.saving") : t("profile.saveChanges")}
         </Button>
         
         {hasUnsavedProfileChanges && (
@@ -559,7 +559,7 @@ const MemberDashboard = () => {
             className="border-muted-foreground/30 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
           >
             <RotateCcw className="w-4 h-4 mr-2" />
-            Discard Changes
+            {t("dashboard.discardChanges")}
           </Button>
         )}
       </div>
@@ -983,11 +983,11 @@ const MemberDashboard = () => {
               <Mail className="w-5 h-5 text-white" />
             </div>
             <div className="flex-1">
-              <h4 className="font-medium text-slate-800">Email Address</h4>
+              <h4 className="font-medium text-slate-800">{t("account.email")}</h4>
               {editingEmail ? (
                 emailVerifyStep === "code" ? (
                   <div className="mt-2 space-y-2">
-                    <p className="text-xs text-slate-500">Enter the 6-digit code sent to <strong>{newEmail}</strong></p>
+                    <p className="text-xs text-slate-500">{t("dashboard.enterCodeSentTo")} <strong>{newEmail}</strong></p>
                     <Input
                       type="text"
                       inputMode="numeric"
@@ -998,7 +998,7 @@ const MemberDashboard = () => {
                       className="max-w-[120px] text-center tracking-widest"
                     />
                     {emailResendCooldown > 0 ? (
-                      <p className="text-xs text-slate-400">Resend in {emailResendCooldown}s</p>
+                      <p className="text-xs text-slate-400">{t("onboarding.resendIn", { seconds: emailResendCooldown })}</p>
                     ) : (
                       <button
                         type="button"
@@ -1006,7 +1006,7 @@ const MemberDashboard = () => {
                         disabled={sendingEmailCode}
                         className="text-xs text-primary hover:underline"
                       >
-                        Resend code
+                        {t("onboarding.resendCode")}
                       </button>
                     )}
                   </div>
@@ -1016,21 +1016,21 @@ const MemberDashboard = () => {
                     value={newEmail}
                     onChange={(e) => setNewEmail(e.target.value)}
                     className="mt-1 max-w-xs"
-                    placeholder="Enter new email"
+                    placeholder={t("dashboard.enterNewEmail")}
                   />
                 )
               ) : (
-                <p className="text-sm text-slate-500">{privateProfile?.email || user?.email || "Not set"}</p>
+                <p className="text-sm text-slate-500">{privateProfile?.email || user?.email || t("account.notSet")}</p>
               )}
             </div>
             {!editingEmail && (
               profile?.email_verified ? (
                 <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full font-medium flex items-center gap-1">
-                  <CheckCircle2 className="w-3 h-3" /> Verified
+                  <CheckCircle2 className="w-3 h-3" /> {t("dashboard.verified")}
                 </span>
               ) : (
                 <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs rounded-full font-medium flex items-center gap-1">
-                  <XCircle className="w-3 h-3" /> Unverified
+                  <XCircle className="w-3 h-3" /> {t("dashboard.unverified")}
                 </span>
               )
             )}
@@ -1042,7 +1042,7 @@ const MemberDashboard = () => {
                   onClick={handleCancelEmailEdit}
                   disabled={sendingEmailCode || verifyingEmailCode}
                 >
-                  Cancel
+                  {t("common.cancel")}
                 </Button>
                 {emailVerifyStep === "code" ? (
                   <Button 
@@ -1051,7 +1051,7 @@ const MemberDashboard = () => {
                     disabled={verifyingEmailCode || emailVerifyCode.length !== 6}
                     className="bg-gradient-to-r from-blue-500 to-cyan-500"
                   >
-                    {verifyingEmailCode ? "Verifying..." : "Verify"}
+                    {verifyingEmailCode ? t("onboarding.verifying") : t("onboarding.verifyCode")}
                   </Button>
                 ) : (
                   <Button 
@@ -1060,7 +1060,7 @@ const MemberDashboard = () => {
                     disabled={sendingEmailCode}
                     className="bg-gradient-to-r from-blue-500 to-cyan-500"
                   >
-                    {sendingEmailCode ? "Sending..." : "Send Code"}
+                    {sendingEmailCode ? t("onboarding.sending") : t("dashboard.sendCode")}
                   </Button>
                 )}
               </div>
@@ -1088,11 +1088,11 @@ const MemberDashboard = () => {
               <Phone className="w-5 h-5 text-white" />
             </div>
             <div className="flex-1">
-              <h4 className="font-medium text-slate-800">Phone Number</h4>
+              <h4 className="font-medium text-slate-800">{t("account.phone")}</h4>
               {editingPhone ? (
                 phoneVerifyStep === "code" ? (
                   <div className="mt-2 space-y-2">
-                    <p className="text-xs text-slate-500">Enter the 6-digit code sent to your email</p>
+                    <p className="text-xs text-slate-500">{t("dashboard.enterCodeSentToEmail")}</p>
                     <Input
                       type="text"
                       inputMode="numeric"
@@ -1103,7 +1103,7 @@ const MemberDashboard = () => {
                       className="max-w-[120px] text-center tracking-widest"
                     />
                     {phoneResendCooldown > 0 ? (
-                      <p className="text-xs text-slate-400">Resend in {phoneResendCooldown}s</p>
+                      <p className="text-xs text-slate-400">{t("onboarding.resendIn", { seconds: phoneResendCooldown })}</p>
                     ) : (
                       <button
                         type="button"
@@ -1111,7 +1111,7 @@ const MemberDashboard = () => {
                         disabled={sendingPhoneCode}
                         className="text-xs text-primary hover:underline"
                       >
-                        Resend code
+                        {t("onboarding.resendCode")}
                       </button>
                     )}
                   </div>
@@ -1131,11 +1131,11 @@ const MemberDashboard = () => {
             {!editingPhone && (
               profile?.phone_verified ? (
                 <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full font-medium flex items-center gap-1">
-                  <CheckCircle2 className="w-3 h-3" /> Verified
+                  <CheckCircle2 className="w-3 h-3" /> {t("dashboard.verified")}
                 </span>
               ) : privateProfile?.phone ? (
                 <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs rounded-full font-medium flex items-center gap-1">
-                  <XCircle className="w-3 h-3" /> Unverified
+                  <XCircle className="w-3 h-3" /> {t("dashboard.unverified")}
                 </span>
               ) : null
             )}
@@ -1147,7 +1147,7 @@ const MemberDashboard = () => {
                   onClick={handleCancelPhoneEdit}
                   disabled={sendingPhoneCode || verifyingPhoneCode}
                 >
-                  Cancel
+                  {t("common.cancel")}
                 </Button>
                 {phoneVerifyStep === "code" ? (
                   <Button 
@@ -1156,7 +1156,7 @@ const MemberDashboard = () => {
                     disabled={verifyingPhoneCode || phoneVerifyCode.length !== 6}
                     className="bg-gradient-to-r from-purple-500 to-pink-500"
                   >
-                    {verifyingPhoneCode ? "Verifying..." : "Verify"}
+                    {verifyingPhoneCode ? t("onboarding.verifying") : t("onboarding.verifyCode")}
                   </Button>
                 ) : (
                   <Button 
@@ -1165,7 +1165,7 @@ const MemberDashboard = () => {
                     disabled={sendingPhoneCode}
                     className="bg-gradient-to-r from-purple-500 to-pink-500"
                   >
-                    {sendingPhoneCode ? "Sending..." : "Send Code"}
+                    {sendingPhoneCode ? t("onboarding.sending") : t("dashboard.sendCode")}
                   </Button>
                 )}
               </div>
@@ -1193,7 +1193,7 @@ const MemberDashboard = () => {
               <Calendar className="w-5 h-5 text-white" />
             </div>
             <div className="flex-1">
-              <h4 className="font-medium text-slate-800">Birthday</h4>
+              <h4 className="font-medium text-slate-800">{t("dashboard.birthday")}</h4>
               {editingBirthday ? (
                 <Input
                   type="date"
@@ -1203,7 +1203,7 @@ const MemberDashboard = () => {
                   max={new Date().toISOString().split('T')[0]}
                 />
               ) : (
-                <p className="text-sm text-slate-500">{formatBirthdayDisplay(privateProfile?.birthday)}</p>
+                <p className="text-sm text-slate-500">{privateProfile?.birthday ? formatBirthdayDisplay(privateProfile?.birthday) : t("account.notSet")}</p>
               )}
             </div>
             {editingBirthday ? (
@@ -1214,7 +1214,7 @@ const MemberDashboard = () => {
                   onClick={() => setEditingBirthday(false)}
                   disabled={updatingBirthday}
                 >
-                  Cancel
+                  {t("common.cancel")}
                 </Button>
                 <Button 
                   size="sm" 
@@ -1222,16 +1222,16 @@ const MemberDashboard = () => {
                   disabled={updatingBirthday}
                   className="bg-gradient-to-r from-pink-500 to-rose-500"
                 >
-                  {updatingBirthday ? "Saving..." : "Save"}
+                  {updatingBirthday ? t("common.saving") : t("common.save")}
                 </Button>
               </div>
             ) : (
               <Button variant="outline" size="sm" onClick={() => { setNewBirthday(privateProfile?.birthday || ""); setEditingBirthday(true); }}>
-                Update
+                {t("account.update")}
               </Button>
             )}
           </div>
-          <p className="text-xs text-slate-400 mt-2 ml-13">Your birthday is used for birthday celebrations and reminders to friends.</p>
+          <p className="text-xs text-slate-400 mt-2 ml-13">{t("dashboard.birthdayDescription")}</p>
         </div>
 
         <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
@@ -1240,18 +1240,18 @@ const MemberDashboard = () => {
               <Lock className="w-5 h-5 text-white" />
             </div>
             <div className="flex-1">
-              <h4 className="font-medium text-slate-800">Password</h4>
-              <p className="text-sm text-slate-500">Last changed 30 days ago</p>
+              <h4 className="font-medium text-slate-800">{t("account.password")}</h4>
+              <p className="text-sm text-slate-500">{t("dashboard.lastChangedDaysAgo")}</p>
             </div>
-            <Button variant="outline" size="sm" onClick={handleChangePassword}>Change Password</Button>
+            <Button variant="outline" size="sm" onClick={handleChangePassword}>{t("account.changePassword")}</Button>
           </div>
         </div>
 
         <div className="p-4 bg-red-50 rounded-xl border border-red-200">
-          <h4 className="font-medium text-red-800 mb-2">Danger Zone</h4>
-          <p className="text-sm text-red-600 mb-2">Once you delete your account, there is no going back. Please be certain.</p>
-          <p className="text-sm text-red-600 mb-4 font-medium">⚠️ You will also lose all funds from your subscription and any pending commissions.</p>
-          <Button variant="destructive" size="sm" onClick={handleDeleteAccount}>Delete Account</Button>
+          <h4 className="font-medium text-red-800 mb-2">{t("account.dangerZone")}</h4>
+          <p className="text-sm text-red-600 mb-2">{t("account.deleteWarning")}</p>
+          <p className="text-sm text-red-600 mb-4 font-medium">⚠️ {t("account.deleteWarning2")}</p>
+          <Button variant="destructive" size="sm" onClick={handleDeleteAccount}>{t("account.deleteAccount")}</Button>
         </div>
       </div>
     );
@@ -1263,8 +1263,8 @@ const MemberDashboard = () => {
         <div className="flex items-center gap-3">
           <Eye className="w-5 h-5 text-slate-500" />
           <div>
-            <h4 className="font-medium text-slate-800">Show Online Status</h4>
-            <p className="text-sm text-slate-500">Let others see when you're online</p>
+            <h4 className="font-medium text-slate-800">{t("privacy.showOnlineStatus")}</h4>
+            <p className="text-sm text-slate-500">{t("privacy.showOnlineStatusDesc")}</p>
           </div>
         </div>
         <Switch 
@@ -1277,8 +1277,8 @@ const MemberDashboard = () => {
         <div className="flex items-center gap-3">
           <Clock className="w-5 h-5 text-slate-500" />
           <div>
-            <h4 className="font-medium text-slate-800">Show Last Seen</h4>
-            <p className="text-sm text-slate-500">Display your last active time</p>
+            <h4 className="font-medium text-slate-800">{t("privacy.showLastSeen")}</h4>
+            <p className="text-sm text-slate-500">{t("privacy.showLastSeenDesc")}</p>
           </div>
         </div>
         <Switch 
@@ -1291,8 +1291,8 @@ const MemberDashboard = () => {
         <div className="flex items-center gap-3">
           <MessageCircle className="w-5 h-5 text-slate-500" />
           <div>
-            <h4 className="font-medium text-slate-800">Allow Direct Messages</h4>
-            <p className="text-sm text-slate-500">Let anyone send you messages</p>
+            <h4 className="font-medium text-slate-800">{t("privacy.allowMessages")}</h4>
+            <p className="text-sm text-slate-500">{t("privacy.allowMessagesDesc")}</p>
           </div>
         </div>
         <Switch 
@@ -1309,8 +1309,8 @@ const MemberDashboard = () => {
         <div className="flex items-center gap-3">
           <Mail className="w-5 h-5 text-slate-500" />
           <div>
-            <h4 className="font-medium text-slate-800">Email Notifications</h4>
-            <p className="text-sm text-slate-500">Receive notifications via email</p>
+            <h4 className="font-medium text-slate-800">{t("notifications.emailNotifications")}</h4>
+            <p className="text-sm text-slate-500">{t("notifications.emailNotificationsDesc")}</p>
           </div>
         </div>
         <Switch 
@@ -1323,8 +1323,8 @@ const MemberDashboard = () => {
         <div className="flex items-center gap-3">
           <Bell className="w-5 h-5 text-slate-500" />
           <div>
-            <h4 className="font-medium text-slate-800">Push Notifications</h4>
-            <p className="text-sm text-slate-500">Receive push notifications</p>
+            <h4 className="font-medium text-slate-800">{t("notifications.pushNotifications")}</h4>
+            <p className="text-sm text-slate-500">{t("notifications.pushNotificationsDesc")}</p>
           </div>
         </div>
         <Switch 
@@ -1337,8 +1337,8 @@ const MemberDashboard = () => {
         <div className="flex items-center gap-3">
           <MessageCircle className="w-5 h-5 text-slate-500" />
           <div>
-            <h4 className="font-medium text-slate-800">Message Notifications</h4>
-            <p className="text-sm text-slate-500">Get notified for new messages</p>
+            <h4 className="font-medium text-slate-800">{t("notifications.messageNotifications")}</h4>
+            <p className="text-sm text-slate-500">{t("notifications.messageNotificationsDesc")}</p>
           </div>
         </div>
         <Switch 
@@ -1351,8 +1351,8 @@ const MemberDashboard = () => {
         <div className="flex items-center gap-3">
           <Users className="w-5 h-5 text-slate-500" />
           <div>
-            <h4 className="font-medium text-slate-800">Friend Requests</h4>
-            <p className="text-sm text-slate-500">Get notified for friend requests</p>
+            <h4 className="font-medium text-slate-800">{t("notifications.friendRequests")}</h4>
+            <p className="text-sm text-slate-500">{t("notifications.friendRequestsDesc")}</p>
           </div>
         </div>
         <Switch 
@@ -1380,8 +1380,8 @@ const MemberDashboard = () => {
         <div className="flex items-center gap-3">
           <Palette className="w-5 h-5 text-slate-500" />
           <div>
-            <h4 className="font-medium text-slate-800">Dark Mode</h4>
-            <p className="text-sm text-slate-500">Switch to dark theme</p>
+            <h4 className="font-medium text-slate-800">{t("appearance.darkMode")}</h4>
+            <p className="text-sm text-slate-500">{t("appearance.darkModeDesc")}</p>
           </div>
         </div>
         <Switch 
@@ -1394,8 +1394,8 @@ const MemberDashboard = () => {
         <div className="flex items-center gap-3">
           <Layout className="w-5 h-5 text-slate-500" />
           <div>
-            <h4 className="font-medium text-slate-800">Compact Mode</h4>
-            <p className="text-sm text-slate-500">Use a more compact layout</p>
+            <h4 className="font-medium text-slate-800">{t("appearance.compactMode")}</h4>
+            <p className="text-sm text-slate-500">{t("appearance.compactModeDesc")}</p>
           </div>
         </div>
         <Switch 
@@ -1622,16 +1622,16 @@ const MemberDashboard = () => {
             <AlertDialogHeader>
               <AlertDialogTitle className="flex items-center gap-2">
                 <AlertTriangle className="h-5 w-5 text-amber-500" />
-                Unsaved Changes
+                {t("dashboard.unsavedChangesTitle")}
               </AlertDialogTitle>
               <AlertDialogDescription>
-                You have unsaved changes in your profile. If you leave now, your changes will be lost.
+                {t("dashboard.unsavedChangesDescription")}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel onClick={reset}>Stay on Page</AlertDialogCancel>
+              <AlertDialogCancel onClick={reset}>{t("dashboard.stayOnPage")}</AlertDialogCancel>
               <AlertDialogAction onClick={proceed} className="bg-destructive hover:bg-destructive/90">
-                Leave Without Saving
+                {t("dashboard.leaveWithoutSaving")}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

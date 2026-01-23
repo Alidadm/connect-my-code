@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -75,6 +76,7 @@ const genderOptions = ["Male", "Female", "Non-binary", "Prefer not to say", "Cus
 
 export const AboutSettings = () => {
   const { user, profile } = useAuth();
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [saving, setSaving] = useState(false);
   const [newCitizenship, setNewCitizenship] = useState("");
@@ -344,7 +346,7 @@ export const AboutSettings = () => {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="w-6 h-6 animate-spin text-primary" />
-        <span className="ml-2 text-muted-foreground">Loading your information...</span>
+        <span className="ml-2 text-muted-foreground">{t("about.loadingInformation")}</span>
       </div>
     );
   }
@@ -355,21 +357,21 @@ export const AboutSettings = () => {
       <div>
         <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
           <User className="w-5 h-5" />
-          Basic Information
+          {t("about.basicInformation")}
         </h3>
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="full_name">Full Name</Label>
+            <Label htmlFor="full_name">{t("about.fullName")}</Label>
             <Input
               id="full_name"
               value={formData.full_name}
               onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-              placeholder="Enter your full name"
+              placeholder={t("about.enterFullName")}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="website">Website</Label>
+            <Label htmlFor="website">{t("about.website")}</Label>
             <div className="relative">
               <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
@@ -383,7 +385,7 @@ export const AboutSettings = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="social_network_id">Social Network ID</Label>
+            <Label htmlFor="social_network_id">{t("about.socialNetworkId")}</Label>
             <div className="relative">
               <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
@@ -397,7 +399,7 @@ export const AboutSettings = () => {
           </div>
 
           <div className="space-y-2">
-            <Label>Citizenship(s)</Label>
+            <Label>{t("about.citizenships")}</Label>
             <div className="flex flex-wrap gap-2 mb-2">
               {formData.citizenships.map((citizenship) => (
                 <Badge key={citizenship} variant="secondary" className="flex items-center gap-1">
@@ -413,18 +415,18 @@ export const AboutSettings = () => {
               <Input
                 value={newCitizenship}
                 onChange={(e) => setNewCitizenship(e.target.value)}
-                placeholder="Add citizenship (e.g., USA)"
+                placeholder={t("about.addCitizenshipPlaceholder")}
                 onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addCitizenship())}
               />
               <Button type="button" variant="outline" onClick={addCitizenship}>
                 <Plus className="w-4 h-4" />
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground">Multiple citizenships will display as: USA – France</p>
+            <p className="text-xs text-muted-foreground">{t("about.citizenshipDisplayHint")}</p>
           </div>
 
           <div className="space-y-2">
-            <Label>Language(s)</Label>
+            <Label>{t("about.languages")}</Label>
             <div className="flex flex-wrap gap-2 mb-2">
               {formData.languages.map((language) => (
                 <Badge key={language} variant="secondary" className="flex items-center gap-1">
@@ -439,7 +441,7 @@ export const AboutSettings = () => {
             <div className="flex gap-2">
               <Select value="" onValueChange={(value) => addLanguage(value)}>
                 <SelectTrigger className="flex-1">
-                  <SelectValue placeholder="Select a language to add" />
+                  <SelectValue placeholder={t("about.selectLanguageToAdd")} />
                 </SelectTrigger>
                 <SelectContent>
                   {supportedLanguages
@@ -460,14 +462,14 @@ export const AboutSettings = () => {
                 </SelectContent>
               </Select>
             </div>
-            <p className="text-xs text-muted-foreground">Multiple languages will display as: English / Spanish</p>
+            <p className="text-xs text-muted-foreground">{t("about.languageDisplayHint")}</p>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="gender">Gender</Label>
+            <Label htmlFor="gender">{t("about.gender")}</Label>
             <Select value={formData.gender} onValueChange={(value) => setFormData({ ...formData, gender: value })}>
               <SelectTrigger>
-                <SelectValue placeholder="Select gender" />
+                <SelectValue placeholder={t("about.selectGender")} />
               </SelectTrigger>
               <SelectContent>
                 {genderOptions.map((option) => (
@@ -485,15 +487,15 @@ export const AboutSettings = () => {
       <div>
         <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
           <Eye className="w-5 h-5" />
-          Contact Visibility
+          {t("about.contactVisibility")}
         </h3>
         <div className="space-y-4">
           <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
             <div className="flex items-center gap-3">
               {formData.show_email ? <Eye className="w-5 h-5 text-primary" /> : <EyeOff className="w-5 h-5 text-muted-foreground" />}
               <div>
-                <p className="font-medium">Show Email</p>
-                <p className="text-sm text-muted-foreground">Allow others to see your email on your profile</p>
+                <p className="font-medium">{t("about.showEmail")}</p>
+                <p className="text-sm text-muted-foreground">{t("about.showEmailDesc")}</p>
               </div>
             </div>
             <Switch
@@ -506,8 +508,8 @@ export const AboutSettings = () => {
             <div className="flex items-center gap-3">
               {formData.show_phone ? <Eye className="w-5 h-5 text-primary" /> : <EyeOff className="w-5 h-5 text-muted-foreground" />}
               <div>
-                <p className="font-medium">Show Phone</p>
-                <p className="text-sm text-muted-foreground">Allow others to see your phone number on your profile</p>
+                <p className="font-medium">{t("about.showPhone")}</p>
+                <p className="text-sm text-muted-foreground">{t("about.showPhoneDesc")}</p>
               </div>
             </div>
             <Switch
@@ -524,17 +526,17 @@ export const AboutSettings = () => {
       <div>
         <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
           <Heart className="w-5 h-5" />
-          Family and Relationships
+          {t("about.familyAndRelationships")}
         </h3>
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="relationship_status">Relationship Status</Label>
+            <Label htmlFor="relationship_status">{t("about.relationshipStatus")}</Label>
             <Select 
               value={formData.relationship_status} 
               onValueChange={(value) => setFormData({ ...formData, relationship_status: value })}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select status" />
+                <SelectValue placeholder={t("about.selectStatus")} />
               </SelectTrigger>
               <SelectContent>
                 {relationshipOptions.map((option) => (
@@ -545,7 +547,7 @@ export const AboutSettings = () => {
           </div>
 
           <div className="space-y-3">
-            <Label>Family Members</Label>
+            <Label>{t("about.familyMembers")}</Label>
             {familyMembers && familyMembers.length > 0 && (
               <div className="space-y-2">
                 {familyMembers.map((member: FamilyMember) => (
@@ -571,7 +573,7 @@ export const AboutSettings = () => {
             {!showFamilySearch ? (
               <Button variant="outline" onClick={() => setShowFamilySearch(true)} className="w-full">
                 <Users className="w-4 h-4 mr-2" />
-                Add Family Member
+                {t("about.addFamilyMember")}
               </Button>
             ) : (
               <div className="p-4 border rounded-lg space-y-3">
@@ -589,7 +591,7 @@ export const AboutSettings = () => {
                   <Input
                     value={familySearchQuery}
                     onChange={(e) => setFamilySearchQuery(e.target.value)}
-                    placeholder="Search friends..."
+                    placeholder={t("about.searchFriends")}
                     className="flex-1"
                   />
                   <Button variant="ghost" onClick={() => setShowFamilySearch(false)}>
@@ -611,7 +613,7 @@ export const AboutSettings = () => {
                     </button>
                   ))}
                   {friends?.length === 0 && (
-                    <p className="text-sm text-muted-foreground text-center py-4">No friends found</p>
+                    <p className="text-sm text-muted-foreground text-center py-4">{t("about.noFriendsFound")}</p>
                   )}
                 </div>
               </div>
@@ -626,48 +628,48 @@ export const AboutSettings = () => {
       <div>
         <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
           <GraduationCap className="w-5 h-5" />
-          Education & Work
+          {t("about.educationAndWork")}
         </h3>
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="high_school">High School Name</Label>
+            <Label htmlFor="high_school">{t("about.highSchool")}</Label>
             <Input
               id="high_school"
               value={formData.high_school}
               onChange={(e) => setFormData({ ...formData, high_school: e.target.value })}
-              placeholder="Enter your high school"
+              placeholder={t("about.enterHighSchool")}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="college">College</Label>
+            <Label htmlFor="college">{t("about.college")}</Label>
             <Input
               id="college"
               value={formData.college}
               onChange={(e) => setFormData({ ...formData, college: e.target.value })}
-              placeholder="Enter your college"
+              placeholder={t("about.enterCollege")}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="major">Your Major</Label>
+            <Label htmlFor="major">{t("about.yourMajor")}</Label>
             <Input
               id="major"
               value={formData.major}
               onChange={(e) => setFormData({ ...formData, major: e.target.value })}
-              placeholder="Enter your major"
+              placeholder={t("about.enterMajor")}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="current_work">Currently Work At</Label>
+            <Label htmlFor="current_work">{t("about.currentWork")}</Label>
             <div className="relative">
               <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 id="current_work"
                 value={formData.current_work}
                 onChange={(e) => setFormData({ ...formData, current_work: e.target.value })}
-                placeholder="Enter your workplace"
+                placeholder={t("about.enterWorkplace")}
                 className="pl-10"
               />
             </div>
@@ -681,26 +683,26 @@ export const AboutSettings = () => {
       <div>
         <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
           <Home className="w-5 h-5" />
-          Places to Live
+          {t("about.placesToLive")}
         </h3>
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="birthplace">Where Were You Born</Label>
+            <Label htmlFor="birthplace">{t("about.whereWereYouBorn")}</Label>
             <Input
               id="birthplace"
               value={formData.birthplace}
               onChange={(e) => setFormData({ ...formData, birthplace: e.target.value })}
-              placeholder="City, Country"
+              placeholder={t("about.cityCountry")}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="current_residence">Where You Live</Label>
+            <Label htmlFor="current_residence">{t("about.whereYouLive")}</Label>
             <Input
               id="current_residence"
               value={formData.current_residence}
               onChange={(e) => setFormData({ ...formData, current_residence: e.target.value })}
-              placeholder="City, Country"
+              placeholder={t("about.cityCountry")}
             />
           </div>
         </div>
@@ -712,12 +714,12 @@ export const AboutSettings = () => {
         {saving ? (
           <>
             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            Saving...
+            {t("common.saving")}
           </>
         ) : (
           <>
             <Save className="w-4 h-4 mr-2" />
-            Save About Information
+            {t("about.saveAboutInformation")}
           </>
         )}
       </Button>
@@ -726,21 +728,21 @@ export const AboutSettings = () => {
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Save Changes?</AlertDialogTitle>
+            <AlertDialogTitle>{t("about.saveChangesTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to save your About information? This will update your public profile.
+              {t("about.saveChangesDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={handleSave}>
               {saving ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Saving...
+                  {t("common.saving")}
                 </>
               ) : (
-                "Confirm Save"
+                t("about.confirmSave")
               )}
             </AlertDialogAction>
           </AlertDialogFooter>

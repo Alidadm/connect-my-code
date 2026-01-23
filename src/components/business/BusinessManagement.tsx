@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { useTranslation } from "react-i18next";
 import {
   useUserBusiness,
   useBusinessCategories,
@@ -37,6 +38,7 @@ const getCategoryIcon = (iconName: string | null) => {
 
 export const BusinessManagement = () => {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const { data: business, isLoading: loadingBusiness } = useUserBusiness();
   const { data: categories, isLoading: loadingCategories } = useBusinessCategories();
   const createBusiness = useCreateBusiness();
@@ -80,7 +82,7 @@ export const BusinessManagement = () => {
 
   const handleSave = async () => {
     if (!formData.name?.trim()) {
-      toast.error("Business name is required");
+      toast.error(t("business.nameRequired"));
       return;
     }
 
@@ -103,13 +105,13 @@ export const BusinessManagement = () => {
     if (!business) return;
 
     const result = await Swal.fire({
-      title: "Delete Business?",
-      text: "This will permanently remove your business profile. This action cannot be undone.",
+      title: t("business.deleteTitle"),
+      text: t("business.deleteWarning"),
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#ef4444",
-      confirmButtonText: "Yes, delete it",
-      cancelButtonText: "Cancel",
+      confirmButtonText: t("business.confirmDelete"),
+      cancelButtonText: t("common.cancel"),
     });
 
     if (result.isConfirmed) {
@@ -184,7 +186,7 @@ export const BusinessManagement = () => {
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
             <Button variant="secondary" size="sm">
               <Camera className="h-4 w-4 mr-2" />
-              {formData.cover_url ? "Change Cover" : "Add Cover"}
+              {formData.cover_url ? t("business.changeCover") : t("business.addCover")}
             </Button>
           </div>
         </div>
@@ -209,7 +211,7 @@ export const BusinessManagement = () => {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-semibold text-lg text-foreground">
-                {formData.name || "Your Business"}
+                {formData.name || t("business.yourBusiness")}
               </h3>
               {selectedCategory && (
                 <Badge variant="secondary" className="mt-1">
@@ -219,7 +221,7 @@ export const BusinessManagement = () => {
             </div>
             {business && (
               <Badge variant={formData.is_enabled ? "default" : "secondary"}>
-                {formData.is_enabled ? "Visible" : "Hidden"}
+                {formData.is_enabled ? t("business.visible") : t("business.hidden")}
               </Badge>
             )}
           </div>
@@ -229,17 +231,17 @@ export const BusinessManagement = () => {
       {/* Form Fields */}
       <div className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="business-name">Business Name *</Label>
+          <Label htmlFor="business-name">{t("business.businessName")} *</Label>
           <Input
             id="business-name"
             value={formData.name}
             onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-            placeholder="Enter your business name"
+            placeholder={t("business.enterBusinessName")}
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="category">Business Category</Label>
+          <Label htmlFor="category">{t("business.businessCategory")}</Label>
           <Select
             value={formData.category_id || ""}
             onValueChange={(value) => setFormData(prev => ({ 
@@ -249,7 +251,7 @@ export const BusinessManagement = () => {
             }))}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Select a category" />
+              <SelectValue placeholder={t("business.selectCategory")} />
             </SelectTrigger>
             <SelectContent>
               {categories?.map((cat) => (
@@ -265,7 +267,7 @@ export const BusinessManagement = () => {
           <div className="space-y-2">
             <Label htmlFor="business-phone" className="flex items-center gap-2">
               <Phone className="h-4 w-4" />
-              Phone (optional)
+              {t("business.phone")}
             </Label>
             <Input
               id="business-phone"
@@ -278,7 +280,7 @@ export const BusinessManagement = () => {
           <div className="space-y-2">
             <Label htmlFor="business-email" className="flex items-center gap-2">
               <Mail className="h-4 w-4" />
-              Email (optional)
+              {t("business.email")}
             </Label>
             <Input
               id="business-email"
@@ -293,7 +295,7 @@ export const BusinessManagement = () => {
         <div className="space-y-2">
           <Label htmlFor="business-website" className="flex items-center gap-2">
             <Globe className="h-4 w-4" />
-            Website URL (optional)
+            {t("business.websiteUrl")}
           </Label>
           <Input
             id="business-website"
@@ -306,7 +308,7 @@ export const BusinessManagement = () => {
         <div className="space-y-2">
           <Label htmlFor="business-address" className="flex items-center gap-2">
             <MapPin className="h-4 w-4" />
-            Address (optional)
+            {t("business.address")}
           </Label>
           <Input
             id="business-address"
@@ -322,7 +324,7 @@ export const BusinessManagement = () => {
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <CreditCard className="h-5 w-5 text-primary" />
-            <Label className="font-medium">Business Card</Label>
+            <Label className="font-medium">{t("business.businessCard")}</Label>
           </div>
           <Button
             variant="outline"
@@ -332,12 +334,12 @@ export const BusinessManagement = () => {
             {formData.business_card_url ? (
               <>
                 <Edit2 className="h-4 w-4 mr-2" />
-                Change Card
+                {t("business.changeCard")}
               </>
             ) : (
               <>
                 <Camera className="h-4 w-4 mr-2" />
-                Add Card
+                {t("business.addCard")}
               </>
             )}
           </Button>
@@ -357,7 +359,7 @@ export const BusinessManagement = () => {
           </div>
         ) : (
           <div className="rounded-lg border border-dashed border-border bg-muted/30 h-32 flex items-center justify-center text-muted-foreground text-sm">
-            No business card added yet
+            {t("business.noCardAdded")}
           </div>
         )}
       </div>
@@ -374,7 +376,7 @@ export const BusinessManagement = () => {
           ) : (
             <Save className="h-4 w-4 mr-2" />
           )}
-          {business ? "Save Changes" : "Create Business"}
+          {business ? t("profile.saveChanges") : t("business.createBusiness")}
         </Button>
         
         {business && (
