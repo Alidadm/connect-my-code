@@ -240,22 +240,22 @@ export const MemberCoverHeader = ({ activeTab: externalActiveTab, onTabChange, o
         ref={tabsRef}
         className={cn(
           "border-t border-border transition-all duration-300",
-          isSticky && "fixed top-16 left-0 right-0 z-40 bg-card/95 backdrop-blur-md shadow-md border-b animate-fade-in"
+          isSticky && "fixed top-[64px] left-0 right-0 z-50 bg-card/95 backdrop-blur-md shadow-md border-b animate-fade-in"
         )}
       >
         <nav className={cn(
-          "flex overflow-x-auto scrollbar-hide",
-          isSticky ? "max-w-2xl mx-auto justify-center" : "justify-start sm:justify-center"
+          "flex overflow-x-auto scrollbar-hide w-full",
+          isSticky ? "max-w-3xl mx-auto px-4" : "justify-start sm:justify-center"
         )}>
           {/* Tabs */}
-          <ul className="flex items-center gap-0.5 sm:gap-2 py-1 px-2 sm:px-4">
+          <ul className="flex items-center gap-0.5 sm:gap-2 py-2 px-2 sm:px-4 w-full justify-center">
             {tabs.map((tab) => (
-              <li key={tab.id}>
+              <li key={tab.id} className="flex-shrink-0">
                 <button
                   onClick={() => handleTabClick(tab.id)}
                   disabled={tab.disabled}
                   className={cn(
-                    "relative px-2 sm:px-4 py-3 text-xs sm:text-sm font-semibold transition-all duration-200 whitespace-nowrap",
+                    "relative px-2 sm:px-4 py-2 text-xs sm:text-sm font-semibold transition-all duration-200 whitespace-nowrap",
                     tab.disabled && "text-muted-foreground/50 cursor-not-allowed",
                     !tab.disabled && tab.id === "about" && aboutOpen && "text-primary",
                     !tab.disabled && activeTab === tab.id && tab.id !== "about" && "text-primary",
