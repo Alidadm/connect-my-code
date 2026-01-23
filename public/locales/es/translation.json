@@ -435,6 +435,8 @@
     "openingEmail": "Abriendo tu cliente de email...",
     "enterEmail": "Por favor ingresa una dirección de email",
     "defaultSubject": "¡Únete a mí en DolphySN!",
-    "defaultMessage": "¡Hola! He estado usando DolphySN y pensé que te podría gustar. ¡Regístrate usando mi enlace de referido y podemos conectarnos!"
+    "defaultMessage": "¡Hola! He estado usando DolphySN y pensé que te podría gustar. ¡Regístrate usando mi enlace de referido y podemos conectarnos!",
+    "defaultEmailSubject": "Construye Tu Ingreso Mensual con DolphySN",
+    "defaultEmailMessage": "Hola a todos,\n\nDolphySN.com es una nueva red social creada para personas que quieren conectarse, crecer y ganar ingresos mensuales reales al mismo tiempo.\n\nCuando te unes a través de mi enlace, tu membresía es de solo $9.99 por mes. Después de registrarte, puedes invitar a cualquiera — amigos, seguidores o incluso personas que nunca has conocido.\n\nPor cada persona que se suscriba a través de tu enlace, ganas $5 cada mes mientras permanezcan activos.\n\nEjemplo:\nSi 20 personas se unen contigo, eso es $100 cada mes (20 × $5).\nA medida que crece tu red, tu ingreso mensual también crece — tanto de miembros existentes como de nuevos miembros.\n\nComienza a construir tu red y tu ingreso hoy.\nÚnete aquí: {{referral_link}}\n\n¡Nos vemos dentro de DolphySN!"
   }
 }
