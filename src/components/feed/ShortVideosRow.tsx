@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Play } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { extractYoutubeVideoId, getYoutubeThumbnailUrl } from "@/lib/youtube";
 import Swal from "sweetalert2";
 
 interface ShortVideo {
@@ -37,25 +38,16 @@ export const ShortVideosRow = () => {
     }
   };
 
-  const extractTikTokVideoId = (url: string): string | null => {
-    // Handle various TikTok URL formats
-    const patterns = [
-      /tiktok\.com\/@[\w.-]+\/video\/(\d+)/,
-      /tiktok\.com\/t\/(\w+)/,
-      /vm\.tiktok\.com\/(\w+)/,
-      /tiktok\.com\/v\/(\d+)/,
-    ];
-
-    for (const pattern of patterns) {
-      const match = url.match(pattern);
-      if (match) return match[1];
-    }
-    return null;
-  };
-
   const getThumbnailUrl = (video: ShortVideo): string => {
     if (video.thumbnail_url) return video.thumbnail_url;
-    // Default placeholder for TikTok videos
+    
+    // Try to get YouTube thumbnail
+    const videoId = extractYoutubeVideoId(video.video_url);
+    if (videoId) {
+      return getYoutubeThumbnailUrl(videoId, "hq");
+    }
+    
+    // Default placeholder
     return "https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?w=200&h=350&fit=crop";
   };
 
@@ -64,11 +56,11 @@ export const ShortVideosRow = () => {
 
     const showVideo = () => {
       const video = videos[currentIndex];
-      const videoId = extractTikTokVideoId(video.video_url);
+      const videoId = extractYoutubeVideoId(video.video_url);
       
-      // Create embed URL for TikTok
+      // Create embed URL for YouTube Shorts
       const embedUrl = videoId 
-        ? `https://www.tiktok.com/embed/v2/${videoId}`
+        ? `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`
         : video.video_url;
 
       const hasPrev = currentIndex > 0;
@@ -159,8 +151,8 @@ export const ShortVideosRow = () => {
   return (
     <div className="bg-card rounded-xl shadow-sm p-4 mb-4">
       <div className="flex items-center gap-2 mb-3">
-        <Play className="h-5 w-5 text-primary" />
-        <h3 className="font-semibold text-foreground">Short Videos</h3>
+        <Play className="h-5 w-5 text-destructive" />
+        <h3 className="font-semibold text-foreground">YouTube Shorts</h3>
       </div>
       
       <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
