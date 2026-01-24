@@ -49,13 +49,7 @@ interface ProfileAboutSectionProps {
 
 type TabId = "overview" | "work" | "places" | "contact" | "family";
 
-const tabs: { id: TabId; label: string }[] = [
-  { id: "overview", label: "Overview" },
-  { id: "work", label: "Work and education" },
-  { id: "places", label: "Places lived" },
-  { id: "contact", label: "Contact and basic info" },
-  { id: "family", label: "Family and relationships" },
-];
+// Tab labels are handled with translation keys in the render
 
 export const ProfileAboutSection = ({ userId }: ProfileAboutSectionProps) => {
   const { t } = useTranslation();
@@ -246,46 +240,46 @@ export const ProfileAboutSection = ({ userId }: ProfileAboutSectionProps) => {
           <div className="space-y-1">
             {/* Full Name */}
             {profileDetails?.full_name ? (
-              <InfoRow icon={User} text={profileDetails.full_name} subtext="Full name" />
+              <InfoRow icon={User} text={profileDetails.full_name} subtext={t("about.subtexts.fullName", "Full name")} />
             ) : (
               <InfoRow icon={Plus} text={t("about.addFullName", "Add full name")} isAdd fieldKey="fullName" />
             )}
 
             {/* Work */}
             {profileDetails?.current_work ? (
-              <InfoRow icon={Briefcase} text={`Works at ${profileDetails.current_work}`} />
+              <InfoRow icon={Briefcase} text={t("about.worksAt", { place: profileDetails.current_work, defaultValue: `Works at ${profileDetails.current_work}` })} />
             ) : (
               <InfoRow icon={Plus} text={t("about.addWorkplace", "Add a workplace")} isAdd fieldKey="workplace" />
             )}
 
             {/* Education */}
             {profileDetails?.college ? (
-              <InfoRow icon={GraduationCap} text={`Studied at ${profileDetails.college}`} />
+              <InfoRow icon={GraduationCap} text={t("about.studiedAt", { place: profileDetails.college, defaultValue: `Studied at ${profileDetails.college}` })} />
             ) : profileDetails?.high_school ? (
-              <InfoRow icon={GraduationCap} text={`Went to ${profileDetails.high_school}`} />
+              <InfoRow icon={GraduationCap} text={t("about.wentTo", { place: profileDetails.high_school, defaultValue: `Went to ${profileDetails.high_school}` })} />
             ) : (
               <InfoRow icon={Plus} text={t("about.addSchool", "Add school")} isAdd fieldKey="school" />
             )}
 
             {/* Current residence */}
             {profileDetails?.current_residence ? (
-              <InfoRow icon={Home} text={`Lives in ${profileDetails.current_residence}`} />
+              <InfoRow icon={Home} text={t("about.livesIn", { place: profileDetails.current_residence, defaultValue: `Lives in ${profileDetails.current_residence}` })} />
             ) : profile?.location ? (
-              <InfoRow icon={Home} text={`Lives in ${profile.location}`} />
+              <InfoRow icon={Home} text={t("about.livesIn", { place: profile.location, defaultValue: `Lives in ${profile.location}` })} />
             ) : (
               <InfoRow icon={Plus} text={t("about.addCity", "Add current city")} isAdd fieldKey="city" />
             )}
 
             {/* Birthplace */}
             {profileDetails?.birthplace ? (
-              <InfoRow icon={MapPin} text={`From ${profileDetails.birthplace}`} />
+              <InfoRow icon={MapPin} text={t("about.from", { place: profileDetails.birthplace, defaultValue: `From ${profileDetails.birthplace}` })} />
             ) : (
               <InfoRow icon={Plus} text={t("about.addHometown", "Add hometown")} isAdd fieldKey="hometown" />
             )}
 
             {/* Relationship */}
             {profileDetails?.relationship_status ? (
-              <InfoRow icon={Heart} text={profileDetails.relationship_status} />
+              <InfoRow icon={Heart} text={t(`about.relationshipOptions.${profileDetails.relationship_status.replace(/\s+/g, '')}`, profileDetails.relationship_status)} />
             ) : (
               <InfoRow icon={Plus} text={t("about.addRelationship", "Add relationship status")} isAdd fieldKey="relationship" />
             )}
@@ -296,27 +290,27 @@ export const ProfileAboutSection = ({ userId }: ProfileAboutSectionProps) => {
         return (
           <div className="space-y-4">
             <div>
-              <h4 className="text-sm font-semibold text-foreground mb-3">Work</h4>
+              <h4 className="text-sm font-semibold text-foreground mb-3">{t("about.sections.work", "Work")}</h4>
               {profileDetails?.current_work ? (
-                <InfoRow icon={Briefcase} text={`Works at ${profileDetails.current_work}`} />
+                <InfoRow icon={Briefcase} text={t("about.worksAt", { place: profileDetails.current_work, defaultValue: `Works at ${profileDetails.current_work}` })} />
               ) : (
                 <InfoRow icon={Plus} text={t("about.addWorkplace", "Add a workplace")} isAdd fieldKey="workplace" />
               )}
             </div>
             <div>
-              <h4 className="text-sm font-semibold text-foreground mb-3">Education</h4>
+              <h4 className="text-sm font-semibold text-foreground mb-3">{t("about.sections.education", "Education")}</h4>
               {profileDetails?.high_school ? (
-                <InfoRow icon={GraduationCap} text={profileDetails.high_school} subtext="High School" />
+                <InfoRow icon={GraduationCap} text={profileDetails.high_school} subtext={t("about.subtexts.highSchool", "High School")} />
               ) : (
                 <InfoRow icon={Plus} text={t("about.addHighSchool", "Add a high school")} isAdd fieldKey="highSchool" />
               )}
               {profileDetails?.college ? (
-                <InfoRow icon={GraduationCap} text={profileDetails.college} subtext="College" />
+                <InfoRow icon={GraduationCap} text={profileDetails.college} subtext={t("about.subtexts.college", "College")} />
               ) : (
                 <InfoRow icon={Plus} text={t("about.addCollege", "Add a college")} isAdd fieldKey="college" />
               )}
               {profileDetails?.major && (
-                <InfoRow icon={GraduationCap} text={profileDetails.major} subtext="Major" />
+                <InfoRow icon={GraduationCap} text={profileDetails.major} subtext={t("about.subtexts.major", "Major")} />
               )}
             </div>
           </div>
@@ -325,16 +319,16 @@ export const ProfileAboutSection = ({ userId }: ProfileAboutSectionProps) => {
       case "places":
         return (
           <div className="space-y-4">
-            <h4 className="text-sm font-semibold text-foreground mb-3">Places lived</h4>
+            <h4 className="text-sm font-semibold text-foreground mb-3">{t("about.sections.placesLived", "Places lived")}</h4>
             {profileDetails?.current_residence ? (
-              <InfoRow icon={Home} text={profileDetails.current_residence} subtext="Current city" />
+              <InfoRow icon={Home} text={profileDetails.current_residence} subtext={t("about.subtexts.currentCity", "Current city")} />
             ) : profile?.location ? (
-              <InfoRow icon={Home} text={profile.location} subtext="Current city" />
+              <InfoRow icon={Home} text={profile.location} subtext={t("about.subtexts.currentCity", "Current city")} />
             ) : (
               <InfoRow icon={Plus} text={t("about.addCity", "Add current city")} isAdd fieldKey="city" />
             )}
             {profileDetails?.birthplace ? (
-              <InfoRow icon={MapPin} text={profileDetails.birthplace} subtext="Hometown" />
+              <InfoRow icon={MapPin} text={profileDetails.birthplace} subtext={t("about.subtexts.hometown", "Hometown")} />
             ) : (
               <InfoRow icon={Plus} text={t("about.addHometown", "Add hometown")} isAdd fieldKey="hometown" />
             )}
@@ -345,41 +339,41 @@ export const ProfileAboutSection = ({ userId }: ProfileAboutSectionProps) => {
         return (
           <div className="space-y-4">
             <div>
-              <h4 className="text-sm font-semibold text-foreground mb-3">Contact info</h4>
+              <h4 className="text-sm font-semibold text-foreground mb-3">{t("about.sections.contactInfo", "Contact info")}</h4>
               {emailToShow && (
-                <InfoRow icon={Mail} text={emailToShow} subtext="Email" />
+                <InfoRow icon={Mail} text={emailToShow} subtext={t("about.subtexts.email", "Email")} />
               )}
               {phoneToShow && (
-                <InfoRow icon={Phone} text={phoneToShow} subtext="Mobile" />
+                <InfoRow icon={Phone} text={phoneToShow} subtext={t("about.subtexts.mobile", "Mobile")} />
               )}
               {!emailToShow && !phoneToShow && !profileDetails?.website && !profileDetails?.social_network_id && (
-                <p className="text-sm text-muted-foreground py-2">No contact info to show</p>
+                <p className="text-sm text-muted-foreground py-2">{t("about.noContactInfo", "No contact info to show")}</p>
               )}
               {profileDetails?.website && (
-                <InfoRow icon={Globe} text={profileDetails.website} subtext="Website" />
+                <InfoRow icon={Globe} text={profileDetails.website} subtext={t("about.subtexts.website", "Website")} />
               )}
               {profileDetails?.social_network_id && (
-                <InfoRow icon={Link2} text={profileDetails.social_network_id} subtext="Social Network ID" />
+                <InfoRow icon={Link2} text={profileDetails.social_network_id} subtext={t("about.subtexts.socialNetworkId", "Social Network ID")} />
               )}
             </div>
             <div>
-              <h4 className="text-sm font-semibold text-foreground mb-3">Basic info</h4>
+              <h4 className="text-sm font-semibold text-foreground mb-3">{t("about.sections.basicInfo", "Basic info")}</h4>
               {profileDetails?.citizenships && profileDetails.citizenships.length > 0 && (
                 <InfoRow 
                   icon={Flag} 
                   text={profileDetails.citizenships.join(" – ")} 
-                  subtext="Citizenship" 
+                  subtext={t("about.subtexts.citizenship", "Citizenship")} 
                 />
               )}
               {profileDetails?.languages && profileDetails.languages.length > 0 && (
                 <InfoRow 
                   icon={Languages} 
                   text={profileDetails.languages.join(" / ")} 
-                  subtext="Languages" 
+                  subtext={t("about.subtexts.languages", "Languages")} 
                 />
               )}
               {profileDetails?.gender && (
-                <InfoRow icon={User} text={profileDetails.gender} subtext="Gender" />
+                <InfoRow icon={User} text={t(`about.genderOptions.${profileDetails.gender.replace(/\s+/g, '')}`, profileDetails.gender)} subtext={t("about.subtexts.gender", "Gender")} />
               )}
               {privateProfile?.birthday && (
                 <div className="flex items-center py-2.5">
@@ -390,12 +384,12 @@ export const ProfileAboutSection = ({ userId }: ProfileAboutSectionProps) => {
                         <span className="text-sm text-foreground">
                           {format(parseISO(privateProfile.birthday), "MMMM d, yyyy")}
                         </span>
-                        <p className="text-xs text-muted-foreground">Birthday</p>
+                        <p className="text-xs text-muted-foreground">{t("about.subtexts.birthday", "Birthday")}</p>
                       </div>
                       {age !== null && (
                         <div>
-                          <span className="text-sm text-foreground">{age} years old</span>
-                          <p className="text-xs text-muted-foreground">Age</p>
+                          <span className="text-sm text-foreground">{t("about.yearsOld", { age, defaultValue: "{{age}} years old" })}</span>
+                          <p className="text-xs text-muted-foreground">{t("about.subtexts.age", "Age")}</p>
                         </div>
                       )}
                     </div>
@@ -406,7 +400,7 @@ export const ProfileAboutSection = ({ userId }: ProfileAboutSectionProps) => {
                 <InfoRow 
                   icon={Calendar} 
                   text={format(new Date(profile.created_at), "MMMM d, yyyy")}
-                  subtext="Joined"
+                  subtext={t("about.subtexts.joined", "Joined")}
                 />
               )}
             </div>
@@ -417,15 +411,15 @@ export const ProfileAboutSection = ({ userId }: ProfileAboutSectionProps) => {
         return (
           <div className="space-y-4">
             <div>
-              <h4 className="text-sm font-semibold text-foreground mb-3">Relationship</h4>
+              <h4 className="text-sm font-semibold text-foreground mb-3">{t("about.sections.relationship", "Relationship")}</h4>
               {profileDetails?.relationship_status ? (
-                <InfoRow icon={Heart} text={profileDetails.relationship_status} />
+                <InfoRow icon={Heart} text={t(`about.relationshipOptions.${profileDetails.relationship_status.replace(/\s+/g, '')}`, profileDetails.relationship_status)} />
               ) : (
                 <InfoRow icon={Plus} text={t("about.addRelationship", "Add relationship status")} isAdd fieldKey="relationship" />
               )}
             </div>
             <div>
-              <h4 className="text-sm font-semibold text-foreground mb-3">Family members</h4>
+              <h4 className="text-sm font-semibold text-foreground mb-3">{t("about.sections.familyMembers", "Family members")}</h4>
               {familyMembers && familyMembers.length > 0 ? (
                 <div className="space-y-2">
                   {familyMembers.map((member: any) => (
@@ -435,8 +429,8 @@ export const ProfileAboutSection = ({ userId }: ProfileAboutSectionProps) => {
                         <AvatarFallback>{member.profile?.display_name?.[0] || "?"}</AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="text-sm font-medium text-foreground">{member.profile?.display_name || "Unknown"}</p>
-                        <p className="text-xs text-muted-foreground">{member.relationship}</p>
+                        <p className="text-sm font-medium text-foreground">{member.profile?.display_name || t("about.unknown")}</p>
+                        <p className="text-xs text-muted-foreground">{t(`about.familyRelationships.${member.relationship}`, { defaultValue: member.relationship }) as string}</p>
                       </div>
                     </div>
                   ))}
@@ -458,20 +452,20 @@ export const ProfileAboutSection = ({ userId }: ProfileAboutSectionProps) => {
       <div className="flex flex-col sm:flex-row gap-4">
         {/* Left Sidebar - Navigation (horizontal on mobile, vertical on desktop) */}
         <div className="sm:w-56 flex-shrink-0 sm:border-r border-border sm:pr-4">
-          <h3 className="text-lg font-bold text-foreground mb-3 hidden sm:block">About</h3>
+          <h3 className="text-lg font-bold text-foreground mb-3 hidden sm:block">{t("about.title", "About")}</h3>
           <nav className="flex sm:flex-col gap-1 sm:gap-0.5 overflow-x-auto scrollbar-hide pb-2 sm:pb-0 -mx-2 px-2 sm:mx-0 sm:px-0">
-            {tabs.map((tab) => (
+            {(["overview", "work", "places", "contact", "family"] as TabId[]).map((tabId) => (
               <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                key={tabId}
+                onClick={() => setActiveTab(tabId)}
                 className={cn(
                   "whitespace-nowrap text-left px-3 py-2 rounded-md text-xs sm:text-sm transition-colors flex-shrink-0",
-                  activeTab === tab.id
+                  activeTab === tabId
                     ? "text-primary font-medium bg-primary/5 sm:border-l-2 sm:border-primary"
                     : "text-muted-foreground hover:bg-muted/50"
                 )}
               >
-                {t(`about.tabs.${tab.id}`, tab.label)}
+                {t(`about.tabs.${tabId}`)}
               </button>
             ))}
           </nav>
