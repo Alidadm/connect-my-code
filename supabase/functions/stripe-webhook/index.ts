@@ -212,6 +212,26 @@ serve(async (req) => {
       // Send verification/confirmation email only on FIRST activation
       // (this avoids duplicates and doesn't depend on whether the subscription row already existed)
       if (!wasAlreadyActive) {
+        // Mark payout setup as completed since they paid via Stripe
+        // This prevents the payout setup modal from showing on first login
+        try {
+          const { data: existingPrivate } = await supabaseClient
+            .from("profiles_private")
+            .select("payout_setup_completed")
+            .eq("user_id", user.id)
+            .single();
+
+          if (!existingPrivate?.payout_setup_completed) {
+            await supabaseClient
+              .from("profiles_private")
+              .update({ payout_setup_completed: true })
+              .eq("user_id", user.id);
+            logStep("Marked payout setup as completed for Stripe subscriber");
+          }
+        } catch (payoutError) {
+          logStep("Failed to update payout setup status", { error: String(payoutError) });
+        }
+
         try {
           logStep("First activation detected; sending confirmation email", { email: customer.email });
 
