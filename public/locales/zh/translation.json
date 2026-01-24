@@ -23,7 +23,8 @@
     "following": "关注中",
     "trending": "热门",
     "recent": "最新",
-    "saving": "保存中..."
+    "saving": "保存中...",
+    "goHome": "返回首页"
   },
   "header": {
     "myProfile": "我的资料",
@@ -144,7 +145,20 @@
     "findFriends": "寻找好友",
     "noBlogs": "暂无博客",
     "settings": "设置",
-    "changeAvatar": "更换头像"
+    "changeAvatar": "更换头像",
+    "editProfile": "编辑资料",
+    "editCover": "编辑封面",
+    "joined": "加入于",
+    "userNotFound": "用户未找到",
+    "userNotFoundDesc": "用户 @{{username}} 不存在或可能已更改用户名。",
+    "more": "更多选项",
+    "reportUser": "举报用户",
+    "mutualFriends": "共同好友",
+    "noMutualFriends": "没有共同好友",
+    "noPostsYet": "暂无帖子",
+    "addFriend": "添加好友",
+    "favorite": "收藏",
+    "message": "消息"
   },
   "account": {
     "title": "账户",

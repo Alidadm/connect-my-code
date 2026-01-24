@@ -551,14 +551,14 @@ const UserProfile = () => {
           <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
             <Users className="w-12 h-12 text-muted-foreground" />
           </div>
-          <h1 className="text-2xl font-bold mb-2">User Not Found</h1>
+          <h1 className="text-2xl font-bold mb-2">{t("profile.userNotFound", { defaultValue: "User Not Found" })}</h1>
           <p className="text-muted-foreground mb-6">
-            The user @{username} doesn't exist or may have changed their username.
+            {t("profile.userNotFoundDesc", { defaultValue: "The user @{{username}} doesn't exist or may have changed their username.", username })}
           </p>
           <Link to="/">
             <Button>
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Go Home
+              {t("common.goHome", { defaultValue: "Go Home" })}
             </Button>
           </Link>
         </div>
@@ -622,7 +622,7 @@ const UserProfile = () => {
             <Link to="/" className="absolute top-4 left-4">
               <Button variant="secondary" size="sm" className="shadow-lg">
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Back
+                {t("common.back", { defaultValue: "Back" })}
               </Button>
             </Link>
 
@@ -636,7 +636,7 @@ const UserProfile = () => {
                 onClick={() => setShowCoverEditor(true)}
               >
                 <Camera className="w-4 h-4 mr-2" />
-                Edit Cover
+                {t("profile.editCover", { defaultValue: "Edit Cover" })}
               </Button>
             ) : user && (
               // Favorite button for other profiles
@@ -852,7 +852,7 @@ const UserProfile = () => {
               <span className="flex items-center gap-1.5">
                 <Calendar className="w-4 h-4 text-primary/70" />
                 <span className="font-medium">
-                  Joined {new Date(profile?.created_at || "").toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                  {t("profile.joined", { defaultValue: "Joined" })} {new Date(profile?.created_at || "").toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
                 </span>
               </span>
             </div>

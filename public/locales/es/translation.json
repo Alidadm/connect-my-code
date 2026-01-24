@@ -15,7 +15,9 @@
     "profile": "Perfil",
     "home": "Inicio",
     "language": "Idioma",
-    "saving": "Guardando..."
+    "saving": "Guardando...",
+    "back": "Atrás",
+    "goHome": "Ir al Inicio"
   },
   "header": {
     "myProfile": "Mi Perfil",
@@ -110,7 +112,20 @@
     "findFriends": "Encontrar amigos",
     "noBlogs": "Aún no hay blogs",
     "settings": "Configuración",
-    "changeAvatar": "Cambiar avatar"
+    "changeAvatar": "Cambiar avatar",
+    "editProfile": "Editar Perfil",
+    "editCover": "Editar Portada",
+    "joined": "Se unió",
+    "userNotFound": "Usuario No Encontrado",
+    "userNotFoundDesc": "El usuario @{{username}} no existe o puede haber cambiado su nombre de usuario.",
+    "more": "Más opciones",
+    "reportUser": "Reportar usuario",
+    "mutualFriends": "Amigos en Común",
+    "noMutualFriends": "Sin amigos en común",
+    "noPostsYet": "Aún no hay publicaciones",
+    "addFriend": "Agregar Amigo",
+    "favorite": "Favorito",
+    "message": "Mensaje"
   },
   "account": {
     "title": "Cuenta",

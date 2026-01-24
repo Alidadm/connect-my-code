@@ -15,7 +15,9 @@
     "profile": "प्रोफ़ाइल",
     "home": "होम",
     "language": "भाषा",
-    "saving": "सहेज रहा है..."
+    "saving": "सहेज रहा है...",
+    "back": "वापस",
+    "goHome": "होम पर जाएं"
   },
   "header": {
     "myProfile": "मेरी प्रोफ़ाइल",
@@ -120,7 +122,20 @@
     "findFriends": "मित्र खोजें",
     "noBlogs": "अभी तक कोई ब्लॉग नहीं",
     "settings": "सेटिंग्स",
-    "changeAvatar": "अवतार बदलें"
+    "changeAvatar": "अवतार बदलें",
+    "editProfile": "प्रोफ़ाइल संपादित करें",
+    "editCover": "कवर संपादित करें",
+    "joined": "शामिल हुए",
+    "userNotFound": "उपयोगकर्ता नहीं मिला",
+    "userNotFoundDesc": "उपयोगकर्ता @{{username}} मौजूद नहीं है या उसने अपना यूज़रनेम बदल दिया होगा।",
+    "more": "अधिक विकल्प",
+    "reportUser": "उपयोगकर्ता की रिपोर्ट करें",
+    "mutualFriends": "आपसी मित्र",
+    "noMutualFriends": "कोई आपसी मित्र नहीं",
+    "noPostsYet": "अभी तक कोई पोस्ट नहीं",
+    "addFriend": "मित्र जोड़ें",
+    "favorite": "पसंदीदा",
+    "message": "संदेश"
   },
   "account": {
     "title": "खाता",

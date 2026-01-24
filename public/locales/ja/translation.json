@@ -15,7 +15,9 @@
     "profile": "プロフィール",
     "home": "ホーム",
     "language": "言語",
-    "saving": "保存中..."
+    "saving": "保存中...",
+    "back": "戻る",
+    "goHome": "ホームへ戻る"
   },
   "header": {
     "myProfile": "マイプロフィール",
@@ -120,7 +122,20 @@
     "findFriends": "友達を探す",
     "noBlogs": "ブログはまだありません",
     "settings": "設定",
-    "changeAvatar": "アバターを変更"
+    "changeAvatar": "アバターを変更",
+    "editProfile": "プロフィールを編集",
+    "editCover": "カバーを編集",
+    "joined": "登録日",
+    "userNotFound": "ユーザーが見つかりません",
+    "userNotFoundDesc": "ユーザー @{{username}} は存在しないか、ユーザー名を変更した可能性があります。",
+    "more": "その他のオプション",
+    "reportUser": "ユーザーを報告",
+    "mutualFriends": "共通の友達",
+    "noMutualFriends": "共通の友達がいません",
+    "noPostsYet": "投稿はまだありません",
+    "addFriend": "友達を追加",
+    "favorite": "お気に入り",
+    "message": "メッセージ"
   },
   "account": {
     "title": "アカウント",

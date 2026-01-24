@@ -15,7 +15,9 @@
     "profile": "الملف الشخصي",
     "home": "الرئيسية",
     "language": "اللغة",
-    "saving": "جاري الحفظ..."
+    "saving": "جاري الحفظ...",
+    "back": "رجوع",
+    "goHome": "العودة للرئيسية"
   },
   "header": {
     "myProfile": "ملفي الشخصي",
@@ -120,7 +122,20 @@
     "findFriends": "ابحث عن أصدقاء",
     "noBlogs": "لا توجد مدونات بعد",
     "settings": "الإعدادات",
-    "changeAvatar": "تغيير الصورة الرمزية"
+    "changeAvatar": "تغيير الصورة الرمزية",
+    "editProfile": "تعديل الملف الشخصي",
+    "editCover": "تعديل الغلاف",
+    "joined": "انضم في",
+    "userNotFound": "المستخدم غير موجود",
+    "userNotFoundDesc": "المستخدم @{{username}} غير موجود أو ربما غيّر اسم المستخدم.",
+    "more": "خيارات أخرى",
+    "reportUser": "الإبلاغ عن المستخدم",
+    "mutualFriends": "أصدقاء مشتركون",
+    "noMutualFriends": "لا يوجد أصدقاء مشتركون",
+    "noPostsYet": "لا توجد منشورات بعد",
+    "addFriend": "إضافة صديق",
+    "favorite": "مفضل",
+    "message": "رسالة"
   },
   "account": {
     "title": "الحساب",
