@@ -802,6 +802,9 @@
     "remove": "Eliminar",
     "removeFailed": "Error al eliminar de favoritos",
     "noFavorites": "Aún no tienes favoritos. ¡Marca tus personas favoritas para verlas aquí!",
-    "viewAll": "Ver todos los favoritos"
+    "viewAll": "Ver todos los favoritos",
+    "sortRecent": "Añadidos recientemente",
+    "sortAlphabetical": "A-Z",
+    "newFavorite": "¡{{name}} te agregó a sus favoritos!"
   }
 }

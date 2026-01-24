@@ -1076,6 +1076,9 @@
     "remove": "Remove",
     "removeFailed": "Failed to remove from favorites",
     "noFavorites": "No favorites yet. Star your favorite people to see them here!",
-    "viewAll": "View all favorites"
+    "viewAll": "View all favorites",
+    "sortRecent": "Recently Added",
+    "sortAlphabetical": "A-Z",
+    "newFavorite": "{{name}} added you to their favorites!"
   }
 }

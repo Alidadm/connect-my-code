@@ -802,6 +802,9 @@
     "remove": "Retirer",
     "removeFailed": "Échec du retrait des favoris",
     "noFavorites": "Pas encore de favoris. Marquez vos personnes préférées pour les voir ici !",
-    "viewAll": "Voir tous les favoris"
+    "viewAll": "Voir tous les favoris",
+    "sortRecent": "Récemment ajoutés",
+    "sortAlphabetical": "A-Z",
+    "newFavorite": "{{name}} vous a ajouté à ses favoris !"
   }
 }

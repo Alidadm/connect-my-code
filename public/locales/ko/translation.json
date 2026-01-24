@@ -807,6 +807,9 @@
     "remove": "제거",
     "removeFailed": "즐겨찾기에서 제거 실패",
     "noFavorites": "아직 즐겨찾기가 없습니다. 좋아하는 사람들을 별표하여 여기에서 확인하세요!",
-    "viewAll": "모든 즐겨찾기 보기"
+    "viewAll": "모든 즐겨찾기 보기",
+    "sortRecent": "최근 추가",
+    "sortAlphabetical": "가-하",
+    "newFavorite": "{{name}}님이 즐겨찾기에 추가했습니다!"
   }
 }
