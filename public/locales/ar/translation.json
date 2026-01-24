@@ -389,7 +389,10 @@
     "myTurn": "دوري",
     "history": "السجل",
     "mute": "كتم الصوت",
-    "unmute": "تشغيل الصوت"
+    "unmute": "تشغيل الصوت",
+    "subtitle": "العب مع أصدقائك!",
+    "playVsAI": "العب ضد DolphySN",
+    "inviteFriend": "دعوة صديق"
   },
   "saved": {
     "title": "المنشورات المحفوظة",

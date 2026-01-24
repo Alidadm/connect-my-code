@@ -384,7 +384,10 @@
     "myTurn": "Mi Turno",
     "history": "Historial",
     "mute": "Silenciar sonidos",
-    "unmute": "Activar sonidos"
+    "unmute": "Activar sonidos",
+    "subtitle": "¡Juega con tus amigos!",
+    "playVsAI": "Jugar vs DolphySN",
+    "inviteFriend": "Invitar Amigo"
   },
   "saved": {
     "title": "Publicaciones Guardadas",

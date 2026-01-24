@@ -401,7 +401,10 @@
     "myTurn": "Mein Zug",
     "history": "Verlauf",
     "mute": "Ton aus",
-    "unmute": "Ton an"
+    "unmute": "Ton an",
+    "subtitle": "Spiele mit deinen Freunden!",
+    "playVsAI": "Gegen DolphySN spielen",
+    "inviteFriend": "Freund einladen"
   },
   "saved": {
     "title": "Gespeicherte Beiträge",

@@ -389,7 +389,10 @@
     "myTurn": "自分の番",
     "history": "履歴",
     "mute": "ミュート",
-    "unmute": "ミュート解除"
+    "unmute": "ミュート解除",
+    "subtitle": "友達とゲームを楽しもう！",
+    "playVsAI": "DolphySNと対戦",
+    "inviteFriend": "友達を招待"
   },
   "saved": {
     "title": "保存した投稿",
