@@ -819,5 +819,18 @@
     "addPaypalDesc": "添加您的PayPal邮箱以接收PayPal付款的佣金。",
     "connectBankAccount": "连接银行账户",
     "addPaypalEmail": "添加PayPal邮箱"
+  },
+  "favorites": {
+    "title": "收藏",
+    "short": "收藏",
+    "added": "已添加到收藏",
+    "addedDesc": "用户已添加到您的收藏列表。",
+    "removed": "已从收藏中移除",
+    "removedDesc": "用户已从您的收藏列表中移除。",
+    "error": "更新收藏失败。请重试。",
+    "remove": "移除",
+    "removeFailed": "移除收藏失败",
+    "noFavorites": "还没有收藏。标记您喜欢的人以在这里看到他们！",
+    "viewAll": "查看所有收藏"
   }
 }

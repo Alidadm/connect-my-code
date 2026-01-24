@@ -807,5 +807,18 @@
     "addPaypalDesc": "Fügen Sie Ihre PayPal-E-Mail hinzu, um Provisionen von PayPal-Zahlungen zu erhalten.",
     "connectBankAccount": "Bankkonto verbinden",
     "addPaypalEmail": "PayPal-E-Mail hinzufügen"
+  },
+  "favorites": {
+    "title": "Favoriten",
+    "short": "Favs",
+    "added": "Zu Favoriten hinzugefügt",
+    "addedDesc": "Benutzer zu Ihrer Favoritenliste hinzugefügt.",
+    "removed": "Aus Favoriten entfernt",
+    "removedDesc": "Benutzer aus Ihrer Favoritenliste entfernt.",
+    "error": "Fehler beim Aktualisieren der Favoriten. Bitte versuchen Sie es erneut.",
+    "remove": "Entfernen",
+    "removeFailed": "Fehler beim Entfernen aus Favoriten",
+    "noFavorites": "Noch keine Favoriten. Markieren Sie Ihre Lieblingspersonen, um sie hier zu sehen!",
+    "viewAll": "Alle Favoriten anzeigen"
   }
 }

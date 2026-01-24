@@ -842,5 +842,18 @@
     "addPaypalDesc": "Adicione seu email do PayPal para receber comissões de pagamentos PayPal.",
     "connectBankAccount": "Conectar Conta Bancária",
     "addPaypalEmail": "Adicionar Email do PayPal"
+  },
+  "favorites": {
+    "title": "Favoritos",
+    "short": "Favs",
+    "added": "Adicionado aos favoritos",
+    "addedDesc": "Usuário adicionado à sua lista de favoritos.",
+    "removed": "Removido dos favoritos",
+    "removedDesc": "Usuário removido da sua lista de favoritos.",
+    "error": "Erro ao atualizar favoritos. Tente novamente.",
+    "remove": "Remover",
+    "removeFailed": "Falha ao remover dos favoritos",
+    "noFavorites": "Ainda não tem favoritos. Marque suas pessoas favoritas para vê-las aqui!",
+    "viewAll": "Ver todos os favoritos"
   }
 }
