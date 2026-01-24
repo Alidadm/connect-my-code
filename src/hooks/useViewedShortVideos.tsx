@@ -23,17 +23,17 @@ export const useViewedShortVideos = () => {
     }
 
     try {
-      const { data, error } = await supabase
-        .from("viewed_short_videos")
+      // Use type assertion since the table was just created and types aren't regenerated yet
+      const { data, error } = await (supabase
+        .from("viewed_short_videos" as any)
         .select("short_video_id")
-        .eq("user_id", user.id);
+        .eq("user_id", user.id) as any);
 
       if (error) {
-        // Table might not exist yet, just set empty
-        console.log("viewed_short_videos table may not exist:", error.message);
+        console.log("viewed_short_videos query error:", error.message);
         setViewedVideoIds(new Set());
       } else {
-        setViewedVideoIds(new Set(data?.map(v => v.short_video_id) || []));
+        setViewedVideoIds(new Set((data as any[])?.map(v => v.short_video_id) || []));
       }
     } catch (error) {
       console.error("Error fetching viewed short videos:", error);
@@ -54,12 +54,13 @@ export const useViewedShortVideos = () => {
     setViewedVideoIds(prev => new Set([...prev, videoId]));
 
     try {
-      const { error } = await supabase
-        .from("viewed_short_videos")
+      // Use type assertion for the new table
+      const { error } = await (supabase
+        .from("viewed_short_videos" as any)
         .upsert(
           { user_id: user.id, short_video_id: videoId },
           { onConflict: "user_id,short_video_id" }
-        );
+        ) as any);
 
       if (error) {
         console.error("Error marking video as viewed:", error);
