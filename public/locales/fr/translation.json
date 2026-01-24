@@ -384,7 +384,10 @@
     "myTurn": "Mon Tour",
     "history": "Historique",
     "mute": "Couper le son",
-    "unmute": "Activer le son"
+    "unmute": "Activer le son",
+    "subtitle": "Jouez avec vos amis !",
+    "playVsAI": "Jouer vs DolphySN",
+    "inviteFriend": "Inviter un Ami"
   },
   "saved": {
     "title": "Publications Sauvegardées",

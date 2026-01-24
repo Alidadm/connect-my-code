@@ -472,7 +472,10 @@
     "myTurn": "我的回合",
     "history": "历史",
     "mute": "静音",
-    "unmute": "取消静音"
+    "unmute": "取消静音",
+    "subtitle": "和朋友一起玩游戏！",
+    "playVsAI": "与DolphySN对战",
+    "inviteFriend": "邀请好友"
   },
   "saved": {
     "title": "已保存的帖子",

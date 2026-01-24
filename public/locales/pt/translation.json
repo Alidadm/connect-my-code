@@ -495,7 +495,10 @@
     "myTurn": "Minha Vez",
     "history": "Histórico",
     "mute": "Silenciar sons",
-    "unmute": "Ativar sons"
+    "unmute": "Ativar sons",
+    "subtitle": "Jogue com seus amigos!",
+    "playVsAI": "Jogar vs DolphySN",
+    "inviteFriend": "Convidar Amigo"
   },
   "saved": {
     "title": "Posts Salvos",

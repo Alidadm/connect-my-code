@@ -389,7 +389,10 @@
     "myTurn": "내 차례",
     "history": "기록",
     "mute": "음소거",
-    "unmute": "음소거 해제"
+    "unmute": "음소거 해제",
+    "subtitle": "친구들과 게임을 즐기세요!",
+    "playVsAI": "DolphySN과 대전",
+    "inviteFriend": "친구 초대"
   },
   "saved": {
     "title": "저장된 게시물",
