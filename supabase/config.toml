@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.blog-ai-assistant]
 verify_jwt = false
+
+[functions.get-my-private-profile]
+verify_jwt = false

@@ -18,25 +18,30 @@ serve(async (req) => {
 
     // Get the user from the auth header
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
+    if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "No authorization header" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Create client with user's token to get their identity
+    // Create client and validate JWT using getClaims
     const supabaseUser = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } },
     });
 
-    const { data: { user }, error: userError } = await supabaseUser.auth.getUser();
-    if (userError || !user) {
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await supabaseUser.auth.getClaims(token);
+    
+    if (claimsError || !claimsData?.claims?.sub) {
+      console.error("JWT validation failed:", claimsError?.message);
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    const userId = claimsData.claims.sub;
 
     // Use service role to fetch the user's own private profile
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
@@ -44,7 +49,7 @@ serve(async (req) => {
     const { data, error } = await supabaseAdmin
       .from("profiles_private")
       .select("email, phone, birthday, paypal_payout_email, payout_setup_completed, stripe_connect_id")
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .single();
 
     if (error && error.code !== "PGRST116") {
