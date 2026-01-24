@@ -392,7 +392,19 @@
     "unmute": "음소거 해제",
     "subtitle": "친구들과 게임을 즐기세요!",
     "playVsAI": "DolphySN과 대전",
-    "inviteFriend": "친구 초대"
+    "inviteFriend": "친구 초대",
+    "you": "나",
+    "aiThinking": "DolphySN이 생각 중...",
+    "clickToPlay": "셀을 클릭하여 이동",
+    "waitingMove": "상대방의 이동을 기다리는 중...",
+    "notFound": "게임을 찾을 수 없습니다",
+    "playerX": "플레이어 X",
+    "playerO": "플레이어 O",
+    "score": "점수",
+    "finalScore": "최종 점수",
+    "waiting": "대기 중...",
+    "acceptInvite": "초대 수락",
+    "opponentMoved": "상대방이 이동했습니다!"
   },
   "saved": {
     "title": "저장된 게시물",

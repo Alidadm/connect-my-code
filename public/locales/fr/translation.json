@@ -387,7 +387,19 @@
     "unmute": "Activer le son",
     "subtitle": "Jouez avec vos amis !",
     "playVsAI": "Jouer vs DolphySN",
-    "inviteFriend": "Inviter un Ami"
+    "inviteFriend": "Inviter un Ami",
+    "you": "Vous",
+    "aiThinking": "DolphySN réfléchit...",
+    "clickToPlay": "Cliquez sur une case pour jouer",
+    "waitingMove": "En attente du coup de l'adversaire...",
+    "notFound": "Partie introuvable",
+    "playerX": "Joueur X",
+    "playerO": "Joueur O",
+    "score": "Score",
+    "finalScore": "Score Final",
+    "waiting": "En attente...",
+    "acceptInvite": "Accepter l'Invitation",
+    "opponentMoved": "Votre adversaire a joué !"
   },
   "saved": {
     "title": "Publications Sauvegardées",

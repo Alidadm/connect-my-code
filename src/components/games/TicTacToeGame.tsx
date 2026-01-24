@@ -520,10 +520,10 @@ export const TicTacToeGame = ({ gameId, isAIGame = false, onBack }: TicTacToeGam
   if (!game) {
     return (
       <div className="text-center py-8">
-        <p className="text-muted-foreground">Game not found</p>
+        <p className="text-muted-foreground">{t("games.notFound", { defaultValue: "Game not found" })}</p>
         <Button variant="ghost" onClick={onBack} className="mt-4">
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
+          {t("games.back", { defaultValue: "Back" })}
         </Button>
       </div>
     );
@@ -589,8 +589,8 @@ export const TicTacToeGame = ({ gameId, isAIGame = false, onBack }: TicTacToeGam
               <AvatarFallback className="bg-primary text-primary-foreground">✕</AvatarFallback>
             </Avatar>
             <div>
-              <p className="font-medium text-sm">{playerX?.display_name || "Player X"}</p>
-              {isPlayerX && <Badge variant="outline" className="text-xs">You</Badge>}
+              <p className="font-medium text-sm">{playerX?.display_name || t("games.playerX", { defaultValue: "Player X" })}</p>
+              {isPlayerX && <Badge variant="outline" className="text-xs">{t("games.you", { defaultValue: "You" })}</Badge>}
             </div>
           </div>
 
@@ -598,8 +598,8 @@ export const TicTacToeGame = ({ gameId, isAIGame = false, onBack }: TicTacToeGam
 
           <div className="flex items-center gap-2">
             <div className="text-right">
-              <p className="font-medium text-sm">{playerO?.display_name || "Player O"}</p>
-              {isPlayerO && <Badge variant="outline" className="text-xs">You</Badge>}
+              <p className="font-medium text-sm">{playerO?.display_name || t("games.playerO", { defaultValue: "Player O" })}</p>
+              {isPlayerO && <Badge variant="outline" className="text-xs">{t("games.you", { defaultValue: "You" })}</Badge>}
             </div>
             <Avatar className="w-10 h-10 ring-2 ring-destructive">
               <AvatarImage src={playerO?.avatar_url || undefined} />
