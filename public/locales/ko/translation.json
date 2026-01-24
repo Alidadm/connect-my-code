@@ -22,7 +22,19 @@
   "header": {
     "myProfile": "내 프로필",
     "settings": "설정",
-    "logOut": "로그아웃"
+    "logOut": "로그아웃",
+    "qrBarcode": "QR 및 바코드"
+  },
+  "referral": {
+    "qrBarcode": "QR 및 바코드",
+    "qrBarcodeTitle": "추천 QR 및 바코드",
+    "scanToSignup": "스캔하여 추천으로 가입",
+    "barcodeLabel": "추천 코드 바코드",
+    "yourCode": "추천 코드",
+    "copyLink": "링크 복사",
+    "downloadQR": "QR 다운로드",
+    "linkCopied": "추천 링크가 복사되었습니다!",
+    "qrDownloaded": "QR 코드가 다운로드되었습니다!"
   },
   "auth": {
     "email": "이메일",

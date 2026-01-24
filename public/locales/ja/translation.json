@@ -22,7 +22,19 @@
   "header": {
     "myProfile": "マイプロフィール",
     "settings": "設定",
-    "logOut": "ログアウト"
+    "logOut": "ログアウト",
+    "qrBarcode": "QRコードとバーコード"
+  },
+  "referral": {
+    "qrBarcode": "QRコードとバーコード",
+    "qrBarcodeTitle": "紹介用QRコードとバーコード",
+    "scanToSignup": "スキャンして紹介で登録",
+    "barcodeLabel": "紹介コードのバーコード",
+    "yourCode": "あなたの紹介コード",
+    "copyLink": "リンクをコピー",
+    "downloadQR": "QRをダウンロード",
+    "linkCopied": "紹介リンクをコピーしました！",
+    "qrDownloaded": "QRコードをダウンロードしました！"
   },
   "auth": {
     "email": "メールアドレス",

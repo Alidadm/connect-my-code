@@ -77,6 +77,20 @@
     "referralNetwork": "Rede de Indicações",
     "pricing": "Preços"
   },
+  "header": {
+    "qrBarcode": "QR e Código de Barras"
+  },
+  "referral": {
+    "qrBarcode": "QR e Código de Barras",
+    "qrBarcodeTitle": "Seu QR e Código de Barras de Indicação",
+    "scanToSignup": "Escaneie para se cadastrar com sua indicação",
+    "barcodeLabel": "Código de barras do seu código de indicação",
+    "yourCode": "Seu código de indicação",
+    "copyLink": "Copiar Link",
+    "downloadQR": "Baixar QR",
+    "linkCopied": "Link de indicação copiado!",
+    "qrDownloaded": "Código QR baixado!"
+  },
   "referrals": {
     "all": "Todos",
     "friends": "Amigos",

@@ -62,7 +62,19 @@
   "header": {
     "myProfile": "Mein Profil",
     "settings": "Einstellungen",
-    "logOut": "Abmelden"
+    "logOut": "Abmelden",
+    "qrBarcode": "QR & Strichcode"
+  },
+  "referral": {
+    "qrBarcode": "QR & Strichcode",
+    "qrBarcodeTitle": "Dein Empfehlungs-QR & Strichcode",
+    "scanToSignup": "Scannen um sich mit deiner Empfehlung anzumelden",
+    "barcodeLabel": "Strichcode deines Empfehlungscodes",
+    "yourCode": "Dein Empfehlungscode",
+    "copyLink": "Link Kopieren",
+    "downloadQR": "QR Herunterladen",
+    "linkCopied": "Empfehlungslink kopiert!",
+    "qrDownloaded": "QR-Code heruntergeladen!"
   },
   "auth": {
     "email": "E-Mail",
