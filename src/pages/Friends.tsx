@@ -13,8 +13,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Check, X, UserPlus, Users, Clock, Sparkles, Search, Send, Bell, Star } from "lucide-react";
+import { Check, X, UserPlus, Users, Clock, Sparkles, Search, Send, Bell, Star, ArrowUpDown, SortAsc, SortDesc } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 
@@ -86,6 +92,7 @@ interface Friend {
 interface Favorite {
   id: string;
   favorite_user_id: string;
+  created_at: string;
   profile: {
     user_id: string;
     display_name: string | null;
@@ -95,6 +102,8 @@ interface Favorite {
     username: string | null;
   } | null;
 }
+
+type FavoritesSortOption = "recent" | "alphabetical";
 
 interface Suggestion {
   user_id: string;
@@ -131,6 +140,7 @@ const Friends = () => {
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState("");
   const [newRequestAnimation, setNewRequestAnimation] = useState(false);
+  const [favoritesSort, setFavoritesSort] = useState<FavoritesSortOption>("recent");
   const previousPendingCountRef = useRef<number>(0);
   const isInitialLoadRef = useRef(true);
 
@@ -191,14 +201,31 @@ const Friends = () => {
     return name.includes(query) || username.includes(query);
   });
 
-  // Filter favorites based on search query
-  const filteredFavorites = favorites.filter((fav) => {
-    if (!searchQuery.trim()) return true;
-    const query = searchQuery.toLowerCase();
-    const name = getDisplayName(fav.profile).toLowerCase();
-    const username = fav.profile?.username?.toLowerCase() || "";
-    return name.includes(query) || username.includes(query);
-  });
+  // Filter and sort favorites based on search query and sort option
+  const filteredFavorites = useMemo(() => {
+    let filtered = favorites.filter((fav) => {
+      if (!searchQuery.trim()) return true;
+      const query = searchQuery.toLowerCase();
+      const name = getDisplayName(fav.profile).toLowerCase();
+      const username = fav.profile?.username?.toLowerCase() || "";
+      return name.includes(query) || username.includes(query);
+    });
+
+    // Apply sorting
+    if (favoritesSort === "recent") {
+      filtered = [...filtered].sort((a, b) => 
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+    } else if (favoritesSort === "alphabetical") {
+      filtered = [...filtered].sort((a, b) => {
+        const nameA = getDisplayName(a.profile).toLowerCase();
+        const nameB = getDisplayName(b.profile).toLowerCase();
+        return nameA.localeCompare(nameB);
+      });
+    }
+
+    return filtered;
+  }, [favorites, searchQuery, favoritesSort]);
 
   // Handle new friend request notification
   const handleNewFriendRequest = useCallback((requesterName: string) => {
@@ -222,6 +249,37 @@ const Friends = () => {
     setTimeout(() => setNewRequestAnimation(false), 2000);
   }, [t]);
 
+  // Handle new favorite notification
+  const handleNewFavoriteNotification = useCallback(async (favoriterId: string) => {
+    // Fetch the favoriter's profile to show their name in notification
+    const { data: profile } = await supabase
+      .from('safe_profiles')
+      .select('display_name, first_name, last_name')
+      .eq('user_id', favoriterId)
+      .single();
+    
+    const name = profile?.display_name || 
+      (profile?.first_name && profile?.last_name 
+        ? `${profile.first_name} ${profile.last_name}` 
+        : profile?.first_name) || 
+      'Someone';
+
+    // Play notification sound
+    playNotificationSound();
+    
+    // Show toast with animation
+    toast.success(
+      t("favorites.newFavorite", { 
+        name,
+        defaultValue: `${name} added you to their favorites!` 
+      }),
+      {
+        icon: <Star className="h-4 w-4 text-yellow-500 fill-yellow-500 animate-bounce" />,
+        duration: 5000,
+      }
+    );
+  }, [t]);
+
   useEffect(() => {
     if (user) {
       fetchData();
@@ -229,7 +287,7 @@ const Friends = () => {
       fetchSuggestions();
 
       // Subscribe to real-time friendship changes
-      const channel = supabase
+      const friendshipsChannel = supabase
         .channel('friendships-changes')
         .on(
           'postgres_changes',
@@ -304,11 +362,33 @@ const Friends = () => {
         )
         .subscribe();
 
+      // Subscribe to real-time favorites changes (when someone favorites current user)
+      const favoritesChannel = supabase
+        .channel('favorites-notifications')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'user_favorites',
+            filter: `favorite_user_id=eq.${user.id}`
+          },
+          async (payload) => {
+            console.log('Someone favorited you:', payload);
+            if (payload.new) {
+              const favoriterId = (payload.new as any).user_id;
+              handleNewFavoriteNotification(favoriterId);
+            }
+          }
+        )
+        .subscribe();
+
       return () => {
-        supabase.removeChannel(channel);
+        supabase.removeChannel(friendshipsChannel);
+        supabase.removeChannel(favoritesChannel);
       };
     }
-  }, [user, handleNewFriendRequest]);
+  }, [user, handleNewFriendRequest, handleNewFavoriteNotification]);
 
   const fetchData = async () => {
     if (!user) return;
@@ -416,7 +496,7 @@ const Friends = () => {
     try {
       const { data: favData, error: favError } = await supabase
         .from("user_favorites")
-        .select("id, favorite_user_id")
+        .select("id, favorite_user_id, created_at")
         .eq("user_id", user.id);
 
       if (favError) throw favError;
@@ -431,6 +511,7 @@ const Friends = () => {
         const favoritesWithProfiles = favData.map(fav => ({
           id: fav.id,
           favorite_user_id: fav.favorite_user_id,
+          created_at: fav.created_at,
           profile: profiles?.find(p => p.user_id === fav.favorite_user_id) || null
         }));
         setFavorites(favoritesWithProfiles);
@@ -1142,11 +1223,38 @@ const Friends = () => {
 
           <TabsContent value="favorites" className="mt-4">
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
                   {t("favorites.title", { defaultValue: "Favorites" })}
                 </CardTitle>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="gap-2">
+                      <ArrowUpDown className="h-4 w-4" />
+                      {favoritesSort === "recent" 
+                        ? t("favorites.sortRecent", { defaultValue: "Recently Added" })
+                        : t("favorites.sortAlphabetical", { defaultValue: "A-Z" })
+                      }
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="bg-popover border border-border z-50">
+                    <DropdownMenuItem 
+                      onClick={() => setFavoritesSort("recent")}
+                      className={favoritesSort === "recent" ? "bg-accent" : ""}
+                    >
+                      <Clock className="h-4 w-4 mr-2" />
+                      {t("favorites.sortRecent", { defaultValue: "Recently Added" })}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => setFavoritesSort("alphabetical")}
+                      className={favoritesSort === "alphabetical" ? "bg-accent" : ""}
+                    >
+                      <SortAsc className="h-4 w-4 mr-2" />
+                      {t("favorites.sortAlphabetical", { defaultValue: "A-Z" })}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </CardHeader>
               <CardContent>
                 {favoritesLoading ? (

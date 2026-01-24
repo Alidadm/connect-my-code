@@ -807,6 +807,9 @@
     "remove": "削除",
     "removeFailed": "お気に入りからの削除に失敗しました",
     "noFavorites": "まだお気に入りがありません。お気に入りの人をスターしてここに表示させましょう！",
-    "viewAll": "すべてのお気に入りを見る"
+    "viewAll": "すべてのお気に入りを見る",
+    "sortRecent": "最近追加",
+    "sortAlphabetical": "あ-ん",
+    "newFavorite": "{{name}}があなたをお気に入りに追加しました！"
   }
 }
