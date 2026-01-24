@@ -72,7 +72,19 @@
     "settings": "Settings",
     "logOut": "Log Out",
     "welcomeBack": "Welcome back!",
-    "loginSuccess": "You've successfully logged in."
+    "loginSuccess": "You've successfully logged in.",
+    "qrBarcode": "QR & Barcode"
+  },
+  "referral": {
+    "qrBarcode": "QR & Barcode",
+    "qrBarcodeTitle": "Your Referral QR & Barcode",
+    "scanToSignup": "Scan to sign up with your referral",
+    "barcodeLabel": "Your referral code barcode",
+    "yourCode": "Your referral code",
+    "copyLink": "Copy Link",
+    "downloadQR": "Download QR",
+    "linkCopied": "Referral link copied!",
+    "qrDownloaded": "QR code downloaded!"
   },
   "auth": {
     "email": "Email",

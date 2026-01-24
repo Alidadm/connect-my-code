@@ -22,7 +22,19 @@
   "header": {
     "myProfile": "ملفي الشخصي",
     "settings": "الإعدادات",
-    "logOut": "تسجيل الخروج"
+    "logOut": "تسجيل الخروج",
+    "qrBarcode": "رمز QR والباركود"
+  },
+  "referral": {
+    "qrBarcode": "رمز QR والباركود",
+    "qrBarcodeTitle": "رمز QR والباركود للإحالة الخاص بك",
+    "scanToSignup": "امسح للتسجيل مع إحالتك",
+    "barcodeLabel": "باركود كود الإحالة الخاص بك",
+    "yourCode": "كود الإحالة الخاص بك",
+    "copyLink": "نسخ الرابط",
+    "downloadQR": "تحميل رمز QR",
+    "linkCopied": "تم نسخ رابط الإحالة!",
+    "qrDownloaded": "تم تحميل رمز QR!"
   },
   "auth": {
     "email": "البريد الإلكتروني",

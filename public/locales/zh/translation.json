@@ -31,7 +31,19 @@
     "settings": "设置",
     "logOut": "退出",
     "welcomeBack": "欢迎回来！",
-    "loginSuccess": "您已成功登录。"
+    "loginSuccess": "您已成功登录。",
+    "qrBarcode": "二维码和条形码"
+  },
+  "referral": {
+    "qrBarcode": "二维码和条形码",
+    "qrBarcodeTitle": "您的推荐二维码和条形码",
+    "scanToSignup": "扫描以使用您的推荐注册",
+    "barcodeLabel": "您的推荐码条形码",
+    "yourCode": "您的推荐码",
+    "copyLink": "复制链接",
+    "downloadQR": "下载二维码",
+    "linkCopied": "推荐链接已复制！",
+    "qrDownloaded": "二维码已下载！"
   },
   "auth": {
     "email": "电子邮件",

@@ -1,4 +1,4 @@
-import { Bell, Bookmark, ChevronDown, LogOut, Settings, User, ExternalLink, Shield, LayoutDashboard, UserPlus, Check, Lock, HelpCircle, MessageSquarePlus, Search, Newspaper, Info, Menu, MessageCircle } from "lucide-react";
+import { Bell, Bookmark, ChevronDown, LogOut, Settings, User, ExternalLink, Shield, LayoutDashboard, UserPlus, Check, Lock, HelpCircle, MessageSquarePlus, Search, Newspaper, Info, Menu, MessageCircle, QrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -20,6 +20,7 @@ import { SearchDropdown } from "./SearchDropdown";
 import { MobileSearchDropdown } from "./MobileSearchDropdown";
 import { MobileDrawer } from "./MobileDrawer";
 import { MessagesSheet } from "@/components/messages/MessagesSheet";
+import { ReferralQRCodeDialog } from "@/components/referral/ReferralQRCodeDialog";
 import { useDirectMessages } from "@/hooks/useDirectMessages";
 
 interface FriendRequest {
@@ -373,6 +374,12 @@ export const Header = () => {
                     {t('header.dashboard', { defaultValue: 'Dashboard' })}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
+                  <ReferralQRCodeDialog>
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                      <QrCode className="mr-2 h-4 w-4" />
+                      {t('header.qrBarcode', { defaultValue: 'QR & Barcode' })}
+                    </DropdownMenuItem>
+                  </ReferralQRCodeDialog>
                   <DropdownMenuItem onClick={() => navigate("/settings")}>
                     <Settings className="mr-2 h-4 w-4" />
                     {t('header.settings')}

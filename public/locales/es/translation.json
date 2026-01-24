@@ -24,6 +24,20 @@
     "settings": "Configuración",
     "logOut": "Cerrar Sesión"
   },
+  "header": {
+    "qrBarcode": "QR y Código de Barras"
+  },
+  "referral": {
+    "qrBarcode": "QR y Código de Barras",
+    "qrBarcodeTitle": "Tu QR y Código de Barras de Referido",
+    "scanToSignup": "Escanea para registrarte con tu referido",
+    "barcodeLabel": "Código de barras de tu código de referido",
+    "yourCode": "Tu código de referido",
+    "copyLink": "Copiar Enlace",
+    "downloadQR": "Descargar QR",
+    "linkCopied": "¡Enlace de referido copiado!",
+    "qrDownloaded": "¡Código QR descargado!"
+  },
   "auth": {
     "email": "Correo Electrónico",
     "password": "Contraseña",

@@ -22,7 +22,19 @@
   "header": {
     "myProfile": "मेरी प्रोफ़ाइल",
     "settings": "सेटिंग्स",
-    "logOut": "लॉग आउट"
+    "logOut": "लॉग आउट",
+    "qrBarcode": "QR और बारकोड"
+  },
+  "referral": {
+    "qrBarcode": "QR और बारकोड",
+    "qrBarcodeTitle": "आपका रेफरल QR और बारकोड",
+    "scanToSignup": "अपने रेफरल के साथ साइन अप करने के लिए स्कैन करें",
+    "barcodeLabel": "आपके रेफरल कोड का बारकोड",
+    "yourCode": "आपका रेफरल कोड",
+    "copyLink": "लिंक कॉपी करें",
+    "downloadQR": "QR डाउनलोड करें",
+    "linkCopied": "रेफरल लिंक कॉपी किया गया!",
+    "qrDownloaded": "QR कोड डाउनलोड किया गया!"
   },
   "auth": {
     "email": "ईमेल",

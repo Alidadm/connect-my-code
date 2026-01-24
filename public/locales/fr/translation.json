@@ -24,6 +24,20 @@
     "settings": "Paramètres",
     "logOut": "Se Déconnecter"
   },
+  "header": {
+    "qrBarcode": "QR et Code-barres"
+  },
+  "referral": {
+    "qrBarcode": "QR et Code-barres",
+    "qrBarcodeTitle": "Votre QR et Code-barres de Parrainage",
+    "scanToSignup": "Scannez pour vous inscrire avec votre parrainage",
+    "barcodeLabel": "Code-barres de votre code de parrainage",
+    "yourCode": "Votre code de parrainage",
+    "copyLink": "Copier le Lien",
+    "downloadQR": "Télécharger le QR",
+    "linkCopied": "Lien de parrainage copié !",
+    "qrDownloaded": "Code QR téléchargé !"
+  },
   "auth": {
     "email": "Email",
     "password": "Mot de Passe",
