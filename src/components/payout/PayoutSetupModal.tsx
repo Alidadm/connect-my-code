@@ -124,10 +124,13 @@ export const PayoutSetupModal = ({ userId, onComplete }: PayoutSetupModalProps) 
       title: "🎉 Welcome! Set Up Your Payouts",
       html: `
         <div style="text-align: left; font-size: 14px; line-height: 1.6;">
-          <p style="margin-bottom: 16px; color: #666;">
-            To receive commissions from referrals who pay via <strong>Stripe</strong> or <strong>PayPal</strong>, 
-            please set up both payout methods below.
-          </p>
+          <div style="background: #fffbeb; border: 1px solid #f59e0b; border-radius: 8px; padding: 12px; margin-bottom: 16px;">
+            <p style="margin: 0; color: #92400e; font-size: 13px; line-height: 1.5;">
+              <strong>📢 Important:</strong> Please make sure you update both payment methods for receiving commissions. 
+              Each new member chooses one payment method to pay their subscription, and their commission will also be sent to you through that same method. 
+              This means you must have both payment methods set up to receive commissions from all members, no matter which method they use.
+            </p>
+          </div>
           
           <div style="background: linear-gradient(135deg, #f8f9ff 0%, #fff8f8 100%); border-radius: 12px; padding: 16px; margin-bottom: 16px;">
             <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
