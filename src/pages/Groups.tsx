@@ -313,7 +313,7 @@ const Groups = () => {
           {isDiscover ? (
             <div className="flex flex-col gap-2">
               {pendingRequestIds.has(group.id) ? (
-                <Badge variant="secondary" className="text-xs">Pending</Badge>
+                <Badge variant="secondary" className="text-xs">{t("groups.pendingRequest", { defaultValue: "Pending" })}</Badge>
               ) : (
                 <Button 
                   size="sm"
@@ -329,7 +329,9 @@ const Groups = () => {
                   ) : (
                     <UserPlus className="h-3 w-3" />
                   )}
-                  {group.privacy === "public" ? "Join" : "Request"}
+                  {group.privacy === "public" 
+                    ? t("groups.join", { defaultValue: "Join" })
+                    : t("groups.request", { defaultValue: "Request" })}
                 </Button>
               )}
               <Button 
@@ -341,7 +343,7 @@ const Groups = () => {
                 }}
               >
                 <ExternalLink className="h-3 w-3 mr-1" />
-                View
+                {t("groups.view", { defaultValue: "View" })}
               </Button>
             </div>
           ) : (
@@ -369,15 +371,15 @@ const Groups = () => {
           <div>
             <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
               <Users className="h-7 w-7 text-primary" />
-              {t("nav.groups", { defaultValue: "Groups" })}
+              {t("groups.title", { defaultValue: "Groups" })}
             </h1>
             <p className="text-muted-foreground mt-1">
-              Connect with communities that share your interests
+              {t("groups.connectWithCommunities", { defaultValue: "Connect with communities that share your interests" })}
             </p>
           </div>
           <Button className="gap-2" onClick={() => setShowCreateModal(true)}>
             <Plus className="h-4 w-4" />
-            Create Group
+            {t("groups.createGroup", { defaultValue: "Create Group" })}
           </Button>
         </div>
 
@@ -386,11 +388,11 @@ const Groups = () => {
           <TabsList className="w-full justify-start bg-card border">
             <TabsTrigger value="my-groups" className="gap-2">
               <Users className="h-4 w-4" />
-              My Groups ({groups.length})
+              {t("groups.myGroups", { defaultValue: "My Groups" })} ({groups.length})
             </TabsTrigger>
             <TabsTrigger value="discover" className="gap-2">
               <Compass className="h-4 w-4" />
-              Discover
+              {t("groups.discover", { defaultValue: "Discover" })}
             </TabsTrigger>
           </TabsList>
 
@@ -403,14 +405,14 @@ const Groups = () => {
             ) : groups.length === 0 ? (
               <Card className="p-8 text-center">
                 <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No Groups Yet</h3>
+                <h3 className="text-lg font-semibold mb-2">{t("groups.noGroups", { defaultValue: "No Groups Yet" })}</h3>
                 <p className="text-muted-foreground mb-4">
-                  Create your first group or discover communities to join
+                  {t("groups.noGroupsDesc", { defaultValue: "Create your first group or discover communities to join" })}
                 </p>
                 <div className="flex justify-center gap-3">
                   <Button onClick={() => setShowCreateModal(true)} className="gap-2">
                     <Plus className="h-4 w-4" />
-                    Create Group
+                    {t("groups.createGroup", { defaultValue: "Create Group" })}
                   </Button>
                 </div>
               </Card>
@@ -479,7 +481,7 @@ const Groups = () => {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search groups by name, description, or category..."
+                placeholder={t("groups.searchGroups", { defaultValue: "Search groups by name, description, or category..." })}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -494,18 +496,20 @@ const Groups = () => {
               <Card className="p-8 text-center">
                 <Compass className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold mb-2">
-                  {searchQuery ? "No Groups Found" : "No Groups to Discover"}
+                  {searchQuery 
+                    ? t("groups.noGroupsFound", { defaultValue: "No Groups Found" })
+                    : t("groups.noGroupsToDiscover", { defaultValue: "No Groups to Discover" })}
                 </h3>
                 <p className="text-muted-foreground mb-4">
                   {searchQuery 
-                    ? "Try a different search term" 
-                    : "Create a new group to get started!"
+                    ? t("groups.tryDifferentSearch", { defaultValue: "Try a different search term" })
+                    : t("groups.allCaughtUp", { defaultValue: "You're all caught up! Check back later for new communities." })
                   }
                 </p>
                 {!searchQuery && (
                   <Button onClick={() => setShowCreateModal(true)} className="gap-2">
                     <Plus className="h-4 w-4" />
-                    Create Group
+                    {t("groups.createGroup", { defaultValue: "Create Group" })}
                   </Button>
                 )}
               </Card>
