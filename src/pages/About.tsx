@@ -94,7 +94,7 @@ const About = () => {
 
         {/* Footer */}
         <div className="text-center mt-12 text-sm text-muted-foreground">
-          <p>© 2024 DolphySN. {t("about.allRights", { defaultValue: "All rights reserved." })}</p>
+          <p>© {new Date().getFullYear()} DolphySN. {t("about.allRights", { defaultValue: "All rights reserved." })}</p>
         </div>
       </div>
     </MainLayout>
