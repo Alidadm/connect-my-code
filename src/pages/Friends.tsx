@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
 import { useOnlinePresence } from "@/hooks/useOnlinePresence";
@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Check, X, UserPlus, Users, Clock, Sparkles, Search, Send, Bell } from "lucide-react";
+import { Check, X, UserPlus, Users, Clock, Sparkles, Search, Send, Bell, Star } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -83,6 +83,19 @@ interface Friend {
   } | null;
 }
 
+interface Favorite {
+  id: string;
+  favorite_user_id: string;
+  profile: {
+    user_id: string;
+    display_name: string | null;
+    first_name: string | null;
+    last_name: string | null;
+    avatar_url: string | null;
+    username: string | null;
+  } | null;
+}
+
 interface Suggestion {
   user_id: string;
   profile: {
@@ -104,11 +117,16 @@ const Friends = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const initialTab = searchParams.get("tab") || "requests";
+  
   const [pendingRequests, setPendingRequests] = useState<FriendRequest[]>([]);
   const [sentRequests, setSentRequests] = useState<SentRequest[]>([]);
   const [friends, setFriends] = useState<Friend[]>([]);
+  const [favorites, setFavorites] = useState<Favorite[]>([]);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [loading, setLoading] = useState(true);
+  const [favoritesLoading, setFavoritesLoading] = useState(true);
   const [suggestionsLoading, setSuggestionsLoading] = useState(true);
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState("");
@@ -123,11 +141,12 @@ const Friends = () => {
   const allUserIds = useMemo(() => {
     const ids = new Set<string>();
     friends.forEach(f => ids.add(f.friend_user_id));
+    favorites.forEach(f => ids.add(f.favorite_user_id));
     suggestions.forEach(s => ids.add(s.user_id));
     pendingRequests.forEach(r => ids.add(r.requester_id));
     sentRequests.forEach(r => ids.add(r.addressee_id));
     return Array.from(ids);
-  }, [friends, suggestions, pendingRequests, sentRequests]);
+  }, [friends, favorites, suggestions, pendingRequests, sentRequests]);
 
   // Fetch last seen data when user IDs change
   useEffect(() => {
@@ -172,6 +191,15 @@ const Friends = () => {
     return name.includes(query) || username.includes(query);
   });
 
+  // Filter favorites based on search query
+  const filteredFavorites = favorites.filter((fav) => {
+    if (!searchQuery.trim()) return true;
+    const query = searchQuery.toLowerCase();
+    const name = getDisplayName(fav.profile).toLowerCase();
+    const username = fav.profile?.username?.toLowerCase() || "";
+    return name.includes(query) || username.includes(query);
+  });
+
   // Handle new friend request notification
   const handleNewFriendRequest = useCallback((requesterName: string) => {
     // Play notification sound
@@ -197,6 +225,7 @@ const Friends = () => {
   useEffect(() => {
     if (user) {
       fetchData();
+      fetchFavorites();
       fetchSuggestions();
 
       // Subscribe to real-time friendship changes
@@ -377,6 +406,66 @@ const Friends = () => {
       toast.error("Failed to load friends data");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchFavorites = async () => {
+    if (!user) return;
+    setFavoritesLoading(true);
+
+    try {
+      const { data: favData, error: favError } = await supabase
+        .from("user_favorites")
+        .select("id, favorite_user_id")
+        .eq("user_id", user.id);
+
+      if (favError) throw favError;
+
+      if (favData && favData.length > 0) {
+        const favoriteIds = favData.map(f => f.favorite_user_id);
+        const { data: profiles } = await supabase
+          .from("safe_profiles")
+          .select("user_id, display_name, first_name, last_name, avatar_url, username")
+          .in("user_id", favoriteIds);
+
+        const favoritesWithProfiles = favData.map(fav => ({
+          id: fav.id,
+          favorite_user_id: fav.favorite_user_id,
+          profile: profiles?.find(p => p.user_id === fav.favorite_user_id) || null
+        }));
+        setFavorites(favoritesWithProfiles);
+      } else {
+        setFavorites([]);
+      }
+    } catch (error) {
+      console.error("Error fetching favorites:", error);
+    } finally {
+      setFavoritesLoading(false);
+    }
+  };
+
+  const handleRemoveFavorite = async (favoriteId: string) => {
+    setProcessingIds(prev => new Set(prev).add(favoriteId));
+    
+    try {
+      const { error } = await supabase
+        .from("user_favorites")
+        .delete()
+        .eq("id", favoriteId);
+
+      if (error) throw error;
+
+      toast.success(t("favorites.removed", { defaultValue: "Removed from favorites" }));
+      fetchFavorites();
+    } catch (error) {
+      console.error("Error removing favorite:", error);
+      toast.error(t("favorites.removeFailed", { defaultValue: "Failed to remove from favorites" }));
+    } finally {
+      setProcessingIds(prev => {
+        const next = new Set(prev);
+        next.delete(favoriteId);
+        return next;
+      });
     }
   };
 
@@ -733,14 +822,14 @@ const Friends = () => {
           />
         </div>
 
-        <Tabs defaultValue="requests" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="requests" className="flex items-center gap-2 relative">
+        <Tabs defaultValue={initialTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="requests" className="flex items-center gap-1 relative text-xs sm:text-sm">
               <Clock className={`h-4 w-4 ${newRequestAnimation ? 'animate-bounce text-primary' : ''}`} />
               <span className="hidden sm:inline">{t("friends.pendingRequests", { defaultValue: "Pending" })}</span>
               <span className="sm:hidden">{t("friends.pending", { defaultValue: "Pending" })}</span>
               {pendingRequests.length > 0 && (
-                <span className={`bg-primary text-primary-foreground text-xs rounded-full px-2 py-0.5 transition-all duration-300 ${newRequestAnimation ? 'animate-pulse scale-110 ring-2 ring-primary ring-offset-2' : ''}`}>
+                <span className={`bg-primary text-primary-foreground text-xs rounded-full px-1.5 py-0.5 transition-all duration-300 ${newRequestAnimation ? 'animate-pulse scale-110 ring-2 ring-primary ring-offset-2' : ''}`}>
                   {pendingRequests.length}
                 </span>
               )}
@@ -751,7 +840,7 @@ const Friends = () => {
                 </span>
               )}
             </TabsTrigger>
-            <TabsTrigger value="sent" className="flex items-center gap-2">
+            <TabsTrigger value="sent" className="flex items-center gap-1 text-xs sm:text-sm">
               <Send className="h-4 w-4" />
               <span className="hidden sm:inline">{t("friends.sentRequests", { defaultValue: "Sent" })}</span>
               <span className="sm:hidden">{t("friends.sent", { defaultValue: "Sent" })}</span>
@@ -759,11 +848,17 @@ const Friends = () => {
                 <span className="text-muted-foreground text-xs">({sentRequests.length})</span>
               )}
             </TabsTrigger>
-            <TabsTrigger value="friends" className="flex items-center gap-2">
+            <TabsTrigger value="friends" className="flex items-center gap-1 text-xs sm:text-sm">
               <Users className="h-4 w-4" />
               <span className="hidden sm:inline">{t("friends.myFriends", { defaultValue: "Friends" })}</span>
               <span className="sm:hidden">{t("friends.friends", { defaultValue: "Friends" })}</span>
               <span className="text-muted-foreground text-xs">({friends.length})</span>
+            </TabsTrigger>
+            <TabsTrigger value="favorites" className="flex items-center gap-1 text-xs sm:text-sm">
+              <Star className="h-4 w-4 text-yellow-500" />
+              <span className="hidden sm:inline">{t("favorites.title", { defaultValue: "Favorites" })}</span>
+              <span className="sm:hidden">{t("favorites.short", { defaultValue: "Favs" })}</span>
+              <span className="text-muted-foreground text-xs">({favorites.length})</span>
             </TabsTrigger>
           </TabsList>
 
@@ -1036,6 +1131,95 @@ const Friends = () => {
                         >
                           <X className="h-4 w-4" />
                           {t("friends.cancel", { defaultValue: "Cancel" })}
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="favorites" className="mt-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
+                  {t("favorites.title", { defaultValue: "Favorites" })}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {favoritesLoading ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="flex items-center gap-4">
+                        <Skeleton className="h-12 w-12 rounded-full" />
+                        <div className="flex-1 space-y-2">
+                          <Skeleton className="h-4 w-32" />
+                          <Skeleton className="h-3 w-24" />
+                        </div>
+                        <Skeleton className="h-9 w-20" />
+                      </div>
+                    ))}
+                  </div>
+                ) : filteredFavorites.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Star className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>{searchQuery.trim() 
+                      ? t("friends.noSearchResults", { defaultValue: "No results found" })
+                      : t("favorites.noFavorites", { defaultValue: "No favorites yet. Star your favorite people to see them here!" })
+                    }</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {filteredFavorites.map((fav) => (
+                      <div 
+                        key={fav.id} 
+                        className="flex items-center gap-4 p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+                      >
+                        <div className="relative">
+                          <Avatar 
+                            className="h-12 w-12 cursor-pointer"
+                            onClick={() => navigateToProfile(fav.profile?.username)}
+                          >
+                            <AvatarImage src={fav.profile?.avatar_url || undefined} />
+                            <AvatarFallback>{getInitials(fav.profile)}</AvatarFallback>
+                          </Avatar>
+                          <OnlineIndicator 
+                            isOnline={isUserOnline(fav.favorite_user_id)} 
+                            size="sm"
+                            className="bottom-0 right-0"
+                          />
+                        </div>
+                        
+                        <div 
+                          className="flex-1 min-w-0 cursor-pointer"
+                          onClick={() => navigateToProfile(fav.profile?.username)}
+                        >
+                          <p className="font-semibold truncate hover:underline">
+                            {getDisplayName(fav.profile)}
+                          </p>
+                          <div className="flex items-center gap-2">
+                            {fav.profile?.username && (
+                              <p className="text-sm text-muted-foreground">@{fav.profile.username}</p>
+                            )}
+                            <span className="text-muted-foreground">·</span>
+                            <LastSeenText 
+                              isOnline={isUserOnline(fav.favorite_user_id)}
+                              lastSeen={getLastSeen(fav.favorite_user_id)}
+                            />
+                          </div>
+                        </div>
+
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleRemoveFavorite(fav.id)}
+                          disabled={processingIds.has(fav.id)}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <X className="h-4 w-4 mr-1" />
+                          {t("favorites.remove", { defaultValue: "Remove" })}
                         </Button>
                       </div>
                     ))}

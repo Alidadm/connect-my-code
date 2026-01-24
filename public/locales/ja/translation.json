@@ -795,5 +795,18 @@
     "addPaypalDesc": "PayPal支払いからコミッションを受け取るにはPayPalメールを追加してください。",
     "connectBankAccount": "銀行口座を接続",
     "addPaypalEmail": "PayPalメールを追加"
+  },
+  "favorites": {
+    "title": "お気に入り",
+    "short": "お気に入り",
+    "added": "お気に入りに追加しました",
+    "addedDesc": "ユーザーをお気に入りリストに追加しました。",
+    "removed": "お気に入りから削除しました",
+    "removedDesc": "ユーザーをお気に入りリストから削除しました。",
+    "error": "お気に入りの更新に失敗しました。もう一度お試しください。",
+    "remove": "削除",
+    "removeFailed": "お気に入りからの削除に失敗しました",
+    "noFavorites": "まだお気に入りがありません。お気に入りの人をスターしてここに表示させましょう！",
+    "viewAll": "すべてのお気に入りを見る"
   }
 }

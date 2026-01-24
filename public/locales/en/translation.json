@@ -1064,5 +1064,18 @@
     "addPaypalDesc": "Add your PayPal email to receive commissions from PayPal payments.",
     "connectBankAccount": "Connect Bank Account",
     "addPaypalEmail": "Add PayPal Email"
+  },
+  "favorites": {
+    "title": "Favorites",
+    "short": "Favs",
+    "added": "Added to favorites",
+    "addedDesc": "User added to your favorites list.",
+    "removed": "Removed from favorites",
+    "removedDesc": "User removed from your favorites list.",
+    "error": "Failed to update favorites. Please try again.",
+    "remove": "Remove",
+    "removeFailed": "Failed to remove from favorites",
+    "noFavorites": "No favorites yet. Star your favorite people to see them here!",
+    "viewAll": "View all favorites"
   }
 }
