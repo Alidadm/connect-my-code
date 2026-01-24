@@ -175,7 +175,7 @@ serve(async (req) => {
             // Check if paypal_payout_email is already set
             const { data: privateProfile } = await supabaseClient
               .from("profiles_private")
-              .select("paypal_payout_email")
+              .select("paypal_payout_email, payout_setup_completed")
               .eq("user_id", userId)
               .single();
             
@@ -183,12 +183,24 @@ serve(async (req) => {
             if (!privateProfile?.paypal_payout_email) {
               await supabaseClient
                 .from("profiles_private")
-                .update({ paypal_payout_email: subscriberEmail })
+                .update({ 
+                  paypal_payout_email: subscriberEmail,
+                  payout_setup_completed: true  // Mark as completed since PayPal is now set
+                })
                 .eq("user_id", userId);
               
-              logStep("PayPal payout email auto-populated", { email: subscriberEmail });
+              logStep("PayPal payout email auto-populated and payout setup marked complete", { email: subscriberEmail });
             } else {
-              logStep("PayPal payout email already set, skipping auto-populate");
+              // PayPal email already set - also mark setup as complete if not already
+              if (!privateProfile?.payout_setup_completed) {
+                await supabaseClient
+                  .from("profiles_private")
+                  .update({ payout_setup_completed: true })
+                  .eq("user_id", userId);
+                logStep("Payout setup marked complete (PayPal email was already set)");
+              } else {
+                logStep("PayPal payout email already set, skipping auto-populate");
+              }
             }
           }
 
