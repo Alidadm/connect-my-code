@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -10,10 +9,11 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { 
   Plus, Trash2, Play, GripVertical, 
-  ExternalLink, Save, Loader2, Video
+  ExternalLink, Loader2, Video, Youtube
 } from "lucide-react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import Swal from "sweetalert2";
+import { extractYoutubeVideoId, getYoutubeThumbnailUrl } from "@/lib/youtube";
 
 interface ShortVideo {
   id: string;
@@ -29,24 +29,9 @@ const ShortVideosPage = () => {
   const [videos, setVideos] = useState<ShortVideo[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  
-  // Persist bulk URLs and show state in localStorage so they survive tab switches
-  const [bulkUrls, setBulkUrls] = useState(() => {
-    return localStorage.getItem("admin_short_videos_bulk_urls") || "";
-  });
-  const [showBulkAdd, setShowBulkAdd] = useState(() => {
-    return localStorage.getItem("admin_short_videos_show_bulk") === "true";
-  });
-
-  // Save bulk URLs to localStorage whenever they change
-  useEffect(() => {
-    localStorage.setItem("admin_short_videos_bulk_urls", bulkUrls);
-  }, [bulkUrls]);
-
-  // Save show state to localStorage
-  useEffect(() => {
-    localStorage.setItem("admin_short_videos_show_bulk", String(showBulkAdd));
-  }, [showBulkAdd]);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newVideoUrl, setNewVideoUrl] = useState("");
+  const [newVideoTitle, setNewVideoTitle] = useState("");
 
   useEffect(() => {
     fetchVideos();
@@ -70,14 +55,15 @@ const ShortVideosPage = () => {
     }
   };
 
-  const handleBulkAdd = async () => {
-    const urls = bulkUrls
-      .split("\n")
-      .map((url) => url.trim())
-      .filter((url) => url.length > 0);
+  const handleAddVideo = async () => {
+    if (!newVideoUrl.trim()) {
+      toast.error("Please enter a YouTube Shorts URL");
+      return;
+    }
 
-    if (urls.length === 0) {
-      toast.error("Please enter at least one URL");
+    const videoId = extractYoutubeVideoId(newVideoUrl.trim());
+    if (!videoId) {
+      toast.error("Invalid YouTube URL. Please enter a valid YouTube Shorts URL.");
       return;
     }
 
@@ -88,38 +74,38 @@ const ShortVideosPage = () => {
         ? Math.max(...videos.map((v) => v.display_order)) 
         : 0;
 
-      const newVideos = urls.map((url, index) => ({
-        video_url: url,
-        display_order: maxOrder + index + 1,
-        created_by: userData.user?.id,
-      }));
+      // Auto-generate thumbnail from YouTube
+      const thumbnailUrl = getYoutubeThumbnailUrl(videoId, "hq");
 
       const { error } = await supabase
         .from("short_videos")
-        .insert(newVideos);
+        .insert({
+          video_url: newVideoUrl.trim(),
+          thumbnail_url: thumbnailUrl,
+          title: newVideoTitle.trim() || null,
+          display_order: maxOrder + 1,
+          created_by: userData.user?.id,
+        });
 
       if (error) throw error;
 
-      toast.success(`Added ${urls.length} video(s) successfully`);
-      setBulkUrls("");
-      setShowBulkAdd(false);
-      // Clear localStorage after successful save
-      localStorage.removeItem("admin_short_videos_bulk_urls");
-      localStorage.removeItem("admin_short_videos_show_bulk");
+      toast.success("Video added successfully!");
+      setNewVideoUrl("");
+      setNewVideoTitle("");
+      setShowAddForm(false);
       fetchVideos();
     } catch (error) {
-      console.error("Error adding videos:", error);
-      toast.error("Failed to add videos");
+      console.error("Error adding video:", error);
+      toast.error("Failed to add video");
     } finally {
       setSaving(false);
     }
   };
 
-  const clearBulkAddState = () => {
-    setBulkUrls("");
-    setShowBulkAdd(false);
-    localStorage.removeItem("admin_short_videos_bulk_urls");
-    localStorage.removeItem("admin_short_videos_show_bulk");
+  const clearAddForm = () => {
+    setNewVideoUrl("");
+    setNewVideoTitle("");
+    setShowAddForm(false);
   };
 
   const handleDelete = async (id: string) => {
@@ -215,6 +201,25 @@ const ShortVideosPage = () => {
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
+  // Get preview URL for the video
+  const getPreviewUrl = (url: string) => {
+    const videoId = extractYoutubeVideoId(url);
+    if (videoId) {
+      return `https://www.youtube.com/shorts/${videoId}`;
+    }
+    return url;
+  };
+
+  // Get display thumbnail
+  const getDisplayThumbnail = (video: ShortVideo) => {
+    if (video.thumbnail_url) return video.thumbnail_url;
+    const videoId = extractYoutubeVideoId(video.video_url);
+    if (videoId) {
+      return getYoutubeThumbnailUrl(videoId, "hq");
+    }
+    return null;
+  };
+
   return (
     <AdminLayout title="Short Videos">
       <div className="min-h-screen bg-background p-6">
@@ -223,52 +228,62 @@ const ShortVideosPage = () => {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-                <Video className="h-6 w-6 text-primary" />
-                Short Videos
+                <Youtube className="h-6 w-6 text-red-500" />
+                YouTube Shorts
               </h1>
               <p className="text-muted-foreground">
-                Manage TikTok-style videos shown in the feed
+                Manage YouTube Shorts videos shown in the feed
               </p>
             </div>
-            <Button onClick={() => setShowBulkAdd(!showBulkAdd)}>
+            <Button onClick={() => setShowAddForm(!showAddForm)}>
               <Plus className="h-4 w-4 mr-2" />
-              Add Videos
+              Add Video
             </Button>
           </div>
 
-          {/* Bulk Add Section */}
-          {showBulkAdd && (
+          {/* Add Video Form */}
+          {showAddForm && (
             <Card className="mb-6">
               <CardHeader>
-                <CardTitle className="text-lg">Add TikTok Videos</CardTitle>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Youtube className="h-5 w-5 text-red-500" />
+                  Add YouTube Short
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label htmlFor="bulk-urls">
-                    Paste TikTok URLs (one per line)
-                  </Label>
-                  <Textarea
-                    id="bulk-urls"
-                    placeholder={`https://www.tiktok.com/@user/video/123456789\nhttps://www.tiktok.com/@user/video/987654321\nhttps://vm.tiktok.com/abc123`}
-                    value={bulkUrls}
-                    onChange={(e) => setBulkUrls(e.target.value)}
-                    rows={6}
-                    className="mt-2 font-mono text-sm"
+                  <Label htmlFor="video-url">YouTube Shorts URL *</Label>
+                  <Input
+                    id="video-url"
+                    placeholder="https://youtube.com/shorts/fnvOQ0FQgCM or https://youtu.be/fnvOQ0FQgCM"
+                    value={newVideoUrl}
+                    onChange={(e) => setNewVideoUrl(e.target.value)}
+                    className="mt-2"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Paste any YouTube Shorts URL (9:16 vertical video format)
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="video-title">Title (optional)</Label>
+                  <Input
+                    id="video-title"
+                    placeholder="Enter a title for this video"
+                    value={newVideoTitle}
+                    onChange={(e) => setNewVideoTitle(e.target.value)}
+                    className="mt-2"
                   />
                 </div>
                 <div className="flex gap-2">
-                  <Button onClick={handleBulkAdd} disabled={saving}>
+                  <Button onClick={handleAddVideo} disabled={saving}>
                     {saving ? (
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                     ) : (
-                      <Save className="h-4 w-4 mr-2" />
+                      <Plus className="h-4 w-4 mr-2" />
                     )}
-                    Save Videos
+                    Add Video
                   </Button>
-                  <Button
-                    variant="outline"
-                    onClick={clearBulkAddState}
-                  >
+                  <Button variant="outline" onClick={clearAddForm}>
                     Cancel
                   </Button>
                 </div>
@@ -284,14 +299,14 @@ const ShortVideosPage = () => {
           ) : videos.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center">
-                <Video className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <Youtube className="h-12 w-12 text-red-500 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-foreground mb-2">
                   No videos yet
                 </h3>
                 <p className="text-muted-foreground mb-4">
-                  Add TikTok video URLs to display them in the feed
+                  Add YouTube Shorts to display them in the feed
                 </p>
-                <Button onClick={() => setShowBulkAdd(true)}>
+                <Button onClick={() => setShowAddForm(true)}>
                   <Plus className="h-4 w-4 mr-2" />
                   Add Your First Video
                 </Button>
@@ -315,9 +330,9 @@ const ShortVideosPage = () => {
                       {/* Thumbnail */}
                       <div className="flex-shrink-0">
                         <div className="w-16 h-24 bg-muted rounded-lg overflow-hidden relative group">
-                          {video.thumbnail_url ? (
+                          {getDisplayThumbnail(video) ? (
                             <img
-                              src={video.thumbnail_url}
+                              src={getDisplayThumbnail(video)!}
                               alt="Thumbnail"
                               className="w-full h-full object-cover"
                             />
@@ -327,7 +342,7 @@ const ShortVideosPage = () => {
                             </div>
                           )}
                           <button
-                            onClick={() => openVideoPreview(video.video_url)}
+                            onClick={() => openVideoPreview(getPreviewUrl(video.video_url))}
                             className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
                           >
                             <ExternalLink className="h-5 w-5 text-white" />
