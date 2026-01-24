@@ -1,7 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Play } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { extractYoutubeVideoId, getYoutubeThumbnailUrl } from "@/lib/youtube";
+import { useViewedShortVideos } from "@/hooks/useViewedShortVideos";
+import { useAuth } from "@/hooks/useAuth";
 import Swal from "sweetalert2";
 
 interface ShortVideo {
@@ -12,31 +14,37 @@ interface ShortVideo {
 }
 
 export const ShortVideosRow = () => {
-  const [videos, setVideos] = useState<ShortVideo[]>([]);
+  const { user } = useAuth();
+  const [allVideos, setAllVideos] = useState<ShortVideo[]>([]);
   const [loading, setLoading] = useState(true);
+  const { markVideoAsViewed, getRandomUnviewedVideos, loading: viewedLoading } = useViewedShortVideos();
 
   useEffect(() => {
-    fetchVideos();
+    fetchAllVideos();
   }, []);
 
-  const fetchVideos = async () => {
+  const fetchAllVideos = async () => {
     try {
+      // Fetch all active videos (we'll randomize on the client)
       const { data, error } = await supabase
         .from("short_videos")
         .select("id, video_url, thumbnail_url, title")
-        .eq("is_active", true)
-        .order("display_order", { ascending: true })
-        .order("created_at", { ascending: false })
-        .limit(10);
+        .eq("is_active", true);
 
       if (error) throw error;
-      setVideos(data || []);
+      setAllVideos(data || []);
     } catch (error) {
       console.error("Error fetching short videos:", error);
     } finally {
       setLoading(false);
     }
   };
+
+  // Get random unviewed videos - memoized to prevent re-shuffling on every render
+  const videos = useMemo(() => {
+    if (loading || viewedLoading || allVideos.length === 0) return [];
+    return getRandomUnviewedVideos(allVideos, 10);
+  }, [allVideos, loading, viewedLoading, getRandomUnviewedVideos]);
 
   const getThumbnailUrl = (video: ShortVideo): string => {
     if (video.thumbnail_url) return video.thumbnail_url;
@@ -57,6 +65,11 @@ export const ShortVideosRow = () => {
     const showVideo = () => {
       const video = videos[currentIndex];
       const videoId = extractYoutubeVideoId(video.video_url);
+      
+      // Mark video as viewed when opened
+      if (user) {
+        markVideoAsViewed(video.id);
+      }
       
       // Create embed URL for YouTube Shorts
       const embedUrl = videoId 
@@ -144,7 +157,7 @@ export const ShortVideosRow = () => {
     showVideo();
   };
 
-  if (loading || videos.length === 0) {
+  if (loading || viewedLoading || videos.length === 0) {
     return null;
   }
 

@@ -2655,6 +2655,35 @@ export type Database = {
         }
         Relationships: []
       }
+      viewed_short_videos: {
+        Row: {
+          id: string
+          short_video_id: string
+          user_id: string
+          viewed_at: string
+        }
+        Insert: {
+          id?: string
+          short_video_id: string
+          user_id: string
+          viewed_at?: string
+        }
+        Update: {
+          id?: string
+          short_video_id?: string
+          user_id?: string
+          viewed_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "viewed_short_videos_short_video_id_fkey"
+            columns: ["short_video_id"]
+            isOneToOne: false
+            referencedRelation: "short_videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       viewed_youtube_videos: {
         Row: {
           id: string
