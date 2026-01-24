@@ -404,7 +404,19 @@
     "unmute": "Ton an",
     "subtitle": "Spiele mit deinen Freunden!",
     "playVsAI": "Gegen DolphySN spielen",
-    "inviteFriend": "Freund einladen"
+    "inviteFriend": "Freund einladen",
+    "you": "Du",
+    "aiThinking": "DolphySN denkt nach...",
+    "clickToPlay": "Klicke auf ein Feld, um zu ziehen",
+    "waitingMove": "Warte auf den Zug des Gegners...",
+    "notFound": "Spiel nicht gefunden",
+    "playerX": "Spieler X",
+    "playerO": "Spieler O",
+    "score": "Punktzahl",
+    "finalScore": "Endpunktzahl",
+    "waiting": "Warten...",
+    "acceptInvite": "Einladung annehmen",
+    "opponentMoved": "Dein Gegner hat gezogen!"
   },
   "saved": {
     "title": "Gespeicherte Beiträge",

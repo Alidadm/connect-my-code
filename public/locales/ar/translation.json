@@ -392,7 +392,19 @@
     "unmute": "تشغيل الصوت",
     "subtitle": "العب مع أصدقائك!",
     "playVsAI": "العب ضد DolphySN",
-    "inviteFriend": "دعوة صديق"
+    "inviteFriend": "دعوة صديق",
+    "you": "أنت",
+    "aiThinking": "DolphySN يفكر...",
+    "clickToPlay": "انقر على خلية للعب",
+    "waitingMove": "في انتظار حركة الخصم...",
+    "notFound": "اللعبة غير موجودة",
+    "playerX": "اللاعب X",
+    "playerO": "اللاعب O",
+    "score": "النتيجة",
+    "finalScore": "النتيجة النهائية",
+    "waiting": "في الانتظار...",
+    "acceptInvite": "قبول الدعوة",
+    "opponentMoved": "قام خصمك بحركة!"
   },
   "saved": {
     "title": "المنشورات المحفوظة",

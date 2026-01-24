@@ -475,7 +475,19 @@
     "unmute": "取消静音",
     "subtitle": "和朋友一起玩游戏！",
     "playVsAI": "与DolphySN对战",
-    "inviteFriend": "邀请好友"
+    "inviteFriend": "邀请好友",
+    "you": "你",
+    "aiThinking": "DolphySN正在思考...",
+    "clickToPlay": "点击格子下棋",
+    "waitingMove": "等待对手下棋...",
+    "notFound": "找不到游戏",
+    "playerX": "玩家 X",
+    "playerO": "玩家 O",
+    "score": "分数",
+    "finalScore": "最终分数",
+    "waiting": "等待中...",
+    "acceptInvite": "接受邀请",
+    "opponentMoved": "对手已走棋！"
   },
   "saved": {
     "title": "已保存的帖子",

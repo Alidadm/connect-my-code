@@ -392,7 +392,19 @@
     "unmute": "अनम्यूट करें",
     "subtitle": "अपने दोस्तों के साथ खेलें!",
     "playVsAI": "DolphySN के खिलाफ खेलें",
-    "inviteFriend": "मित्र को आमंत्रित करें"
+    "inviteFriend": "मित्र को आमंत्रित करें",
+    "you": "आप",
+    "aiThinking": "DolphySN सोच रहा है...",
+    "clickToPlay": "चाल चलने के लिए सेल पर क्लिक करें",
+    "waitingMove": "प्रतिद्वंद्वी की चाल का इंतज़ार...",
+    "notFound": "गेम नहीं मिला",
+    "playerX": "खिलाड़ी X",
+    "playerO": "खिलाड़ी O",
+    "score": "स्कोर",
+    "finalScore": "अंतिम स्कोर",
+    "waiting": "प्रतीक्षा कर रहा है...",
+    "acceptInvite": "आमंत्रण स्वीकार करें",
+    "opponentMoved": "आपके प्रतिद्वंद्वी ने चाल चली!"
   },
   "saved": {
     "title": "सहेजी गई पोस्ट",

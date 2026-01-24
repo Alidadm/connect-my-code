@@ -392,7 +392,19 @@
     "unmute": "ミュート解除",
     "subtitle": "友達とゲームを楽しもう！",
     "playVsAI": "DolphySNと対戦",
-    "inviteFriend": "友達を招待"
+    "inviteFriend": "友達を招待",
+    "you": "あなた",
+    "aiThinking": "DolphySNが考え中...",
+    "clickToPlay": "セルをクリックして手を打つ",
+    "waitingMove": "相手の手を待っています...",
+    "notFound": "ゲームが見つかりません",
+    "playerX": "プレイヤーX",
+    "playerO": "プレイヤーO",
+    "score": "スコア",
+    "finalScore": "最終スコア",
+    "waiting": "待機中...",
+    "acceptInvite": "招待を承認",
+    "opponentMoved": "相手が手を打ちました！"
   },
   "saved": {
     "title": "保存した投稿",
