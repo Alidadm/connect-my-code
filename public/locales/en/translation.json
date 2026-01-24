@@ -64,7 +64,8 @@
     "trending": "Trending",
     "recent": "Recent",
     "and": "and",
-    "saving": "Saving..."
+    "saving": "Saving...",
+    "goHome": "Go Home"
   },
   "header": {
     "myProfile": "My Profile",
@@ -207,7 +208,14 @@
     "changeAvatar": "Change avatar",
     "addFriend": "Add Friend",
     "favorite": "Favorite",
-    "message": "Message"
+    "message": "Message",
+    "editProfile": "Edit Profile",
+    "editCover": "Edit Cover",
+    "joined": "Joined",
+    "userNotFound": "User Not Found",
+    "userNotFoundDesc": "The user @{{username}} doesn't exist or may have changed their username.",
+    "more": "More options",
+    "reportUser": "Report user"
   },
   "account": {
     "title": "Account",
