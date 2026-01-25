@@ -31,7 +31,6 @@ import { useSavedGames } from "@/hooks/useSavedGames";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { FavoritesSection } from "./FavoritesSection";
-import { TodaysBirthdays } from "@/components/feed/TodaysBirthdays";
 import type { TFunction } from "i18next";
 
 const formatTime = (seconds: number): string => {
@@ -151,9 +150,6 @@ export const LeftSidebar = () => {
             </div>
           </div>
         </div>
-
-        {/* Today's Birthdays - visible on all pages */}
-        <TodaysBirthdays />
 
         {/* Navigation */}
         <nav className="bg-card rounded-xl p-2 mb-4 border border-border sidebar-widget-border">
