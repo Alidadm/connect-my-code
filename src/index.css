@@ -128,7 +128,7 @@
   /* Sidebar widget gradient left border */
   .sidebar-widget-border {
     border-left: 2px solid;
-    border-image: linear-gradient(to bottom, #5682e8, rgba(255,255,255,0)) 1 100%;
+    border-image: linear-gradient(to bottom, white 0%, #5682e8 50%, white 100%) 1 100%;
   }
 
   .story-ring {
