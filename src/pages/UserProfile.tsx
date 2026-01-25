@@ -114,10 +114,12 @@ const UserProfile = () => {
     queryKey: ["user-posts", profile?.user_id],
     queryFn: async () => {
       if (!profile?.user_id) return [];
+      
+      // Fetch posts where user is the author OR posts made on their wall
       const { data, error } = await supabase
         .from("posts")
         .select("*")
-        .eq("user_id", profile.user_id)
+        .or(`user_id.eq.${profile.user_id},wall_user_id.eq.${profile.user_id}`)
         .order("created_at", { ascending: false });
       
       if (error) throw error;
