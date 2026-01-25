@@ -98,7 +98,13 @@ export const LeftSidebar = () => {
       <div className="fixed w-[280px] h-[calc(100vh-64px)] overflow-y-auto scrollbar-hide pt-4 pb-8 pr-2">
         {/* Profile Card */}
         <div className="bg-card rounded-xl p-4 mb-4 border border-border sidebar-widget-border">
-          <div className="flex items-center gap-3 mb-4">
+          <div 
+            className={cn(
+              "flex items-center gap-3 mb-4",
+              user && "cursor-pointer hover:bg-secondary/50 -mx-2 px-2 py-1.5 rounded-lg transition-colors"
+            )}
+            onClick={() => user && navigate(`/profile/${user.id}`)}
+          >
             <Avatar className="h-12 w-12">
               {profile?.avatar_url ? (
                 <AvatarImage src={profile.avatar_url} />
@@ -112,7 +118,10 @@ export const LeftSidebar = () => {
             </Avatar>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1">
-                <span className="font-semibold text-foreground truncate">
+                <span className={cn(
+                  "font-semibold text-foreground truncate",
+                  user && "hover:underline"
+                )}>
                   {displayName}
                 </span>
                 {isVerified && (
