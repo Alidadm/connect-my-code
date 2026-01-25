@@ -55,13 +55,12 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    // Get today's date in MM-DD format for birthday matching
+    // Get today's date for birthday matching
     const today = new Date();
-    const todayMonth = String(today.getMonth() + 1).padStart(2, '0');
-    const todayDay = String(today.getDate()).padStart(2, '0');
-    const birthdayPattern = `%-${todayMonth}-${todayDay}`;
+    const todayMonth = today.getMonth() + 1; // 1-12
+    const todayDay = today.getDate(); // 1-31
 
-    logStep("Birthday pattern", { pattern: birthdayPattern });
+    logStep("Today's date", { month: todayMonth, day: todayDay });
 
     // Get accepted friendships
     const { data: friendships, error: friendshipsError } = await supabaseAdmin
@@ -92,12 +91,12 @@ serve(async (req) => {
 
     logStep("Friend IDs", { count: friendIds.length });
 
-    // Get friends with birthdays today from profiles_private (using service role)
-    const { data: birthdayUsers, error: birthdayError } = await supabaseAdmin
+    // Get all friends' birthdays from profiles_private (using service role)
+    const { data: allFriendsBirthdays, error: birthdayError } = await supabaseAdmin
       .from("profiles_private")
       .select("user_id, birthday")
       .in("user_id", friendIds)
-      .like("birthday", birthdayPattern);
+      .not("birthday", "is", null);
 
     if (birthdayError) {
       logStep("Birthday query error", { error: birthdayError.message });
@@ -106,6 +105,19 @@ serve(async (req) => {
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
       );
     }
+
+    // Filter to find friends with birthdays today (comparing month and day)
+    const birthdayUsers = (allFriendsBirthdays || []).filter(user => {
+      if (!user.birthday) return false;
+      // Birthday is stored as YYYY-MM-DD string
+      const parts = user.birthday.split('-');
+      if (parts.length < 3) return false;
+      const birthMonth = parseInt(parts[1], 10);
+      const birthDay = parseInt(parts[2], 10);
+      return birthMonth === todayMonth && birthDay === todayDay;
+    });
+
+    logStep("Filtered birthday users", { count: birthdayUsers.length });
 
     if (!birthdayUsers || birthdayUsers.length === 0) {
       logStep("No friends with birthdays today");
