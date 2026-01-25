@@ -125,6 +125,12 @@
     background: linear-gradient(135deg, hsl(var(--dolphy-gradient-start)), hsl(var(--dolphy-gradient-end)));
   }
 
+  /* Sidebar widget gradient left border */
+  .sidebar-widget-border {
+    border-left: 2px solid;
+    border-image: linear-gradient(to bottom, #5682e8, rgba(255,255,255,0)) 1 100%;
+  }
+
   .story-ring {
     background: linear-gradient(135deg, hsl(var(--dolphy-blue)), hsl(var(--dolphy-purple)));
   }

@@ -94,7 +94,7 @@ export const FavoritesSection = () => {
 
   if (loading) {
     return (
-      <div className="bg-card rounded-xl p-4 border border-border">
+      <div className="bg-card rounded-xl p-4 border border-border sidebar-widget-border">
         <div className="flex items-center gap-2 mb-3">
           <Star className="h-4 w-4 text-yellow-500" />
           <Skeleton className="h-4 w-20" />
@@ -114,7 +114,7 @@ export const FavoritesSection = () => {
   if (favorites.length === 0) return null;
 
   return (
-    <div className="bg-card rounded-xl p-4 border border-border">
+    <div className="bg-card rounded-xl p-4 border border-border sidebar-widget-border">
       <button
         onClick={() => setExpanded(!expanded)}
         className="flex items-center justify-between w-full mb-3"
