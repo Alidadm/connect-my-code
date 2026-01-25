@@ -32,49 +32,29 @@ export const TodaysBirthdays = () => {
 
     const fetchBirthdayFriends = async () => {
       try {
-        // Get today's date in MM-DD format
-        const today = new Date();
-        const todayMonth = String(today.getMonth() + 1).padStart(2, '0');
-        const todayDay = String(today.getDate()).padStart(2, '0');
-        const birthdayPattern = `%-${todayMonth}-${todayDay}`;
-
-        // Get accepted friendships
-        const { data: friendships } = await supabase
-          .from("friendships")
-          .select("requester_id, addressee_id")
-          .or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`)
-          .eq("status", "accepted");
-
-        if (!friendships || friendships.length === 0) {
+        // Call edge function to get friends with birthdays today
+        // This uses service role to access profiles_private table
+        const { data: session } = await supabase.auth.getSession();
+        
+        if (!session?.session?.access_token) {
           setLoading(false);
           return;
         }
 
-        const friendIds = friendships.map(f => 
-          f.requester_id === user.id ? f.addressee_id : f.requester_id
-        );
+        const response = await supabase.functions.invoke("get-friends-birthdays", {
+          headers: {
+            Authorization: `Bearer ${session.session.access_token}`,
+          },
+        });
 
-        // Get friends with birthdays today from profiles_private
-        const { data: birthdayUsers } = await supabase
-          .from("profiles_private")
-          .select("user_id, birthday")
-          .in("user_id", friendIds)
-          .like("birthday", birthdayPattern);
-
-        if (!birthdayUsers || birthdayUsers.length === 0) {
+        if (response.error) {
+          console.error("Error fetching birthday friends:", response.error);
           setLoading(false);
           return;
         }
 
-        const birthdayUserIds = birthdayUsers.map(u => u.user_id);
-
-        // Get profile details for birthday friends
-        const { data: profiles } = await supabase
-          .from("profiles")
-          .select("user_id, display_name, avatar_url, username")
-          .in("user_id", birthdayUserIds);
-
-        setBirthdayFriends(profiles || []);
+        const friends = response.data?.friends || [];
+        setBirthdayFriends(friends);
       } catch (error) {
         console.error("Error fetching birthday friends:", error);
       } finally {
