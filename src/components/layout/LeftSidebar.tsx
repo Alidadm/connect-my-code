@@ -143,27 +143,7 @@ export const LeftSidebar = () => {
         </div>
 
         {/* Navigation */}
-        <nav className="bg-card rounded-xl mb-4 border border-border sidebar-widget-border overflow-hidden">
-          {/* Wave Header */}
-          <div className="relative h-10 bg-gradient-to-r from-[#0066cc] via-[#3399ff] to-[#0077dd]">
-            <svg 
-              className="absolute bottom-0 left-0 w-full" 
-              viewBox="0 0 280 20" 
-              preserveAspectRatio="none"
-              style={{ height: '20px' }}
-            >
-              <path 
-                d="M0,20 Q70,5 140,12 T280,8 L280,20 Z" 
-                fill="hsl(var(--card))"
-              />
-              <path 
-                d="M0,20 Q70,8 140,14 T280,10 L280,20 Z" 
-                fill="hsl(var(--card))"
-                opacity="0.5"
-              />
-            </svg>
-          </div>
-          <div className="p-2">
+        <nav className="bg-card rounded-xl p-2 mb-4 border border-border sidebar-widget-border">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
@@ -189,7 +169,6 @@ export const LeftSidebar = () => {
               </Button>
             );
           })}
-          </div>
         </nav>
 
         {/* Favorites Section */}
