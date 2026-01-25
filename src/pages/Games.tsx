@@ -16,6 +16,9 @@ import { MemoryMatchStats } from "@/components/games/MemoryMatchStats";
 import { GameSoundSettingsProvider, useGameSoundSettings } from "@/hooks/useGameSoundSettings";
 import { useGameSidebarVisibility } from "@/hooks/useGameSidebarVisibility";
 import { Gamepad2, Plus, Clock, Trophy, Users, Loader2, History, Grid3X3, LayoutGrid, Volume2, VolumeX, Hash, Sidebar, SidebarClose } from "lucide-react";
+import tictactoePreview from "@/assets/games/tictactoe-preview.png";
+import memoryPreview from "@/assets/games/memory-preview.png";
+import sudokuPreview from "@/assets/games/sudoku-preview.png";
 import { useTranslation } from "react-i18next";
 import { SudokuGame } from "@/components/games/SudokuGame";
 import { SudokuStats } from "@/components/games/SudokuStats";
@@ -558,29 +561,38 @@ const GamesContent = () => {
           </Button>
         </div>
 
-        {/* Game Type Selector */}
-        <div className="flex flex-wrap gap-2">
-          <div className="flex items-center gap-1">
-            <Button
-              variant={activeGameType === "tictactoe" ? "default" : "outline"}
+        {/* Game Type Selector with Preview Images */}
+        <div className="flex flex-wrap gap-4 justify-center sm:justify-start">
+          <div className="flex flex-col items-center gap-2">
+            <button
               onClick={() => setActiveGameType("tictactoe")}
-              className="gap-2"
+              className={`relative group flex flex-col items-center p-3 rounded-xl border-2 transition-all ${
+                activeGameType === "tictactoe"
+                  ? "border-primary bg-primary/10 shadow-md"
+                  : "border-border hover:border-primary/50 hover:bg-accent"
+              }`}
             >
-              <Grid3X3 className="w-4 h-4" />
-              {t("games.ticTacToe.title", { defaultValue: "Tic-Tac-Toe" })}
-            </Button>
+              <img 
+                src={tictactoePreview} 
+                alt="Tic-Tac-Toe" 
+                className="w-16 h-16 sm:w-20 sm:h-20 object-contain rounded-lg"
+              />
+              <span className={`mt-2 text-sm font-medium ${activeGameType === "tictactoe" ? "text-primary" : "text-foreground"}`}>
+                {t("games.ticTacToe.title", { defaultValue: "Tic-Tac-Toe" })}
+              </span>
+            </button>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8"
+                  className="h-6 w-6"
                   onClick={() => toggleGame("tictactoe")}
                 >
                   {visibility.tictactoe ? (
-                    <Sidebar className="w-4 h-4 text-primary" />
+                    <Sidebar className="w-3 h-3 text-primary" />
                   ) : (
-                    <SidebarClose className="w-4 h-4 text-muted-foreground" />
+                    <SidebarClose className="w-3 h-3 text-muted-foreground" />
                   )}
                 </Button>
               </TooltipTrigger>
@@ -592,27 +604,37 @@ const GamesContent = () => {
               </TooltipContent>
             </Tooltip>
           </div>
-          <div className="flex items-center gap-1">
-            <Button
-              variant={activeGameType === "memory" ? "default" : "outline"}
+
+          <div className="flex flex-col items-center gap-2">
+            <button
               onClick={() => setActiveGameType("memory")}
-              className="gap-2"
+              className={`relative group flex flex-col items-center p-3 rounded-xl border-2 transition-all ${
+                activeGameType === "memory"
+                  ? "border-primary bg-primary/10 shadow-md"
+                  : "border-border hover:border-primary/50 hover:bg-accent"
+              }`}
             >
-              <LayoutGrid className="w-4 h-4" />
-              {t("games.memoryMatch.title", { defaultValue: "Memory Match" })}
-            </Button>
+              <img 
+                src={memoryPreview} 
+                alt="Memory Match" 
+                className="w-16 h-16 sm:w-20 sm:h-20 object-contain rounded-lg"
+              />
+              <span className={`mt-2 text-sm font-medium ${activeGameType === "memory" ? "text-primary" : "text-foreground"}`}>
+                {t("games.memoryMatch.title", { defaultValue: "Memory Match" })}
+              </span>
+            </button>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8"
+                  className="h-6 w-6"
                   onClick={() => toggleGame("memory")}
                 >
                   {visibility.memory ? (
-                    <Sidebar className="w-4 h-4 text-primary" />
+                    <Sidebar className="w-3 h-3 text-primary" />
                   ) : (
-                    <SidebarClose className="w-4 h-4 text-muted-foreground" />
+                    <SidebarClose className="w-3 h-3 text-muted-foreground" />
                   )}
                 </Button>
               </TooltipTrigger>
@@ -624,27 +646,37 @@ const GamesContent = () => {
               </TooltipContent>
             </Tooltip>
           </div>
-          <div className="flex items-center gap-1">
-            <Button
-              variant={activeGameType === "sudoku" ? "default" : "outline"}
+
+          <div className="flex flex-col items-center gap-2">
+            <button
               onClick={() => setActiveGameType("sudoku")}
-              className="gap-2"
+              className={`relative group flex flex-col items-center p-3 rounded-xl border-2 transition-all ${
+                activeGameType === "sudoku"
+                  ? "border-primary bg-primary/10 shadow-md"
+                  : "border-border hover:border-primary/50 hover:bg-accent"
+              }`}
             >
-              <Hash className="w-4 h-4" />
-              {t("games.sudoku.title", { defaultValue: "Sudoku" })}
-            </Button>
+              <img 
+                src={sudokuPreview} 
+                alt="Sudoku" 
+                className="w-16 h-16 sm:w-20 sm:h-20 object-contain rounded-lg"
+              />
+              <span className={`mt-2 text-sm font-medium ${activeGameType === "sudoku" ? "text-primary" : "text-foreground"}`}>
+                {t("games.sudoku.title", { defaultValue: "Sudoku" })}
+              </span>
+            </button>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8"
+                  className="h-6 w-6"
                   onClick={() => toggleGame("sudoku")}
                 >
                   {visibility.sudoku ? (
-                    <Sidebar className="w-4 h-4 text-primary" />
+                    <Sidebar className="w-3 h-3 text-primary" />
                   ) : (
-                    <SidebarClose className="w-4 h-4 text-muted-foreground" />
+                    <SidebarClose className="w-3 h-3 text-muted-foreground" />
                   )}
                 </Button>
               </TooltipTrigger>
