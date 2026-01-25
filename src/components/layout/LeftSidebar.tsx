@@ -103,7 +103,7 @@ export const LeftSidebar = () => {
               "flex items-center gap-3 mb-4",
               user && "cursor-pointer hover:bg-secondary/50 -mx-2 px-2 py-1.5 rounded-lg transition-colors"
             )}
-            onClick={() => user && navigate(`/profile/${user.id}`)}
+            onClick={() => user && navigate(`/${username}`)}
           >
             <Avatar className="h-12 w-12">
               {profile?.avatar_url ? (
