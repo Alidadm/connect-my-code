@@ -94,16 +94,10 @@ export const LeftSidebar = () => {
   const navItems = getNavItems(t, gameBadge);
 
   return (
-    <aside 
-      className="w-[280px] flex-shrink-0 hidden lg:block"
-      style={{
-        borderRight: '1px solid',
-        borderImage: 'linear-gradient(to bottom, #5682e8, rgba(255,255,255,0)) 1 100%'
-      }}
-    >
+    <aside className="w-[280px] flex-shrink-0 hidden lg:block">
       <div className="fixed w-[280px] h-[calc(100vh-64px)] overflow-y-auto scrollbar-hide pt-4 pb-8 pr-2">
         {/* Profile Card */}
-        <div className="bg-card rounded-xl p-4 mb-4 border border-border">
+        <div className="bg-card rounded-xl p-4 mb-4 border border-border sidebar-widget-border">
           <div className="flex items-center gap-3 mb-4">
             <Avatar className="h-12 w-12">
               {profile?.avatar_url ? (
@@ -149,7 +143,7 @@ export const LeftSidebar = () => {
         </div>
 
         {/* Navigation */}
-        <nav className="bg-card rounded-xl p-2 mb-4 border border-border">
+        <nav className="bg-card rounded-xl p-2 mb-4 border border-border sidebar-widget-border">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
@@ -184,7 +178,7 @@ export const LeftSidebar = () => {
 
         {/* Continue Playing - Show saved games */}
         {user && savedSudokuGames.length > 0 && (
-          <div className="bg-card rounded-xl p-4 border border-border mb-4">
+          <div className="bg-card rounded-xl p-4 border border-border mb-4 sidebar-widget-border">
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
               <Play className="h-3.5 w-3.5" />
               {t("sidebar.continuePlaying", { defaultValue: "Continue Playing" })}
@@ -240,7 +234,7 @@ export const LeftSidebar = () => {
         {/* Business Card - Show only if user has enabled business */}
         {user && userBusiness?.is_enabled && (
           <div 
-            className="bg-card rounded-xl overflow-hidden border border-border mb-4 cursor-pointer hover:border-primary/50 transition-colors"
+            className="bg-card rounded-xl overflow-hidden border border-border mb-4 cursor-pointer hover:border-primary/50 transition-colors sidebar-widget-border"
             onClick={() => navigate(`/business/${userBusiness.id}`)}
           >
             {/* Cover */}
@@ -307,7 +301,7 @@ export const LeftSidebar = () => {
 
         {/* Your Groups - Show groups or create button */}
         {user && (
-          <div className="bg-card rounded-xl p-4 border border-border mb-4">
+          <div className="bg-card rounded-xl p-4 border border-border mb-4 sidebar-widget-border">
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
               {t("sidebar.yourGroups")}
             </h3>
@@ -376,7 +370,7 @@ export const LeftSidebar = () => {
 
         {/* Groups You Like - Only show if user has joined groups */}
         {user && userGroups?.joinedGroups && userGroups.joinedGroups.length > 0 && (
-          <div className="bg-card rounded-xl p-4 border border-border">
+          <div className="bg-card rounded-xl p-4 border border-border sidebar-widget-border">
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
               {t("sidebar.groupsYouLike", { defaultValue: "Groups You Like" })}
             </h3>
