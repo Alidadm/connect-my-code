@@ -8,6 +8,7 @@ import { Cake, Gift, MessageCircle, ChevronLeft, ChevronRight } from "lucide-rea
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import confetti from "canvas-confetti";
+import { SendBirthdayWishDialog } from "@/components/birthday/SendBirthdayWishDialog";
 
 interface BirthdayFriend {
   user_id: string;
@@ -23,6 +24,7 @@ export const TodaysBirthdays = () => {
   const [birthdayFriends, setBirthdayFriends] = useState<BirthdayFriend[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [wishDialogOpen, setWishDialogOpen] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -80,10 +82,8 @@ export const TodaysBirthdays = () => {
     }
   };
 
-  const handleSendMessage = (username: string | null) => {
-    if (username) {
-      navigate(`/${username}?action=message`);
-    }
+  const handleSendMessage = () => {
+    setWishDialogOpen(true);
   };
 
   const nextBirthday = () => {
@@ -180,7 +180,7 @@ export const TodaysBirthdays = () => {
           variant="outline"
           size="sm"
           className="flex-1"
-          onClick={() => handleSendMessage(currentFriend.username)}
+          onClick={handleSendMessage}
         >
           <MessageCircle className="h-4 w-4 mr-2" />
           {t("feed.sendWish", "Send Wish")}
@@ -206,6 +206,13 @@ export const TodaysBirthdays = () => {
           ))}
         </div>
       )}
+
+      {/* Birthday Wish Dialog */}
+      <SendBirthdayWishDialog
+        open={wishDialogOpen}
+        onOpenChange={setWishDialogOpen}
+        friend={currentFriend}
+      />
     </Card>
   );
 };
