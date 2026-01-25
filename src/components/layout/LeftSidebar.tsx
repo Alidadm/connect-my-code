@@ -94,7 +94,13 @@ export const LeftSidebar = () => {
   const navItems = getNavItems(t, gameBadge);
 
   return (
-    <aside className="w-[280px] flex-shrink-0 hidden lg:block">
+    <aside 
+      className="w-[280px] flex-shrink-0 hidden lg:block"
+      style={{
+        borderRight: '1px solid',
+        borderImage: 'linear-gradient(to bottom, #5682e8, rgba(255,255,255,0)) 1 100%'
+      }}
+    >
       <div className="fixed w-[280px] h-[calc(100vh-64px)] overflow-y-auto scrollbar-hide pt-4 pb-8 pr-2">
         {/* Profile Card */}
         <div className="bg-card rounded-xl p-4 mb-4 border border-border">
