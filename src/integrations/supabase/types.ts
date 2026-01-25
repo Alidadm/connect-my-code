@@ -1861,6 +1861,7 @@ export type Database = {
           updated_at: string
           user_id: string
           visibility: string | null
+          wall_user_id: string | null
           youtube_urls: string[] | null
         }
         Insert: {
@@ -1876,6 +1877,7 @@ export type Database = {
           updated_at?: string
           user_id: string
           visibility?: string | null
+          wall_user_id?: string | null
           youtube_urls?: string[] | null
         }
         Update: {
@@ -1891,6 +1893,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
           visibility?: string | null
+          wall_user_id?: string | null
           youtube_urls?: string[] | null
         }
         Relationships: []

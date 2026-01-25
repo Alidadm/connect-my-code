@@ -56,11 +56,12 @@ export function SendBirthdayWishDialog({
 
     setLoading(true);
     try {
-      // Create a post with the birthday wish
+      // Create a post with the birthday wish on the friend's wall
       const { error } = await supabase.from("posts").insert({
         user_id: user.id,
         content: message.trim(),
         visibility: "public",
+        wall_user_id: friend.user_id, // Post to friend's wall
       });
 
       if (error) throw error;
