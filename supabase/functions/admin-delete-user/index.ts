@@ -58,6 +58,12 @@ serve(async (req) => {
 
     for (const userId of userIds) {
       try {
+        // 0. Remove this user as a referrer from any profiles that reference them
+        await supabaseClient
+          .from("profiles")
+          .update({ referrer_id: null })
+          .eq("referrer_id", userId);
+
         // 1. Get user's active subscriptions from database
         const { data: subscriptions } = await supabaseClient
           .from("subscriptions")
