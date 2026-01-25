@@ -108,37 +108,149 @@ serve(async (req) => {
           await supabaseClient.from("post_likes").delete().in("post_id", postIds);
           await supabaseClient.from("post_comments").delete().in("post_id", postIds);
           await supabaseClient.from("post_reactions").delete().in("post_id", postIds);
+          await supabaseClient.from("post_preferences").delete().in("post_id", postIds);
+          await supabaseClient.from("bookmarks").delete().in("post_id", postIds);
+          await supabaseClient.from("hidden_posts").delete().in("post_id", postIds);
+          await supabaseClient.from("post_reports").delete().in("post_id", postIds);
         }
 
-        // Now delete all user data
-        await Promise.allSettled([
-          supabaseClient.from("posts").delete().eq("user_id", userId),
-          supabaseClient.from("post_likes").delete().eq("user_id", userId),
-          supabaseClient.from("post_comments").delete().eq("user_id", userId),
-          supabaseClient.from("post_reactions").delete().eq("user_id", userId),
-          supabaseClient.from("stories").delete().eq("user_id", userId),
-          supabaseClient.from("story_views").delete().eq("viewer_id", userId),
-          supabaseClient.from("messages").delete().or(`sender_id.eq.${userId},receiver_id.eq.${userId}`),
-          supabaseClient.from("friendships").delete().or(`requester_id.eq.${userId},addressee_id.eq.${userId}`),
-          supabaseClient.from("event_rsvps").delete().eq("user_id", userId),
-          supabaseClient.from("phone_verification_codes").delete().eq("user_id", userId),
-          supabaseClient.from("commissions").delete().eq("referrer_id", userId),
-          supabaseClient.from("subscriptions").delete().eq("user_id", userId),
-          supabaseClient.from("user_roles").delete().eq("user_id", userId),
-          supabaseClient.from("profiles_private").delete().eq("user_id", userId),
-          supabaseClient.from("blogs").delete().eq("author_id", userId),
-          supabaseClient.from("profiles").delete().eq("user_id", userId),
-        ]);
+        // Get user's blogs to delete related records
+        const { data: userBlogs } = await supabaseClient
+          .from("blogs")
+          .select("id")
+          .eq("user_id", userId);
+        
+        const blogIds = userBlogs?.map(b => b.id) || [];
+        if (blogIds.length > 0) {
+          await supabaseClient.from("blog_likes").delete().in("blog_id", blogIds);
+          await supabaseClient.from("blog_comments").delete().in("blog_id", blogIds);
+          await supabaseClient.from("blog_blocks").delete().in("blog_id", blogIds);
+          await supabaseClient.from("blog_tag_mappings").delete().in("blog_id", blogIds);
+        }
 
-        // 5. Delete the auth user
+        // Get user's custom lists to delete members
+        const { data: userLists } = await supabaseClient
+          .from("custom_lists")
+          .select("id")
+          .eq("user_id", userId);
+        
+        const listIds = userLists?.map(l => l.id) || [];
+        if (listIds.length > 0) {
+          await supabaseClient.from("custom_list_members").delete().in("list_id", listIds);
+        }
+
+        // Get user's bookmark collections
+        const { data: userCollections } = await supabaseClient
+          .from("bookmark_collections")
+          .select("id")
+          .eq("user_id", userId);
+        
+        const collectionIds = userCollections?.map(c => c.id) || [];
+        if (collectionIds.length > 0) {
+          await supabaseClient.from("bookmarks").delete().in("collection_id", collectionIds);
+        }
+
+        // Delete all user data in order (most dependent first)
+        const tablesToDelete = [
+          // Post-related
+          { table: "post_likes", column: "user_id" },
+          { table: "post_comments", column: "user_id" },
+          { table: "post_reactions", column: "user_id" },
+          { table: "post_comment_likes", column: "user_id" },
+          { table: "post_preferences", column: "user_id" },
+          { table: "post_reports", column: "user_id" },
+          { table: "posts", column: "user_id" },
+          // Blog-related
+          { table: "blog_likes", column: "user_id" },
+          { table: "blog_comments", column: "user_id" },
+          { table: "blogs", column: "user_id" },
+          // Social
+          { table: "stories", column: "user_id" },
+          { table: "story_views", column: "viewer_id" },
+          { table: "messages", column: "sender_id" },
+          { table: "messages", column: "receiver_id" },
+          { table: "friendships", column: "requester_id" },
+          { table: "friendships", column: "addressee_id" },
+          { table: "blocked_users", column: "user_id" },
+          { table: "blocked_users", column: "blocked_user_id" },
+          { table: "muted_users", column: "user_id" },
+          { table: "muted_users", column: "muted_user_id" },
+          // Groups
+          { table: "group_post_likes", column: "user_id" },
+          { table: "group_post_comments", column: "user_id" },
+          { table: "group_comment_likes", column: "user_id" },
+          { table: "group_posts", column: "user_id" },
+          { table: "group_members", column: "user_id" },
+          { table: "group_join_requests", column: "user_id" },
+          { table: "group_announcements", column: "user_id" },
+          // Events
+          { table: "event_rsvps", column: "user_id" },
+          { table: "events", column: "creator_id" },
+          // Saved items
+          { table: "bookmarks", column: "user_id" },
+          { table: "bookmark_collections", column: "user_id" },
+          { table: "hidden_posts", column: "user_id" },
+          // User settings and verification
+          { table: "user_favorites", column: "user_id" },
+          { table: "user_settings", column: "user_id" },
+          { table: "user_interests", column: "user_id" },
+          { table: "privacy_settings", column: "user_id" },
+          { table: "phone_verification_codes", column: "user_id" },
+          { table: "email_verification_codes", column: "user_id" },
+          { table: "password_reset_codes", column: "user_id" },
+          // Family
+          { table: "family_members", column: "user_id" },
+          { table: "family_members", column: "family_member_id" },
+          // Business and Pages
+          { table: "businesses", column: "user_id" },
+          { table: "page_followers", column: "user_id" },
+          { table: "pages", column: "owner_id" },
+          // Lists
+          { table: "custom_list_members", column: "member_user_id" },
+          { table: "custom_lists", column: "user_id" },
+          // Games
+          { table: "sudoku_stats", column: "user_id" },
+          // Video tracking
+          { table: "viewed_short_videos", column: "user_id" },
+          { table: "viewed_youtube_videos", column: "user_id" },
+          // Presence
+          { table: "user_presence", column: "user_id" },
+          // Birthday wishes
+          { table: "scheduled_birthday_wishes", column: "user_id" },
+          // Commission and subscription related
+          { table: "pending_commission_notifications", column: "referrer_id" },
+          { table: "withdrawal_requests", column: "user_id" },
+          { table: "commissions", column: "referrer_id" },
+          { table: "commissions", column: "referred_user_id" },
+          { table: "subscriptions", column: "user_id" },
+          { table: "user_roles", column: "user_id" },
+          // Profile related (delete last)
+          { table: "profile_details", column: "user_id" },
+          { table: "profiles_private", column: "user_id" },
+          { table: "profiles", column: "user_id" },
+        ];
+
+        for (const { table, column } of tablesToDelete) {
+          try {
+            await supabaseClient.from(table).delete().eq(column, userId);
+          } catch (e: any) {
+            console.log(`Note: Could not delete from ${table}.${column}: ${e.message}`);
+          }
+        }
+
+        // 5. Delete the auth user - this is the critical step
         const { error: deleteAuthError } = await supabaseClient.auth.admin.deleteUser(userId);
         
         if (deleteAuthError) {
           console.error(`Failed to delete auth user ${userId}: ${deleteAuthError.message}`);
+          // Mark as failure since the auth user still exists
+          // Note: Related data was already deleted above, but the auth user remains
+          results.push({ userId, success: false, error: `Auth deletion failed: ${deleteAuthError.message}` });
+          console.log(`Failed to fully delete user: ${userId} - auth record remains`);
+        } else {
+          results.push({ userId, success: true });
+          console.log(`Successfully deleted user: ${userId}`);
         }
-
-        results.push({ userId, success: true });
-        console.log(`Successfully deleted user: ${userId}`);
       } catch (userError: any) {
         console.error(`Error deleting user ${userId}:`, userError);
         results.push({ userId, success: false, error: userError.message });
