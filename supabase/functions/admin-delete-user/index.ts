@@ -238,8 +238,11 @@ serve(async (req) => {
           }
         }
 
-        // 5. Delete the auth user - this is the critical step
-        const { error: deleteAuthError } = await supabaseClient.auth.admin.deleteUser(userId);
+        // 5. Delete the auth user with shouldSoftDelete=false to force hard delete
+        const { error: deleteAuthError } = await supabaseClient.auth.admin.deleteUser(
+          userId,
+          false  // shouldSoftDelete = false forces immediate hard delete
+        );
         
         if (deleteAuthError) {
           console.error(`Failed to delete auth user ${userId}: ${deleteAuthError.message}`);
