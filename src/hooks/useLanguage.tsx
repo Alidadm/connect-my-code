@@ -68,10 +68,6 @@ export const useLanguage = () => {
         // 5. Dispatch custom event for any components that need to manually respond
         window.dispatchEvent(new CustomEvent("languageChanged", { detail: langCode }));
 
-        // 6. Force a full reload to avoid any stale, partially-translated UI
-        // (e.g., labels computed outside React render scope).
-        window.location.reload();
-
         return true;
       } catch (error) {
         console.error("Failed to change language:", error);
