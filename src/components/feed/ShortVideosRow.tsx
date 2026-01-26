@@ -129,11 +129,11 @@ export const ShortVideosRow = () => {
 
       Swal.fire({
         html: `
-          <div class="short-video-container" style="position: relative; width: 100%; height: 85vh; max-height: 800px; border-radius: 8px; overflow: hidden;">
+          <div class="short-video-container" style="position: relative; width: 100%; height: 92vh; max-height: 900px; border-radius: 6px; overflow: hidden;">
             ${contentHtml}
           </div>
-          <div style="display: flex; justify-content: center; margin-top: 8px;">
-            <span style="color: #666; font-size: 13px;">${currentIndex + 1} / ${playerVideos.length}</span>
+          <div style="display: flex; justify-content: center; margin-top: 4px;">
+            <span style="color: #888; font-size: 10px;">${currentIndex + 1} / ${playerVideos.length}</span>
           </div>
         `,
         showConfirmButton: false,

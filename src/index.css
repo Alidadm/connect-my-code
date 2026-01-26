@@ -188,9 +188,9 @@
 /* Short video popup specific styling - clean, minimal */
 .swal2-popup.short-video-popup {
   border: 1px solid hsl(var(--border)) !important;
-  padding: 8px !important;
+  padding: 1px !important;
   background: hsl(var(--card)) !important;
-  border-radius: 12px !important;
+  border-radius: 8px !important;
 }
 
 .swal2-title {
