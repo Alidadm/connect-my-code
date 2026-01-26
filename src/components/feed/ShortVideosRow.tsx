@@ -129,18 +129,18 @@ export const ShortVideosRow = () => {
 
       Swal.fire({
         html: `
-          <div class="short-video-container" style="position: relative; width: 100%; height: 92vh; max-height: 900px; border-radius: 6px; overflow: hidden;">
+          <div class="short-video-container" style="position: relative; width: 100vw; height: 100vh; overflow: hidden; background: #000;">
             ${contentHtml}
-          </div>
-          <div style="display: flex; justify-content: center; margin-top: 4px;">
-            <span style="color: #888; font-size: 10px;">${currentIndex + 1} / ${playerVideos.length}</span>
+            <div style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(12px); padding: 6px 16px; border-radius: 20px; z-index: 99999; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
+              <span style="color: #fff; font-size: 13px; font-weight: 600; letter-spacing: 0.5px;">${currentIndex + 1} / ${playerVideos.length}</span>
+            </div>
           </div>
         `,
         showConfirmButton: false,
         showCloseButton: true,
-        width: "400px",
+        width: "100vw",
         padding: 0,
-        background: "transparent",
+        background: "rgba(0, 0, 0, 0.95)",
         customClass: {
           popup: "short-video-popup",
           closeButton: "short-video-close-btn",
