@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { MessageCircle, Share2, MoreVertical, Bookmark, FileText, Music, Pencil, Trash2, Copy, Facebook, Twitter, Link2, Check, Ban, VolumeX, Volume2, UserX, Megaphone, Youtube, Play, Eye, ThumbsUp, ThumbsDown, EyeOff, BookmarkPlus, Flag } from "lucide-react";
+import { MessageCircle, Share2, MoreVertical, Bookmark, FileText, Music, Pencil, Trash2, Copy, Facebook, Twitter, Link2, Check, Ban, VolumeX, Volume2, UserX, Megaphone, Play, ThumbsUp, ThumbsDown, EyeOff, BookmarkPlus, Flag } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,7 @@ import { CommentSection } from "./CommentSection";
 import { ReactionPicker } from "./ReactionPicker";
 import { MasonryPhotoGrid } from "./MasonryPhotoGrid";
 import { useBlockMute } from "@/hooks/useBlockMute";
-import { useViewedVideos } from "@/hooks/useViewedVideos";
+
 import Swal from "sweetalert2";
 import ReactDOMServer from "react-dom/server";
 
@@ -59,7 +59,6 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
 
   const isOwner = user?.id === post.user_id;
   const { isBlocked, isMuted, blockUser, muteUser, loading: blockMuteLoading } = useBlockMute(post.user_id);
-  const { isVideoViewed, markVideoAsViewed } = useViewedVideos();
   
   const fullName = post.profiles?.display_name || post.profiles?.username || t('common.user', 'User');
   const authorFirstName = fullName.split(' ')[0];
@@ -617,50 +616,6 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
     return "document";
   };
 
-  // YouTube helper functions
-  const extractYoutubeVideoId = (url: string): string | null => {
-    const patterns = [
-      /(?:youtube\.com|youtu\.be)\/watch\?v=([^&\s?#]+)/i,
-      /youtu\.be\/([^&\s?#]+)/i,
-      /(?:youtube\.com|youtu\.be)\/embed\/([^&\s?#]+)/i,
-      /(?:youtube\.com|youtu\.be)\/v\/([^&\s?#]+)/i,
-      /(?:youtube\.com|youtu\.be)\/shorts\/([^&\s?#]+)/i,
-      /(?:youtube\.com)\/live\/([^&\s?#]+)/i,
-      /[?&]v=([^&\s?#]+)/i
-    ];
-    for (const pattern of patterns) {
-      const match = url.match(pattern);
-      if (match) return match[1];
-    }
-    return null;
-  };
-
-  const handleYoutubeClick = (url: string) => {
-    const videoId = extractYoutubeVideoId(url);
-    if (!videoId) return;
-    
-    // Mark video as viewed when user clicks to watch
-    markVideoAsViewed(videoId);
-    
-    Swal.fire({
-      html: `<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;">
-        <iframe 
-          src="https://www.youtube.com/embed/${videoId}?autoplay=1" 
-          style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-          allowfullscreen
-        ></iframe>
-      </div>`,
-      width: '80%',
-      showCloseButton: true,
-      showConfirmButton: false,
-      background: '#000',
-      customClass: {
-        popup: 'youtube-preview-popup',
-        closeButton: 'youtube-close-button'
-      }
-    });
-  };
 
   const allImages = post.media_urls?.filter(url => getMediaType(url) === "image") || [];
 
@@ -928,54 +883,6 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
         </div>
       )}
 
-      {/* YouTube Videos */}
-      {post.youtube_urls && post.youtube_urls.length > 0 && (
-        <div className="px-4 pb-3">
-          <div className={`grid gap-2 ${post.youtube_urls.length === 1 ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2'}`}>
-            {post.youtube_urls.map((url, index) => {
-              const videoId = extractYoutubeVideoId(url);
-              if (!videoId) return null;
-              const hasWatched = isVideoViewed(videoId);
-              return (
-                <div 
-                  key={index}
-                  className={`relative aspect-video rounded-lg overflow-hidden cursor-pointer group bg-secondary ${hasWatched ? 'opacity-75' : ''}`}
-                  onClick={() => handleYoutubeClick(url)}
-                >
-                  <img
-                    src={`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`}
-                    alt="YouTube video thumbnail"
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/50 transition-colors">
-                    <div className="w-14 h-14 rounded-full bg-destructive flex items-center justify-center shadow-lg">
-                      <Play className="h-6 w-6 text-white ml-1" fill="currentColor" />
-                    </div>
-                  </div>
-                  <Badge 
-                    variant="secondary" 
-                    className="absolute bottom-2 left-2 text-xs bg-destructive/90 text-destructive-foreground border-0"
-                  >
-                    <Youtube className="h-3 w-3 mr-1" />
-                    YouTube
-                  </Badge>
-                  {/* Watched badge */}
-                  {hasWatched && (
-                    <Badge 
-                      variant="secondary" 
-                      className="absolute top-2 right-2 text-xs bg-background/90 text-muted-foreground border-0"
-                    >
-                      <Eye className="h-3 w-3 mr-1" />
-                      {t('feed.watched', 'Watched')}
-                    </Badge>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
       {/* Actions */}
       <div className="flex items-center justify-between p-4 border-t border-border">

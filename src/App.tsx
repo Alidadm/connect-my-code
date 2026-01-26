@@ -26,7 +26,7 @@ import EmailTemplates from "./pages/admin/EmailTemplates";
 import LegalPagesEditor from "./pages/admin/LegalPagesEditor";
 import PayoutManagement from "./pages/admin/PayoutManagement";
 import PlatformPosts from "./pages/admin/PlatformPosts";
-import ShortVideos from "./pages/admin/ShortVideos";
+
 import DataCleanup from "./pages/admin/DataCleanup";
 import ReportedPosts from "./pages/admin/ReportedPosts";
 import MemberDashboard from "./pages/MemberDashboard";
@@ -102,7 +102,7 @@ const router = createBrowserRouter([
       { path: "/admin/email-templates", element: <AdminLayout><EmailTemplates /></AdminLayout> },
       { path: "/admin/payouts", element: <AdminLayout><PayoutManagement /></AdminLayout> },
       { path: "/admin/platform-posts", element: <AdminLayout><PlatformPosts /></AdminLayout> },
-      { path: "/admin/short-videos", element: <AdminLayout><ShortVideos /></AdminLayout> },
+      
       { path: "/admin/legal-pages", element: <AdminLayout><LegalPagesEditor /></AdminLayout> },
       { path: "/admin/data-cleanup", element: <AdminLayout><DataCleanup /></AdminLayout> },
       { path: "/admin/reported-posts", element: <AdminLayout><ReportedPosts /></AdminLayout> },

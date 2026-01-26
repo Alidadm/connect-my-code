@@ -7,7 +7,7 @@ import { DemoPostCard } from "./DemoPostCard";
 import { PullToRefreshIndicator } from "./PullToRefreshIndicator";
 import { ProfileTabContent } from "./ProfileTabContent";
 import { TodaysBirthdays } from "./TodaysBirthdays";
-import { ShortVideosRow } from "./ShortVideosRow";
+
 import { ScrollProgressIndicator } from "./ScrollProgressIndicator";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -484,14 +484,8 @@ export const Feed = () => {
           ) : (
             <>
               {/* Show real posts if user is logged in or has posts */}
-              {posts.map((post, index) => (
-                <React.Fragment key={post.id}>
-                  <PostCard post={post} onLikeChange={() => fetchPosts(0, false)} />
-                  {/* Show short videos row after every 3 posts */}
-                  {(index + 1) % 3 === 0 && index < posts.length - 1 && (
-                    <ShortVideosRow />
-                  )}
-                </React.Fragment>
+              {posts.map((post) => (
+                <PostCard key={post.id} post={post} onLikeChange={() => fetchPosts(0, false)} />
               ))}
               
               {/* Only show demo posts when user is not logged in AND has no real posts */}

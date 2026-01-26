@@ -1,7 +1,7 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { 
-  LayoutDashboard, Users, Megaphone, Video, Wallet, Mail, LogOut, FileText, Trash2, Flag
+  LayoutDashboard, Users, Megaphone, Wallet, Mail, LogOut, FileText, Trash2, Flag
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,7 +13,6 @@ const sidebarLinks = [
   { name: "User List", path: "/admin/users/list", icon: Users },
   { name: "Reported Posts", path: "/admin/reported-posts", icon: Flag },
   { name: "Platform Posts", path: "/admin/platform-posts", icon: Megaphone },
-  { name: "Short Videos", path: "/admin/short-videos", icon: Video },
   { name: "Payouts", path: "/admin/payouts", icon: Wallet },
   { name: "Email Templates", path: "/admin/email-templates", icon: Mail },
   { name: "Legal Pages", path: "/admin/legal-pages", icon: FileText },

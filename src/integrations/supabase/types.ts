@@ -2186,42 +2186,6 @@ export type Database = {
         }
         Relationships: []
       }
-      short_videos: {
-        Row: {
-          created_at: string
-          created_by: string | null
-          display_order: number | null
-          id: string
-          is_active: boolean | null
-          thumbnail_url: string | null
-          title: string | null
-          updated_at: string
-          video_url: string
-        }
-        Insert: {
-          created_at?: string
-          created_by?: string | null
-          display_order?: number | null
-          id?: string
-          is_active?: boolean | null
-          thumbnail_url?: string | null
-          title?: string | null
-          updated_at?: string
-          video_url: string
-        }
-        Update: {
-          created_at?: string
-          created_by?: string | null
-          display_order?: number | null
-          id?: string
-          is_active?: boolean | null
-          thumbnail_url?: string | null
-          title?: string | null
-          updated_at?: string
-          video_url?: string
-        }
-        Relationships: []
-      }
       stories: {
         Row: {
           created_at: string
@@ -2655,56 +2619,6 @@ export type Database = {
           push_notifications?: boolean | null
           updated_at?: string
           user_id?: string
-        }
-        Relationships: []
-      }
-      viewed_short_videos: {
-        Row: {
-          id: string
-          short_video_id: string
-          user_id: string
-          viewed_at: string
-        }
-        Insert: {
-          id?: string
-          short_video_id: string
-          user_id: string
-          viewed_at?: string
-        }
-        Update: {
-          id?: string
-          short_video_id?: string
-          user_id?: string
-          viewed_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "viewed_short_videos_short_video_id_fkey"
-            columns: ["short_video_id"]
-            isOneToOne: false
-            referencedRelation: "short_videos"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      viewed_youtube_videos: {
-        Row: {
-          id: string
-          user_id: string
-          video_id: string
-          viewed_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          video_id: string
-          viewed_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          video_id?: string
-          viewed_at?: string
         }
         Relationships: []
       }
