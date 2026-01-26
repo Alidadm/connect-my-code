@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { Play } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { extractYoutubeVideoId, getYoutubeThumbnailUrl } from "@/lib/youtube";
@@ -13,11 +13,43 @@ interface ShortVideo {
   title: string | null;
 }
 
+// Extract TikTok video ID from URL
+const extractTikTokVideoId = (url: string): string | null => {
+  if (!url) return null;
+  const match = url.match(/\/video\/(\d+)/);
+  return match ? match[1] : null;
+};
+
+// Check if URL is a TikTok URL
+const isTikTokUrl = (url: string): boolean => {
+  return url.includes("tiktok.com");
+};
+
+// Get embeddable URL for the video
+const getEmbedUrl = (videoUrl: string): string | null => {
+  // YouTube
+  const youtubeId = extractYoutubeVideoId(videoUrl);
+  if (youtubeId) {
+    return `https://www.youtube.com/embed/${youtubeId}?autoplay=1&rel=0&modestbranding=1`;
+  }
+  
+  // TikTok - use their embed format
+  const tiktokId = extractTikTokVideoId(videoUrl);
+  if (tiktokId) {
+    return `https://www.tiktok.com/embed/v2/${tiktokId}`;
+  }
+  
+  return null;
+};
+
 export const ShortVideosRow = () => {
   const { user } = useAuth();
   const [allVideos, setAllVideos] = useState<ShortVideo[]>([]);
   const [loading, setLoading] = useState(true);
   const { markVideoAsViewed, getRandomUnviewedVideos, loading: viewedLoading } = useViewedShortVideos();
+  
+  // Use ref to store stable video list that doesn't change on re-render
+  const stableVideosRef = useRef<ShortVideo[]>([]);
 
   useEffect(() => {
     fetchAllVideos();
@@ -25,7 +57,6 @@ export const ShortVideosRow = () => {
 
   const fetchAllVideos = async () => {
     try {
-      // Fetch all active videos (we'll randomize on the client)
       const { data, error } = await supabase
         .from("short_videos")
         .select("id, video_url, thumbnail_url, title")
@@ -40,10 +71,15 @@ export const ShortVideosRow = () => {
     }
   };
 
-  // Get random unviewed videos - memoized to prevent re-shuffling on every render
+  // Get random unviewed videos - only compute once when data is ready
   const videos = useMemo(() => {
     if (loading || viewedLoading || allVideos.length === 0) return [];
-    return getRandomUnviewedVideos(allVideos, 10);
+    
+    // Only shuffle if we don't have stable videos yet or allVideos changed
+    if (stableVideosRef.current.length === 0) {
+      stableVideosRef.current = getRandomUnviewedVideos(allVideos, 10);
+    }
+    return stableVideosRef.current;
   }, [allVideos, loading, viewedLoading, getRandomUnviewedVideos]);
 
   const getThumbnailUrl = (video: ShortVideo): string => {
@@ -55,43 +91,56 @@ export const ShortVideosRow = () => {
       return getYoutubeThumbnailUrl(videoId, "hq");
     }
     
-    // Default placeholder
+    // Default placeholder for TikTok or other videos
     return "https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?w=200&h=350&fit=crop";
   };
 
   const openVideoPlayer = (startIndex: number) => {
+    // Use a stable copy of videos for the player session
+    const playerVideos = [...videos];
     let currentIndex = startIndex;
 
     const showVideo = () => {
-      const video = videos[currentIndex];
-      const videoId = extractYoutubeVideoId(video.video_url);
+      const video = playerVideos[currentIndex];
+      if (!video) return;
       
-      // Mark video as viewed when opened
+      // Mark video as viewed when opened (silent - don't block UI)
       if (user) {
         markVideoAsViewed(video.id);
       }
       
-      // Create embed URL for YouTube Shorts
-      const embedUrl = videoId 
-        ? `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`
-        : video.video_url;
-
-      const hasPrev = currentIndex > 0;
-      const hasNext = currentIndex < videos.length - 1;
-
-      Swal.fire({
-        html: `
-          <div class="short-video-container" style="position: relative; width: 100%; height: 80vh; max-height: 700px; background: #000; border-radius: 12px; overflow: hidden;">
-            <iframe 
+      // Get embeddable URL
+      const embedUrl = getEmbedUrl(video.video_url);
+      const isTikTok = isTikTokUrl(video.video_url);
+      
+      // If we can't embed, show a link to open in new tab
+      const contentHtml = embedUrl 
+        ? `<iframe 
               src="${embedUrl}" 
               style="width: 100%; height: 100%; border: none;"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowfullscreen
-            ></iframe>
-            ${video.title ? `<div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 16px; background: linear-gradient(transparent, rgba(0,0,0,0.8)); color: white; font-size: 14px;">${video.title}</div>` : ''}
+            ></iframe>`
+        : `<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: white;">
+              <p style="margin-bottom: 16px;">This video cannot be embedded.</p>
+              <a href="${video.video_url}" target="_blank" rel="noopener noreferrer" 
+                 style="background: #3b82f6; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none;">
+                Open in New Tab
+              </a>
+           </div>`;
+
+      const hasPrev = currentIndex > 0;
+      const hasNext = currentIndex < playerVideos.length - 1;
+
+      Swal.fire({
+        html: `
+          <div class="short-video-container" style="position: relative; width: 100%; height: 80vh; max-height: 700px; background: #000; border-radius: 8px; overflow: hidden;">
+            ${contentHtml}
+            ${video.title ? `<div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 16px; background: linear-gradient(transparent, rgba(0,0,0,0.8)); color: white; font-size: 14px; pointer-events: none;">${video.title}</div>` : ''}
+            ${isTikTok ? `<div style="position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,0.6); color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">TikTok</div>` : ''}
           </div>
-          <div style="display: flex; justify-content: center; gap: 16px; margin-top: 16px;">
-            <span style="color: #888; font-size: 14px;">${currentIndex + 1} / ${videos.length}</span>
+          <div style="display: flex; justify-content: center; gap: 16px; margin-top: 12px; padding-bottom: 8px;">
+            <span style="color: #888; font-size: 14px;">${currentIndex + 1} / ${playerVideos.length}</span>
           </div>
         `,
         showConfirmButton: false,
@@ -104,7 +153,6 @@ export const ShortVideosRow = () => {
           closeButton: "short-video-close-btn",
         },
         didOpen: () => {
-          // Add navigation buttons
           const popup = Swal.getPopup();
           if (popup) {
             // Up arrow (previous)
@@ -146,9 +194,12 @@ export const ShortVideosRow = () => {
               }
             };
             document.addEventListener("keydown", handleKeydown);
-            popup.addEventListener("swal:close", () => {
+            
+            // Cleanup on close
+            const cleanup = () => {
               document.removeEventListener("keydown", handleKeydown);
-            });
+            };
+            popup.addEventListener("swal:close", cleanup);
           }
         },
       });
