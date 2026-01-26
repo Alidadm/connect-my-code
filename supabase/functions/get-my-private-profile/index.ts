@@ -46,14 +46,39 @@ serve(async (req) => {
     // Use service role to fetch the user's own private profile
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { data, error } = await supabaseAdmin
-      .from("profiles_private")
-      .select("email, phone, birthday, paypal_payout_email, payout_setup_completed, stripe_connect_id")
-      .eq("user_id", userId)
-      .single();
+    // Retry logic for transient network errors
+    let data = null;
+    let lastError = null;
+    
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const { data: profileData, error } = await supabaseAdmin
+        .from("profiles_private")
+        .select("email, phone, birthday, paypal_payout_email, payout_setup_completed, stripe_connect_id")
+        .eq("user_id", userId)
+        .maybeSingle();
 
-    if (error && error.code !== "PGRST116") {
-      console.error("Error fetching private profile:", error);
+      if (!error) {
+        data = profileData;
+        break;
+      }
+      
+      // If it's a "not found" error, that's fine
+      if (error.code === "PGRST116") {
+        data = null;
+        break;
+      }
+      
+      lastError = error;
+      console.error(`Attempt ${attempt + 1} failed:`, error.message);
+      
+      // Wait before retry (exponential backoff)
+      if (attempt < 2) {
+        await new Promise(resolve => setTimeout(resolve, 100 * Math.pow(2, attempt)));
+      }
+    }
+
+    if (lastError && !data) {
+      console.error("Error fetching private profile after retries:", lastError);
       return new Response(JSON.stringify({ error: "Failed to fetch profile" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
