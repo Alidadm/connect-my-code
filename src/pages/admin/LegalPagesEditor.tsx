@@ -9,7 +9,21 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Save, FileText, Shield, Cookie, Eye } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import Editor from "react-simple-wysiwyg";
+import Editor, {
+  BtnBold,
+  BtnItalic,
+  BtnUnderline,
+  BtnStrikeThrough,
+  BtnNumberedList,
+  BtnBulletList,
+  BtnLink,
+  BtnClearFormatting,
+  BtnRedo,
+  BtnUndo,
+  Separator,
+  Toolbar,
+  ContentEditableEvent,
+} from "react-simple-wysiwyg";
 import {
   Dialog,
   DialogContent,
@@ -167,17 +181,106 @@ const LegalPagesEditor = () => {
                   </div>
                   <div className="space-y-2">
                     <Label className="text-slate-300">Content</Label>
-                    <div className="bg-white rounded-lg">
+                    <div className="bg-white rounded-lg overflow-hidden">
                       <Editor
                         value={pages[tab.key]?.content || ""}
-                        onChange={(e) => updatePage(tab.key, "content", e.target.value)}
+                        onChange={(e: ContentEditableEvent) => updatePage(tab.key, "content", e.target.value)}
                         containerProps={{
                           style: {
-                            minHeight: "400px",
+                            minHeight: "500px",
                             resize: "vertical",
                           },
                         }}
-                      />
+                      >
+                        <Toolbar>
+                          <BtnUndo />
+                          <BtnRedo />
+                          <Separator />
+                          <BtnBold />
+                          <BtnItalic />
+                          <BtnUnderline />
+                          <BtnStrikeThrough />
+                          <Separator />
+                          <select
+                            className="rsw-btn"
+                            onChange={(e) => {
+                              document.execCommand("formatBlock", false, e.target.value);
+                            }}
+                            defaultValue=""
+                          >
+                            <option value="" disabled>Heading</option>
+                            <option value="h1">Heading 1</option>
+                            <option value="h2">Heading 2</option>
+                            <option value="h3">Heading 3</option>
+                            <option value="h4">Heading 4</option>
+                            <option value="p">Paragraph</option>
+                          </select>
+                          <select
+                            className="rsw-btn"
+                            onChange={(e) => {
+                              document.execCommand("fontSize", false, e.target.value);
+                            }}
+                            defaultValue=""
+                          >
+                            <option value="" disabled>Size</option>
+                            <option value="1">Small</option>
+                            <option value="2">Normal</option>
+                            <option value="3">Medium</option>
+                            <option value="4">Large</option>
+                            <option value="5">X-Large</option>
+                            <option value="6">XX-Large</option>
+                            <option value="7">Huge</option>
+                          </select>
+                          <Separator />
+                          <button
+                            className="rsw-btn"
+                            onClick={() => document.execCommand("justifyLeft")}
+                            title="Align Left"
+                            type="button"
+                          >
+                            ◀
+                          </button>
+                          <button
+                            className="rsw-btn"
+                            onClick={() => document.execCommand("justifyCenter")}
+                            title="Align Center"
+                            type="button"
+                          >
+                            ≡
+                          </button>
+                          <button
+                            className="rsw-btn"
+                            onClick={() => document.execCommand("justifyRight")}
+                            title="Align Right"
+                            type="button"
+                          >
+                            ▶
+                          </button>
+                          <Separator />
+                          <BtnNumberedList />
+                          <BtnBulletList />
+                          <Separator />
+                          <BtnLink />
+                          <Separator />
+                          <input
+                            type="color"
+                            className="rsw-btn"
+                            style={{ width: "30px", height: "24px", padding: "2px" }}
+                            onChange={(e) => document.execCommand("foreColor", false, e.target.value)}
+                            title="Text Color"
+                          />
+                          <input
+                            type="color"
+                            className="rsw-btn"
+                            style={{ width: "30px", height: "24px", padding: "2px" }}
+                            onChange={(e) => document.execCommand("hiliteColor", false, e.target.value)}
+                            title="Highlight Color"
+                            defaultValue="#ffff00"
+                          />
+                          <Separator />
+                          <BtnClearFormatting />
+                        </Toolbar>
+                      </Editor>
                     </div>
                   </div>
                   <p className="text-sm text-slate-400">
