@@ -185,11 +185,12 @@
   padding: 2rem !important;
 }
 
-/* Short video popup specific styling - minimal border */
+/* Short video popup specific styling - clean, minimal */
 .swal2-popup.short-video-popup {
   border: 1px solid hsl(var(--border)) !important;
-  padding: 0 !important;
-  background: #1a1a1a !important;
+  padding: 8px !important;
+  background: hsl(var(--card)) !important;
+  border-radius: 12px !important;
 }
 
 .swal2-title {

@@ -111,22 +111,17 @@ export const ShortVideosRow = () => {
       
       // Get embeddable URL
       const embedUrl = getEmbedUrl(video.video_url);
-      const isTikTok = isTikTokUrl(video.video_url);
       
-      // If we can't embed, show a link to open in new tab
+      // Clean iframe embed - no fallback redirect buttons
       const contentHtml = embedUrl 
         ? `<iframe 
               src="${embedUrl}" 
-              style="width: 100%; height: 100%; border: none;"
+              style="width: 100%; height: 100%; border: none; border-radius: 8px;"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowfullscreen
             ></iframe>`
-        : `<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: white;">
-              <p style="margin-bottom: 16px;">This video cannot be embedded.</p>
-              <a href="${video.video_url}" target="_blank" rel="noopener noreferrer" 
-                 style="background: #3b82f6; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none;">
-                Open in New Tab
-              </a>
+        : `<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #888;">
+              <p>Video unavailable</p>
            </div>`;
 
       const hasPrev = currentIndex > 0;
@@ -134,20 +129,18 @@ export const ShortVideosRow = () => {
 
       Swal.fire({
         html: `
-          <div class="short-video-container" style="position: relative; width: 100%; height: 80vh; max-height: 700px; background: #000; border-radius: 8px; overflow: hidden;">
+          <div class="short-video-container" style="position: relative; width: 100%; height: 85vh; max-height: 800px; border-radius: 8px; overflow: hidden;">
             ${contentHtml}
-            ${video.title ? `<div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 16px; background: linear-gradient(transparent, rgba(0,0,0,0.8)); color: white; font-size: 14px; pointer-events: none;">${video.title}</div>` : ''}
-            ${isTikTok ? `<div style="position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,0.6); color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">TikTok</div>` : ''}
           </div>
-          <div style="display: flex; justify-content: center; gap: 16px; margin-top: 12px; padding-bottom: 8px;">
-            <span style="color: #888; font-size: 14px;">${currentIndex + 1} / ${playerVideos.length}</span>
+          <div style="display: flex; justify-content: center; margin-top: 8px;">
+            <span style="color: #666; font-size: 13px;">${currentIndex + 1} / ${playerVideos.length}</span>
           </div>
         `,
         showConfirmButton: false,
         showCloseButton: true,
         width: "400px",
         padding: 0,
-        background: "#1a1a1a",
+        background: "transparent",
         customClass: {
           popup: "short-video-popup",
           closeButton: "short-video-close-btn",
