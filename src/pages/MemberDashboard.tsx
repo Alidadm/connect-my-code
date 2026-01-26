@@ -4,13 +4,14 @@ import {
   ChevronRight, Eye, EyeOff, Lock, Mail, Phone, Globe, Calendar,
   Home, CreditCard, Users, Heart, MessageCircle, LogOut, Clock,
   CheckCircle2, XCircle, Loader2, ExternalLink, Languages, UsersRound,
-  Building2, Info, AlertTriangle, RotateCcw, Menu, X
+  Building2, Info, AlertTriangle, RotateCcw, Menu, X, Youtube
 } from "lucide-react";
 import { format, isValid as isValidDate, parseISO } from "date-fns";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { GroupsManagement } from "@/components/dashboard/GroupsManagement";
 import { BusinessManagement } from "@/components/business/BusinessManagement";
 import { AboutSettings } from "@/components/settings/AboutSettings";
+import { RecentlyWatchedSection } from "@/components/dashboard/RecentlyWatchedSection";
 
 import { AvatarEditor } from "@/components/avatar/AvatarEditor";
 import { CoverEditor } from "@/components/cover/CoverEditor";
@@ -45,7 +46,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-type TabType = "profile" | "account" | "about" | "privacy" | "notifications" | "appearance" | "groups" | "business";
+type TabType = "profile" | "account" | "about" | "privacy" | "notifications" | "appearance" | "groups" | "business" | "watch-history";
 
 // Country code to name mapping
 const countryNames: Record<string, string> = {
@@ -71,6 +72,7 @@ const getMenuItems = (t: (key: string) => string) => [
   { id: "about" as TabType, label: t("profile.about"), icon: Info, description: t("dashboard.aboutDescription") },
   { id: "business" as TabType, label: t("dashboard.business"), icon: Building2, description: t("dashboard.businessDescription") },
   { id: "groups" as TabType, label: t("nav.groups"), icon: UsersRound, description: t("groups.manageGroups") },
+  { id: "watch-history" as TabType, label: t("dashboard.watchHistory") || "Watch History", icon: Youtube, description: t("dashboard.watchHistoryDescription") || "Videos you've watched" },
   { id: "privacy" as TabType, label: t("privacy.title"), icon: Shield, description: t("privacy.description") },
   { id: "notifications" as TabType, label: t("notifications.title"), icon: Bell, description: t("notifications.description") },
   { id: "appearance" as TabType, label: t("appearance.title"), icon: Palette, description: t("appearance.description") },
@@ -1420,6 +1422,16 @@ const MemberDashboard = () => {
         return <BusinessManagement />;
       case "groups":
         return <GroupsManagement />;
+      case "watch-history":
+        return (
+          <div className="space-y-6">
+            <div className="pb-4 border-b border-border">
+              <h3 className="text-lg font-medium">{t("dashboard.watchHistory") || "Watch History"}</h3>
+              <p className="text-sm text-muted-foreground">{t("dashboard.watchHistoryDescription") || "Videos you've watched"}</p>
+            </div>
+            <RecentlyWatchedSection />
+          </div>
+        );
       case "privacy":
         return renderPrivacyTab();
       case "notifications":

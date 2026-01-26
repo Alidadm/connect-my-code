@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
-import { MessageCircle, Share2, MoreVertical, Bookmark, FileText, Music, Pencil, Trash2, Copy, Facebook, Twitter, Link2, Check, Ban, VolumeX, Volume2, UserX, Megaphone, Play, ThumbsUp, ThumbsDown, EyeOff, BookmarkPlus, Flag } from "lucide-react";
+import { MessageCircle, Share2, MoreVertical, Bookmark, FileText, Music, Pencil, Trash2, Copy, Facebook, Twitter, Link2, Check, Ban, VolumeX, Volume2, UserX, Megaphone, Play, ThumbsUp, ThumbsDown, EyeOff, BookmarkPlus, Flag, Youtube, Eye } from "lucide-react";
+import { extractYoutubeVideoId, getYoutubeThumbnailUrl, getYoutubeEmbedUrl } from "@/lib/youtube";
+import { useViewedVideos } from "@/hooks/useViewedVideos";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -59,6 +61,7 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
 
   const isOwner = user?.id === post.user_id;
   const { isBlocked, isMuted, blockUser, muteUser, loading: blockMuteLoading } = useBlockMute(post.user_id);
+  const { markAsViewed, isViewed } = useViewedVideos();
   
   const fullName = post.profiles?.display_name || post.profiles?.username || t('common.user', 'User');
   const authorFirstName = fullName.split(' ')[0];
@@ -880,6 +883,61 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
               .filter(url => getMediaType(url) === "document")
               .map((url, index) => renderMedia(url, index))}
           </div>
+        </div>
+      )}
+
+      {/* YouTube Videos */}
+      {post.youtube_urls && post.youtube_urls.length > 0 && (
+        <div className="space-y-2 px-4 pb-3">
+          {post.youtube_urls.map((url, index) => {
+            const videoId = extractYoutubeVideoId(url);
+            if (!videoId) return null;
+            const viewed = isViewed(videoId);
+            
+            return (
+              <div 
+                key={index} 
+                className="relative aspect-video bg-secondary rounded-lg overflow-hidden cursor-pointer group"
+                onClick={() => {
+                  markAsViewed(videoId);
+                  Swal.fire({
+                    html: `<iframe 
+                      src="${getYoutubeEmbedUrl(videoId)}?autoplay=1" 
+                      class="w-full aspect-video rounded-lg" 
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                      allowfullscreen
+                    ></iframe>`,
+                    width: 'min(800px, 95vw)',
+                    padding: '0.5rem',
+                    background: 'transparent',
+                    showConfirmButton: false,
+                    showCloseButton: true,
+                  });
+                }}
+              >
+                <img
+                  src={getYoutubeThumbnailUrl(videoId)}
+                  alt="YouTube video thumbnail"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-black/30 flex items-center justify-center group-hover:bg-black/40 transition-colors">
+                  <div className="w-16 h-16 rounded-full bg-red-600 flex items-center justify-center shadow-lg">
+                    <Play className="h-8 w-8 text-white fill-white ml-1" />
+                  </div>
+                </div>
+                {viewed && (
+                  <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 rounded bg-black/60 text-white text-xs">
+                    <Eye className="h-3 w-3" />
+                    Watched
+                  </div>
+                )}
+                <div className="absolute bottom-2 left-2 flex items-center gap-1 px-2 py-1 rounded bg-black/60">
+                  <Youtube className="h-4 w-4 text-red-500" />
+                  <span className="text-white text-xs">YouTube</span>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
 
