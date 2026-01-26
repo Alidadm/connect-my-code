@@ -187,10 +187,54 @@
 
 /* Short video popup specific styling - clean, minimal */
 .swal2-popup.short-video-popup {
-  border: 1px solid hsl(var(--border)) !important;
-  padding: 1px !important;
-  background: hsl(var(--card)) !important;
-  border-radius: 8px !important;
+  border: none !important;
+  padding: 0 !important;
+  background: rgba(0, 0, 0, 0.95) !important;
+  border-radius: 0 !important;
+  max-width: 100vw !important;
+  max-height: 100vh !important;
+  margin: 0 !important;
+}
+
+.swal2-close.short-video-close-btn {
+  position: fixed !important;
+  top: 16px !important;
+  right: 16px !important;
+  z-index: 30 !important;
+  background: rgba(0, 0, 0, 0.6) !important;
+  backdrop-filter: blur(8px) !important;
+  color: #fff !important;
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 50% !important;
+  font-size: 20px !important;
+  transition: all 0.2s ease !important;
+}
+
+.swal2-close.short-video-close-btn:hover {
+  background: rgba(0, 0, 0, 0.8) !important;
+  transform: scale(1.1) !important;
+}
+
+/* Hide TikTok/YouTube embed UI elements */
+.short-video-container iframe {
+  position: relative !important;
+  width: 100% !important;
+  height: 100% !important;
+  border: none !important;
+}
+
+/* Try to hide platform-specific UI elements with CSS */
+.short-video-container::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 180px;
+  background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 50%, transparent 100%);
+  pointer-events: none;
+  z-index: 10;
 }
 
 .swal2-title {
