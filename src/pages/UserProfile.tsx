@@ -121,14 +121,29 @@ const UserProfile = () => {
       if (!profile?.user_id) return [];
       
       // Fetch posts where user is the author OR posts made on their wall
-      const { data, error } = await supabase
+      const { data: postsData, error } = await supabase
         .from("posts")
         .select("*")
         .or(`user_id.eq.${profile.user_id},wall_user_id.eq.${profile.user_id}`)
         .order("created_at", { ascending: false });
       
       if (error) throw error;
-      return data || [];
+      if (!postsData || postsData.length === 0) return [];
+      
+      // Fetch author profiles for all posts (including wall posts from other users)
+      const authorIds = [...new Set(postsData.map(p => p.user_id))];
+      const { data: profilesData } = await supabase
+        .from("profiles")
+        .select("user_id, display_name, avatar_url, username, is_verified")
+        .in("user_id", authorIds);
+      
+      const profilesMap = new Map(profilesData?.map(p => [p.user_id, p]) || []);
+      
+      // Attach author profiles to posts
+      return postsData.map(post => ({
+        ...post,
+        profiles: profilesMap.get(post.user_id) || undefined
+      }));
     },
     enabled: !!profile?.user_id && activeTab === "posts",
   });
