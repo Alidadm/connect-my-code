@@ -185,6 +185,27 @@
   padding: 2rem !important;
 }
 
+/* YouTube video popup - minimal border, maximum video space */
+.swal2-popup.youtube-preview-popup {
+  background: hsl(var(--card)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 0.5rem !important;
+  padding: 0.25rem !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4) !important;
+}
+
+.swal2-popup.youtube-preview-popup .swal2-html-container {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.swal2-popup.youtube-preview-popup .swal2-close {
+  color: hsl(var(--muted-foreground)) !important;
+  top: 0.25rem !important;
+  right: 0.25rem !important;
+  z-index: 10 !important;
+}
+
 .swal2-title {
   color: hsl(var(--foreground)) !important;
   font-weight: 600 !important;
