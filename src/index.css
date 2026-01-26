@@ -103,6 +103,59 @@
     --sidebar-border: 217 33% 17%;
     --sidebar-ring: 211 79% 51%;
   }
+
+  /* Compact mode - reduced spacing */
+  .compact {
+    --spacing-scale: 0.75;
+  }
+
+  .compact .card,
+  .compact [class*="CardContent"],
+  .compact [class*="CardHeader"] {
+    padding: calc(1rem * 0.75);
+  }
+
+  .compact .space-y-4 > * + * {
+    margin-top: calc(1rem * 0.75);
+  }
+
+  .compact .space-y-6 > * + * {
+    margin-top: calc(1.5rem * 0.75);
+  }
+
+  .compact .gap-4 {
+    gap: calc(1rem * 0.75);
+  }
+
+  .compact .gap-6 {
+    gap: calc(1.5rem * 0.75);
+  }
+
+  .compact .p-4 {
+    padding: calc(1rem * 0.75);
+  }
+
+  .compact .p-6 {
+    padding: calc(1.5rem * 0.75);
+  }
+
+  .compact .py-4 {
+    padding-top: calc(1rem * 0.75);
+    padding-bottom: calc(1rem * 0.75);
+  }
+
+  .compact .px-4 {
+    padding-left: calc(1rem * 0.75);
+    padding-right: calc(1rem * 0.75);
+  }
+
+  .compact .text-sm {
+    font-size: 0.8125rem;
+  }
+
+  .compact .text-base {
+    font-size: 0.875rem;
+  }
 }
 
 @layer base {
