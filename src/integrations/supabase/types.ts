@@ -600,26 +600,177 @@ export type Database = {
         }
         Relationships: []
       }
+      event_categories: {
+        Row: {
+          color: string | null
+          created_at: string
+          icon: string | null
+          id: string
+          name: string
+          slug: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          icon?: string | null
+          id?: string
+          name: string
+          slug: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          icon?: string | null
+          id?: string
+          name?: string
+          slug?: string
+        }
+        Relationships: []
+      }
+      event_comments: {
+        Row: {
+          content: string
+          created_at: string
+          event_id: string
+          id: string
+          parent_comment_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          event_id: string
+          id?: string
+          parent_comment_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          event_id?: string
+          id?: string
+          parent_comment_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_comments_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "event_comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_invitations: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          invitee_id: string
+          inviter_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          invitee_id: string
+          inviter_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          invitee_id?: string
+          inviter_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_invitations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_media: {
+        Row: {
+          caption: string | null
+          created_at: string
+          event_id: string
+          id: string
+          media_type: string
+          media_url: string
+          user_id: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          event_id: string
+          id?: string
+          media_type?: string
+          media_url: string
+          user_id: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          event_id?: string
+          id?: string
+          media_type?: string
+          media_url?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_media_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_rsvps: {
         Row: {
           created_at: string
           event_id: string
           id: string
-          status: string | null
+          status: string
+          updated_at: string
           user_id: string
         }
         Insert: {
           created_at?: string
           event_id: string
           id?: string
-          status?: string | null
+          status?: string
+          updated_at?: string
           user_id: string
         }
         Update: {
           created_at?: string
           event_id?: string
           id?: string
-          status?: string | null
+          status?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: [
@@ -634,36 +785,77 @@ export type Database = {
       }
       events: {
         Row: {
+          category: string
           cover_url: string | null
           created_at: string
           creator_id: string
           description: string | null
-          event_date: string
+          end_date: string | null
+          going_count: number | null
+          group_id: string | null
           id: string
-          location: string | null
+          interested_count: number | null
+          latitude: number | null
+          location_address: string | null
+          location_name: string | null
+          longitude: number | null
+          privacy: string
+          start_date: string
+          timezone: string | null
           title: string
+          updated_at: string
         }
         Insert: {
+          category?: string
           cover_url?: string | null
           created_at?: string
           creator_id: string
           description?: string | null
-          event_date: string
+          end_date?: string | null
+          going_count?: number | null
+          group_id?: string | null
           id?: string
-          location?: string | null
+          interested_count?: number | null
+          latitude?: number | null
+          location_address?: string | null
+          location_name?: string | null
+          longitude?: number | null
+          privacy?: string
+          start_date: string
+          timezone?: string | null
           title: string
+          updated_at?: string
         }
         Update: {
+          category?: string
           cover_url?: string | null
           created_at?: string
           creator_id?: string
           description?: string | null
-          event_date?: string
+          end_date?: string | null
+          going_count?: number | null
+          group_id?: string | null
           id?: string
-          location?: string | null
+          interested_count?: number | null
+          latitude?: number | null
+          location_address?: string | null
+          location_name?: string | null
+          longitude?: number | null
+          privacy?: string
+          start_date?: string
+          timezone?: string | null
           title?: string
+          updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "events_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       family_members: {
         Row: {
