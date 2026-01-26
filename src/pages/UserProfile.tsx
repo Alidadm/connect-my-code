@@ -32,6 +32,7 @@ import { PostCard } from "@/components/feed/PostCard";
 import { useBlockMute } from "@/hooks/useBlockMute";
 import { useUserPrivacySettings } from "@/hooks/useUserPrivacySettings";
 import { useFavorites } from "@/hooks/useFavorites";
+import { useProfileBirthdayConfetti } from "@/hooks/useProfileBirthdayConfetti";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
@@ -110,6 +111,10 @@ const UserProfile = () => {
   
   // Privacy settings hook - check if user allows DMs
   const { settings: profilePrivacySettings } = useUserPrivacySettings(profile?.user_id);
+  
+  // Birthday confetti hook - triggers once per day when visiting a birthday profile
+  useProfileBirthdayConfetti(profile?.user_id);
+  
   const { data: userPosts = [], isLoading: loadingPosts } = useQuery({
     queryKey: ["user-posts", profile?.user_id],
     queryFn: async () => {
