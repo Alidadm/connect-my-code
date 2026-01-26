@@ -1,14 +1,12 @@
 import { useState } from "react";
-import { MainLayout } from "@/components/layout/MainLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { useMarketplace } from "@/hooks/useMarketplace";
+import { MarketplaceLayout } from "@/components/marketplace/MarketplaceLayout";
 import { MarketplaceHeader } from "@/components/marketplace/MarketplaceHeader";
 import { MarketplaceCategoryBar } from "@/components/marketplace/MarketplaceCategoryBar";
 import { MarketplaceFilters } from "@/components/marketplace/MarketplaceFilters";
 import { MarketplaceListingGrid } from "@/components/marketplace/MarketplaceListingGrid";
 import { CreateListingDialog } from "@/components/marketplace/CreateListingDialog";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
 import { Navigate } from "react-router-dom";
 
 const Marketplace = () => {
@@ -41,8 +39,11 @@ const Marketplace = () => {
   }
 
   return (
-    <MainLayout>
-      <div className="max-w-7xl mx-auto space-y-4">
+    <MarketplaceLayout 
+      onCreateListing={() => setShowCreateDialog(true)}
+      unreadMessages={0}
+    >
+      <div className="p-4 lg:p-6 space-y-4">
         {/* Header with search */}
         <MarketplaceHeader
           searchValue={filters.search || ""}
@@ -77,15 +78,6 @@ const Marketplace = () => {
           onToggleSave={toggleSaveListing}
         />
 
-        {/* Floating create button */}
-        <Button
-          onClick={() => setShowCreateDialog(true)}
-          className="fixed bottom-20 right-4 md:bottom-8 md:right-8 h-14 w-14 rounded-full shadow-lg"
-          size="icon"
-        >
-          <Plus className="h-6 w-6" />
-        </Button>
-
         {/* Create listing dialog */}
         <CreateListingDialog
           open={showCreateDialog}
@@ -97,7 +89,7 @@ const Marketplace = () => {
           }}
         />
       </div>
-    </MainLayout>
+    </MarketplaceLayout>
   );
 };
 
