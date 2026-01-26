@@ -48,6 +48,8 @@ import About from "./pages/About";
 import Terms from "./pages/Terms";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import CookiesPolicy from "./pages/CookiesPolicy";
+import Marketplace from "./pages/Marketplace";
+import MarketplaceListing from "./pages/MarketplaceListing";
 
 const queryClient = new QueryClient();
 
@@ -90,6 +92,8 @@ const router = createBrowserRouter([
       { path: "/blogs/:blogId", element: <BlogView /> },
       { path: "/groups", element: <Groups /> },
       { path: "/groups/:groupId", element: <GroupDetail /> },
+      { path: "/marketplace", element: <Marketplace /> },
+      { path: "/marketplace/:id", element: <MarketplaceListing /> },
       { path: "/groups/:groupId/post/:postId", element: <GroupPostView /> },
       { path: "/groups/:groupId/settings", element: <GroupSettings /> },
       { path: "/dashboard", element: <MemberDashboard /> },
