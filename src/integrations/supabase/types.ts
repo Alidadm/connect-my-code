@@ -2622,6 +2622,27 @@ export type Database = {
         }
         Relationships: []
       }
+      viewed_youtube_videos: {
+        Row: {
+          id: string
+          user_id: string
+          video_id: string
+          viewed_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          video_id: string
+          viewed_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          video_id?: string
+          viewed_at?: string
+        }
+        Relationships: []
+      }
       withdrawal_requests: {
         Row: {
           admin_notes: string | null
