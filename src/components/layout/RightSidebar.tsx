@@ -594,7 +594,7 @@ export const RightSidebar = () => {
         {/* Birthday Reminders */}
         {birthdays.length > 0 && (
           <div className="bg-card rounded-xl p-4 mb-4 border border-border">
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Cake className="h-5 w-5 text-pink-500" />
                 <h3 className="font-semibold text-foreground">{t("sidebar.birthdays", "Birthdays")}</h3>
@@ -624,6 +624,7 @@ export const RightSidebar = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
+            <hr className="border-border my-3" />
             <div className="space-y-3">
               {birthdays.map((bday) => (
                 <div
@@ -715,7 +716,7 @@ export const RightSidebar = () => {
         {/* Online Friends */}
         {onlineFriends.length > 0 && (
           <div className="bg-card rounded-xl p-4 mb-4 border border-border">
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Users className="h-5 w-5 text-green-500" />
                 <h3 className="font-semibold text-foreground">{t("sidebar.onlineFriends", "Friends")}</h3>
@@ -726,6 +727,7 @@ export const RightSidebar = () => {
                 </span>
               )}
             </div>
+            <hr className="border-border my-3" />
             <div className="grid grid-cols-4 gap-2">
               {onlineFriends.map((friend) => (
                 <div
@@ -757,12 +759,13 @@ export const RightSidebar = () => {
 
         {/* Notifications */}
         <div className="bg-card rounded-xl p-4 mb-4 border border-border">
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Bell className="h-5 w-5 text-primary" />
               <h3 className="font-semibold text-foreground">{t("notifications.title", "Notifications")}</h3>
             </div>
           </div>
+          <hr className="border-border my-3" />
 
           <div className="relative mb-3">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

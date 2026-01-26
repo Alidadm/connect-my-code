@@ -153,9 +153,10 @@ export const MarketplaceSidebar = ({ onCreateListing, unreadMessages = 0 }: Mark
 
         {/* Quick Links */}
         <div className="px-2 mb-6">
-          <h3 className="px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+          <h3 className="px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
             Quick Links
           </h3>
+          <hr className="border-border my-3 mx-2" />
           <div className="space-y-1">
             {categoryLinks.map((item) => (
               <Button

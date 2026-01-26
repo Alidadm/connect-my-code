@@ -188,10 +188,11 @@ export const LeftSidebar = () => {
         {/* Continue Playing - Show saved games */}
         {user && savedSudokuGames.length > 0 && (
           <div className="bg-card rounded-xl p-4 border border-border mb-4 sidebar-widget-border">
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
               <Play className="h-3.5 w-3.5" />
               {t("sidebar.continuePlaying", { defaultValue: "Continue Playing" })}
             </h3>
+            <hr className="border-border my-3" />
             <div className="space-y-2">
               {savedSudokuGames.slice(0, 3).map((game) => (
                 <div
@@ -311,9 +312,10 @@ export const LeftSidebar = () => {
         {/* Your Groups - Show groups or create button */}
         {user && (
           <div className="bg-card rounded-xl p-4 border border-border mb-4 sidebar-widget-border">
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               {t("sidebar.yourGroups")}
             </h3>
+            <hr className="border-border my-3" />
             {userGroups?.createdGroups && userGroups.createdGroups.length > 0 ? (
               <div className="space-y-2">
                 {userGroups.createdGroups.map((group) => (
@@ -380,9 +382,10 @@ export const LeftSidebar = () => {
         {/* Groups You Like - Only show if user has joined groups */}
         {user && userGroups?.joinedGroups && userGroups.joinedGroups.length > 0 && (
           <div className="bg-card rounded-xl p-4 border border-border sidebar-widget-border">
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               {t("sidebar.groupsYouLike", { defaultValue: "Groups You Like" })}
             </h3>
+            <hr className="border-border my-3" />
             <div className="space-y-2">
               {userGroups.joinedGroups.map((group) => (
                 <div 
