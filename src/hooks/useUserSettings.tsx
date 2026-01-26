@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { toast } from "sonner";
@@ -27,19 +27,37 @@ const defaultSettings: UserSettings = {
   language: "en",
 };
 
+// Apply dark mode class to document
+const applyDarkMode = (enabled: boolean) => {
+  if (enabled) {
+    document.documentElement.classList.add("dark");
+  } else {
+    document.documentElement.classList.remove("dark");
+  }
+};
+
+// Apply compact mode class to document
+const applyCompactMode = (enabled: boolean) => {
+  if (enabled) {
+    document.documentElement.classList.add("compact");
+  } else {
+    document.documentElement.classList.remove("compact");
+  }
+};
+
 export const useUserSettings = () => {
   const { user } = useAuth();
   const [settings, setSettings] = useState<UserSettings>(defaultSettings);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
+  // Apply settings to DOM whenever they change
   useEffect(() => {
-    if (user) {
-      fetchSettings();
-    }
-  }, [user]);
+    applyDarkMode(settings.dark_mode);
+    applyCompactMode(settings.compact_mode);
+  }, [settings.dark_mode, settings.compact_mode]);
 
-  const fetchSettings = async () => {
+  const fetchSettings = useCallback(async () => {
     if (!user) return;
     
     try {
@@ -52,7 +70,7 @@ export const useUserSettings = () => {
       if (error) throw error;
 
       if (data) {
-        setSettings({
+        const newSettings = {
           dark_mode: data.dark_mode ?? defaultSettings.dark_mode,
           compact_mode: data.compact_mode ?? defaultSettings.compact_mode,
           push_notifications: data.push_notifications ?? defaultSettings.push_notifications,
@@ -62,14 +80,21 @@ export const useUserSettings = () => {
           notification_sound: data.notification_sound ?? defaultSettings.notification_sound,
           message_sound: data.message_sound ?? defaultSettings.message_sound,
           language: data.language ?? defaultSettings.language,
-        });
+        };
+        setSettings(newSettings);
       }
     } catch (error) {
       console.error("Error fetching settings:", error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      fetchSettings();
+    }
+  }, [user, fetchSettings]);
 
   const updateSetting = async <K extends keyof UserSettings>(
     key: K,
