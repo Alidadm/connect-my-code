@@ -20,6 +20,8 @@ import Groups from "./pages/Groups";
 import GroupDetail from "./pages/GroupDetail";
 import GroupPostView from "./pages/GroupPostView";
 import GroupSettings from "./pages/GroupSettings";
+import Events from "./pages/Events";
+import EventDetail from "./pages/EventDetail";
 import AdminIndex from "./pages/AdminIndex";
 import UserList from "./pages/admin/UserList";
 import EmailTemplates from "./pages/admin/EmailTemplates";
@@ -94,6 +96,8 @@ const router = createBrowserRouter([
       { path: "/groups/:groupId", element: <GroupDetail /> },
       { path: "/marketplace", element: <Marketplace /> },
       { path: "/marketplace/:id", element: <MarketplaceListing /> },
+      { path: "/events", element: <Events /> },
+      { path: "/events/:eventId", element: <EventDetail /> },
       { path: "/groups/:groupId/post/:postId", element: <GroupPostView /> },
       { path: "/groups/:groupId/settings", element: <GroupSettings /> },
       { path: "/dashboard", element: <MemberDashboard /> },
