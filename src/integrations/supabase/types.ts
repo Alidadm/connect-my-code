@@ -1213,6 +1213,241 @@ export type Database = {
         }
         Relationships: []
       }
+      marketplace_categories: {
+        Row: {
+          created_at: string
+          icon: string | null
+          id: string
+          name: string
+          parent_id: string | null
+          slug: string
+          sort_order: number | null
+        }
+        Insert: {
+          created_at?: string
+          icon?: string | null
+          id?: string
+          name: string
+          parent_id?: string | null
+          slug: string
+          sort_order?: number | null
+        }
+        Update: {
+          created_at?: string
+          icon?: string | null
+          id?: string
+          name?: string
+          parent_id?: string | null
+          slug?: string
+          sort_order?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketplace_listings: {
+        Row: {
+          allow_pickup: boolean | null
+          allow_shipping: boolean | null
+          category_id: string | null
+          condition: string
+          contact_only: boolean | null
+          created_at: string
+          currency: string | null
+          description: string | null
+          enable_checkout: boolean | null
+          expires_at: string | null
+          hide_from_friends: boolean | null
+          id: string
+          images: string[] | null
+          latitude: number | null
+          location_city: string | null
+          location_country: string | null
+          location_region: string | null
+          longitude: number | null
+          price: number
+          saves_count: number | null
+          shipping_price: number | null
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+          views_count: number | null
+        }
+        Insert: {
+          allow_pickup?: boolean | null
+          allow_shipping?: boolean | null
+          category_id?: string | null
+          condition?: string
+          contact_only?: boolean | null
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          enable_checkout?: boolean | null
+          expires_at?: string | null
+          hide_from_friends?: boolean | null
+          id?: string
+          images?: string[] | null
+          latitude?: number | null
+          location_city?: string | null
+          location_country?: string | null
+          location_region?: string | null
+          longitude?: number | null
+          price?: number
+          saves_count?: number | null
+          shipping_price?: number | null
+          status?: string
+          title: string
+          updated_at?: string
+          user_id: string
+          views_count?: number | null
+        }
+        Update: {
+          allow_pickup?: boolean | null
+          allow_shipping?: boolean | null
+          category_id?: string | null
+          condition?: string
+          contact_only?: boolean | null
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          enable_checkout?: boolean | null
+          expires_at?: string | null
+          hide_from_friends?: boolean | null
+          id?: string
+          images?: string[] | null
+          latitude?: number | null
+          location_city?: string | null
+          location_country?: string | null
+          location_region?: string | null
+          longitude?: number | null
+          price?: number
+          saves_count?: number | null
+          shipping_price?: number | null
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+          views_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_listings_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketplace_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_offer: boolean | null
+          listing_id: string
+          offer_amount: number | null
+          read_at: string | null
+          receiver_id: string
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          is_offer?: boolean | null
+          listing_id: string
+          offer_amount?: number | null
+          read_at?: string | null
+          receiver_id: string
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_offer?: boolean | null
+          listing_id?: string
+          offer_amount?: number | null
+          read_at?: string | null
+          receiver_id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_messages_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketplace_recently_viewed: {
+        Row: {
+          id: string
+          listing_id: string
+          user_id: string
+          viewed_at: string
+        }
+        Insert: {
+          id?: string
+          listing_id: string
+          user_id: string
+          viewed_at?: string
+        }
+        Update: {
+          id?: string
+          listing_id?: string
+          user_id?: string
+          viewed_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_recently_viewed_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketplace_saved_listings: {
+        Row: {
+          created_at: string
+          id: string
+          listing_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          listing_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          listing_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_saved_listings_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       memory_match_games: {
         Row: {
           cards: string[]
