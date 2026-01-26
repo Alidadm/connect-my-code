@@ -903,15 +903,19 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
                   Swal.fire({
                     html: `<iframe 
                       src="${getYoutubeEmbedUrl(videoId)}?autoplay=1" 
-                      class="w-full aspect-video rounded-lg" 
+                      class="w-full aspect-video" 
+                      style="border-radius: 4px;"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                       allowfullscreen
                     ></iframe>`,
-                    width: 'min(800px, 95vw)',
-                    padding: '0.5rem',
-                    background: 'transparent',
+                    width: 'min(900px, 98vw)',
+                    padding: 0,
+                    background: 'hsl(var(--card))',
                     showConfirmButton: false,
                     showCloseButton: true,
+                    customClass: {
+                      popup: 'youtube-preview-popup'
+                    }
                   });
                 }}
               >
