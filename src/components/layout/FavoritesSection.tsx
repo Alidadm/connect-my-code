@@ -117,7 +117,7 @@ export const FavoritesSection = () => {
     <div className="bg-card rounded-xl p-4 border border-border sidebar-widget-border">
       <button
         onClick={() => setExpanded(!expanded)}
-        className="flex items-center justify-between w-full mb-3"
+        className="flex items-center justify-between w-full"
       >
         <div className="flex items-center gap-2">
           <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
@@ -132,6 +132,7 @@ export const FavoritesSection = () => {
           <ChevronDown className="h-4 w-4 text-muted-foreground" />
         )}
       </button>
+      <hr className="border-border my-3" />
 
       {expanded && (
         <div className="space-y-1">
