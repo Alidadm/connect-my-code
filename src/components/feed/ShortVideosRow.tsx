@@ -129,18 +129,18 @@ export const ShortVideosRow = () => {
 
       Swal.fire({
         html: `
-          <div class="short-video-container" style="position: relative; width: 100vw; height: 100vh; overflow: hidden; background: #000;">
+          <div class="short-video-container" style="position: relative; width: 100%; aspect-ratio: 9/16; max-height: 85vh; border-radius: 12px; overflow: hidden;">
             ${contentHtml}
-            <div style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(12px); padding: 6px 16px; border-radius: 20px; z-index: 99999; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
-              <span style="color: #fff; font-size: 13px; font-weight: 600; letter-spacing: 0.5px;">${currentIndex + 1} / ${playerVideos.length}</span>
-            </div>
+          </div>
+          <div style="position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); padding: 4px 14px; border-radius: 16px; z-index: 10;">
+            <span style="color: #fff; font-size: 12px; font-weight: 500;">${currentIndex + 1} / ${playerVideos.length}</span>
           </div>
         `,
         showConfirmButton: false,
         showCloseButton: true,
-        width: "100vw",
-        padding: 0,
-        background: "rgba(0, 0, 0, 0.95)",
+        width: "min(380px, 90vw)",
+        padding: "8px",
+        background: "hsl(var(--card))",
         customClass: {
           popup: "short-video-popup",
           closeButton: "short-video-close-btn",
