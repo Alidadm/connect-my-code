@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.get-my-private-profile]
 verify_jwt = false
+
+[functions.receive-inbound-email]
+verify_jwt = false
