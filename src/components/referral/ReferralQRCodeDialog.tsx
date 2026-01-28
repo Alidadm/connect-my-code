@@ -87,7 +87,7 @@ export const ReferralQRCodeDialog = ({ children }: ReferralQRCodeDialogProps) =>
         {children || (
           <Button variant="ghost" className="w-full justify-start">
             <QrCode className="mr-2 h-4 w-4" />
-            {t("referral.qrBarcode", { defaultValue: "QR & Barcode" })}
+            {t("referral.qrBarcode", { defaultValue: "Referral URL Barcode" })}
           </Button>
         )}
       </DialogTrigger>
