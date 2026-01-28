@@ -377,7 +377,7 @@ export const Header = () => {
                   <ReferralQRCodeDialog>
                     <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                       <QrCode className="mr-2 h-4 w-4" />
-                      {t('header.qrBarcode', { defaultValue: 'QR & Barcode' })}
+                      {t('header.qrBarcode', { defaultValue: 'Referral URL Barcode' })}
                     </DropdownMenuItem>
                   </ReferralQRCodeDialog>
                   <DropdownMenuItem onClick={() => navigate("/settings")}>
