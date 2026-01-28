@@ -31,7 +31,8 @@ const applyThemeClass = (slug: string | null) => {
     "theme-red",
     "theme-green",
     "theme-teal",
-    "theme-purple"
+    "theme-purple",
+    "theme-yellow"
   );
   
   // Add the selected theme class

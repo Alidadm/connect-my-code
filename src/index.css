@@ -39,9 +39,9 @@
     /* DolphySN specific colors */
     --dolphy-blue: 211 79% 51%;
     --dolphy-blue-light: 211 79% 96%;
-    --dolphy-purple: 211 79% 51%;
+    --dolphy-purple: 271 76% 53%;
     --dolphy-gradient-start: 211 79% 51%;
-    --dolphy-gradient-end: 211 79% 51%;
+    --dolphy-gradient-end: 271 76% 53%;
     --dolphy-success: 142 76% 36%;
     --dolphy-warning: 38 92% 50%;
     --dolphy-online: 142 76% 36%;
@@ -87,9 +87,9 @@
 
     --dolphy-blue: 211 79% 51%;
     --dolphy-blue-light: 211 79% 15%;
-    --dolphy-purple: 211 79% 51%;
+    --dolphy-purple: 271 76% 53%;
     --dolphy-gradient-start: 211 79% 51%;
-    --dolphy-gradient-end: 211 79% 51%;
+    --dolphy-gradient-end: 271 76% 53%;
     --dolphy-success: 142 76% 36%;
     --dolphy-warning: 38 92% 50%;
     --dolphy-online: 142 76% 36%;
@@ -322,20 +322,20 @@ html.theme-green.dark {
   --sidebar-border: 142 40% 25%;
 }
 
-/* Teal Theme */
+/* Teal Theme - Teal → Blue gradient */
 html.theme-teal {
   --primary: 174 72% 40%;
   --primary-foreground: 0 0% 100%;
-  --accent: 186 72% 35%;
+  --accent: 211 79% 51%;
   --accent-foreground: 0 0% 100%;
   --ring: 174 72% 40%;
   --border: 174 50% 80%;
   --input: 174 50% 80%;
   --dolphy-blue: 174 72% 40%;
   --dolphy-blue-light: 174 72% 96%;
-  --dolphy-purple: 186 72% 35%;
+  --dolphy-purple: 211 79% 51%;
   --dolphy-gradient-start: 174 72% 40%;
-  --dolphy-gradient-end: 186 72% 35%;
+  --dolphy-gradient-end: 211 79% 51%;
   --sidebar-primary: 174 72% 40%;
   --sidebar-accent: 174 72% 95%;
   --sidebar-accent-foreground: 174 72% 30%;
@@ -346,16 +346,16 @@ html.theme-teal {
 html.theme-teal.dark {
   --primary: 174 72% 50%;
   --primary-foreground: 0 0% 100%;
-  --accent: 186 72% 45%;
+  --accent: 211 79% 55%;
   --accent-foreground: 0 0% 100%;
   --ring: 174 72% 50%;
   --border: 174 40% 25%;
   --input: 174 40% 25%;
   --dolphy-blue: 174 72% 50%;
   --dolphy-blue-light: 174 72% 15%;
-  --dolphy-purple: 186 72% 45%;
+  --dolphy-purple: 211 79% 55%;
   --dolphy-gradient-start: 174 72% 50%;
-  --dolphy-gradient-end: 186 72% 45%;
+  --dolphy-gradient-end: 211 79% 55%;
   --sidebar-primary: 174 72% 50%;
   --sidebar-accent: 174 72% 15%;
   --sidebar-accent-foreground: 174 72% 70%;
@@ -363,20 +363,20 @@ html.theme-teal.dark {
   --sidebar-border: 174 40% 25%;
 }
 
-/* Purple Theme */
+/* Purple Theme - Purple → Pink gradient */
 html.theme-purple {
   --primary: 271 76% 53%;
   --primary-foreground: 0 0% 100%;
-  --accent: 290 80% 50%;
+  --accent: 326 78% 55%;
   --accent-foreground: 0 0% 100%;
   --ring: 271 76% 53%;
   --border: 271 50% 85%;
   --input: 271 50% 85%;
   --dolphy-blue: 271 76% 53%;
   --dolphy-blue-light: 271 76% 96%;
-  --dolphy-purple: 290 80% 50%;
+  --dolphy-purple: 326 78% 55%;
   --dolphy-gradient-start: 271 76% 53%;
-  --dolphy-gradient-end: 290 80% 50%;
+  --dolphy-gradient-end: 326 78% 55%;
   --sidebar-primary: 271 76% 53%;
   --sidebar-accent: 271 76% 95%;
   --sidebar-accent-foreground: 271 76% 40%;
@@ -387,21 +387,62 @@ html.theme-purple {
 html.theme-purple.dark {
   --primary: 271 76% 60%;
   --primary-foreground: 0 0% 100%;
-  --accent: 290 80% 58%;
+  --accent: 326 78% 60%;
   --accent-foreground: 0 0% 100%;
   --ring: 271 76% 60%;
   --border: 271 40% 25%;
   --input: 271 40% 25%;
   --dolphy-blue: 271 76% 60%;
   --dolphy-blue-light: 271 76% 15%;
-  --dolphy-purple: 290 80% 58%;
+  --dolphy-purple: 326 78% 60%;
   --dolphy-gradient-start: 271 76% 60%;
-  --dolphy-gradient-end: 290 80% 58%;
+  --dolphy-gradient-end: 326 78% 60%;
   --sidebar-primary: 271 76% 60%;
   --sidebar-accent: 271 76% 15%;
   --sidebar-accent-foreground: 271 76% 70%;
   --sidebar-ring: 271 76% 60%;
   --sidebar-border: 271 40% 25%;
+}
+
+/* Yellow Theme */
+html.theme-yellow {
+  --primary: 45 93% 47%;
+  --primary-foreground: 0 0% 10%;
+  --accent: 38 92% 50%;
+  --accent-foreground: 0 0% 10%;
+  --ring: 45 93% 47%;
+  --border: 45 60% 80%;
+  --input: 45 60% 80%;
+  --dolphy-blue: 45 93% 47%;
+  --dolphy-blue-light: 45 93% 96%;
+  --dolphy-purple: 38 92% 50%;
+  --dolphy-gradient-start: 45 93% 47%;
+  --dolphy-gradient-end: 38 92% 50%;
+  --sidebar-primary: 45 93% 47%;
+  --sidebar-accent: 45 93% 95%;
+  --sidebar-accent-foreground: 45 93% 35%;
+  --sidebar-ring: 45 93% 47%;
+  --sidebar-border: 45 60% 80%;
+}
+
+html.theme-yellow.dark {
+  --primary: 45 93% 55%;
+  --primary-foreground: 0 0% 10%;
+  --accent: 38 92% 55%;
+  --accent-foreground: 0 0% 10%;
+  --ring: 45 93% 55%;
+  --border: 45 50% 25%;
+  --input: 45 50% 25%;
+  --dolphy-blue: 45 93% 55%;
+  --dolphy-blue-light: 45 93% 15%;
+  --dolphy-purple: 38 92% 55%;
+  --dolphy-gradient-start: 45 93% 55%;
+  --dolphy-gradient-end: 38 92% 55%;
+  --sidebar-primary: 45 93% 55%;
+  --sidebar-accent: 45 93% 15%;
+  --sidebar-accent-foreground: 45 93% 70%;
+  --sidebar-ring: 45 93% 55%;
+  --sidebar-border: 45 50% 25%;
 }
 
 @layer base {
