@@ -104,6 +104,46 @@
     --sidebar-ring: 211 79% 51%;
   }
 
+  /* All Colors Theme - Multi-color vibrant theme */
+  .theme-all-colors {
+    --primary: 250 84% 54%;
+    --primary-foreground: 0 0% 100%;
+    
+    --accent: 326 78% 55%;
+    --accent-foreground: 0 0% 100%;
+    
+    --dolphy-blue: 211 79% 51%;
+    --dolphy-blue-light: 211 79% 96%;
+    --dolphy-purple: 271 76% 53%;
+    --dolphy-gradient-start: 211 79% 51%;
+    --dolphy-gradient-end: 271 76% 53%;
+    --dolphy-success: 142 76% 36%;
+    --dolphy-warning: 38 92% 50%;
+    --dolphy-online: 142 76% 36%;
+    
+    --sidebar-primary: 250 84% 54%;
+    --sidebar-accent: 326 78% 95%;
+    --sidebar-accent-foreground: 326 78% 40%;
+  }
+
+  .theme-all-colors.dark {
+    --primary: 250 84% 60%;
+    --primary-foreground: 0 0% 100%;
+    
+    --accent: 326 78% 60%;
+    --accent-foreground: 0 0% 100%;
+    
+    --dolphy-blue: 211 79% 55%;
+    --dolphy-blue-light: 211 79% 15%;
+    --dolphy-purple: 271 76% 58%;
+    --dolphy-gradient-start: 211 79% 55%;
+    --dolphy-gradient-end: 271 76% 58%;
+    
+    --sidebar-primary: 250 84% 60%;
+    --sidebar-accent: 326 78% 15%;
+    --sidebar-accent-foreground: 326 78% 70%;
+  }
+
   /* Compact mode - reduced spacing */
   .compact {
     --spacing-scale: 0.75;

@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
 import { I18nextProvider } from "react-i18next";
 import { AuthProvider } from "@/hooks/useAuth";
+import { ThemeProvider } from "@/hooks/useTheme";
 import { GameSidebarVisibilityProvider } from "@/hooks/useGameSidebarVisibility";
 import { OnboardingWrapper } from "@/components/onboarding/OnboardingWrapper";
 import AdminRouteGuard from "@/components/admin/AdminRouteGuard";
@@ -53,17 +54,20 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import CookiesPolicy from "./pages/CookiesPolicy";
 import Marketplace from "./pages/Marketplace";
 import MarketplaceListing from "./pages/MarketplaceListing";
+import Templates from "./pages/Templates";
 
 const queryClient = new QueryClient();
 
 // Root layout component that wraps all routes with providers
 const RootLayout = () => (
   <AuthProvider>
-    <GameSidebarVisibilityProvider>
-      <OnboardingWrapper>
-        <Outlet />
-      </OnboardingWrapper>
-    </GameSidebarVisibilityProvider>
+    <ThemeProvider>
+      <GameSidebarVisibilityProvider>
+        <OnboardingWrapper>
+          <Outlet />
+        </OnboardingWrapper>
+      </GameSidebarVisibilityProvider>
+    </ThemeProvider>
   </AuthProvider>
 );
 
@@ -104,6 +108,7 @@ const router = createBrowserRouter([
       { path: "/dashboard", element: <MemberDashboard /> },
       { path: "/settings", element: <Settings /> },
       { path: "/privacy", element: <Privacy /> },
+      { path: "/templates", element: <Templates /> },
       { path: "/help", element: <HelpSupport /> },
       { path: "/feedback", element: <Feedback /> },
       { path: "/adminindex", element: <AdminLayout><AdminIndex /></AdminLayout> },

@@ -423,7 +423,8 @@
     "notifications": "Notifications",
     "profile": "Profile",
     "games": "Games",
-    "saved": "Saved"
+    "saved": "Saved",
+    "templates": "Templates"
   },
   "birthday": {
     "scheduleWish": "Schedule Birthday Wish",
