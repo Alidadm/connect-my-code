@@ -248,7 +248,7 @@ export const SearchDropdown = () => {
                             {getInitials(friend.display_name)}
                           </AvatarFallback>
                         </Avatar>
-                        <OnlineIndicator isOnline={onlineUsers.has(friend.user_id)} size="sm" />
+                        <OnlineIndicator isOnline={onlineUsers.has(friend.user_id)} size="sm" className="bottom-0 right-0" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">
