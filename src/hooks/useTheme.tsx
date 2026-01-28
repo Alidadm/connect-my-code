@@ -24,11 +24,19 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 // Apply theme CSS class to document
 const applyThemeClass = (slug: string | null) => {
   // Remove all theme classes
-  document.documentElement.classList.remove("theme-blue", "theme-all-colors");
+  document.documentElement.classList.remove(
+    "theme-blue", 
+    "theme-all-colors",
+    "theme-orange",
+    "theme-red",
+    "theme-green",
+    "theme-teal",
+    "theme-purple"
+  );
   
   // Add the selected theme class
-  if (slug === "all-colors") {
-    document.documentElement.classList.add("theme-all-colors");
+  if (slug && slug !== "blue") {
+    document.documentElement.classList.add(`theme-${slug}`);
   } else {
     document.documentElement.classList.add("theme-blue");
   }
