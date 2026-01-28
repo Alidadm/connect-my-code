@@ -19,7 +19,8 @@ import {
   Play,
   Clock,
   Trash2,
-  CalendarDays
+  CalendarDays,
+  Palette
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -49,6 +50,7 @@ const getNavItems = (t: TFunction, gameBadge: number | null) => [
   { icon: UsersRound, label: t("nav.groups", { defaultValue: "Groups" }), path: "/groups", badge: null, iconColor: "text-purple-500" },
   { icon: Image, label: t("nav.photos"), path: "/photos", badge: null, iconColor: "text-pink-500" },
   { icon: Store, label: t("nav.marketplace"), path: "/marketplace", badge: null, iconColor: "text-cyan-500" },
+  { icon: Palette, label: t("nav.templates", { defaultValue: "Templates" }), path: "/templates", badge: null, iconColor: "text-violet-500" },
 ];
 
 

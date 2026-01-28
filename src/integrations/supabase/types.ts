@@ -2924,6 +2924,45 @@ export type Database = {
         }
         Relationships: []
       }
+      template_themes: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          is_default: boolean | null
+          name: string
+          preview_image_url: string | null
+          slug: string
+          sort_order: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          name: string
+          preview_image_url?: string | null
+          slug: string
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          name?: string
+          preview_image_url?: string | null
+          slug?: string
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       tic_tac_toe_games: {
         Row: {
           board: string[]
@@ -3107,6 +3146,7 @@ export type Database = {
           message_sound: boolean | null
           notification_sound: boolean | null
           push_notifications: boolean | null
+          selected_theme_id: string | null
           updated_at: string
           user_id: string
         }
@@ -3122,6 +3162,7 @@ export type Database = {
           message_sound?: boolean | null
           notification_sound?: boolean | null
           push_notifications?: boolean | null
+          selected_theme_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -3137,10 +3178,19 @@ export type Database = {
           message_sound?: boolean | null
           notification_sound?: boolean | null
           push_notifications?: boolean | null
+          selected_theme_id?: string | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_settings_selected_theme_id_fkey"
+            columns: ["selected_theme_id"]
+            isOneToOne: false
+            referencedRelation: "template_themes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       viewed_youtube_videos: {
         Row: {
