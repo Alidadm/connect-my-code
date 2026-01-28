@@ -38,28 +38,75 @@ const Templates = () => {
 
   // Get preview colors for each theme
   const getThemePreview = (slug: string) => {
-    if (slug === "all-colors") {
-      return {
-        colors: [
-          "from-blue-500 to-cyan-500",
-          "from-purple-500 to-pink-500",
-          "from-emerald-500 to-teal-500",
-          "from-orange-500 to-amber-500",
-          "from-rose-500 to-red-500",
-          "from-violet-500 to-purple-500",
-        ],
-        icon: Sparkles,
-      };
+    switch (slug) {
+      case "all-colors":
+        return {
+          colors: [
+            "from-blue-500 to-cyan-500",
+            "from-purple-500 to-pink-500",
+            "from-emerald-500 to-teal-500",
+            "from-orange-500 to-amber-500",
+            "from-rose-500 to-red-500",
+            "from-violet-500 to-purple-500",
+          ],
+          icon: Sparkles,
+        };
+      case "orange":
+        return {
+          colors: [
+            "from-orange-500 to-orange-600",
+            "from-amber-500 to-orange-500",
+            "from-orange-400 to-amber-500",
+          ],
+          icon: Palette,
+        };
+      case "red":
+        return {
+          colors: [
+            "from-red-500 to-red-600",
+            "from-rose-500 to-red-500",
+            "from-red-400 to-rose-500",
+          ],
+          icon: Palette,
+        };
+      case "green":
+        return {
+          colors: [
+            "from-green-500 to-green-600",
+            "from-emerald-500 to-green-500",
+            "from-green-400 to-emerald-500",
+          ],
+          icon: Palette,
+        };
+      case "teal":
+        return {
+          colors: [
+            "from-teal-500 to-teal-600",
+            "from-cyan-500 to-teal-500",
+            "from-teal-400 to-cyan-500",
+          ],
+          icon: Palette,
+        };
+      case "purple":
+        return {
+          colors: [
+            "from-purple-500 to-purple-600",
+            "from-violet-500 to-purple-500",
+            "from-purple-400 to-violet-500",
+          ],
+          icon: Palette,
+        };
+      default:
+        return {
+          colors: [
+            "from-blue-500 to-blue-600",
+            "from-blue-400 to-blue-500",
+            "from-blue-600 to-blue-700",
+            "from-sky-500 to-blue-500",
+          ],
+          icon: Palette,
+        };
     }
-    return {
-      colors: [
-        "from-blue-500 to-blue-600",
-        "from-blue-400 to-blue-500",
-        "from-blue-600 to-blue-700",
-        "from-sky-500 to-blue-500",
-      ],
-      icon: Palette,
-    };
   };
 
   return (
