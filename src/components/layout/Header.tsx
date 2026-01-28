@@ -345,6 +345,21 @@ export const Header = () => {
             <Bookmark className="h-5 w-5" />
           </Button>
 
+          {/* Referral URL Barcode - Quick Access for logged in users */}
+          {user && (
+            <ReferralQRCodeDialog>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className="text-primary hover:text-primary/80 hover:bg-primary/10 h-9 px-2 gap-1.5 flex items-center"
+                title={t('header.referralUrl', { defaultValue: 'Referral URL' })}
+              >
+                <QrCode className="h-4 w-4" />
+                <span className="text-xs font-medium hidden sm:inline">{t('header.referralUrl', { defaultValue: 'Referral URL' })}</span>
+              </Button>
+            </ReferralQRCodeDialog>
+          )}
+
           {/* User dropdown - Desktop only */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
