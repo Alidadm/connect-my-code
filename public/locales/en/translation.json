@@ -73,10 +73,10 @@
     "logOut": "Log Out",
     "welcomeBack": "Welcome back!",
     "loginSuccess": "You've successfully logged in.",
-    "qrBarcode": "QR & Barcode"
+    "qrBarcode": "Referral URL Barcode"
   },
   "referral": {
-    "qrBarcode": "QR & Barcode",
+    "qrBarcode": "Referral URL Barcode",
     "qrBarcodeTitle": "Your Referral QR & Barcode",
     "scanToSignup": "Scan to sign up with your referral",
     "barcodeLabel": "Your referral code barcode",
