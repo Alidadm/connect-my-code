@@ -1,7 +1,7 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { 
-  LayoutDashboard, Users, Megaphone, Wallet, Mail, LogOut, FileText, Trash2, Flag, Search, Calendar
+  LayoutDashboard, Users, Megaphone, Wallet, Mail, LogOut, FileText, Trash2, Flag, Search, Calendar, MessageSquare
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +12,7 @@ const sidebarLinks = [
   { name: "Dashboard", path: "/adminindex", icon: LayoutDashboard },
   { name: "User List", path: "/admin/users/list", icon: Users },
   { name: "Admin Panel", path: "/adminindex", icon: Calendar },
+  { name: "Messages", path: "/admin/messages", icon: MessageSquare },
   { name: "Reported Posts", path: "/admin/reported-posts", icon: Flag },
   { name: "Platform Posts", path: "/admin/platform-posts", icon: Megaphone },
   { name: "Payouts", path: "/admin/payouts", icon: Wallet },

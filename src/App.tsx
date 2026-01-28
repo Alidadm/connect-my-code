@@ -31,6 +31,7 @@ import PlatformPosts from "./pages/admin/PlatformPosts";
 import SeoSettings from "./pages/admin/SeoSettings";
 import DataCleanup from "./pages/admin/DataCleanup";
 import ReportedPosts from "./pages/admin/ReportedPosts";
+import Messages from "./pages/admin/Messages";
 import MemberDashboard from "./pages/MemberDashboard";
 import UserProfile from "./pages/UserProfile";
 import ConfirmEmail from "./pages/ConfirmEmail";
@@ -114,6 +115,7 @@ const router = createBrowserRouter([
       { path: "/admin/seo-settings", element: <AdminLayout><SeoSettings /></AdminLayout> },
       { path: "/admin/data-cleanup", element: <AdminLayout><DataCleanup /></AdminLayout> },
       { path: "/admin/reported-posts", element: <AdminLayout><ReportedPosts /></AdminLayout> },
+      { path: "/admin/messages", element: <AdminLayout><Messages /></AdminLayout> },
       { path: "/terms", element: <Terms /> },
       { path: "/privacy-policy", element: <PrivacyPolicy /> },
       { path: "/cookies-policy", element: <CookiesPolicy /> },
