@@ -195,8 +195,10 @@ export const Header = () => {
         </nav>
 
         {/* Search - Desktop */}
-        <div className="hidden sm:block flex-1">
-          <SearchDropdown />
+        <div className="hidden sm:flex flex-1 justify-center px-4">
+          <div className="w-full max-w-md">
+            <SearchDropdown />
+          </div>
         </div>
 
         {/* Search - Mobile */}
