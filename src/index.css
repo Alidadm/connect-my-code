@@ -105,18 +105,22 @@
   }
 
   /* All Colors Theme - Multi-color vibrant theme */
-  .theme-all-colors {
+  /* Using :root.theme-all-colors for higher specificity than :root alone */
+  :root.theme-all-colors,
+  html.theme-all-colors {
     --primary: 250 84% 54%;
     --primary-foreground: 0 0% 100%;
     
     --accent: 326 78% 55%;
     --accent-foreground: 0 0% 100%;
     
+    --ring: 250 84% 54%;
+    
     --dolphy-blue: 211 79% 51%;
-    --dolphy-blue-light: 211 79% 96%;
+    --dolphy-blue-light: 250 84% 96%;
     --dolphy-purple: 271 76% 53%;
-    --dolphy-gradient-start: 211 79% 51%;
-    --dolphy-gradient-end: 271 76% 53%;
+    --dolphy-gradient-start: 250 84% 54%;
+    --dolphy-gradient-end: 326 78% 55%;
     --dolphy-success: 142 76% 36%;
     --dolphy-warning: 38 92% 50%;
     --dolphy-online: 142 76% 36%;
@@ -124,24 +128,29 @@
     --sidebar-primary: 250 84% 54%;
     --sidebar-accent: 326 78% 95%;
     --sidebar-accent-foreground: 326 78% 40%;
+    --sidebar-ring: 250 84% 54%;
   }
 
-  .theme-all-colors.dark {
+  :root.theme-all-colors.dark,
+  html.theme-all-colors.dark {
     --primary: 250 84% 60%;
     --primary-foreground: 0 0% 100%;
     
     --accent: 326 78% 60%;
     --accent-foreground: 0 0% 100%;
     
+    --ring: 250 84% 60%;
+    
     --dolphy-blue: 211 79% 55%;
-    --dolphy-blue-light: 211 79% 15%;
+    --dolphy-blue-light: 250 84% 15%;
     --dolphy-purple: 271 76% 58%;
-    --dolphy-gradient-start: 211 79% 55%;
-    --dolphy-gradient-end: 271 76% 58%;
+    --dolphy-gradient-start: 250 84% 60%;
+    --dolphy-gradient-end: 326 78% 60%;
     
     --sidebar-primary: 250 84% 60%;
     --sidebar-accent: 326 78% 15%;
     --sidebar-accent-foreground: 326 78% 70%;
+    --sidebar-ring: 250 84% 60%;
   }
 
   /* Compact mode - reduced spacing */
