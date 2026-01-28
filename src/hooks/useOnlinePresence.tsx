@@ -46,13 +46,15 @@ export const useOnlinePresence = () => {
   }, [user]);
 
   // Fetch last seen data for specific users
+  // NOTE: This only fetches last_seen timestamps, NOT is_online status
+  // The is_online status should come from the Realtime Presence channel
   const fetchLastSeen = useCallback(async (userIds: string[]) => {
     if (userIds.length === 0) return;
 
     try {
       const { data, error } = await supabase
         .from("user_presence")
-        .select("user_id, is_online, last_seen_at")
+        .select("user_id, last_seen_at")
         .in("user_id", userIds);
 
       if (error) {
@@ -62,24 +64,18 @@ export const useOnlinePresence = () => {
 
       if (data) {
         const newLastSeenMap = new Map(lastSeenMap);
-        const newOnlineUsers = new Set(onlineUsers);
 
-        data.forEach((presence: UserPresenceData) => {
+        data.forEach((presence: { user_id: string; last_seen_at: string }) => {
           newLastSeenMap.set(presence.user_id, presence.last_seen_at);
-          if (presence.is_online) {
-            newOnlineUsers.add(presence.user_id);
-          } else {
-            newOnlineUsers.delete(presence.user_id);
-          }
         });
 
         setLastSeenMap(newLastSeenMap);
-        setOnlineUsers(newOnlineUsers);
+        // Don't update onlineUsers here - let Realtime Presence handle that
       }
     } catch (err) {
       console.error("Failed to fetch last seen:", err);
     }
-  }, [lastSeenMap, onlineUsers]);
+  }, [lastSeenMap]);
 
   // Track current user's presence with Realtime
   useEffect(() => {
