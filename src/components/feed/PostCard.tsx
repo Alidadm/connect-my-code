@@ -696,28 +696,18 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
         <div className="flex items-center gap-3">
           {isPlatformPost ? (
             // Admin/Platform post - show blue "D" icon, no personal avatar
-            <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+            <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center">
               <span className="text-primary-foreground font-bold text-lg">D</span>
             </div>
           ) : (
-            <Avatar className="h-10 w-10 flex-shrink-0">
+            <Avatar className="h-10 w-10">
               <AvatarImage src={profile?.avatar_url || ""} />
               <AvatarFallback className="bg-primary text-primary-foreground">
                 {profile?.display_name?.[0]?.toUpperCase() || "U"}
               </AvatarFallback>
             </Avatar>
           )}
-          {/* Speech bubble with arrow pointing to avatar */}
-          <div className="relative bg-muted border border-border rounded-lg px-3 py-2">
-            {/* Arrow: border layer + fill layer (reliable across themes) */}
-            <span
-              aria-hidden
-              className="pointer-events-none absolute left-[-11px] top-3 block h-4 w-3 bg-border [clip-path:polygon(100%_50%,0_0,0_100%)]"
-            />
-            <span
-              aria-hidden
-              className="pointer-events-none absolute left-[-10px] top-3 block h-4 w-3 bg-muted [clip-path:polygon(100%_50%,0_0,0_100%)]"
-            />
+          <div>
             <div className="flex items-center gap-1.5 font-semibold text-foreground">
               {isPlatformPost ? (
                 // Platform posts show badge only, no personal name
