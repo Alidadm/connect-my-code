@@ -740,11 +740,18 @@
       "selectDifficulty": "Select Difficulty"
     },
     "ticTacToe": {
-      "title": "Tic-Tac-Toe"
+      "title": "Tic-Tac-Toe",
+      "howToPlay": "How would you like to play?",
+      "chooseMode": "Choose your game mode to get started",
+      "playVsAI": "Play vs DolphySN",
+      "aiDescription": "Challenge our AI for a quick game anytime",
+      "inviteFriend": "Invite a Friend",
+      "friendDescription": "Send an invite and play turn-by-turn"
     },
     "memoryMatch": {
       "title": "Memory Match"
     },
+    "newGame": "New Game",
     "loginToPlay": "Log in to play games with friends!",
     "noGames": "No games here yet",
     "startFirst": "Start your first game!",
