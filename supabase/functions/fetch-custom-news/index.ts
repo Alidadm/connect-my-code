@@ -9,11 +9,24 @@ const corsHeaders = {
 
 interface NewsItem {
   title: string;
-  summary: string;
+  summary: string | null;
   sourceUrl: string;
   imageUrl: string | null;
   publishedAt: string;
 }
+
+// Decode HTML entities
+const decodeHtmlEntities = (text: string): string => {
+  return text
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&#x27;/g, "'")
+    .replace(/&#x2F;/g, "/");
+};
 
 // Parse Google News RSS to extract news items
 const parseGoogleNewsRSS = (xml: string): NewsItem[] => {
@@ -30,6 +43,8 @@ const parseGoogleNewsRSS = (xml: string): NewsItem[] => {
     let title = titleMatch ? titleMatch[1].trim() : "";
     // Remove source suffix from Google News titles (e.g., " - BBC News")
     title = title.replace(/\s*-\s*[^-]+$/, "").trim();
+    // Decode HTML entities in title
+    title = decodeHtmlEntities(title);
     
     // Extract link
     const linkMatch = itemContent.match(/<link>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?<\/link>/i);
@@ -37,17 +52,34 @@ const parseGoogleNewsRSS = (xml: string): NewsItem[] => {
     
     // Extract description
     const descMatch = itemContent.match(/<description>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/description>/i);
-    let summary = descMatch ? descMatch[1].trim() : "";
+    let rawDescription = descMatch ? descMatch[1].trim() : "";
+    
+    // Decode HTML entities first
+    rawDescription = decodeHtmlEntities(rawDescription);
     
     // Try to extract image from description HTML
     let imageUrl: string | null = null;
-    const imgMatch = summary.match(/<img[^>]*src=["']([^"']+)["']/i);
+    const imgMatch = rawDescription.match(/<img[^>]*src=["']([^"']+)["']/i);
     if (imgMatch) {
       imageUrl = imgMatch[1];
     }
     
-    // Strip HTML tags from summary
-    summary = summary.replace(/<[^>]*>/g, "").substring(0, 300).trim();
+    // Extract text content after the anchor tag (the actual summary)
+    // Google News format: <a href="...">Title</a>&nbsp;&nbsp;<font color="#6f6f6f">Source</font><font color="#6f6f6f"><a href="...">Related</a></font>
+    // We want to skip all this and just use the title as summary if no real content
+    let summary = "";
+    
+    // Remove all anchor tags and their content
+    const cleanedDesc = rawDescription
+      .replace(/<a[^>]*>.*?<\/a>/gi, "")
+      .replace(/<font[^>]*>.*?<\/font>/gi, "")
+      .replace(/<img[^>]*>/gi, "")
+      .replace(/<[^>]*>/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+    
+    // If we got meaningful content, use it; otherwise use title
+    summary = cleanedDesc.length > 10 ? cleanedDesc.substring(0, 300) : "";
     
     // Extract pubDate
     const pubDateMatch = itemContent.match(/<pubDate>(.*?)<\/pubDate>/i);
@@ -58,7 +90,7 @@ const parseGoogleNewsRSS = (xml: string): NewsItem[] => {
     if (title && sourceUrl) {
       items.push({
         title: title.substring(0, 500),
-        summary: summary || title,
+        summary: summary || null,
         sourceUrl,
         imageUrl,
         publishedAt,
