@@ -176,13 +176,14 @@ export const GroupPostCard = ({ post, onPostChange, canModerate }: GroupPostCard
         {/* Header */}
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-3">
-            <Avatar className="h-10 w-10">
+            <Avatar className="h-10 w-10 flex-shrink-0">
               <AvatarImage src={post.profiles?.avatar_url || undefined} />
               <AvatarFallback className="bg-primary text-primary-foreground">
                 {post.profiles?.display_name?.[0] || "U"}
               </AvatarFallback>
             </Avatar>
-            <div>
+            {/* Speech bubble with arrow pointing to avatar */}
+            <div className="relative bg-secondary rounded-lg px-3 py-2 before:content-[''] before:absolute before:left-[-8px] before:top-3 before:border-[8px] before:border-transparent before:border-r-secondary">
               <div className="flex items-center gap-1">
                 <span className="font-semibold text-foreground">
                   {post.profiles?.display_name || "Unknown User"}

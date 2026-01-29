@@ -85,7 +85,8 @@ const CommentItem = ({ comment, groupId, onReply, onDelete, onLike, onEdit, isRe
         </AvatarFallback>
       </Avatar>
       <div className="flex-1 min-w-0">
-        <div className="bg-secondary rounded-lg px-3 py-2 group relative">
+        {/* Speech bubble with arrow pointing to avatar */}
+        <div className="bg-secondary rounded-lg px-3 py-2 group relative before:content-[''] before:absolute before:left-[-8px] before:top-3 before:border-[8px] before:border-transparent before:border-r-secondary">
           <p className={`font-medium text-foreground ${isReply ? "text-xs" : "text-sm"}`}>
             {comment.profiles?.display_name || "Unknown User"}
           </p>
