@@ -26,6 +26,12 @@ const Templates = () => {
     toast.success("Theme applied successfully!");
   };
 
+  const applyThemeBySlug = async (slug: string) => {
+    const theme = themes.find((t) => t.slug === slug);
+    if (!theme) return;
+    await handleSelectTheme(theme.id);
+  };
+
   if (authLoading || loading) {
     return (
       <MainLayout>
@@ -117,6 +123,17 @@ const Templates = () => {
     }
   };
 
+  // Swatches inside the "All Colors" card should act as quick-select shortcuts
+  // for the individual themes (this prevents the card click from overriding).
+  const allColorsSwatchSlugs = [
+    "blue",
+    "purple",
+    "teal",
+    "orange",
+    "red",
+    "yellow",
+  ] as const;
+
   return (
     <MainLayout>
       <div className="max-w-4xl mx-auto py-6 px-4">
@@ -146,18 +163,47 @@ const Templates = () => {
                 <div className="h-32 relative overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900">
                   {/* Color circles preview */}
                   <div className="absolute inset-0 flex items-center justify-center gap-2 p-4">
-                    {preview.colors.map((gradient, index) => (
-                      <div
-                        key={index}
-                        className={cn(
-                          "w-8 h-8 rounded-full bg-gradient-to-br shadow-lg transform transition-transform hover:scale-110",
-                          gradient
-                        )}
-                        style={{
-                          animationDelay: `${index * 100}ms`,
-                        }}
-                      />
-                    ))}
+                    {preview.colors.map((gradient, index) => {
+                      const isAllColors = theme.slug === "all-colors";
+                      const targetSlug = isAllColors
+                        ? allColorsSwatchSlugs[index]
+                        : undefined;
+                      const isClickable = Boolean(targetSlug);
+
+                      return (
+                        <button
+                          key={index}
+                          type="button"
+                          disabled={!isClickable}
+                          className={cn(
+                            "w-8 h-8 rounded-full bg-gradient-to-br shadow-lg transform transition-transform",
+                            isClickable
+                              ? "hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                              : "cursor-default",
+                            "disabled:opacity-100 disabled:hover:scale-100",
+                            gradient
+                          )}
+                          style={{
+                            animationDelay: `${index * 100}ms`,
+                          }}
+                          title={
+                            isClickable
+                              ? `Apply ${targetSlug?.replace("-", " ")} theme`
+                              : undefined
+                          }
+                          aria-label={
+                            isClickable
+                              ? `Apply ${targetSlug?.replace("-", " ")} theme`
+                              : undefined
+                          }
+                          onClick={(e) => {
+                            if (!targetSlug) return;
+                            e.stopPropagation();
+                            void applyThemeBySlug(targetSlug);
+                          }}
+                        />
+                      );
+                    })}
                   </div>
                   
                   {/* Selected badge */}
