@@ -32,3 +32,6 @@ verify_jwt = false
 
 [functions.ingest-google-alert]
 verify_jwt = false
+
+[functions.ingest-rss-news]
+verify_jwt = false
