@@ -73,13 +73,13 @@ export const MasonryPhotoGrid = ({
     return (
       <>
         <div 
-          className="rounded-lg overflow-hidden cursor-pointer"
+          className="rounded-lg overflow-hidden cursor-pointer bg-muted/30"
           onClick={() => handleImageClick(displayImages[0])}
         >
           <img
             src={displayImages[0]}
             alt=""
-            className="w-full max-h-[500px] object-cover hover:opacity-95 transition-opacity"
+            className="w-full max-h-[600px] object-contain hover:opacity-95 transition-opacity mx-auto"
             loading="lazy"
           />
         </div>
