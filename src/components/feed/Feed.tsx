@@ -7,6 +7,7 @@ import { DemoPostCard } from "./DemoPostCard";
 import { PullToRefreshIndicator } from "./PullToRefreshIndicator";
 import { ProfileTabContent } from "./ProfileTabContent";
 import { TodaysBirthdays } from "./TodaysBirthdays";
+import { PlatformGalleryCard } from "./PlatformGalleryCard";
 
 import { ScrollProgressIndicator } from "./ScrollProgressIndicator";
 import { Button } from "@/components/ui/button";
@@ -446,6 +447,9 @@ export const Feed = () => {
           <>
           {/* Today's Birthdays section */}
           <TodaysBirthdays />
+
+          {/* Platform Gallery - Admin managed photos */}
+          {user && <PlatformGalleryCard />}
 
           {user ? <PostCreator onPostCreated={() => fetchPosts(0, false)} /> : <DemoPostCreator />}
 
