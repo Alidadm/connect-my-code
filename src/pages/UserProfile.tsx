@@ -760,14 +760,9 @@ const UserProfile = () => {
                   <p className="text-muted-foreground text-sm">@{profile?.username}</p>
                 </div>
 
-                {/* Action Buttons */}
-                <div className="flex gap-2 flex-shrink-0">
-                  {isOwnProfile ? (
-                    <Link to="/dashboard">
-                      <Button variant="outline">{t("profile.editProfile", { defaultValue: "Edit Profile" })}</Button>
-                    </Link>
-                  ) : (
-                    <>
+                {/* Action Buttons - Only show for other users' profiles */}
+                {!isOwnProfile && (
+                  <div className="flex gap-2 flex-shrink-0">
                       {renderFriendButton()}
                       {/* Favorite button */}
                       <TooltipProvider>
@@ -864,9 +859,8 @@ const UserProfile = () => {
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
-                    </>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
