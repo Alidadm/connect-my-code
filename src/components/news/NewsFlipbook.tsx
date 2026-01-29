@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { ChevronLeft, ChevronRight, ExternalLink, Clock } from "lucide-react";
+import { ChevronLeft, ChevronRight, ExternalLink, Clock, Newspaper } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -122,20 +122,26 @@ export const NewsFlipbook: React.FC<NewsFlipbookProps> = ({
             isFlipping && flipDirection === "prev" && "animate-flip-out-left"
           )}
         >
-          {/* Image */}
-          {currentItem.image_url && (
-            <div className="relative h-40 overflow-hidden">
-              <img
-                src={currentItem.image_url}
-                alt={currentItem.title}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-            </div>
-          )}
+          {/* Image or Placeholder */}
+          <div className="relative h-32 overflow-hidden bg-muted/50">
+            {currentItem.image_url ? (
+              <>
+                <img
+                  src={currentItem.image_url}
+                  alt={currentItem.title}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+              </>
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-muted/30">
+                <Newspaper className="h-10 w-10 text-muted-foreground/40" />
+              </div>
+            )}
+          </div>
 
           {/* Content */}
-          <div className={cn("p-4", !currentItem.image_url && "pt-6")}>
+          <div className="p-3">
             <h3 className="font-medium text-sm text-foreground line-clamp-2 mb-2 leading-snug">
               {currentItem.title}
             </h3>
@@ -167,12 +173,15 @@ export const NewsFlipbook: React.FC<NewsFlipbookProps> = ({
           </div>
         </div>
 
-        {/* Navigation arrows */}
+      </div>
+
+      {/* Navigation arrows - moved outside card to prevent overlap */}
+      <div className="flex items-center justify-between mt-2 px-1">
         <Button
           variant="ghost"
-          size="icon"
+          size="sm"
           className={cn(
-            "absolute left-1 top-1/2 -translate-y-1/2 h-8 w-8 bg-background/80 backdrop-blur-sm rounded-full shadow-md",
+            "h-7 w-7 p-0 rounded-full",
             currentIndex === 0 && "opacity-30 cursor-not-allowed"
           )}
           onClick={goToPrev}
@@ -181,11 +190,39 @@ export const NewsFlipbook: React.FC<NewsFlipbookProps> = ({
           <ChevronLeft className="h-4 w-4" />
         </Button>
 
+        {/* Dots indicator */}
+        <div className="flex justify-center gap-1">
+          {items.slice(0, 10).map((_, idx) => (
+            <button
+              key={idx}
+              className={cn(
+                "w-1.5 h-1.5 rounded-full transition-colors",
+                idx === currentIndex ? "bg-primary" : "bg-muted-foreground/30"
+              )}
+              onClick={() => {
+                if (!isFlipping) {
+                  setFlipDirection(idx > currentIndex ? "next" : "prev");
+                  setIsFlipping(true);
+                  setTimeout(() => {
+                    setCurrentIndex(idx);
+                    setIsFlipping(false);
+                  }, 300);
+                }
+              }}
+            />
+          ))}
+          {items.length > 10 && (
+            <span className="text-[10px] text-muted-foreground ml-1">
+              +{items.length - 10}
+            </span>
+          )}
+        </div>
+
         <Button
           variant="ghost"
-          size="icon"
+          size="sm"
           className={cn(
-            "absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 bg-background/80 backdrop-blur-sm rounded-full shadow-md",
+            "h-7 w-7 p-0 rounded-full",
             currentIndex === items.length - 1 && "opacity-30 cursor-not-allowed"
           )}
           onClick={goToNext}
@@ -195,33 +232,6 @@ export const NewsFlipbook: React.FC<NewsFlipbookProps> = ({
         </Button>
       </div>
 
-      {/* Dots indicator */}
-      <div className="flex justify-center gap-1 mt-3">
-        {items.slice(0, 10).map((_, idx) => (
-          <button
-            key={idx}
-            className={cn(
-              "w-2 h-2 rounded-full transition-colors",
-              idx === currentIndex ? "bg-primary" : "bg-muted-foreground/30"
-            )}
-            onClick={() => {
-              if (!isFlipping) {
-                setFlipDirection(idx > currentIndex ? "next" : "prev");
-                setIsFlipping(true);
-                setTimeout(() => {
-                  setCurrentIndex(idx);
-                  setIsFlipping(false);
-                }, 300);
-              }
-            }}
-          />
-        ))}
-        {items.length > 10 && (
-          <span className="text-xs text-muted-foreground ml-1">
-            +{items.length - 10}
-          </span>
-        )}
-      </div>
     </div>
   );
 };
