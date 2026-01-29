@@ -26,13 +26,27 @@ const applyThemeClass = (slug: string | null) => {
   // Remove all theme classes
   document.documentElement.classList.remove(
     "theme-blue", 
+    "theme-blue-light",
+    "theme-blue-dark",
     "theme-all-colors",
     "theme-orange",
+    "theme-orange-light",
+    "theme-orange-dark",
     "theme-red",
+    "theme-red-light",
+    "theme-red-dark",
     "theme-green",
+    "theme-green-light",
+    "theme-green-dark",
     "theme-teal",
+    "theme-teal-light",
+    "theme-teal-dark",
     "theme-purple",
-    "theme-yellow"
+    "theme-purple-light",
+    "theme-purple-dark",
+    "theme-yellow",
+    "theme-yellow-light",
+    "theme-yellow-dark"
   );
   
   // Add the selected theme class
