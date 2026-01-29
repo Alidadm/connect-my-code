@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { Images, Trash2, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
@@ -116,13 +117,16 @@ export const SavedGalleryWidget = () => {
         </button>
       )}
 
-      {/* Lightbox */}
-      <PhotoLightbox
-        images={images}
-        initialIndex={lightboxIndex}
-        isOpen={lightboxOpen}
-        onClose={() => setLightboxOpen(false)}
-      />
+      {/* Lightbox - render via portal to ensure it appears above everything */}
+      {lightboxOpen && createPortal(
+        <PhotoLightbox
+          images={images}
+          initialIndex={lightboxIndex}
+          isOpen={lightboxOpen}
+          onClose={() => setLightboxOpen(false)}
+        />,
+        document.body
+      )}
     </div>
   );
 };
