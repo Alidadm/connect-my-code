@@ -3153,6 +3153,86 @@ export type Database = {
         }
         Relationships: []
       }
+      user_custom_news_categories: {
+        Row: {
+          color: string | null
+          created_at: string
+          icon: string | null
+          id: string
+          keywords: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          icon?: string | null
+          id?: string
+          keywords: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          icon?: string | null
+          id?: string
+          keywords?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_custom_news_items: {
+        Row: {
+          created_at: string
+          custom_category_id: string
+          expires_at: string
+          id: string
+          image_url: string | null
+          published_at: string
+          source_url: string | null
+          summary: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          custom_category_id: string
+          expires_at: string
+          id?: string
+          image_url?: string | null
+          published_at?: string
+          source_url?: string | null
+          summary?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          custom_category_id?: string
+          expires_at?: string
+          id?: string
+          image_url?: string | null
+          published_at?: string
+          source_url?: string | null
+          summary?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_custom_news_items_custom_category_id_fkey"
+            columns: ["custom_category_id"]
+            isOneToOne: false
+            referencedRelation: "user_custom_news_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_favorites: {
         Row: {
           created_at: string
