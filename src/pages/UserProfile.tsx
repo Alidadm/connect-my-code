@@ -38,6 +38,7 @@ import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { MessagesSheet } from "@/components/messages/MessagesSheet";
+import { MainLayout } from "@/components/layout/MainLayout";
 
 type FriendshipStatus = "none" | "pending_sent" | "pending_received" | "accepted";
 type ProfileTab = "posts" | "photos" | "videos" | "friends" | "mutual";
@@ -640,7 +641,7 @@ const UserProfile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <MainLayout>
       <div className="max-w-4xl mx-auto">
         {/* Profile Card Container */}
         <section className="mb-4 overflow-visible rounded-xl bg-card shadow-sm relative">
@@ -1209,7 +1210,7 @@ const UserProfile = () => {
           </DialogContent>
         </Dialog>
       </div>
-    </div>
+    </MainLayout>
   );
 };
 
