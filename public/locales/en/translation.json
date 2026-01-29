@@ -1158,6 +1158,25 @@
     "categoryRemoved": "Category removed",
     "errorAddingCategory": "Failed to add category",
     "errorRemovingCategory": "Failed to remove category",
-    "maxCategoriesReached": "You can only select up to 6 categories"
+    "maxCategoriesReached": "You can only select up to 6 categories",
+    "createCustomCategory": "Create Custom",
+    "createCustomCategoryTitle": "Create Custom Category",
+    "categoryName": "Category Name",
+    "categoryNamePlaceholder": "e.g., Electric Vehicles",
+    "keywords": "Keywords",
+    "keywordsPlaceholder": "e.g., Tesla electric cars EV",
+    "keywordsHint": "Enter keywords to search for news articles",
+    "icon": "Icon",
+    "color": "Color",
+    "categoryCreated": "Custom category created",
+    "categoryUpdated": "Category updated",
+    "categoryDeleted": "Category deleted",
+    "errorCreatingCategory": "Failed to create category",
+    "errorUpdatingCategory": "Failed to update category",
+    "errorDeletingCategory": "Failed to delete category",
+    "maxCustomCategoriesReached": "You can only create up to 4 custom categories",
+    "refresh": "Refresh",
+    "delete": "Delete",
+    "fetchingNews": "Fetching news..."
   }
 }

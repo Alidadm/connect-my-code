@@ -35,3 +35,6 @@ verify_jwt = false
 
 [functions.ingest-rss-news]
 verify_jwt = false
+
+[functions.fetch-custom-news]
+verify_jwt = false
