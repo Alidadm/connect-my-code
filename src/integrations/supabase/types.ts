@@ -1784,6 +1784,80 @@ export type Database = {
         }
         Relationships: []
       }
+      news_categories: {
+        Row: {
+          color: string | null
+          created_at: string
+          icon: string | null
+          id: string
+          name: string
+          slug: string
+          sort_order: number | null
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          icon?: string | null
+          id?: string
+          name: string
+          slug: string
+          sort_order?: number | null
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          icon?: string | null
+          id?: string
+          name?: string
+          slug?: string
+          sort_order?: number | null
+        }
+        Relationships: []
+      }
+      news_items: {
+        Row: {
+          category_id: string
+          created_at: string
+          expires_at: string
+          id: string
+          image_url: string | null
+          published_at: string
+          source_url: string | null
+          summary: string | null
+          title: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          image_url?: string | null
+          published_at?: string
+          source_url?: string | null
+          summary?: string | null
+          title: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          image_url?: string | null
+          published_at?: string
+          source_url?: string | null
+          summary?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "news_items_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "news_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       page_followers: {
         Row: {
           followed_at: string
@@ -3129,6 +3203,35 @@ export type Database = {
           },
         ]
       }
+      user_news_preferences: {
+        Row: {
+          category_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_news_preferences_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "news_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_presence: {
         Row: {
           created_at: string
@@ -3418,6 +3521,7 @@ export type Database = {
         Args: { user_a: string; user_b: string }
         Returns: boolean
       }
+      cleanup_news_items: { Args: never; Returns: undefined }
       generate_unique_username: {
         Args: { p_first_name: string; p_last_name: string; p_user_id: string }
         Returns: string

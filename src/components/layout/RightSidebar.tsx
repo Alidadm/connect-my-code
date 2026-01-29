@@ -23,6 +23,7 @@ import {
 import { ScheduleBirthdayWishDialog } from "@/components/birthday/ScheduleBirthdayWishDialog";
 import { OnlineIndicator } from "@/components/ui/online-indicator";
 import { SavedGalleryWidget } from "@/components/sidebar/SavedGalleryWidget";
+import { NewsWidget } from "@/components/news/NewsWidget";
 
 interface MessageWithSender {
   id: string;
@@ -1023,6 +1024,9 @@ export const RightSidebar = () => {
           </div>
         </div>
         )}
+
+        {/* News Widget */}
+        <NewsWidget />
       </div>
       
       {/* Schedule Birthday Wish Dialog */}
