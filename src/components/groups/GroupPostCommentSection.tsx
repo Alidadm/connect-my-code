@@ -86,7 +86,15 @@ const CommentItem = ({ comment, groupId, onReply, onDelete, onLike, onEdit, isRe
       </Avatar>
       <div className="flex-1 min-w-0">
         {/* Speech bubble with arrow pointing to avatar */}
-        <div className="bg-secondary rounded-lg px-3 py-2 group relative before:content-[''] before:absolute before:left-[-8px] before:top-3 before:border-8 before:border-transparent before:border-r-[hsl(var(--secondary))]">
+        <div className="bg-muted border border-border rounded-lg px-3 py-2 group relative">
+          <span
+            aria-hidden
+            className="pointer-events-none absolute left-[-11px] top-3 block h-4 w-3 bg-border [clip-path:polygon(100%_50%,0_0,0_100%)]"
+          />
+          <span
+            aria-hidden
+            className="pointer-events-none absolute left-[-10px] top-3 block h-4 w-3 bg-muted [clip-path:polygon(100%_50%,0_0,0_100%)]"
+          />
           <p className={`font-medium text-foreground ${isReply ? "text-xs" : "text-sm"}`}>
             {comment.profiles?.display_name || "Unknown User"}
           </p>

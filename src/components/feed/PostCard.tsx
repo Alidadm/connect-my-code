@@ -708,7 +708,16 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
             </Avatar>
           )}
           {/* Speech bubble with arrow pointing to avatar */}
-          <div className="relative bg-secondary rounded-lg px-3 py-2 before:content-[''] before:absolute before:left-[-8px] before:top-3 before:border-8 before:border-transparent before:border-r-[hsl(var(--secondary))]">
+          <div className="relative bg-muted border border-border rounded-lg px-3 py-2">
+            {/* Arrow: border layer + fill layer (reliable across themes) */}
+            <span
+              aria-hidden
+              className="pointer-events-none absolute left-[-11px] top-3 block h-4 w-3 bg-border [clip-path:polygon(100%_50%,0_0,0_100%)]"
+            />
+            <span
+              aria-hidden
+              className="pointer-events-none absolute left-[-10px] top-3 block h-4 w-3 bg-muted [clip-path:polygon(100%_50%,0_0,0_100%)]"
+            />
             <div className="flex items-center gap-1.5 font-semibold text-foreground">
               {isPlatformPost ? (
                 // Platform posts show badge only, no personal name
