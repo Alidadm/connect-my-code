@@ -26,3 +26,9 @@ verify_jwt = false
 
 [functions.receive-inbound-email]
 verify_jwt = false
+
+[functions.cleanup-news]
+verify_jwt = false
+
+[functions.ingest-google-alert]
+verify_jwt = false
