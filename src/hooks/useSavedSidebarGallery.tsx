@@ -50,6 +50,18 @@ export const useSavedSidebarGallery = () => {
     fetchSavedGallery();
   }, [fetchSavedGallery]);
 
+  // Listen for gallery save events from other components
+  useEffect(() => {
+    const handleGallerySaved = () => {
+      fetchSavedGallery();
+    };
+
+    window.addEventListener('gallery-saved-to-sidebar', handleGallerySaved);
+    return () => {
+      window.removeEventListener('gallery-saved-to-sidebar', handleGallerySaved);
+    };
+  }, [fetchSavedGallery]);
+
   const saveGalleryToSidebar = async (
     postId: string,
     mediaUrls: string[],
@@ -82,6 +94,9 @@ export const useSavedSidebarGallery = () => {
         title: t('gallery.savedToSidebar', 'Gallery saved to sidebar'),
         description: t('gallery.savedToSidebarDesc', 'This gallery will now appear in your sidebar.'),
       });
+
+      // Dispatch event to notify other components (like sidebar widget)
+      window.dispatchEvent(new CustomEvent('gallery-saved-to-sidebar'));
 
       await fetchSavedGallery();
       return true;
