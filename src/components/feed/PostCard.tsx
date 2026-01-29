@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { MessageCircle, Share2, MoreVertical, Bookmark, FileText, Music, Pencil, Trash2, Copy, Facebook, Twitter, Link2, Check, Ban, VolumeX, Volume2, UserX, Megaphone, Play, ThumbsUp, ThumbsDown, EyeOff, BookmarkPlus, Flag, Youtube, Eye } from "lucide-react";
+import { MessageCircle, Share2, MoreVertical, Bookmark, FileText, Music, Pencil, Trash2, Copy, Facebook, Twitter, Link2, Check, Ban, VolumeX, Volume2, UserX, Megaphone, Play, ThumbsUp, ThumbsDown, EyeOff, BookmarkPlus, Flag, Youtube, Eye, Images } from "lucide-react";
 import { extractYoutubeVideoId, getYoutubeThumbnailUrl, getYoutubeEmbedUrl } from "@/lib/youtube";
 import { useViewedVideos } from "@/hooks/useViewedVideos";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -21,6 +21,7 @@ import { CommentSection } from "./CommentSection";
 import { ReactionPicker } from "./ReactionPicker";
 import { MasonryPhotoGrid } from "./MasonryPhotoGrid";
 import { useBlockMute } from "@/hooks/useBlockMute";
+import { useSavedSidebarGallery } from "@/hooks/useSavedSidebarGallery";
 
 import Swal from "sweetalert2";
 import ReactDOMServer from "react-dom/server";
@@ -62,9 +63,29 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
   const isOwner = user?.id === post.user_id;
   const { isBlocked, isMuted, blockUser, muteUser, loading: blockMuteLoading } = useBlockMute(post.user_id);
   const { markAsViewed, isViewed } = useViewedVideos();
+  const { saveGalleryToSidebar, isGallerySaved } = useSavedSidebarGallery();
   
   const fullName = post.profiles?.display_name || post.profiles?.username || t('common.user', 'User');
   const authorFirstName = fullName.split(' ')[0];
+  
+  // Check if post has multiple images for gallery save option
+  const postImages = post.media_urls?.filter(url => {
+    const ext = url.split(".").pop()?.toLowerCase() || "";
+    return ["jpg", "jpeg", "png", "gif", "webp", "svg"].includes(ext);
+  }) || [];
+  const hasGallery = postImages.length >= 2;
+  const gallerySaved = isGallerySaved(post.id);
+
+  const handleSaveGalleryToSidebar = async () => {
+    if (!hasGallery) return;
+    await saveGalleryToSidebar(
+      post.id,
+      postImages,
+      post.profiles?.display_name,
+      post.profiles?.avatar_url,
+      post.profiles?.username
+    );
+  };
 
   // Check if user has bookmarked this post and load preferences/hidden status
   useEffect(() => {
@@ -790,6 +811,17 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
                     ? t('feed.removeFromSaved', 'Remove from saved')
                     : t('feed.savePost', 'Save post')}
                 </DropdownMenuItem>
+                {hasGallery && (
+                  <DropdownMenuItem 
+                    onClick={handleSaveGalleryToSidebar}
+                    className={`cursor-pointer ${gallerySaved ? 'text-primary' : ''}`}
+                  >
+                    <Images className={`h-4 w-4 mr-2 ${gallerySaved ? 'fill-current' : ''}`} />
+                    {gallerySaved 
+                      ? t('gallery.alreadySaved', 'Gallery saved to sidebar')
+                      : t('gallery.saveToSidebar', 'Save gallery to sidebar')}
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem 
                   onClick={blockUser} 
@@ -867,6 +899,10 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
               images={allImages} 
               variant="feed" 
               maxDisplay={5}
+              postId={post.id}
+              authorDisplayName={post.profiles?.display_name}
+              authorAvatarUrl={post.profiles?.avatar_url}
+              authorUsername={post.profiles?.username}
             />
           )}
           

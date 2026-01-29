@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ScheduleBirthdayWishDialog } from "@/components/birthday/ScheduleBirthdayWishDialog";
 import { OnlineIndicator } from "@/components/ui/online-indicator";
+import { SavedGalleryWidget } from "@/components/sidebar/SavedGalleryWidget";
 
 interface MessageWithSender {
   id: string;
@@ -590,6 +591,9 @@ export const RightSidebar = () => {
   return (
     <aside className="w-[320px] flex-shrink-0 hidden xl:block">
       <div className="fixed w-[320px] h-[calc(100vh-64px)] overflow-y-auto scrollbar-hide pt-4 pb-8 pl-2">
+
+        {/* Saved Gallery Widget */}
+        <SavedGalleryWidget />
 
         {/* Birthday Reminders */}
         {birthdays.length > 0 && (

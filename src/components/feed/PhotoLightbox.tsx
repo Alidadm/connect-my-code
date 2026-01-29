@@ -1,12 +1,18 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Images } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useSavedSidebarGallery } from "@/hooks/useSavedSidebarGallery";
+import { useTranslation } from "react-i18next";
 
 interface PhotoLightboxProps {
   images: string[];
   initialIndex: number;
   isOpen: boolean;
   onClose: () => void;
+  postId?: string;
+  authorDisplayName?: string | null;
+  authorAvatarUrl?: string | null;
+  authorUsername?: string | null;
 }
 
 interface TouchPoint {
@@ -40,11 +46,31 @@ const rubberBand = (offset: number, limit: number, elasticity: number = 0.55): n
   return sign * limit * (1 - Math.exp(-absOffset / limit / elasticity));
 };
 
-export const PhotoLightbox = ({ images, initialIndex, isOpen, onClose }: PhotoLightboxProps) => {
+export const PhotoLightbox = ({ 
+  images, 
+  initialIndex, 
+  isOpen, 
+  onClose,
+  postId,
+  authorDisplayName,
+  authorAvatarUrl,
+  authorUsername
+}: PhotoLightboxProps) => {
+  const { t } = useTranslation();
+  const { saveGalleryToSidebar, isGallerySaved } = useSavedSidebarGallery();
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [zoomScale, setZoomScale] = useState(1);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const [isSpringBack, setIsSpringBack] = useState(false);
+  
+  // Check if this gallery is already saved
+  const hasMultipleImages = images.length >= 2;
+  const gallerySaved = postId ? isGallerySaved(postId) : false;
+
+  const handleSaveGallery = async () => {
+    if (!postId || !hasMultipleImages) return;
+    await saveGalleryToSidebar(postId, images, authorDisplayName, authorAvatarUrl, authorUsername);
+  };
   
   // Swipe state
   const [touchStart, setTouchStart] = useState<number | null>(null);
@@ -512,6 +538,19 @@ export const PhotoLightbox = ({ images, initialIndex, isOpen, onClose }: PhotoLi
       >
         {isZoomed ? <ZoomOut className="h-5 w-5" /> : <ZoomIn className="h-5 w-5" />}
       </Button>
+
+      {/* Save Gallery to Sidebar button */}
+      {postId && hasMultipleImages && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className={`absolute top-4 right-28 z-50 text-white hover:bg-white/20 h-10 w-10 ${gallerySaved ? 'text-primary' : ''}`}
+          onClick={handleSaveGallery}
+          title={gallerySaved ? t('gallery.alreadySaved', 'Gallery saved') : t('gallery.saveToSidebar', 'Save gallery to sidebar')}
+        >
+          <Images className={`h-5 w-5 ${gallerySaved ? 'fill-current' : ''}`} />
+        </Button>
+      )}
 
       {/* Zoom level indicator */}
       {isZoomed && (
