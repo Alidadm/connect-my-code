@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
-import { 
+import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom";
+import {
   MapPin, Calendar, Users, 
   MessageCircle, UserPlus, MoreHorizontal, ArrowLeft,
   CheckCircle2, Camera, UserCheck, Clock, UserMinus, Ban, VolumeX, Volume2, UserX, Star
@@ -82,6 +82,7 @@ const countryNames: Record<string, string> = {
 
 const UserProfile = () => {
   const { username } = useParams<{ username: string }>();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -101,7 +102,22 @@ const UserProfile = () => {
   const [loadingFriends, setLoadingFriends] = useState(false);
   const [mutualFriends, setMutualFriends] = useState<FriendProfile[]>([]);
   const [loadingMutualFriends, setLoadingMutualFriends] = useState(false);
-  const [activeTab, setActiveTab] = useState<ProfileTab>("posts");
+  
+  // Initialize activeTab from URL parameter or default to "posts"
+  const tabFromUrl = searchParams.get("tab") as ProfileTab | null;
+  const [activeTab, setActiveTab] = useState<ProfileTab>(
+    tabFromUrl && ["posts", "photos", "videos", "friends", "mutual"].includes(tabFromUrl) 
+      ? tabFromUrl 
+      : "posts"
+  );
+
+  // Sync activeTab when URL parameter changes
+  useEffect(() => {
+    const urlTab = searchParams.get("tab") as ProfileTab | null;
+    if (urlTab && ["posts", "photos", "videos", "friends", "mutual"].includes(urlTab)) {
+      setActiveTab(urlTab);
+    }
+  }, [searchParams]);
 
   // Block/Mute hook
   const { isBlocked, isMuted, blockUser, muteUser, loading: blockMuteLoading } = useBlockMute(profile?.user_id);
