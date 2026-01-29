@@ -55,6 +55,7 @@ import CookiesPolicy from "./pages/CookiesPolicy";
 import Marketplace from "./pages/Marketplace";
 import MarketplaceListing from "./pages/MarketplaceListing";
 import Templates from "./pages/Templates";
+import PostView from "./pages/PostView";
 
 const queryClient = new QueryClient();
 
@@ -109,6 +110,7 @@ const router = createBrowserRouter([
       { path: "/settings", element: <Settings /> },
       { path: "/privacy", element: <Privacy /> },
       { path: "/templates", element: <Templates /> },
+      { path: "/post/:postId", element: <PostView /> },
       { path: "/help", element: <HelpSupport /> },
       { path: "/feedback", element: <Feedback /> },
       { path: "/adminindex", element: <AdminLayout><AdminIndex /></AdminLayout> },
