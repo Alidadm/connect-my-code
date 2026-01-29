@@ -10,7 +10,7 @@ interface MasonryPhotoGridProps {
 
 export const MasonryPhotoGrid = ({ 
   images, 
-  maxDisplay = 5, 
+  maxDisplay = 9, 
   onImageClick,
   variant = "feed" 
 }: MasonryPhotoGridProps) => {
@@ -20,15 +20,12 @@ export const MasonryPhotoGrid = ({
   const displayImages = images.slice(0, maxDisplay);
   const remainingCount = images.length - maxDisplay;
 
-  const handleImageClick = (imageUrl: string) => {
+  const handleImageClick = (index: number) => {
     if (onImageClick) {
-      onImageClick(imageUrl, images);
+      onImageClick(images[index], images);
       return;
     }
-
-    // Open lightbox
-    const index = images.indexOf(imageUrl);
-    setLightboxIndex(index >= 0 ? index : 0);
+    setLightboxIndex(index);
     setLightboxOpen(true);
   };
 
@@ -42,12 +39,12 @@ export const MasonryPhotoGrid = ({
   if (variant === "gallery") {
     return (
       <>
-        <div className="columns-2 sm:columns-3 md:columns-4 gap-2 space-y-2">
+        <div className="columns-2 sm:columns-3 md:columns-4 gap-1 space-y-1">
           {images.map((url, index) => (
             <div
               key={index}
-              className="break-inside-avoid rounded-lg overflow-hidden bg-muted cursor-pointer hover:opacity-90 transition-opacity"
-              onClick={() => handleImageClick(url)}
+              className="break-inside-avoid rounded-md overflow-hidden bg-muted/20 cursor-pointer hover:opacity-90 transition-opacity"
+              onClick={() => handleImageClick(index)}
             >
               <img
                 src={url}
@@ -68,18 +65,50 @@ export const MasonryPhotoGrid = ({
     );
   }
 
-  // Feed variant - structured masonry for posts
+  // Feed variant - structured layouts for posts
+  const ImageTile = ({ 
+    url, 
+    index, 
+    className = "", 
+    showOverlay = false,
+    overlayCount = 0 
+  }: { 
+    url: string; 
+    index: number; 
+    className?: string;
+    showOverlay?: boolean;
+    overlayCount?: number;
+  }) => (
+    <div
+      className={`cursor-pointer overflow-hidden relative ${className}`}
+      onClick={() => handleImageClick(index)}
+    >
+      <img
+        src={url}
+        alt=""
+        className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
+        loading="lazy"
+      />
+      {showOverlay && overlayCount > 0 && (
+        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+          <span className="text-white text-2xl font-bold">+{overlayCount}</span>
+        </div>
+      )}
+    </div>
+  );
+
+  // Single image - full width, object-contain for no cropping
   if (displayImages.length === 1) {
     return (
       <>
         <div 
-          className="rounded-lg overflow-hidden cursor-pointer bg-muted/30"
-          onClick={() => handleImageClick(displayImages[0])}
+          className="rounded-lg overflow-hidden cursor-pointer bg-muted/20"
+          onClick={() => handleImageClick(0)}
         >
           <img
             src={displayImages[0]}
             alt=""
-            className="w-full max-h-[600px] object-contain hover:opacity-95 transition-opacity mx-auto"
+            className="w-full max-h-[500px] object-contain hover:opacity-95 transition-opacity mx-auto"
             loading="lazy"
           />
         </div>
@@ -93,23 +122,13 @@ export const MasonryPhotoGrid = ({
     );
   }
 
+  // 2 images - side by side
   if (displayImages.length === 2) {
     return (
       <>
-        <div className="grid grid-cols-2 gap-1 rounded-lg overflow-hidden">
+        <div className="grid grid-cols-2 gap-0.5 rounded-lg overflow-hidden">
           {displayImages.map((url, index) => (
-            <div
-              key={index}
-              className="aspect-square cursor-pointer overflow-hidden"
-              onClick={() => handleImageClick(url)}
-            >
-              <img
-                src={url}
-                alt=""
-                className="w-full h-full object-cover hover:opacity-95 transition-opacity"
-                loading="lazy"
-              />
-            </div>
+            <ImageTile key={index} url={url} index={index} className="aspect-square" />
           ))}
         </div>
         <PhotoLightbox
@@ -122,35 +141,16 @@ export const MasonryPhotoGrid = ({
     );
   }
 
+  // 3 images - one large left, two stacked right
   if (displayImages.length === 3) {
     return (
       <>
-        <div className="grid grid-cols-2 gap-1 rounded-lg overflow-hidden">
-          <div
-            className="row-span-2 cursor-pointer overflow-hidden"
-            onClick={() => handleImageClick(displayImages[0])}
-          >
-            <img
-              src={displayImages[0]}
-              alt=""
-              className="w-full h-full object-cover hover:opacity-95 transition-opacity"
-              loading="lazy"
-            />
+        <div className="grid grid-cols-2 gap-0.5 rounded-lg overflow-hidden" style={{ height: '300px' }}>
+          <ImageTile url={displayImages[0]} index={0} className="row-span-2 h-full" />
+          <div className="grid grid-rows-2 gap-0.5 h-full">
+            <ImageTile url={displayImages[1]} index={1} className="h-full" />
+            <ImageTile url={displayImages[2]} index={2} className="h-full" />
           </div>
-          {displayImages.slice(1).map((url, index) => (
-            <div
-              key={index}
-              className="aspect-square cursor-pointer overflow-hidden"
-              onClick={() => handleImageClick(url)}
-            >
-              <img
-                src={url}
-                alt=""
-                className="w-full h-full object-cover hover:opacity-95 transition-opacity"
-                loading="lazy"
-              />
-            </div>
-          ))}
         </div>
         <PhotoLightbox
           images={images}
@@ -162,23 +162,13 @@ export const MasonryPhotoGrid = ({
     );
   }
 
+  // 4 images - 2x2 grid
   if (displayImages.length === 4) {
     return (
       <>
-        <div className="grid grid-cols-2 gap-1 rounded-lg overflow-hidden">
+        <div className="grid grid-cols-2 gap-0.5 rounded-lg overflow-hidden">
           {displayImages.map((url, index) => (
-            <div
-              key={index}
-              className="aspect-square cursor-pointer overflow-hidden"
-              onClick={() => handleImageClick(url)}
-            >
-              <img
-                src={url}
-                alt=""
-                className="w-full h-full object-cover hover:opacity-95 transition-opacity"
-                loading="lazy"
-              />
-            </div>
+            <ImageTile key={index} url={url} index={index} className="aspect-square" />
           ))}
         </div>
         <PhotoLightbox
@@ -191,56 +181,145 @@ export const MasonryPhotoGrid = ({
     );
   }
 
-  // 5+ images - masonry with overlay for remaining
+  // 5 images - 2 on top, 3 on bottom
+  if (displayImages.length === 5) {
+    return (
+      <>
+        <div className="grid gap-0.5 rounded-lg overflow-hidden">
+          <div className="grid grid-cols-2 gap-0.5">
+            <ImageTile url={displayImages[0]} index={0} className="aspect-[4/3]" />
+            <ImageTile url={displayImages[1]} index={1} className="aspect-[4/3]" />
+          </div>
+          <div className="grid grid-cols-3 gap-0.5">
+            <ImageTile url={displayImages[2]} index={2} className="aspect-square" />
+            <ImageTile url={displayImages[3]} index={3} className="aspect-square" />
+            <ImageTile 
+              url={displayImages[4]} 
+              index={4} 
+              className="aspect-square" 
+              showOverlay={remainingCount > 0}
+              overlayCount={remainingCount}
+            />
+          </div>
+        </div>
+        <PhotoLightbox
+          images={images}
+          initialIndex={lightboxIndex}
+          isOpen={lightboxOpen}
+          onClose={closeLightbox}
+        />
+      </>
+    );
+  }
+
+  // 6 images - 3x2 grid
+  if (displayImages.length === 6) {
+    return (
+      <>
+        <div className="grid grid-cols-3 gap-0.5 rounded-lg overflow-hidden">
+          {displayImages.map((url, index) => (
+            <ImageTile 
+              key={index} 
+              url={url} 
+              index={index} 
+              className="aspect-square"
+              showOverlay={index === 5 && remainingCount > 0}
+              overlayCount={remainingCount}
+            />
+          ))}
+        </div>
+        <PhotoLightbox
+          images={images}
+          initialIndex={lightboxIndex}
+          isOpen={lightboxOpen}
+          onClose={closeLightbox}
+        />
+      </>
+    );
+  }
+
+  // 7 images - 1 large on top, 3+3 below
+  if (displayImages.length === 7) {
+    return (
+      <>
+        <div className="grid gap-0.5 rounded-lg overflow-hidden">
+          <ImageTile url={displayImages[0]} index={0} className="aspect-[2/1]" />
+          <div className="grid grid-cols-3 gap-0.5">
+            <ImageTile url={displayImages[1]} index={1} className="aspect-square" />
+            <ImageTile url={displayImages[2]} index={2} className="aspect-square" />
+            <ImageTile url={displayImages[3]} index={3} className="aspect-square" />
+          </div>
+          <div className="grid grid-cols-3 gap-0.5">
+            <ImageTile url={displayImages[4]} index={4} className="aspect-square" />
+            <ImageTile url={displayImages[5]} index={5} className="aspect-square" />
+            <ImageTile 
+              url={displayImages[6]} 
+              index={6} 
+              className="aspect-square"
+              showOverlay={remainingCount > 0}
+              overlayCount={remainingCount}
+            />
+          </div>
+        </div>
+        <PhotoLightbox
+          images={images}
+          initialIndex={lightboxIndex}
+          isOpen={lightboxOpen}
+          onClose={closeLightbox}
+        />
+      </>
+    );
+  }
+
+  // 8 images - 2 on top, 3+3 below
+  if (displayImages.length === 8) {
+    return (
+      <>
+        <div className="grid gap-0.5 rounded-lg overflow-hidden">
+          <div className="grid grid-cols-2 gap-0.5">
+            <ImageTile url={displayImages[0]} index={0} className="aspect-[4/3]" />
+            <ImageTile url={displayImages[1]} index={1} className="aspect-[4/3]" />
+          </div>
+          <div className="grid grid-cols-3 gap-0.5">
+            <ImageTile url={displayImages[2]} index={2} className="aspect-square" />
+            <ImageTile url={displayImages[3]} index={3} className="aspect-square" />
+            <ImageTile url={displayImages[4]} index={4} className="aspect-square" />
+          </div>
+          <div className="grid grid-cols-3 gap-0.5">
+            <ImageTile url={displayImages[5]} index={5} className="aspect-square" />
+            <ImageTile url={displayImages[6]} index={6} className="aspect-square" />
+            <ImageTile 
+              url={displayImages[7]} 
+              index={7} 
+              className="aspect-square"
+              showOverlay={remainingCount > 0}
+              overlayCount={remainingCount}
+            />
+          </div>
+        </div>
+        <PhotoLightbox
+          images={images}
+          initialIndex={lightboxIndex}
+          isOpen={lightboxOpen}
+          onClose={closeLightbox}
+        />
+      </>
+    );
+  }
+
+  // 9+ images - 3x3 grid with overlay on last
   return (
     <>
-      <div className="grid grid-cols-6 gap-1 rounded-lg overflow-hidden">
-        {/* Large image on left */}
-        <div
-          className="col-span-3 row-span-2 cursor-pointer overflow-hidden"
-          onClick={() => handleImageClick(displayImages[0])}
-        >
-          <img
-            src={displayImages[0]}
-            alt=""
-            className="w-full h-full object-cover hover:opacity-95 transition-opacity"
-            loading="lazy"
+      <div className="grid grid-cols-3 gap-0.5 rounded-lg overflow-hidden">
+        {displayImages.map((url, index) => (
+          <ImageTile 
+            key={index} 
+            url={url} 
+            index={index} 
+            className="aspect-square"
+            showOverlay={index === displayImages.length - 1 && remainingCount > 0}
+            overlayCount={remainingCount}
           />
-        </div>
-        {/* Top right */}
-        <div
-          className="col-span-3 cursor-pointer overflow-hidden aspect-video"
-          onClick={() => handleImageClick(displayImages[1])}
-        >
-          <img
-            src={displayImages[1]}
-            alt=""
-            className="w-full h-full object-cover hover:opacity-95 transition-opacity"
-            loading="lazy"
-          />
-        </div>
-        {/* Bottom row - 3 small images */}
-        {displayImages.slice(2, 5).map((url, index) => (
-          <div
-            key={index}
-            className={`cursor-pointer overflow-hidden aspect-square relative ${
-              index === 2 && remainingCount > 0 ? '' : ''
-            }`}
-            onClick={() => handleImageClick(url)}
-          >
-            <img
-              src={url}
-              alt=""
-              className="w-full h-full object-cover hover:opacity-95 transition-opacity"
-              loading="lazy"
-            />
-            {/* Show remaining count overlay on last visible image */}
-            {index === 2 && remainingCount > 0 && (
-              <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                <span className="text-white text-xl font-bold">+{remainingCount}</span>
-              </div>
-            )}
-          </div>
         ))}
       </div>
       <PhotoLightbox
