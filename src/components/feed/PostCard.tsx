@@ -848,6 +848,9 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
         </DropdownMenu>
       </div>
 
+      {/* Divider after header */}
+      <hr className="border-border" />
+
       {/* Content */}
       {postContent && (
         <div className="px-4 pb-3">
