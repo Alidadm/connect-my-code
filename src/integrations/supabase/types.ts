@@ -2622,6 +2622,47 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_sidebar_galleries: {
+        Row: {
+          author_avatar_url: string | null
+          author_display_name: string | null
+          author_username: string | null
+          created_at: string
+          id: string
+          media_urls: string[]
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          author_avatar_url?: string | null
+          author_display_name?: string | null
+          author_username?: string | null
+          created_at?: string
+          id?: string
+          media_urls: string[]
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          author_avatar_url?: string | null
+          author_display_name?: string | null
+          author_username?: string | null
+          created_at?: string
+          id?: string
+          media_urls?: string[]
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_sidebar_galleries_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       scheduled_birthday_wishes: {
         Row: {
           created_at: string

@@ -1129,5 +1129,18 @@
     "removed": "Removed from family",
     "removeFailed": "Failed to remove family member",
     "noMembers": "No family members yet. Add your loved ones!"
+  },
+  "gallery": {
+    "savedGallery": "Saved Gallery",
+    "saveToSidebar": "Save gallery to sidebar",
+    "alreadySaved": "Gallery saved to sidebar",
+    "savedToSidebar": "Gallery saved to sidebar",
+    "savedToSidebarDesc": "This gallery will now appear in your sidebar.",
+    "saveFailed": "Failed to save gallery.",
+    "removeFromSidebar": "Remove Gallery?",
+    "removeFromSidebarConfirm": "This gallery will be removed from your sidebar.",
+    "removedFromSidebar": "Gallery removed",
+    "removedFromSidebarDesc": "The gallery has been removed from your sidebar.",
+    "from": "From"
   }
 }

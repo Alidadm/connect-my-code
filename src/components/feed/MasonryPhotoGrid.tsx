@@ -6,13 +6,22 @@ interface MasonryPhotoGridProps {
   maxDisplay?: number;
   onImageClick?: (imageUrl: string, allImages: string[]) => void;
   variant?: "feed" | "gallery";
+  // For gallery sidebar save feature
+  postId?: string;
+  authorDisplayName?: string | null;
+  authorAvatarUrl?: string | null;
+  authorUsername?: string | null;
 }
 
 export const MasonryPhotoGrid = ({ 
   images, 
   maxDisplay = 9, 
   onImageClick,
-  variant = "feed" 
+  variant = "feed",
+  postId,
+  authorDisplayName,
+  authorAvatarUrl,
+  authorUsername
 }: MasonryPhotoGridProps) => {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
@@ -60,6 +69,10 @@ export const MasonryPhotoGrid = ({
           initialIndex={lightboxIndex}
           isOpen={lightboxOpen}
           onClose={closeLightbox}
+          postId={postId}
+          authorDisplayName={authorDisplayName}
+          authorAvatarUrl={authorAvatarUrl}
+          authorUsername={authorUsername}
         />
       </>
     );
@@ -117,6 +130,10 @@ export const MasonryPhotoGrid = ({
           initialIndex={lightboxIndex}
           isOpen={lightboxOpen}
           onClose={closeLightbox}
+          postId={postId}
+          authorDisplayName={authorDisplayName}
+          authorAvatarUrl={authorAvatarUrl}
+          authorUsername={authorUsername}
         />
       </>
     );
@@ -136,6 +153,10 @@ export const MasonryPhotoGrid = ({
           initialIndex={lightboxIndex}
           isOpen={lightboxOpen}
           onClose={closeLightbox}
+          postId={postId}
+          authorDisplayName={authorDisplayName}
+          authorAvatarUrl={authorAvatarUrl}
+          authorUsername={authorUsername}
         />
       </>
     );
@@ -157,6 +178,10 @@ export const MasonryPhotoGrid = ({
           initialIndex={lightboxIndex}
           isOpen={lightboxOpen}
           onClose={closeLightbox}
+          postId={postId}
+          authorDisplayName={authorDisplayName}
+          authorAvatarUrl={authorAvatarUrl}
+          authorUsername={authorUsername}
         />
       </>
     );
@@ -176,6 +201,10 @@ export const MasonryPhotoGrid = ({
           initialIndex={lightboxIndex}
           isOpen={lightboxOpen}
           onClose={closeLightbox}
+          postId={postId}
+          authorDisplayName={authorDisplayName}
+          authorAvatarUrl={authorAvatarUrl}
+          authorUsername={authorUsername}
         />
       </>
     );
@@ -207,6 +236,10 @@ export const MasonryPhotoGrid = ({
           initialIndex={lightboxIndex}
           isOpen={lightboxOpen}
           onClose={closeLightbox}
+          postId={postId}
+          authorDisplayName={authorDisplayName}
+          authorAvatarUrl={authorAvatarUrl}
+          authorUsername={authorUsername}
         />
       </>
     );
@@ -233,6 +266,10 @@ export const MasonryPhotoGrid = ({
           initialIndex={lightboxIndex}
           isOpen={lightboxOpen}
           onClose={closeLightbox}
+          postId={postId}
+          authorDisplayName={authorDisplayName}
+          authorAvatarUrl={authorAvatarUrl}
+          authorUsername={authorUsername}
         />
       </>
     );
@@ -266,6 +303,10 @@ export const MasonryPhotoGrid = ({
           initialIndex={lightboxIndex}
           isOpen={lightboxOpen}
           onClose={closeLightbox}
+          postId={postId}
+          authorDisplayName={authorDisplayName}
+          authorAvatarUrl={authorAvatarUrl}
+          authorUsername={authorUsername}
         />
       </>
     );
@@ -302,6 +343,10 @@ export const MasonryPhotoGrid = ({
           initialIndex={lightboxIndex}
           isOpen={lightboxOpen}
           onClose={closeLightbox}
+          postId={postId}
+          authorDisplayName={authorDisplayName}
+          authorAvatarUrl={authorAvatarUrl}
+          authorUsername={authorUsername}
         />
       </>
     );
@@ -327,6 +372,10 @@ export const MasonryPhotoGrid = ({
         initialIndex={lightboxIndex}
         isOpen={lightboxOpen}
         onClose={closeLightbox}
+        postId={postId}
+        authorDisplayName={authorDisplayName}
+        authorAvatarUrl={authorAvatarUrl}
+        authorUsername={authorUsername}
       />
     </>
   );
