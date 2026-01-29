@@ -28,6 +28,7 @@ import { generateSudoku } from "@/lib/sudokuGenerator";
 import { Json } from "@/integrations/supabase/types";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { TicTacToeModeSelector } from "@/components/games/TicTacToeModeSelector";
 
 interface TicTacToeGameWithPlayers {
   id: string;
@@ -96,6 +97,7 @@ const GamesContent = () => {
   const [savedSudokuGames, setSavedSudokuGames] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState("active");
   const [isPlayingVsAI, setIsPlayingVsAI] = useState(false);
+  const [showTicTacToeModeSelector, setShowTicTacToeModeSelector] = useState(false);
 
   const [loading, setLoading] = useState(true);
   const [activeGameType, setActiveGameType] = useState<"tictactoe" | "memory" | "sudoku">(() => {
@@ -109,7 +111,18 @@ const GamesContent = () => {
 
   // Handle play vs AI
   const handlePlayVsAI = () => {
+    setShowTicTacToeModeSelector(false);
     setIsPlayingVsAI(true);
+  };
+
+  // Handle mode selection from TicTacToeModeSelector
+  const handleTicTacToeModeSelect = (mode: "ai" | "friend") => {
+    if (mode === "ai") {
+      handlePlayVsAI();
+    } else {
+      setShowTicTacToeModeSelector(false);
+      setShowTicTacToeInvite(true);
+    }
   };
 
   useEffect(() => {
@@ -726,6 +739,8 @@ const GamesContent = () => {
               savedGames={savedSudokuGames}
             />
           )
+        ) : activeGameType === "tictactoe" && showTicTacToeModeSelector ? (
+          <TicTacToeModeSelector onSelectMode={handleTicTacToeModeSelect} />
         ) : (
           <Card>
             <CardHeader>
@@ -754,21 +769,22 @@ const GamesContent = () => {
                 <div className="flex gap-2">
                   {activeGameType === "tictactoe" && (
                     <Button 
-                      variant="secondary"
-                      onClick={handlePlayVsAI}
+                      onClick={() => setShowTicTacToeModeSelector(true)}
                       className="gap-2"
                     >
-                      <Gamepad2 className="w-4 h-4" />
-                      {t("games.playVsAI", { defaultValue: "Play vs DolphySN" })}
+                      <Plus className="w-4 h-4" />
+                      {t("games.newGame", { defaultValue: "New Game" })}
                     </Button>
                   )}
-                  <Button 
-                    onClick={() => activeGameType === "tictactoe" ? setShowTicTacToeInvite(true) : setShowMemoryInvite(true)} 
-                    className="gap-2"
-                  >
-                    <Users className="w-4 h-4" />
-                    {t("games.inviteFriend", { defaultValue: "Invite Friend" })}
-                  </Button>
+                  {activeGameType === "memory" && (
+                    <Button 
+                      onClick={() => setShowMemoryInvite(true)} 
+                      className="gap-2"
+                    >
+                      <Users className="w-4 h-4" />
+                      {t("games.inviteFriend", { defaultValue: "Invite Friend" })}
+                    </Button>
+                  )}
                 </div>
               </div>
             </CardHeader>
