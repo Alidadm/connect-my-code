@@ -28,34 +28,54 @@ const PlatformGallery = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
-    if (!file.type.startsWith("image/")) {
-      toast.error("Please select an image file");
+    const imageFiles = Array.from(files).filter(file => file.type.startsWith("image/"));
+    if (imageFiles.length === 0) {
+      toast.error("Please select image files");
       return;
     }
 
+    if (imageFiles.length !== files.length) {
+      toast.warning(`${files.length - imageFiles.length} non-image file(s) were skipped`);
+    }
+
     setUploading(true);
+    let successCount = 0;
+    let failCount = 0;
+
     try {
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-      const filePath = `platform-gallery/${fileName}`;
+      for (const file of imageFiles) {
+        try {
+          const fileExt = file.name.split(".").pop();
+          const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+          const filePath = `platform-gallery/${fileName}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from("post-media")
-        .upload(filePath, file);
+          const { error: uploadError } = await supabase.storage
+            .from("post-media")
+            .upload(filePath, file);
 
-      if (uploadError) throw uploadError;
+          if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from("post-media")
-        .getPublicUrl(filePath);
+          const { data: { publicUrl } } = supabase.storage
+            .from("post-media")
+            .getPublicUrl(filePath);
 
-      await addPhoto(publicUrl);
-    } catch (error) {
-      console.error("Upload error:", error);
-      toast.error("Failed to upload image");
+          await addPhoto(publicUrl);
+          successCount++;
+        } catch (error) {
+          console.error("Upload error for file:", file.name, error);
+          failCount++;
+        }
+      }
+
+      if (successCount > 0) {
+        toast.success(`${successCount} photo${successCount > 1 ? 's' : ''} uploaded successfully`);
+      }
+      if (failCount > 0) {
+        toast.error(`${failCount} photo${failCount > 1 ? 's' : ''} failed to upload`);
+      }
     } finally {
       setUploading(false);
       if (fileInputRef.current) {
@@ -112,12 +132,13 @@ const PlatformGallery = () => {
               ref={fileInputRef}
               type="file"
               accept="image/*"
+              multiple
               onChange={handleUpload}
               className="hidden"
             />
             <Button onClick={() => fileInputRef.current?.click()} disabled={uploading}>
               <Plus className="h-4 w-4 mr-2" />
-              {uploading ? "Uploading..." : "Add Photo"}
+              {uploading ? "Uploading..." : "Add Photos"}
             </Button>
           </div>
         </div>
