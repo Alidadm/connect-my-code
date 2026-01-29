@@ -122,21 +122,58 @@ export const NewsFlipbook: React.FC<NewsFlipbookProps> = ({
             isFlipping && flipDirection === "prev" && "animate-flip-out-left"
           )}
         >
-          {/* Image or Placeholder */}
+          {/* Image or Placeholder - clickable if source_url exists */}
           <div className="relative h-32 overflow-hidden bg-muted/50">
             {currentItem.image_url ? (
-              <>
-                <img
-                  src={currentItem.image_url}
-                  alt={currentItem.title}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-              </>
+              currentItem.source_url ? (
+                <a
+                  href={currentItem.source_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full h-full"
+                >
+                  <img
+                    src={currentItem.image_url}
+                    alt={currentItem.title}
+                    className="w-full h-full object-cover transition-transform hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                  <div className="absolute bottom-2 right-2">
+                    <ExternalLink className="h-4 w-4 text-white/80" />
+                  </div>
+                </a>
+              ) : (
+                <>
+                  <img
+                    src={currentItem.image_url}
+                    alt={currentItem.title}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                </>
+              )
             ) : (
-              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-muted/30">
-                <Newspaper className="h-10 w-10 text-muted-foreground/40" />
-              </div>
+              currentItem.source_url ? (
+                <a
+                  href={currentItem.source_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-amber-100 to-amber-50 dark:from-amber-900/30 dark:to-amber-800/20 hover:opacity-90 transition-opacity"
+                >
+                  <Newspaper className="h-8 w-8 text-amber-500 dark:text-amber-400 mb-1" />
+                  <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
+                    {t("news.noImage", "No Image")}
+                  </span>
+                  <ExternalLink className="h-3 w-3 text-amber-500 dark:text-amber-400 mt-1" />
+                </a>
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-amber-100 to-amber-50 dark:from-amber-900/30 dark:to-amber-800/20">
+                  <Newspaper className="h-8 w-8 text-amber-500 dark:text-amber-400 mb-1" />
+                  <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
+                    {t("news.noImage", "No Image")}
+                  </span>
+                </div>
+              )
             )}
           </div>
 
@@ -152,23 +189,9 @@ export const NewsFlipbook: React.FC<NewsFlipbookProps> = ({
               </p>
             )}
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <Clock className="h-3 w-3" />
-                <span>{t("news.expires", "Expires")} {timeUntilExpiry}</span>
-              </div>
-
-              {currentItem.source_url && (
-                <a
-                  href={currentItem.source_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-xs text-primary hover:underline"
-                >
-                  {t("news.readMore", "Read more")}
-                  <ExternalLink className="h-3 w-3" />
-                </a>
-              )}
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Clock className="h-3 w-3" />
+              <span>{t("news.expires", "Expires")} {timeUntilExpiry}</span>
             </div>
           </div>
         </div>
