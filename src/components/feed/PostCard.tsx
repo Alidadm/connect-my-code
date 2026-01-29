@@ -983,10 +983,13 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
 
       {/* Comment Section */}
       {showComments && (
-        <CommentSection 
-          postId={post.id} 
-          onCommentCountChange={(count) => setCommentsCount(count)} 
-        />
+        <>
+          <hr className="border-border mx-4" />
+          <CommentSection 
+            postId={post.id} 
+            onCommentCountChange={(count) => setCommentsCount(count)} 
+          />
+        </>
       )}
     </div>
   );
