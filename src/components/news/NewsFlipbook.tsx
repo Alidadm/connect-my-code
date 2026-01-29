@@ -135,13 +135,13 @@ export const NewsFlipbook: React.FC<NewsFlipbookProps> = ({
           )}
 
           {/* Content */}
-          <div className="p-4">
-            <h3 className="font-semibold text-foreground line-clamp-2 mb-2">
+          <div className={cn("p-4", !currentItem.image_url && "pt-6")}>
+            <h3 className="font-medium text-sm text-foreground line-clamp-2 mb-2 leading-snug">
               {currentItem.title}
             </h3>
 
-            {currentItem.summary && (
-              <p className="text-sm text-muted-foreground line-clamp-3 mb-3">
+            {currentItem.summary && currentItem.summary.length > 10 && (
+              <p className="text-xs text-muted-foreground line-clamp-3 mb-3">
                 {currentItem.summary}
               </p>
             )}
