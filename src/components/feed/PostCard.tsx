@@ -849,7 +849,7 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
       </div>
 
       {/* Divider after header */}
-      <hr className="border-border" />
+      <hr className="border-border mt-2" />
 
       {/* Content */}
       {postContent && (
