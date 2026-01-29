@@ -168,39 +168,36 @@ const Templates = () => {
                       const targetSlug = isAllColors
                         ? allColorsSwatchSlugs[index]
                         : undefined;
-                      const isClickable = Boolean(targetSlug);
+
+                      // For "All Colors" card, render clickable buttons; otherwise plain divs
+                      if (isAllColors && targetSlug) {
+                        return (
+                          <button
+                            key={index}
+                            type="button"
+                            className={cn(
+                              "w-8 h-8 rounded-full bg-gradient-to-br shadow-lg transform transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                              gradient
+                            )}
+                            style={{ animationDelay: `${index * 100}ms` }}
+                            title={`Apply ${targetSlug.replace("-", " ")} theme`}
+                            aria-label={`Apply ${targetSlug.replace("-", " ")} theme`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              void applyThemeBySlug(targetSlug);
+                            }}
+                          />
+                        );
+                      }
 
                       return (
-                        <button
+                        <div
                           key={index}
-                          type="button"
-                          disabled={!isClickable}
                           className={cn(
-                            "w-8 h-8 rounded-full bg-gradient-to-br shadow-lg transform transition-transform",
-                            isClickable
-                              ? "hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                              : "cursor-default",
-                            "disabled:opacity-100 disabled:hover:scale-100",
+                            "w-8 h-8 rounded-full bg-gradient-to-br shadow-lg transform transition-transform hover:scale-110",
                             gradient
                           )}
-                          style={{
-                            animationDelay: `${index * 100}ms`,
-                          }}
-                          title={
-                            isClickable
-                              ? `Apply ${targetSlug?.replace("-", " ")} theme`
-                              : undefined
-                          }
-                          aria-label={
-                            isClickable
-                              ? `Apply ${targetSlug?.replace("-", " ")} theme`
-                              : undefined
-                          }
-                          onClick={(e) => {
-                            if (!targetSlug) return;
-                            e.stopPropagation();
-                            void applyThemeBySlug(targetSlug);
-                          }}
+                          style={{ animationDelay: `${index * 100}ms` }}
                         />
                       );
                     })}
