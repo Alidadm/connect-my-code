@@ -854,7 +854,7 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
       {/* Content */}
       {postContent && (
         <div className="px-4 pb-3">
-          <p className="text-foreground whitespace-pre-wrap">{postContent}</p>
+          <p className="text-base text-foreground whitespace-pre-wrap">{postContent}</p>
         </div>
       )}
 
