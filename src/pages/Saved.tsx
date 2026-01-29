@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
-import { PostCard } from "@/components/feed/PostCard";
+import { SavedItemCard } from "@/components/saved/SavedItemCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -26,12 +26,10 @@ import {
   Bookmark, 
   Loader2, 
   ArrowLeft, 
-  Plus, 
   FolderPlus, 
   MoreVertical,
   Pencil,
   Trash2,
-  ChevronRight,
   FolderOpen
 } from "lucide-react";
 import Swal from "sweetalert2";
@@ -318,6 +316,26 @@ const Saved = () => {
     }
   };
 
+  const handleRemoveBookmark = async (bookmarkId: string) => {
+    try {
+      const { error } = await supabase
+        .from("bookmarks")
+        .delete()
+        .eq("id", bookmarkId);
+
+      if (error) throw error;
+
+      toast({
+        title: t('saved.unsaved', 'Post unsaved'),
+      });
+
+      fetchBookmarkedPosts();
+      fetchCollections();
+    } catch (error) {
+      console.error("Error removing bookmark:", error);
+    }
+  };
+
   const openEditDialog = (collection: BookmarkCollection) => {
     setEditingCollection(collection);
     setNewCollectionName(collection.name);
@@ -467,57 +485,16 @@ const Saved = () => {
             </Button>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {posts.map((post) => (
-              <div key={post.id} className="relative group">
-                <PostCard 
-                  post={post} 
-                  onLikeChange={() => {
-                    fetchBookmarkedPosts();
-                    fetchCollections();
-                  }} 
-                />
-                {/* Move to collection button */}
-                {collections.length > 0 && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        className="absolute top-14 right-14 opacity-0 group-hover:opacity-100 transition-opacity gap-1"
-                      >
-                        <FolderPlus className="h-4 w-4" />
-                        <span className="hidden sm:inline">{t('saved.moveTo', 'Move to')}</span>
-                        <ChevronRight className="h-3 w-3" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="bg-popover w-48">
-                      {post.collection_id && (
-                        <>
-                          <DropdownMenuItem 
-                            onClick={() => handleMoveToCollection(post.bookmark_id, null)}
-                          >
-                            <Bookmark className="h-4 w-4 mr-2" />
-                            {t('saved.removeFromCollection', 'Remove from collection')}
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                        </>
-                      )}
-                      {collections
-                        .filter(c => c.id !== post.collection_id)
-                        .map((collection) => (
-                          <DropdownMenuItem 
-                            key={collection.id}
-                            onClick={() => handleMoveToCollection(post.bookmark_id, collection.id)}
-                          >
-                            <span className="mr-2">{collection.icon}</span>
-                            {collection.name}
-                          </DropdownMenuItem>
-                        ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
-              </div>
+              <SavedItemCard
+                key={post.id}
+                post={post}
+                collections={collections}
+                currentCollectionId={selectedCollection}
+                onMoveToCollection={handleMoveToCollection}
+                onRemoveBookmark={handleRemoveBookmark}
+              />
             ))}
           </div>
         )}
