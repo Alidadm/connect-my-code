@@ -33,6 +33,7 @@ import SeoSettings from "./pages/admin/SeoSettings";
 import DataCleanup from "./pages/admin/DataCleanup";
 import ReportedPosts from "./pages/admin/ReportedPosts";
 import Messages from "./pages/admin/Messages";
+import PlatformGallery from "./pages/admin/PlatformGallery";
 import MemberDashboard from "./pages/MemberDashboard";
 import UserProfile from "./pages/UserProfile";
 import ConfirmEmail from "./pages/ConfirmEmail";
@@ -123,6 +124,7 @@ const router = createBrowserRouter([
       { path: "/admin/data-cleanup", element: <AdminLayout><DataCleanup /></AdminLayout> },
       { path: "/admin/reported-posts", element: <AdminLayout><ReportedPosts /></AdminLayout> },
       { path: "/admin/messages", element: <AdminLayout><Messages /></AdminLayout> },
+      { path: "/admin/gallery", element: <AdminLayout><PlatformGallery /></AdminLayout> },
       { path: "/terms", element: <Terms /> },
       { path: "/privacy-policy", element: <PrivacyPolicy /> },
       { path: "/cookies-policy", element: <CookiesPolicy /> },
