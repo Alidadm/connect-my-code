@@ -1142,5 +1142,22 @@
     "removedFromSidebar": "Gallery removed",
     "removedFromSidebarDesc": "The gallery has been removed from your sidebar.",
     "from": "From"
+  },
+  "news": {
+    "myNews": "My News",
+    "selectCategories": "Select Categories",
+    "selectNewsCategories": "Select News Categories",
+    "selectUpTo": "Select up to {{max}} categories to follow",
+    "selectedCount": "{{count}} of {{max}} selected",
+    "yourCategories": "Your categories:",
+    "noCategories": "Select categories to see news",
+    "noNewsYet": "No news available yet. Check back soon!",
+    "expires": "Expires",
+    "readMore": "Read more",
+    "categoryAdded": "Category added",
+    "categoryRemoved": "Category removed",
+    "errorAddingCategory": "Failed to add category",
+    "errorRemovingCategory": "Failed to remove category",
+    "maxCategoriesReached": "You can only select up to 6 categories"
   }
 }
