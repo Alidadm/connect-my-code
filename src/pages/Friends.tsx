@@ -13,7 +13,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Check, X, UserPlus, Users, Clock, Sparkles, Search, Send, Bell, Star, ArrowUpDown, SortAsc, SortDesc } from "lucide-react";
+import { Check, X, UserPlus, Users, Clock, Sparkles, Search, Send, Bell, Star, ArrowUpDown, SortAsc, Heart } from "lucide-react";
+import { AddFamilyMemberDialog } from "@/components/friends/AddFamilyMemberDialog";
 import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
@@ -105,6 +106,21 @@ interface Favorite {
 
 type FavoritesSortOption = "recent" | "alphabetical";
 
+interface FamilyMember {
+  id: string;
+  family_member_id: string;
+  relationship: string;
+  created_at: string;
+  profile: {
+    user_id: string;
+    display_name: string | null;
+    first_name: string | null;
+    last_name: string | null;
+    avatar_url: string | null;
+    username: string | null;
+  } | null;
+}
+
 interface Suggestion {
   user_id: string;
   profile: {
@@ -133,14 +149,17 @@ const Friends = () => {
   const [sentRequests, setSentRequests] = useState<SentRequest[]>([]);
   const [friends, setFriends] = useState<Friend[]>([]);
   const [favorites, setFavorites] = useState<Favorite[]>([]);
+  const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [loading, setLoading] = useState(true);
   const [favoritesLoading, setFavoritesLoading] = useState(true);
+  const [familyLoading, setFamilyLoading] = useState(true);
   const [suggestionsLoading, setSuggestionsLoading] = useState(true);
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState("");
   const [newRequestAnimation, setNewRequestAnimation] = useState(false);
   const [favoritesSort, setFavoritesSort] = useState<FavoritesSortOption>("recent");
+  const [addFamilyDialogOpen, setAddFamilyDialogOpen] = useState(false);
   const previousPendingCountRef = useRef<number>(0);
   const isInitialLoadRef = useRef(true);
 
@@ -152,11 +171,12 @@ const Friends = () => {
     const ids = new Set<string>();
     friends.forEach(f => ids.add(f.friend_user_id));
     favorites.forEach(f => ids.add(f.favorite_user_id));
+    familyMembers.forEach(f => ids.add(f.family_member_id));
     suggestions.forEach(s => ids.add(s.user_id));
     pendingRequests.forEach(r => ids.add(r.requester_id));
     sentRequests.forEach(r => ids.add(r.addressee_id));
     return Array.from(ids);
-  }, [friends, favorites, suggestions, pendingRequests, sentRequests]);
+  }, [friends, favorites, familyMembers, suggestions, pendingRequests, sentRequests]);
 
   // Fetch last seen data when user IDs change
   useEffect(() => {
@@ -227,6 +247,15 @@ const Friends = () => {
     return filtered;
   }, [favorites, searchQuery, favoritesSort]);
 
+  // Filter family members based on search query
+  const filteredFamilyMembers = familyMembers.filter((member) => {
+    if (!searchQuery.trim()) return true;
+    const query = searchQuery.toLowerCase();
+    const name = getDisplayName(member.profile).toLowerCase();
+    const username = member.profile?.username?.toLowerCase() || "";
+    return name.includes(query) || username.includes(query);
+  });
+
   // Handle new friend request notification
   const handleNewFriendRequest = useCallback((requesterName: string) => {
     // Play notification sound
@@ -284,6 +313,7 @@ const Friends = () => {
     if (user) {
       fetchData();
       fetchFavorites();
+      fetchFamily();
       fetchSuggestions();
 
       // Subscribe to real-time friendship changes
@@ -523,6 +553,85 @@ const Friends = () => {
     } finally {
       setFavoritesLoading(false);
     }
+  };
+
+  const fetchFamily = async () => {
+    if (!user) return;
+    setFamilyLoading(true);
+
+    try {
+      const { data: familyData, error: familyError } = await supabase
+        .from("family_members")
+        .select("id, family_member_id, relationship, created_at")
+        .eq("user_id", user.id);
+
+      if (familyError) throw familyError;
+
+      if (familyData && familyData.length > 0) {
+        const familyIds = familyData.map(f => f.family_member_id);
+        const { data: profiles } = await supabase
+          .from("safe_profiles")
+          .select("user_id, display_name, first_name, last_name, avatar_url, username")
+          .in("user_id", familyIds);
+
+        const familyWithProfiles = familyData.map(member => ({
+          id: member.id,
+          family_member_id: member.family_member_id,
+          relationship: member.relationship,
+          created_at: member.created_at,
+          profile: profiles?.find(p => p.user_id === member.family_member_id) || null
+        }));
+        setFamilyMembers(familyWithProfiles);
+      } else {
+        setFamilyMembers([]);
+      }
+    } catch (error) {
+      console.error("Error fetching family members:", error);
+    } finally {
+      setFamilyLoading(false);
+    }
+  };
+
+  const handleRemoveFamilyMember = async (memberId: string) => {
+    setProcessingIds(prev => new Set(prev).add(memberId));
+    
+    try {
+      const { error } = await supabase
+        .from("family_members")
+        .delete()
+        .eq("id", memberId);
+
+      if (error) throw error;
+
+      toast.success(t("family.removed", { defaultValue: "Removed from family" }));
+      fetchFamily();
+    } catch (error) {
+      console.error("Error removing family member:", error);
+      toast.error(t("family.removeFailed", { defaultValue: "Failed to remove family member" }));
+    } finally {
+      setProcessingIds(prev => {
+        const next = new Set(prev);
+        next.delete(memberId);
+        return next;
+      });
+    }
+  };
+
+  const getRelationshipLabel = (relationship: string) => {
+    const labels: Record<string, string> = {
+      parent: t("family.parent", { defaultValue: "Parent" }),
+      child: t("family.child", { defaultValue: "Child" }),
+      sibling: t("family.sibling", { defaultValue: "Sibling" }),
+      spouse: t("family.spouse", { defaultValue: "Spouse" }),
+      grandparent: t("family.grandparent", { defaultValue: "Grandparent" }),
+      grandchild: t("family.grandchild", { defaultValue: "Grandchild" }),
+      aunt_uncle: t("family.auntUncle", { defaultValue: "Aunt/Uncle" }),
+      niece_nephew: t("family.nieceNephew", { defaultValue: "Niece/Nephew" }),
+      cousin: t("family.cousin", { defaultValue: "Cousin" }),
+      in_law: t("family.inLaw", { defaultValue: "In-Law" }),
+      other: t("family.other", { defaultValue: "Other" }),
+    };
+    return labels[relationship] || relationship;
   };
 
   const handleRemoveFavorite = async (favoriteId: string) => {
@@ -904,7 +1013,7 @@ const Friends = () => {
         </div>
 
         <Tabs defaultValue={initialTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="requests" className="flex items-center gap-1 relative text-xs sm:text-sm">
               <Clock className={`h-4 w-4 ${newRequestAnimation ? 'animate-bounce text-primary' : ''}`} />
               <span className="hidden sm:inline">{t("friends.pendingRequests", { defaultValue: "Pending" })}</span>
@@ -934,6 +1043,12 @@ const Friends = () => {
               <span className="hidden sm:inline">{t("friends.myFriends", { defaultValue: "Friends" })}</span>
               <span className="sm:hidden">{t("friends.friends", { defaultValue: "Friends" })}</span>
               <span className="text-muted-foreground text-xs">({friends.length})</span>
+            </TabsTrigger>
+            <TabsTrigger value="family" className="flex items-center gap-1 text-xs sm:text-sm">
+              <Heart className="h-4 w-4 text-rose-500" />
+              <span className="hidden sm:inline">{t("family.title", { defaultValue: "Family" })}</span>
+              <span className="sm:hidden">{t("family.short", { defaultValue: "Fam" })}</span>
+              <span className="text-muted-foreground text-xs">({familyMembers.length})</span>
             </TabsTrigger>
             <TabsTrigger value="favorites" className="flex items-center gap-1 text-xs sm:text-sm">
               <Star className="h-4 w-4 text-yellow-500" />
@@ -1221,6 +1336,116 @@ const Friends = () => {
             </Card>
           </TabsContent>
 
+          <TabsContent value="family" className="mt-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Heart className="h-5 w-5 text-rose-500" />
+                  {t("family.title", { defaultValue: "Family" })}
+                </CardTitle>
+                <Button 
+                  size="sm" 
+                  onClick={() => setAddFamilyDialogOpen(true)}
+                  className="gap-2"
+                >
+                  <UserPlus className="h-4 w-4" />
+                  {t("family.addMember", { defaultValue: "Add Member" })}
+                </Button>
+              </CardHeader>
+              <CardContent>
+                {familyLoading ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="flex items-center gap-4">
+                        <Skeleton className="h-12 w-12 rounded-full" />
+                        <div className="flex-1 space-y-2">
+                          <Skeleton className="h-4 w-32" />
+                          <Skeleton className="h-3 w-24" />
+                        </div>
+                        <Skeleton className="h-9 w-20" />
+                      </div>
+                    ))}
+                  </div>
+                ) : filteredFamilyMembers.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Heart className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>{searchQuery.trim() 
+                      ? t("friends.noSearchResults", { defaultValue: "No results found" })
+                      : t("family.noMembers", { defaultValue: "No family members yet. Add your loved ones!" })
+                    }</p>
+                    <Button 
+                      variant="outline" 
+                      className="mt-4"
+                      onClick={() => setAddFamilyDialogOpen(true)}
+                    >
+                      <UserPlus className="h-4 w-4 mr-2" />
+                      {t("family.addFirstMember", { defaultValue: "Add Family Member" })}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {filteredFamilyMembers.map((member) => (
+                      <div 
+                        key={member.id} 
+                        className="flex items-center gap-4 p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+                      >
+                        <div className="relative">
+                          <Avatar 
+                            className="h-12 w-12 cursor-pointer"
+                            onClick={() => navigateToProfile(member.profile?.username)}
+                          >
+                            <AvatarImage src={member.profile?.avatar_url || undefined} />
+                            <AvatarFallback>{getInitials(member.profile)}</AvatarFallback>
+                          </Avatar>
+                          <OnlineIndicator 
+                            isOnline={isUserOnline(member.family_member_id)} 
+                            size="sm"
+                            className="bottom-0 right-0"
+                          />
+                        </div>
+                        
+                        <div 
+                          className="flex-1 min-w-0 cursor-pointer"
+                          onClick={() => navigateToProfile(member.profile?.username)}
+                        >
+                          <div className="flex items-center gap-2">
+                            <p className="font-semibold truncate hover:underline">
+                              {getDisplayName(member.profile)}
+                            </p>
+                            <Badge variant="secondary" className="text-xs bg-rose-500/10 text-rose-600">
+                              {getRelationshipLabel(member.relationship)}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {member.profile?.username && (
+                              <p className="text-sm text-muted-foreground">@{member.profile.username}</p>
+                            )}
+                            <span className="text-muted-foreground">·</span>
+                            <LastSeenText 
+                              isOnline={isUserOnline(member.family_member_id)}
+                              lastSeen={getLastSeen(member.family_member_id)}
+                            />
+                          </div>
+                        </div>
+
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleRemoveFamilyMember(member.id)}
+                          disabled={processingIds.has(member.id)}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <X className="h-4 w-4 mr-1" />
+                          {t("common.remove", { defaultValue: "Remove" })}
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           <TabsContent value="favorites" className="mt-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
@@ -1438,6 +1663,14 @@ const Friends = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Add Family Member Dialog */}
+      <AddFamilyMemberDialog
+        open={addFamilyDialogOpen}
+        onOpenChange={setAddFamilyDialogOpen}
+        onSuccess={fetchFamily}
+        existingFamilyMemberIds={familyMembers.map(m => m.family_member_id)}
+      />
     </MainLayout>
   );
 };
