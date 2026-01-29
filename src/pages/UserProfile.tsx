@@ -896,7 +896,7 @@ const UserProfile = () => {
             </div>
 
             {/* Stats */}
-            <div className="flex gap-6 pt-2">
+            <div className="flex gap-6 pt-2 text-sm">
               <button 
                 className="hover:underline"
                 onClick={handleOpenFriendsModal}
