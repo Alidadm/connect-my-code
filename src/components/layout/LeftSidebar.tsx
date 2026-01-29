@@ -48,7 +48,7 @@ const getNavItems = (t: TFunction, gameBadge: number | null) => [
   { icon: Gamepad2, label: t("nav.games", { defaultValue: "Games" }), path: "/games", badge: gameBadge, iconColor: "text-red-500" },
   { icon: Bookmark, label: t("nav.saved", { defaultValue: "Saved" }), path: "/saved", badge: null, iconColor: "text-yellow-500" },
   { icon: UsersRound, label: t("nav.groups", { defaultValue: "Groups" }), path: "/groups", badge: null, iconColor: "text-purple-500" },
-  { icon: Image, label: t("nav.photos"), path: "/photos", badge: null, iconColor: "text-pink-500" },
+  { icon: Image, label: t("nav.photos"), path: "/__PHOTOS__", badge: null, iconColor: "text-pink-500" },
   { icon: Store, label: t("nav.marketplace"), path: "/marketplace", badge: null, iconColor: "text-cyan-500" },
   { icon: Palette, label: t("nav.templates", { defaultValue: "Templates" }), path: "/templates", badge: null, iconColor: "text-violet-500" },
 ];
@@ -158,7 +158,11 @@ export const LeftSidebar = () => {
         {/* Navigation */}
         <nav className="bg-card rounded-xl p-2 mb-4 border border-border sidebar-widget-border">
           {navItems.map((item) => {
-            const isActive = location.pathname === item.path;
+            const isPhotosItem = item.path === "/__PHOTOS__";
+            const actualPath = isPhotosItem && username ? `/${username}?tab=photos` : item.path;
+            const isActive = isPhotosItem 
+              ? location.pathname === `/${username}` && location.search.includes('tab=photos')
+              : location.pathname === item.path;
             return (
               <Button
                 key={item.path}
@@ -167,7 +171,7 @@ export const LeftSidebar = () => {
                   "w-full justify-start gap-3 mb-1 h-11 font-medium",
                   isActive && "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
                 )}
-                onClick={() => navigate(item.path)}
+                onClick={() => navigate(isPhotosItem ? `/${username}?tab=photos` : item.path)}
               >
                 <item.icon className={cn("h-5 w-5", isActive ? "" : item.iconColor)} />
                 <span className="flex-1 text-left">{item.label}</span>

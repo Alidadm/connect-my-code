@@ -99,7 +99,7 @@ export const MobileDrawer = ({ open, onOpenChange }: MobileDrawerProps) => {
     { icon: Gamepad2, label: t("nav.games", { defaultValue: "Games" }), path: "/games", badge: gameBadge, iconColor: "text-red-500" },
     { icon: Bookmark, label: t("nav.saved", { defaultValue: "Saved" }), path: "/saved", badge: null, iconColor: "text-yellow-500" },
     { icon: UsersRound, label: t("nav.groups", { defaultValue: "Groups" }), path: "/groups", badge: null, iconColor: "text-purple-500" },
-    { icon: Image, label: t("nav.photos"), path: "/photos", badge: null, iconColor: "text-pink-500" },
+    { icon: Image, label: t("nav.photos"), path: "/__PHOTOS__", badge: null, iconColor: "text-pink-500" },
     { icon: Store, label: t("nav.marketplace"), path: "/marketplace", badge: null, iconColor: "text-cyan-500" },
     { icon: Info, label: t("nav.about", { defaultValue: "About" }), path: "/about", badge: null, iconColor: "text-slate-500" },
   ];
@@ -155,7 +155,10 @@ export const MobileDrawer = ({ open, onOpenChange }: MobileDrawerProps) => {
           {/* Main Navigation */}
           <nav className="space-y-1 mb-6">
             {navItems.map((item) => {
-              const isActive = location.pathname === item.path;
+              const isPhotosItem = item.path === "/__PHOTOS__";
+              const isActive = isPhotosItem 
+                ? location.pathname === `/${username}` && location.search.includes('tab=photos')
+                : location.pathname === item.path;
               return (
                 <Button
                   key={item.path}
@@ -164,7 +167,7 @@ export const MobileDrawer = ({ open, onOpenChange }: MobileDrawerProps) => {
                     "w-full justify-start gap-3 h-11 font-medium",
                     isActive && "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
                   )}
-                  onClick={() => handleNavigate(item.path)}
+                  onClick={() => handleNavigate(isPhotosItem ? `/${username}?tab=photos` : item.path)}
                 >
                   <item.icon className={cn("h-5 w-5", isActive ? "" : item.iconColor)} />
                   <span className="flex-1 text-left">{item.label}</span>
