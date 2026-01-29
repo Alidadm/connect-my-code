@@ -763,6 +763,17 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
                   <Pencil className="h-4 w-4 mr-2" />
                   {t('common.edit', 'Edit')}
                 </DropdownMenuItem>
+                {hasGallery && (
+                  <DropdownMenuItem 
+                    onClick={handleSaveGalleryToSidebar}
+                    className={`cursor-pointer ${gallerySaved ? 'text-primary' : ''}`}
+                  >
+                    <Images className={`h-4 w-4 mr-2 ${gallerySaved ? 'fill-current' : ''}`} />
+                    {gallerySaved 
+                      ? t('gallery.alreadySaved', 'Gallery saved to sidebar')
+                      : t('gallery.saveToSidebar', 'Save gallery to sidebar')}
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem 
                   onClick={handleDelete} 
