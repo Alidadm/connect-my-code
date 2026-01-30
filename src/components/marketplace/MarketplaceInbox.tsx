@@ -147,7 +147,7 @@ const ConversationCard = ({ conversation, onClick }: ConversationCardProps) => {
           hasUnread ? "text-foreground font-medium" : "text-muted-foreground"
         )}>
           {last_message.is_offer && (
-            <span className="inline-flex items-center gap-1 text-green-600 mr-1">
+            <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-500 mr-1">
               <DollarSign className="h-3 w-3" />
               Offer:
             </span>

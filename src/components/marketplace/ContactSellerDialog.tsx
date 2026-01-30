@@ -20,6 +20,7 @@ interface ContactSellerDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   listing: MarketplaceListing;
+  onMessageSent?: () => void;
 }
 
 const QUICK_MESSAGES = [
@@ -33,6 +34,7 @@ export const ContactSellerDialog = ({
   open,
   onOpenChange,
   listing,
+  onMessageSent,
 }: ContactSellerDialogProps) => {
   const { user } = useAuth();
   const [message, setMessage] = useState("");
@@ -68,6 +70,7 @@ export const ContactSellerDialog = ({
       setIsOffer(false);
       setOfferAmount("");
       onOpenChange(false);
+      onMessageSent?.();
     } catch (error) {
       console.error("Error sending message:", error);
       toast.error("Failed to send message");
