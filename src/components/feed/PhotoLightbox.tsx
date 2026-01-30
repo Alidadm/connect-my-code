@@ -4,6 +4,11 @@ import { Button } from "@/components/ui/button";
 import { useSavedSidebarGallery } from "@/hooks/useSavedSidebarGallery";
 import { useTranslation } from "react-i18next";
 
+interface PhotoMetadata {
+  title: string | null;
+  description: string | null;
+}
+
 interface PhotoLightboxProps {
   images: string[];
   initialIndex: number;
@@ -13,6 +18,7 @@ interface PhotoLightboxProps {
   authorDisplayName?: string | null;
   authorAvatarUrl?: string | null;
   authorUsername?: string | null;
+  photoMetadata?: PhotoMetadata[];
 }
 
 interface TouchPoint {
@@ -54,7 +60,8 @@ export const PhotoLightbox = ({
   postId,
   authorDisplayName,
   authorAvatarUrl,
-  authorUsername
+  authorUsername,
+  photoMetadata
 }: PhotoLightboxProps) => {
   const { t } = useTranslation();
   const { saveGalleryToSidebar, isGallerySaved } = useSavedSidebarGallery();
@@ -589,32 +596,50 @@ export const PhotoLightbox = ({
         </Button>
       )}
 
-      {/* Image container */}
-      <div
-        className="flex items-center justify-center w-full h-full px-12 sm:px-20"
-        style={{
-          transform: isZoomed 
-            ? `translate(${panOffset.x}px, ${panOffset.y}px)` 
-            : `translateX(${swipeOffset}px)`,
-          transition: isSpringBack ? 'none' : (isPanning || initialPinchDistance !== null ? 'none' : 'transform 0.2s ease-out'),
-        }}
-        onClick={(e) => e.stopPropagation()}
-        onTouchEnd={handleDoubleTap}
-      >
-        <img
-          ref={imageRef}
-          src={images[currentIndex]}
-          alt={`Photo ${currentIndex + 1}`}
-          className="max-w-full max-h-[85vh] object-contain select-none"
+      {/* Image container with metadata */}
+      <div className="flex flex-col items-center justify-center w-full h-full">
+        <div
+          className="flex items-center justify-center w-full flex-1 px-12 sm:px-20"
           style={{
-            transform: `scale(${zoomScale})`,
-            transition: initialPinchDistance !== null ? 'none' : 'transform 0.2s ease-out',
-            cursor: isZoomed ? (isPanning ? "grabbing" : "grab") : "zoom-in",
+            transform: isZoomed 
+              ? `translate(${panOffset.x}px, ${panOffset.y}px)` 
+              : `translateX(${swipeOffset}px)`,
+            transition: isSpringBack ? 'none' : (isPanning || initialPinchDistance !== null ? 'none' : 'transform 0.2s ease-out'),
           }}
-          onClick={toggleZoom}
-          onLoad={handleImageLoad}
-          draggable={false}
-        />
+          onClick={(e) => e.stopPropagation()}
+          onTouchEnd={handleDoubleTap}
+        >
+          <img
+            ref={imageRef}
+            src={images[currentIndex]}
+            alt={photoMetadata?.[currentIndex]?.title || `Photo ${currentIndex + 1}`}
+            className="max-w-full max-h-[70vh] object-contain select-none"
+            style={{
+              transform: `scale(${zoomScale})`,
+              transition: initialPinchDistance !== null ? 'none' : 'transform 0.2s ease-out',
+              cursor: isZoomed ? (isPanning ? "grabbing" : "grab") : "zoom-in",
+            }}
+            onClick={toggleZoom}
+            onLoad={handleImageLoad}
+            draggable={false}
+          />
+        </div>
+
+        {/* Title and description below image */}
+        {photoMetadata?.[currentIndex] && (photoMetadata[currentIndex].title || photoMetadata[currentIndex].description) && (
+          <div className="w-full max-w-2xl px-6 py-4 text-center">
+            {photoMetadata[currentIndex].title && (
+              <h3 className="text-white text-lg font-semibold mb-1">
+                {photoMetadata[currentIndex].title}
+              </h3>
+            )}
+            {photoMetadata[currentIndex].description && (
+              <p className="text-white/80 text-sm whitespace-pre-wrap">
+                {photoMetadata[currentIndex].description}
+              </p>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Image counter */}
