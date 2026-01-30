@@ -210,17 +210,6 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
       </button>`
     ).join('');
 
-    const customListsHtml = customLists.length > 0 
-      ? customLists.map(list => 
-          `<button type="button" class="custom-list-btn" data-list-id="${list.id}" data-list-name="${list.name}" data-list-icon="${list.icon}" data-list-color="${list.color}" style="display: flex; align-items: center; gap: 8px; width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; background: white; cursor: pointer; border-radius: 8px; text-align: left; transition: all 0.2s;">
-            <span style="font-size: 18px;">${list.icon}</span>
-            <span style="font-weight: 500; color: #374151;">${list.name}</span>
-          </button>`
-        ).join('')
-      : `<div style="text-align: center; padding: 20px; color: #666;">
-          <p style="font-size: 14px; margin-bottom: 8px;">${t('feed.noCustomLists', 'No custom lists yet')}</p>
-          <p style="font-size: 12px; color: #999;">${t('feed.createListsHint', 'Create lists to organize your friends')}</p>
-        </div>`;
 
     const { value: formValues } = await Swal.fire({
       html: `
@@ -419,22 +408,75 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
             </div>
           </div>
 
-          <!-- Custom Lists Selection Panel -->
-          <div id="custom-lists-panel" style="display: none; padding: 16px; background: #fef3c7; border-radius: 12px; margin-bottom: 12px; border: 1px solid #fbbf24;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-              <span style="font-weight: 600; font-size: 14px; color: #92400e;">📋 ${t('feed.selectLists', 'Select Custom Lists')}</span>
-              <button type="button" id="close-custom-lists" style="background: none; border: none; cursor: pointer; padding: 4px;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#92400e" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-              </button>
+          <!-- Custom Lists Selection Panel with Sliding Friends Selector -->
+          <div id="custom-lists-panel" style="display: none; padding: 16px; background: #fef3c7; border-radius: 12px; margin-bottom: 12px; border: 1px solid #fbbf24; overflow: hidden; position: relative;">
+            <!-- Sliding Container -->
+            <div id="lists-slider" style="display: flex; transition: transform 0.3s ease-in-out; width: 200%;">
+              <!-- Panel 1: Custom Lists Selection -->
+              <div id="lists-main-panel" style="width: 50%; flex-shrink: 0; padding-right: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                  <span style="font-weight: 600; font-size: 14px; color: #92400e;">📋 ${t('feed.selectLists', 'Select Custom Lists')}</span>
+                  <button type="button" id="close-custom-lists" style="background: none; border: none; cursor: pointer; padding: 4px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#92400e" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                  </button>
+                </div>
+                <p style="font-size: 12px; color: #92400e; margin-bottom: 12px;">${t('feed.selectListsHelp', 'Choose which lists can see this post. Click the edit icon to manage friends.')}</p>
+                <div id="custom-lists-container" style="display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto;">
+                  ${customLists.length > 0 
+                    ? customLists.map(list => 
+                        `<div class="custom-list-row" style="display: flex; align-items: center; gap: 8px;">
+                          <button type="button" class="custom-list-btn" data-list-id="${list.id}" data-list-name="${list.name}" data-list-icon="${list.icon}" data-list-color="${list.color}" style="display: flex; align-items: center; gap: 8px; flex: 1; padding: 10px 12px; border: 1px solid #e5e7eb; background: white; cursor: pointer; border-radius: 8px; text-align: left; transition: all 0.2s;">
+                            <span style="font-size: 18px;">${list.icon}</span>
+                            <span style="font-weight: 500; color: #374151; flex: 1;">${list.name}</span>
+                            <span class="list-member-count" data-list-id="${list.id}" style="font-size: 11px; color: #666; background: #f3f4f6; padding: 2px 8px; border-radius: 12px;">0 ${t('feed.friends', 'friends')}</span>
+                          </button>
+                          <button type="button" class="edit-list-btn" data-list-id="${list.id}" data-list-name="${list.name}" data-list-icon="${list.icon}" style="padding: 8px; border: 1px solid #fbbf24; background: white; cursor: pointer; border-radius: 8px; transition: all 0.2s;" title="${t('feed.editListMembers', 'Edit list members')}">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#92400e" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>
+                          </button>
+                        </div>`
+                      ).join('')
+                    : `<div style="text-align: center; padding: 20px; color: #666;">
+                        <p style="font-size: 14px; margin-bottom: 8px;">${t('feed.noCustomLists', 'No custom lists yet')}</p>
+                        <p style="font-size: 12px; color: #999;">${t('feed.createListsHint', 'Create lists to organize your friends')}</p>
+                      </div>`
+                  }
+                </div>
+                <div id="selected-lists-preview" style="display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid #fbbf24;">
+                  <span style="font-size: 12px; color: #92400e; font-weight: 600;">${t('feed.selectedLists', 'Selected')}:</span>
+                  <div id="selected-lists-tags" style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px;"></div>
+                </div>
+              </div>
+              
+              <!-- Panel 2: Friends Selector for a specific list -->
+              <div id="friends-selector-panel" style="width: 50%; flex-shrink: 0; padding-left: 16px;">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                  <button type="button" id="back-to-lists" style="padding: 6px; border: none; background: #fef3c7; cursor: pointer; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#92400e" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+                  </button>
+                  <div style="flex: 1;">
+                    <span id="editing-list-title" style="font-weight: 600; font-size: 14px; color: #92400e;">👥 Edit List</span>
+                    <p style="font-size: 11px; color: #b45309; margin-top: 2px;">${t('feed.selectFriendsForList', 'Select friends to add to this list')}</p>
+                  </div>
+                </div>
+                <input type="text" id="friends-search" placeholder="${t('feed.searchFriends', 'Search friends...')}" style="width: 100%; padding: 10px 14px; border: 1px solid #fbbf24; border-radius: 8px; font-size: 14px; outline: none; margin-bottom: 12px; background: white;" />
+                <div id="friends-list-container" style="display: flex; flex-direction: column; gap: 6px; max-height: 200px; overflow-y: auto;">
+                  <div style="text-align: center; padding: 20px; color: #666;">
+                    <div class="loading-spinner" style="width: 24px; height: 24px; border: 2px solid #fbbf24; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+                    <p style="font-size: 13px; margin-top: 8px;">${t('common.loading', 'Loading...')}</p>
+                  </div>
+                </div>
+                <div style="margin-top: 12px; display: flex; justify-content: flex-end;">
+                  <button type="button" id="done-editing-list" style="padding: 8px 16px; background: #92400e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 500; font-size: 13px;">
+                    ${t('common.done', 'Done')}
+                  </button>
+                </div>
+              </div>
             </div>
-            <p style="font-size: 12px; color: #92400e; margin-bottom: 12px;">${t('feed.selectListsHelp', 'Choose which lists can see this post')}</p>
-            <div id="custom-lists-container" style="display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto;">
-              ${customListsHtml}
-            </div>
-            <div id="selected-lists-preview" style="display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid #fbbf24;">
-              <span style="font-size: 12px; color: #92400e; font-weight: 600;">${t('feed.selectedLists', 'Selected')}:</span>
-              <div id="selected-lists-tags" style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px;"></div>
-            </div>
+            <style>
+              @keyframes spin {
+                to { transform: rotate(360deg); }
+              }
+            </style>
           </div>
 
           <!-- Mention Panel -->
@@ -1202,6 +1244,219 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
 
         document.getElementById('close-custom-lists')?.addEventListener('click', () => {
           customListsPanel.style.display = 'none';
+          // Reset slider position when closing
+          const slider = document.getElementById('lists-slider') as HTMLDivElement;
+          if (slider) slider.style.transform = 'translateX(0)';
+        });
+
+        // Sliding panel logic
+        const listsSlider = document.getElementById('lists-slider') as HTMLDivElement;
+        const friendsListContainer = document.getElementById('friends-list-container') as HTMLDivElement;
+        const editingListTitle = document.getElementById('editing-list-title') as HTMLSpanElement;
+        const friendsSearch = document.getElementById('friends-search') as HTMLInputElement;
+        let currentEditingListId: string | null = null;
+        let listMembersCache: Record<string, string[]> = {};
+
+        // Fetch friends for selection
+        const fetchFriendsForList = async (listId: string, searchQuery: string = '') => {
+          if (!user) return;
+          
+          friendsListContainer.innerHTML = `
+            <div style="text-align: center; padding: 20px; color: #666;">
+              <div style="width: 24px; height: 24px; border: 2px solid #fbbf24; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+              <p style="font-size: 13px; margin-top: 8px;">${t('common.loading', 'Loading...')}</p>
+            </div>
+          `;
+
+          try {
+            // Get accepted friendships
+            const { data: friendships } = await supabase
+              .from('friendships')
+              .select('requester_id, addressee_id')
+              .or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`)
+              .eq('status', 'accepted');
+
+            if (!friendships || friendships.length === 0) {
+              friendsListContainer.innerHTML = `
+                <div style="text-align: center; padding: 20px; color: #666;">
+                  <p style="font-size: 14px;">${t('feed.noFriendsYet', 'No friends yet')}</p>
+                  <p style="font-size: 12px; color: #999; margin-top: 4px;">${t('feed.addFriendsToCreateLists', 'Add friends to include them in lists')}</p>
+                </div>
+              `;
+              return;
+            }
+
+            // Extract friend IDs
+            const friendIds = friendships.map(f => 
+              f.requester_id === user.id ? f.addressee_id : f.requester_id
+            );
+
+            // Fetch friend profiles
+            let query = supabase
+              .from('profiles')
+              .select('user_id, display_name, avatar_url, username')
+              .in('user_id', friendIds);
+            
+            if (searchQuery) {
+              query = query.or(`display_name.ilike.%${searchQuery}%,username.ilike.%${searchQuery}%`);
+            }
+
+            const { data: profiles } = await query;
+
+            // Get current list members
+            const { data: members } = await supabase
+              .from('custom_list_members')
+              .select('member_user_id')
+              .eq('list_id', listId);
+
+            const memberIds = new Set(members?.map(m => m.member_user_id) || []);
+            listMembersCache[listId] = Array.from(memberIds);
+
+            if (!profiles || profiles.length === 0) {
+              friendsListContainer.innerHTML = `
+                <div style="text-align: center; padding: 20px; color: #666;">
+                  <p style="font-size: 14px;">${searchQuery ? t('feed.noFriendsMatch', 'No friends match your search') : t('feed.noFriendsYet', 'No friends yet')}</p>
+                </div>
+              `;
+              return;
+            }
+
+            friendsListContainer.innerHTML = profiles.map(friend => {
+              const isInList = memberIds.has(friend.user_id);
+              const initial = (friend.display_name || friend.username || '?')[0].toUpperCase();
+              return `
+                <label class="friend-checkbox-row" style="display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; cursor: pointer; transition: background 0.2s; ${isInList ? 'background: #fef3c7;' : 'background: white;'}">
+                  <input type="checkbox" class="friend-checkbox" data-user-id="${friend.user_id}" ${isInList ? 'checked' : ''} style="width: 18px; height: 18px; accent-color: #92400e; cursor: pointer;" />
+                  <div style="width: 36px; height: 36px; border-radius: 50%; overflow: hidden; flex-shrink: 0; background: linear-gradient(135deg, #fbbf24, #f59e0b); display: flex; align-items: center; justify-content: center;">
+                    ${friend.avatar_url 
+                      ? `<img src="${friend.avatar_url}" style="width: 100%; height: 100%; object-fit: cover;" />` 
+                      : `<span style="color: white; font-weight: 600; font-size: 14px;">${initial}</span>`
+                    }
+                  </div>
+                  <div style="flex: 1; min-width: 0;">
+                    <div style="font-weight: 500; color: #374151; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${friend.display_name || friend.username}</div>
+                    ${friend.username && friend.display_name ? `<div style="font-size: 12px; color: #666;">@${friend.username}</div>` : ''}
+                  </div>
+                </label>
+              `;
+            }).join('');
+
+            // Add checkbox event listeners
+            document.querySelectorAll('.friend-checkbox').forEach(checkbox => {
+              checkbox.addEventListener('change', async (e) => {
+                const target = e.target as HTMLInputElement;
+                const userId = target.dataset.userId!;
+                const row = target.closest('.friend-checkbox-row') as HTMLLabelElement;
+                
+                if (target.checked) {
+                  // Add to list
+                  const { error } = await supabase
+                    .from('custom_list_members')
+                    .insert({ list_id: listId, member_user_id: userId });
+                  
+                  if (!error) {
+                    row.style.background = '#fef3c7';
+                    if (!listMembersCache[listId]) listMembersCache[listId] = [];
+                    listMembersCache[listId].push(userId);
+                  } else {
+                    target.checked = false;
+                    console.error('Error adding to list:', error);
+                  }
+                } else {
+                  // Remove from list
+                  const { error } = await supabase
+                    .from('custom_list_members')
+                    .delete()
+                    .eq('list_id', listId)
+                    .eq('member_user_id', userId);
+                  
+                  if (!error) {
+                    row.style.background = 'white';
+                    listMembersCache[listId] = listMembersCache[listId]?.filter(id => id !== userId) || [];
+                  } else {
+                    target.checked = true;
+                    console.error('Error removing from list:', error);
+                  }
+                }
+                
+                // Update member count display
+                updateListMemberCounts();
+              });
+            });
+
+          } catch (error) {
+            console.error('Error fetching friends:', error);
+            friendsListContainer.innerHTML = `
+              <div style="text-align: center; padding: 20px; color: #ef4444;">
+                <p style="font-size: 14px;">${t('common.error', 'Error loading friends')}</p>
+              </div>
+            `;
+          }
+        };
+
+        // Update member counts in the main list view
+        const updateListMemberCounts = async () => {
+          for (const listId of Object.keys(listMembersCache)) {
+            const countSpan = document.querySelector(`.list-member-count[data-list-id="${listId}"]`) as HTMLSpanElement;
+            if (countSpan) {
+              const count = listMembersCache[listId]?.length || 0;
+              countSpan.textContent = `${count} ${count === 1 ? t('feed.friend', 'friend') : t('feed.friends', 'friends')}`;
+            }
+          }
+        };
+
+        // Initialize member counts
+        const initMemberCounts = async () => {
+          for (const list of customLists) {
+            const { data: members } = await supabase
+              .from('custom_list_members')
+              .select('member_user_id')
+              .eq('list_id', list.id);
+            
+            listMembersCache[list.id] = members?.map(m => m.member_user_id) || [];
+          }
+          updateListMemberCounts();
+        };
+        initMemberCounts();
+
+        // Edit list button - slide to friends selector
+        document.querySelectorAll('.edit-list-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const el = e.currentTarget as HTMLButtonElement;
+            currentEditingListId = el.dataset.listId!;
+            const listName = el.dataset.listName!;
+            const listIcon = el.dataset.listIcon!;
+            
+            editingListTitle.textContent = `${listIcon} ${t('feed.editList', 'Edit')}: ${listName}`;
+            listsSlider.style.transform = 'translateX(-50%)';
+            friendsSearch.value = '';
+            fetchFriendsForList(currentEditingListId);
+          });
+        });
+
+        // Back button - slide back to lists
+        document.getElementById('back-to-lists')?.addEventListener('click', () => {
+          listsSlider.style.transform = 'translateX(0)';
+          currentEditingListId = null;
+          updateListMemberCounts();
+        });
+
+        // Done button - also slide back
+        document.getElementById('done-editing-list')?.addEventListener('click', () => {
+          listsSlider.style.transform = 'translateX(0)';
+          currentEditingListId = null;
+          updateListMemberCounts();
+        });
+
+        // Friends search functionality
+        let friendsSearchTimeout: number;
+        friendsSearch?.addEventListener('input', () => {
+          clearTimeout(friendsSearchTimeout);
+          friendsSearchTimeout = window.setTimeout(() => {
+            if (currentEditingListId) {
+              fetchFriendsForList(currentEditingListId, friendsSearch.value.trim());
+            }
+          }, 300);
         });
 
         document.querySelectorAll('.privacy-option-btn').forEach(btn => {
@@ -1236,6 +1491,8 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
             if (value === 'custom') {
               privacyPanel.style.display = 'none';
               customListsPanel.style.display = 'block';
+              // Reset slider position
+              listsSlider.style.transform = 'translateX(0)';
             } else {
               privacyPanel.style.display = 'none';
               customListsPanel.style.display = 'none';
