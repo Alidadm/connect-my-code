@@ -438,7 +438,11 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
                       ).join('')
                     : `<div style="text-align: center; padding: 20px; color: #666;">
                         <p style="font-size: 14px; margin-bottom: 8px;">${t('feed.noCustomLists', 'No custom lists yet')}</p>
-                        <p style="font-size: 12px; color: #999;">${t('feed.createListsHint', 'Create lists to organize your friends')}</p>
+                        <p style="font-size: 12px; color: #999; margin-bottom: 12px;">${t('feed.createListsHint', 'Create lists to organize your friends')}</p>
+                        <button type="button" id="create-new-list-btn" style="padding: 10px 20px; background: #92400e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 500; font-size: 14px; display: inline-flex; align-items: center; gap: 8px;">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+                          ${t('feed.createNewList', 'Create New List')}
+                        </button>
                       </div>`
                   }
                 </div>
@@ -1420,6 +1424,114 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
         };
         initMemberCounts();
 
+        // Create new list button
+        document.getElementById('create-new-list-btn')?.addEventListener('click', async () => {
+          const { value: listName } = await Swal.fire({
+            title: t('feed.createNewList', 'Create New List'),
+            input: 'text',
+            inputPlaceholder: t('feed.enterListName', 'Enter list name...'),
+            showCancelButton: true,
+            confirmButtonText: t('common.create', 'Create'),
+            cancelButtonText: t('common.cancel', 'Cancel'),
+            confirmButtonColor: '#92400e',
+            inputValidator: (value) => {
+              if (!value || value.trim().length < 2) {
+                return t('feed.listNameTooShort', 'List name must be at least 2 characters');
+              }
+              return null;
+            }
+          });
+
+          if (listName) {
+            try {
+              const { data: newList, error } = await supabase
+                .from('custom_lists')
+                .insert({
+                  user_id: user.id,
+                  name: listName.trim(),
+                  icon: '📋',
+                  color: '#92400e'
+                })
+                .select()
+                .single();
+
+              if (error) throw error;
+
+              // Add the new list to the container
+              const container = document.getElementById('custom-lists-container');
+              if (container && newList) {
+                customLists.push(newList);
+                listMembersCache[newList.id] = [];
+                
+                container.innerHTML = customLists.map(list => 
+                  `<div class="custom-list-row" style="display: flex; align-items: center; gap: 8px;">
+                    <button type="button" class="custom-list-btn" data-list-id="${list.id}" data-list-name="${list.name}" data-list-icon="${list.icon}" data-list-color="${list.color}" style="display: flex; align-items: center; gap: 8px; flex: 1; padding: 10px 12px; border: 1px solid #e5e7eb; background: white; cursor: pointer; border-radius: 8px; text-align: left; transition: all 0.2s;">
+                      <span style="font-size: 18px;">${list.icon}</span>
+                      <span style="font-weight: 500; color: #374151; flex: 1;">${list.name}</span>
+                      <span class="list-member-count" data-list-id="${list.id}" style="font-size: 11px; color: #666; background: #f3f4f6; padding: 2px 8px; border-radius: 12px;">0 ${t('feed.friends', 'friends')}</span>
+                    </button>
+                    <button type="button" class="edit-list-btn" data-list-id="${list.id}" data-list-name="${list.name}" data-list-icon="${list.icon}" style="padding: 8px 12px; border: 1px solid #fbbf24; background: #fef3c7; cursor: pointer; border-radius: 8px; transition: all 0.2s; display: flex; align-items: center; gap: 6px; font-size: 12px; color: #92400e; font-weight: 500;" title="${t('feed.editListMembers', 'Edit list members')}">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#92400e" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>
+                      <span>${t('common.edit', 'Edit')}</span>
+                    </button>
+                  </div>`
+                ).join('');
+
+                // Rebind event listeners for new buttons
+                document.querySelectorAll('.custom-list-btn').forEach(btn => {
+                  btn.addEventListener('click', (e) => {
+                    const el = e.currentTarget as HTMLButtonElement;
+                    const listId = el.dataset.listId!;
+                    const existingIndex = selectedCustomLists.findIndex(l => l.id === listId);
+                    
+                    if (existingIndex >= 0) {
+                      selectedCustomLists.splice(existingIndex, 1);
+                      el.style.background = 'white';
+                      el.style.borderColor = '#e5e7eb';
+                    } else {
+                      selectedCustomLists.push({
+                        id: listId,
+                        name: el.dataset.listName!,
+                        icon: el.dataset.listIcon!,
+                        color: el.dataset.listColor!
+                      });
+                      el.style.background = '#fef3c7';
+                      el.style.borderColor = '#fbbf24';
+                    }
+                    updateSelectedListsPreview();
+                  });
+                });
+
+                document.querySelectorAll('.edit-list-btn').forEach(btn => {
+                  btn.addEventListener('click', (e) => {
+                    const el = e.currentTarget as HTMLButtonElement;
+                    currentEditingListId = el.dataset.listId!;
+                    const listName = el.dataset.listName!;
+                    const listIcon = el.dataset.listIcon!;
+                    
+                    editingListTitle.textContent = listIcon + ' Edit: ' + listName;
+                    listsSlider.style.transform = 'translateX(-50%)';
+                    friendsSearch.value = '';
+                    fetchFriendsForList(currentEditingListId);
+                  });
+                });
+
+                toast({
+                  title: t('feed.listCreated', 'List created!'),
+                  description: t('feed.listCreatedDesc', 'Now add friends using the Edit button'),
+                });
+              }
+            } catch (error) {
+              console.error('Error creating list:', error);
+              toast({
+                title: t('common.error', 'Error'),
+                description: t('feed.errorCreatingList', 'Could not create list'),
+                variant: 'destructive',
+              });
+            }
+          }
+        });
+
         // Edit list button - slide to friends selector
         document.querySelectorAll('.edit-list-btn').forEach(btn => {
           btn.addEventListener('click', (e) => {
@@ -1428,7 +1540,7 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
             const listName = el.dataset.listName!;
             const listIcon = el.dataset.listIcon!;
             
-            editingListTitle.textContent = `${listIcon} ${t('feed.editList', 'Edit')}: ${listName}`;
+            editingListTitle.textContent = listIcon + ' Edit: ' + listName;
             listsSlider.style.transform = 'translateX(-50%)';
             friendsSearch.value = '';
             fetchFriendsForList(currentEditingListId);
