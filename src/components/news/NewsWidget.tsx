@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { Newspaper, Settings2, RefreshCw, Trash2 } from "lucide-react";
+import { Newspaper, Settings2, RefreshCw, Trash2, X } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -15,9 +15,15 @@ import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import * as LucideIcons from "lucide-react";
 
+const NEWS_WIDGET_HIDDEN_KEY = "newsWidgetHidden";
+
 export const NewsWidget: React.FC = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const [isHidden, setIsHidden] = useState(() => {
+    return localStorage.getItem(NEWS_WIDGET_HIDDEN_KEY) === "true";
+  });
+
   const {
     categories,
     userCategories,
@@ -38,6 +44,11 @@ export const NewsWidget: React.FC = () => {
     refreshCategoryNews,
     maxCustomCategories,
   } = useCustomNewsCategories();
+
+  const handleHideWidget = () => {
+    localStorage.setItem(NEWS_WIDGET_HIDDEN_KEY, "true");
+    setIsHidden(true);
+  };
 
   // Combine all selected categories for tabs
   const allTabs = useMemo(() => {
@@ -77,7 +88,7 @@ export const NewsWidget: React.FC = () => {
     return Icon ? <Icon className="h-3.5 w-3.5" /> : null;
   };
 
-  if (!user) {
+  if (!user || isHidden) {
     return null;
   }
 
@@ -127,6 +138,15 @@ export const NewsWidget: React.FC = () => {
                 </Button>
               }
             />
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-7 w-7 text-muted-foreground hover:text-destructive"
+              onClick={handleHideWidget}
+              title={t("news.hideWidget", "Hide news widget")}
+            >
+              <X className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       </CardHeader>
