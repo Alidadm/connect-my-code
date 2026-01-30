@@ -4,7 +4,7 @@ import {
   ChevronRight, Eye, EyeOff, Lock, Mail, Phone, Globe, Calendar,
   Home, CreditCard, Users, Heart, MessageCircle, LogOut, Clock,
   CheckCircle2, XCircle, Loader2, ExternalLink, Languages, UsersRound,
-  Building2, Info, AlertTriangle, RotateCcw, Menu, X, Youtube
+  Building2, Info, AlertTriangle, RotateCcw, Menu, X, Youtube, Images, Newspaper
 } from "lucide-react";
 import { format, isValid as isValidDate, parseISO } from "date-fns";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -129,6 +129,14 @@ const MemberDashboard = () => {
     allowMessages: true,
     darkMode: false,
     compactMode: false,
+  });
+
+  // Widget visibility state
+  const [platformGalleryVisible, setPlatformGalleryVisible] = useState(() => {
+    return localStorage.getItem("platformGalleryHidden") !== "true";
+  });
+  const [newsWidgetVisible, setNewsWidgetVisible] = useState(() => {
+    return localStorage.getItem("newsWidgetHidden") !== "true";
   });
 
   // Pending join requests count for groups badge
@@ -1367,48 +1375,103 @@ const MemberDashboard = () => {
     </div>
   );
 
-  const renderAppearanceTab = () => (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
-        <div className="flex items-center gap-3">
-          <Languages className="w-5 h-5 text-slate-500" />
-          <div>
-            <h4 className="font-medium text-slate-800">Language</h4>
-            <p className="text-sm text-slate-500">Choose your preferred language</p>
-          </div>
-        </div>
-        <LanguageSwitcher variant="full" />
-      </div>
+  const renderAppearanceTab = () => {
+    const handlePlatformGalleryToggle = (checked: boolean) => {
+      if (checked) {
+        localStorage.removeItem("platformGalleryHidden");
+      } else {
+        localStorage.setItem("platformGalleryHidden", "true");
+      }
+      setPlatformGalleryVisible(checked);
+      window.dispatchEvent(new CustomEvent("platform-gallery-visibility-changed"));
+    };
 
-      <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
-        <div className="flex items-center gap-3">
-          <Palette className="w-5 h-5 text-slate-500" />
-          <div>
-            <h4 className="font-medium text-slate-800">{t("appearance.darkMode")}</h4>
-            <p className="text-sm text-slate-500">{t("appearance.darkModeDesc")}</p>
-          </div>
-        </div>
-        <Switch 
-          checked={settings.darkMode} 
-          onCheckedChange={(checked) => setSettings({ ...settings, darkMode: checked })}
-        />
-      </div>
+    const handleNewsWidgetToggle = (checked: boolean) => {
+      if (checked) {
+        localStorage.removeItem("newsWidgetHidden");
+      } else {
+        localStorage.setItem("newsWidgetHidden", "true");
+      }
+      setNewsWidgetVisible(checked);
+      window.dispatchEvent(new CustomEvent("news-widget-visibility-changed"));
+    };
 
-      <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
-        <div className="flex items-center gap-3">
-          <Layout className="w-5 h-5 text-slate-500" />
-          <div>
-            <h4 className="font-medium text-slate-800">{t("appearance.compactMode")}</h4>
-            <p className="text-sm text-slate-500">{t("appearance.compactModeDesc")}</p>
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
+          <div className="flex items-center gap-3">
+            <Languages className="w-5 h-5 text-slate-500" />
+            <div>
+              <h4 className="font-medium text-slate-800">Language</h4>
+              <p className="text-sm text-slate-500">Choose your preferred language</p>
+            </div>
+          </div>
+          <LanguageSwitcher variant="full" />
+        </div>
+
+        <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
+          <div className="flex items-center gap-3">
+            <Palette className="w-5 h-5 text-slate-500" />
+            <div>
+              <h4 className="font-medium text-slate-800">{t("appearance.darkMode")}</h4>
+              <p className="text-sm text-slate-500">{t("appearance.darkModeDesc")}</p>
+            </div>
+          </div>
+          <Switch 
+            checked={settings.darkMode} 
+            onCheckedChange={(checked) => setSettings({ ...settings, darkMode: checked })}
+          />
+        </div>
+
+        <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
+          <div className="flex items-center gap-3">
+            <Layout className="w-5 h-5 text-slate-500" />
+            <div>
+              <h4 className="font-medium text-slate-800">{t("appearance.compactMode")}</h4>
+              <p className="text-sm text-slate-500">{t("appearance.compactModeDesc")}</p>
+            </div>
+          </div>
+          <Switch 
+            checked={settings.compactMode} 
+            onCheckedChange={(checked) => setSettings({ ...settings, compactMode: checked })}
+          />
+        </div>
+
+        {/* Feed Widgets Section */}
+        <div className="pt-4 border-t border-slate-200">
+          <h3 className="text-sm font-medium text-slate-600 mb-3">{t("appearance.feedWidgets", "Feed Widgets")}</h3>
+          
+          <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
+            <div className="flex items-center gap-3">
+              <Images className="w-5 h-5 text-slate-500" />
+              <div>
+                <h4 className="font-medium text-slate-800">{t("appearance.platformGallery", "Platform Gallery")}</h4>
+                <p className="text-sm text-slate-500">{t("appearance.platformGalleryDesc", "Show official platform photos in feed")}</p>
+              </div>
+            </div>
+            <Switch 
+              checked={platformGalleryVisible} 
+              onCheckedChange={handlePlatformGalleryToggle}
+            />
+          </div>
+
+          <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200 mt-3">
+            <div className="flex items-center gap-3">
+              <Newspaper className="w-5 h-5 text-slate-500" />
+              <div>
+                <h4 className="font-medium text-slate-800">{t("appearance.newsWidget", "My News")}</h4>
+                <p className="text-sm text-slate-500">{t("appearance.newsWidgetDesc", "Show personalized news in sidebar")}</p>
+              </div>
+            </div>
+            <Switch 
+              checked={newsWidgetVisible} 
+              onCheckedChange={handleNewsWidgetToggle}
+            />
           </div>
         </div>
-        <Switch 
-          checked={settings.compactMode} 
-          onCheckedChange={(checked) => setSettings({ ...settings, compactMode: checked })}
-        />
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderTabContent = () => {
     switch (activeTab) {

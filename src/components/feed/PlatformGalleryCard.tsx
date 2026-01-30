@@ -1,20 +1,41 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Bookmark, Camera, Images } from "lucide-react";
+import { Bookmark, Camera, Images, X } from "lucide-react";
 import { usePlatformPhotos } from "@/hooks/usePlatformPhotos";
 import { PhotoLightbox } from "./PhotoLightbox";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
+
+const PLATFORM_GALLERY_HIDDEN_KEY = "platformGalleryHidden";
 
 export const PlatformGalleryCard = () => {
   const { t } = useTranslation();
   const { photos, savedPhotoIds, loading, toggleSave } = usePlatformPhotos();
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [isHidden, setIsHidden] = useState(() => {
+    return localStorage.getItem(PLATFORM_GALLERY_HIDDEN_KEY) === "true";
+  });
 
-  if (loading || photos.length === 0) return null;
+  const handleHideGallery = () => {
+    localStorage.setItem(PLATFORM_GALLERY_HIDDEN_KEY, "true");
+    setIsHidden(true);
+    // Dispatch event so dashboard can update its state
+    window.dispatchEvent(new CustomEvent("platform-gallery-visibility-changed"));
+  };
+
+  // Listen for visibility changes from dashboard
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsHidden(localStorage.getItem(PLATFORM_GALLERY_HIDDEN_KEY) === "true");
+    };
+    window.addEventListener("platform-gallery-visibility-changed", handleVisibilityChange);
+    return () => window.removeEventListener("platform-gallery-visibility-changed", handleVisibilityChange);
+  }, []);
+
+  if (isHidden || loading || photos.length === 0) return null;
 
   const imageUrls = photos.map(p => p.image_url);
   const displayImages = imageUrls.slice(0, 9);
@@ -89,7 +110,7 @@ export const PlatformGalleryCard = () => {
                   <Camera className="h-5 w-5" />
                 </AvatarFallback>
               </Avatar>
-              <div>
+              <div className="flex-1">
                 <div className="flex items-center gap-1">
                   <span className="font-semibold text-foreground">
                     {t("gallery.platformGallery", "Platform Gallery")}
@@ -100,6 +121,15 @@ export const PlatformGalleryCard = () => {
                   {t("gallery.officialPhotos", "Official photos")}
                 </p>
               </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                onClick={handleHideGallery}
+                title={t("gallery.hideGallery", "Hide gallery")}
+              >
+                <X className="h-4 w-4" />
+              </Button>
             </div>
           </CardHeader>
           <hr className="border-border mb-3" />
@@ -139,7 +169,7 @@ export const PlatformGalleryCard = () => {
                   <Images className="h-5 w-5" />
                 </AvatarFallback>
               </Avatar>
-              <div>
+              <div className="flex-1">
                 <div className="flex items-center gap-1">
                   <span className="font-semibold text-foreground">
                     {t("gallery.platformGallery", "Platform Gallery")}
@@ -150,6 +180,15 @@ export const PlatformGalleryCard = () => {
                   {photos.length} {t("gallery.photos", "photos")}
                 </p>
               </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                onClick={handleHideGallery}
+                title={t("gallery.hideGallery", "Hide gallery")}
+              >
+                <X className="h-4 w-4" />
+              </Button>
             </div>
           </CardHeader>
           <hr className="border-border mb-3" />
@@ -189,7 +228,7 @@ export const PlatformGalleryCard = () => {
                   <Images className="h-5 w-5" />
                 </AvatarFallback>
               </Avatar>
-              <div>
+              <div className="flex-1">
                 <div className="flex items-center gap-1">
                   <span className="font-semibold text-foreground">
                     {t("gallery.platformGallery", "Platform Gallery")}
@@ -200,6 +239,15 @@ export const PlatformGalleryCard = () => {
                   {photos.length} {t("gallery.photos", "photos")}
                 </p>
               </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                onClick={handleHideGallery}
+                title={t("gallery.hideGallery", "Hide gallery")}
+              >
+                <X className="h-4 w-4" />
+              </Button>
             </div>
           </CardHeader>
           <hr className="border-border mb-3" />
@@ -235,7 +283,7 @@ export const PlatformGalleryCard = () => {
                   <Images className="h-5 w-5" />
                 </AvatarFallback>
               </Avatar>
-              <div>
+              <div className="flex-1">
                 <div className="flex items-center gap-1">
                   <span className="font-semibold text-foreground">
                     {t("gallery.platformGallery", "Platform Gallery")}
@@ -246,6 +294,15 @@ export const PlatformGalleryCard = () => {
                   {photos.length} {t("gallery.photos", "photos")}
                 </p>
               </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                onClick={handleHideGallery}
+                title={t("gallery.hideGallery", "Hide gallery")}
+              >
+                <X className="h-4 w-4" />
+              </Button>
             </div>
           </CardHeader>
           <hr className="border-border mb-3" />
@@ -273,24 +330,33 @@ export const PlatformGalleryCard = () => {
       <Card>
         <CardHeader className="pb-2">
           <div className="flex items-center gap-3">
-            <Avatar className="h-10 w-10 bg-primary">
-              <AvatarFallback className="bg-primary text-primary-foreground">
-                <Images className="h-5 w-5" />
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <div className="flex items-center gap-1">
-                <span className="font-semibold text-foreground">
-                  {t("gallery.platformGallery", "Platform Gallery")}
-                </span>
-                <span className="text-primary text-xs">✓</span>
+              <Avatar className="h-10 w-10 bg-primary">
+                <AvatarFallback className="bg-primary text-primary-foreground">
+                  <Images className="h-5 w-5" />
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1">
+                <div className="flex items-center gap-1">
+                  <span className="font-semibold text-foreground">
+                    {t("gallery.platformGallery", "Platform Gallery")}
+                  </span>
+                  <span className="text-primary text-xs">✓</span>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {photos.length} {t("gallery.photos", "photos")}
+                </p>
               </div>
-              <p className="text-sm text-muted-foreground">
-                {photos.length} {t("gallery.photos", "photos")}
-              </p>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                onClick={handleHideGallery}
+                title={t("gallery.hideGallery", "Hide gallery")}
+              >
+                <X className="h-4 w-4" />
+              </Button>
             </div>
-          </div>
-        </CardHeader>
+          </CardHeader>
         <hr className="border-border mb-3" />
         <CardContent className="pt-0">
           <div className="grid grid-cols-3 gap-0.5 rounded-lg overflow-hidden">

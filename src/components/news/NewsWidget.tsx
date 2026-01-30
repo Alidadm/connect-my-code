@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Newspaper, Settings2, RefreshCw, Trash2, X } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -49,6 +49,15 @@ export const NewsWidget: React.FC = () => {
     localStorage.setItem(NEWS_WIDGET_HIDDEN_KEY, "true");
     setIsHidden(true);
   };
+
+  // Listen for visibility changes from dashboard
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsHidden(localStorage.getItem(NEWS_WIDGET_HIDDEN_KEY) === "true");
+    };
+    window.addEventListener("news-widget-visibility-changed", handleVisibilityChange);
+    return () => window.removeEventListener("news-widget-visibility-changed", handleVisibilityChange);
+  }, []);
 
   // Combine all selected categories for tabs
   const allTabs = useMemo(() => {
