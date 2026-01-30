@@ -1,4 +1,4 @@
-import { Bell, Bookmark, ChevronDown, LogOut, Settings, User, ExternalLink, Shield, LayoutDashboard, UserPlus, Check, Lock, HelpCircle, MessageSquarePlus, Search, Newspaper, Info, Menu, MessageCircle, QrCode } from "lucide-react";
+import { Bell, Bookmark, ChevronDown, LogOut, Settings, User, ExternalLink, Shield, LayoutDashboard, UserPlus, Check, Lock, HelpCircle, MessageSquarePlus, Search, Newspaper, Info, Menu, MessageCircle, QrCode, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -22,6 +22,13 @@ import { MobileDrawer } from "./MobileDrawer";
 import { MessagesSheet } from "@/components/messages/MessagesSheet";
 import { ReferralQRCodeDialog } from "@/components/referral/ReferralQRCodeDialog";
 import { useDirectMessages } from "@/hooks/useDirectMessages";
+import { usePayoutStatus } from "@/hooks/usePayoutStatus";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface FriendRequest {
   id: string;
@@ -49,6 +56,7 @@ export const Header = () => {
   const [friendRequests, setFriendRequests] = useState<FriendRequest[]>([]);
   const { t } = useTranslation();
   const { totalUnreadCount } = useDirectMessages();
+  const { needsSetup: needsPayoutSetup, loading: payoutLoading } = usePayoutStatus();
 
   // Fetch pending friend requests
   useEffect(() => {
@@ -192,6 +200,38 @@ export const Header = () => {
             <Info className="h-4 w-4" />
             {t("nav.about", { defaultValue: "About" })}
           </Button>
+          
+          {/* Payout Setup Reminder - Shows when user hasn't set up both payment methods */}
+          {user && !payoutLoading && needsPayoutSetup && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="gap-2 text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:text-amber-300 dark:hover:bg-amber-950 relative animate-pulse"
+                    onClick={() => navigate("/commissions")}
+                  >
+                    <CreditCard className="h-4 w-4" />
+                    <span className="hidden lg:inline">{t("header.setupPayout", { defaultValue: "Setup Payout" })}</span>
+                    <Badge 
+                      variant="destructive" 
+                      className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-[10px]"
+                    >
+                      !
+                    </Badge>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="max-w-xs">
+                  <p className="text-sm">
+                    {t("header.payoutReminder", { 
+                      defaultValue: "Please set up both Stripe and PayPal to receive commissions from all referrals. Click to configure." 
+                    })}
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
         </nav>
 
         {/* Search - Desktop */}

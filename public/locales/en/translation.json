@@ -73,7 +73,9 @@
     "logOut": "Log Out",
     "welcomeBack": "Welcome back!",
     "loginSuccess": "You've successfully logged in.",
-    "qrBarcode": "Referral URL Barcode"
+    "qrBarcode": "Referral URL Barcode",
+    "setupPayout": "Setup Payout",
+    "payoutReminder": "Please set up both Stripe and PayPal to receive commissions from all referrals. Click to configure."
   },
   "referral": {
     "qrBarcode": "Referral URL Barcode",
