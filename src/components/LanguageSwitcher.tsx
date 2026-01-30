@@ -18,8 +18,8 @@ interface LanguageSwitcherProps {
 export const LanguageSwitcher = ({ variant = 'icon', className }: LanguageSwitcherProps) => {
   const { currentLanguage, currentCode, changeLanguage, supportedLanguages } = useLanguage();
 
-  const handleChangeLanguage = (langCode: LanguageCode) => {
-    changeLanguage(langCode);
+  const handleChangeLanguage = async (langCode: LanguageCode) => {
+    await changeLanguage(langCode);
   };
 
   return (
