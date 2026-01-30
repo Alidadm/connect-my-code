@@ -18,10 +18,12 @@ import {
   Flag,
   ChevronLeft,
   ChevronRight,
+  Pencil,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { ContactSellerDialog } from "@/components/marketplace/ContactSellerDialog";
+import { EditListingDialog } from "@/components/marketplace/EditListingDialog";
 
 const formatPrice = (price: number, currency: string) => {
   if (price === 0) return "Free";
@@ -44,10 +46,11 @@ const CONDITION_LABELS: Record<string, string> = {
 const MarketplaceListing = () => {
   const { id } = useParams<{ id: string }>();
   const { user, loading: authLoading } = useAuth();
-  const { listing, isLoading } = useMarketplaceListing(id);
-  const { toggleSaveListing, savedListingIds, trackView } = useMarketplace();
+  const { listing, isLoading, refetch } = useMarketplaceListing(id);
+  const { toggleSaveListing, savedListingIds, trackView, categories } = useMarketplace();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showContactDialog, setShowContactDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
 
   const isSaved = id ? savedListingIds.has(id) : false;
   const isOwner = user?.id === listing?.user_id;
@@ -57,6 +60,10 @@ const MarketplaceListing = () => {
       trackView(id);
     }
   }, [id, user, trackView]);
+
+  const handleEditSuccess = () => {
+    refetch?.();
+  };
 
   if (authLoading) {
     return (
@@ -304,7 +311,12 @@ const MarketplaceListing = () => {
 
             {isOwner && (
               <div className="flex gap-2">
-                <Button variant="outline" className="flex-1">
+                <Button 
+                  variant="outline" 
+                  className="flex-1"
+                  onClick={() => setShowEditDialog(true)}
+                >
+                  <Pencil className="h-4 w-4 mr-2" />
                   Edit Listing
                 </Button>
                 <Button variant="destructive" className="flex-1">
@@ -321,6 +333,17 @@ const MarketplaceListing = () => {
           onOpenChange={setShowContactDialog}
           listing={listing}
         />
+
+        {/* Edit listing dialog */}
+        {listing && (
+          <EditListingDialog
+            open={showEditDialog}
+            onOpenChange={setShowEditDialog}
+            listing={listing}
+            categories={categories}
+            onSuccess={handleEditSuccess}
+          />
+        )}
       </div>
     </MainLayout>
   );
