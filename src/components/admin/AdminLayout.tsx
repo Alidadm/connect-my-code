@@ -11,11 +11,11 @@ interface AdminLayoutProps {
 export const AdminLayout = ({ children, title = "Admin" }: AdminLayoutProps) => {
   return (
     <AdminRouteGuard>
-      <div className="flex min-h-screen bg-slate-50">
+      <div className="flex min-h-screen bg-slate-900">
         <AdminSidebar />
-        <div className="flex-1 flex flex-col overflow-auto">
+        <div className="flex-1 flex flex-col overflow-auto ml-0">
           <AdminHeader title={title} />
-          <main className="flex-1 overflow-auto">
+          <main className="flex-1 overflow-auto p-6 lg:p-8">
             {children}
           </main>
         </div>

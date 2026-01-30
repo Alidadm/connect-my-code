@@ -234,44 +234,110 @@ const ReportedPosts = () => {
   const pendingCount = reports?.filter(r => r.status === "pending").length || 0;
 
   return (
-    <AdminLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-              <Flag className="h-6 w-6 text-red-400" />
-              Reported Posts
-            </h1>
-            <p className="text-slate-400 mt-1">
-              Review and manage user-reported content
-            </p>
-          </div>
-          {pendingCount > 0 && (
-            <Badge className="bg-red-500/10 text-red-400 border-red-500/20 self-start">
-              <AlertTriangle className="h-3 w-3 mr-1" />
-              {pendingCount} pending review
-            </Badge>
-          )}
+    <AdminLayout title="Reported Posts">
+      <div className="max-w-6xl mx-auto space-y-6">
+        {/* Header Card */}
+        <Card className="bg-gradient-to-r from-red-900/30 to-slate-800/50 border-red-900/30">
+          <CardContent className="p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-red-500/20 border border-red-500/30">
+                  <Flag className="h-6 w-6 text-red-400" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold text-white">
+                    Content Moderation
+                  </h1>
+                  <p className="text-slate-400 mt-0.5">
+                    Review and manage reported posts
+                  </p>
+                </div>
+              </div>
+              {pendingCount > 0 && (
+                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-red-500/20 border border-red-500/30">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                  </span>
+                  <span className="text-sm font-medium text-red-300">
+                    {pendingCount} pending review
+                  </span>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Stats & Filters Row */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card className="bg-slate-800/60 border-slate-700/50 hover:border-yellow-500/30 transition-colors">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-yellow-500/20">
+                <Clock className="h-5 w-5 text-yellow-400" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-white">{reports?.filter(r => r.status === "pending").length || 0}</p>
+                <p className="text-xs text-slate-400">Pending</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-slate-800/60 border-slate-700/50 hover:border-blue-500/30 transition-colors">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-blue-500/20">
+                <Eye className="h-5 w-5 text-blue-400" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-white">{reports?.filter(r => r.status === "reviewed").length || 0}</p>
+                <p className="text-xs text-slate-400">Reviewed</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-slate-800/60 border-slate-700/50 hover:border-green-500/30 transition-colors">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-green-500/20">
+                <CheckCircle className="h-5 w-5 text-green-400" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-white">{reports?.filter(r => r.status === "resolved").length || 0}</p>
+                <p className="text-xs text-slate-400">Resolved</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-slate-800/60 border-slate-700/50 hover:border-slate-500/30 transition-colors">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-slate-500/20">
+                <XCircle className="h-5 w-5 text-slate-400" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-white">{reports?.filter(r => r.status === "dismissed").length || 0}</p>
+                <p className="text-xs text-slate-400">Dismissed</p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Filters */}
-        <Card className="bg-slate-800/50 border-slate-700">
+        {/* Filter Bar */}
+        <Card className="bg-slate-800/40 border-slate-700/50">
           <CardContent className="p-4">
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-slate-400">Filter by status:</span>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-40 bg-slate-700 border-slate-600">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Reports</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="reviewed">Reviewed</SelectItem>
-                  <SelectItem value="resolved">Resolved</SelectItem>
-                  <SelectItem value="dismissed">Dismissed</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-medium text-slate-300">Filter:</span>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-44 bg-slate-700/50 border-slate-600 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-800 border-slate-700">
+                    <SelectItem value="all">All Reports</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="reviewed">Reviewed</SelectItem>
+                    <SelectItem value="resolved">Resolved</SelectItem>
+                    <SelectItem value="dismissed">Dismissed</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <span className="text-sm text-slate-500">
+                {reports?.length || 0} total reports
+              </span>
             </div>
           </CardContent>
         </Card>
@@ -280,23 +346,29 @@ const ReportedPosts = () => {
         {isLoading ? (
           <div className="space-y-4">
             {[...Array(3)].map((_, i) => (
-              <Card key={i} className="bg-slate-800/50 border-slate-700">
+              <Card key={i} className="bg-slate-800/40 border-slate-700/50">
                 <CardContent className="p-6">
-                  <Skeleton className="h-24 w-full bg-slate-700" />
+                  <div className="space-y-3">
+                    <Skeleton className="h-4 w-32 bg-slate-700" />
+                    <Skeleton className="h-20 w-full bg-slate-700" />
+                    <Skeleton className="h-4 w-48 bg-slate-700" />
+                  </div>
                 </CardContent>
               </Card>
             ))}
           </div>
         ) : reports?.length === 0 ? (
-          <Card className="bg-slate-800/50 border-slate-700">
-            <CardContent className="py-12 text-center">
-              <CheckCircle className="h-12 w-12 mx-auto text-green-400 mb-4" />
-              <h3 className="text-lg font-semibold text-white mb-2">
-                No reports found
+          <Card className="bg-slate-800/40 border-slate-700/50">
+            <CardContent className="py-16 text-center">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-500/20 flex items-center justify-center">
+                <CheckCircle className="h-8 w-8 text-green-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-2">
+                All Clear!
               </h3>
-              <p className="text-slate-400">
+              <p className="text-slate-400 max-w-sm mx-auto">
                 {statusFilter === "all" 
-                  ? "There are no reported posts at this time."
+                  ? "No reported posts at this time. Your community is doing great!"
                   : `No ${statusFilter} reports found.`}
               </p>
             </CardContent>
@@ -304,140 +376,151 @@ const ReportedPosts = () => {
         ) : (
           <div className="space-y-4">
             {reports?.map((report) => (
-              <Card key={report.id} className="bg-slate-800/50 border-slate-700">
-                <CardContent className="p-6">
-                  <div className="flex flex-col lg:flex-row lg:items-start gap-4">
+              <Card 
+                key={report.id} 
+                className={`bg-slate-800/40 border-slate-700/50 hover:border-slate-600/50 transition-all ${
+                  report.status === "pending" ? "border-l-4 border-l-yellow-500" : ""
+                }`}
+              >
+                <CardContent className="p-5">
+                  <div className="flex flex-col lg:flex-row lg:items-start gap-5">
                     {/* Report Info */}
                     <div className="flex-1 space-y-4">
-                      {/* Status & Reason */}
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Badge className={statusColors[report.status]}>
-                          {report.status.charAt(0).toUpperCase() + report.status.slice(1)}
-                        </Badge>
-                        <Badge variant="outline" className="border-slate-600 text-slate-300">
-                          {reasonLabels[report.reason] || report.reason}
-                        </Badge>
-                        <span className="text-xs text-slate-500 flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
+                      {/* Header Row */}
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge className={`${statusColors[report.status]} font-medium`}>
+                            {report.status.charAt(0).toUpperCase() + report.status.slice(1)}
+                          </Badge>
+                          <Badge variant="outline" className="border-slate-600 text-slate-300 bg-slate-700/30">
+                            {reasonLabels[report.reason] || report.reason}
+                          </Badge>
+                        </div>
+                        <span className="text-xs text-slate-500 flex items-center gap-1.5">
+                          <Clock className="h-3.5 w-3.5" />
                           {formatDistanceToNow(new Date(report.created_at), { addSuffix: true })}
                         </span>
                       </div>
 
-                      {/* Reporter */}
-                      <div className="flex items-center gap-3">
-                        <User className="h-4 w-4 text-slate-500" />
-                        <span className="text-sm text-slate-400">Reported by:</span>
+                      {/* Reporter Info */}
+                      <div className="flex items-center gap-2 p-2.5 rounded-lg bg-slate-700/30">
+                        <Avatar className="h-7 w-7 ring-2 ring-slate-600">
+                          <AvatarImage src={report.reporter?.avatar_url || ""} />
+                          <AvatarFallback className="text-xs bg-slate-600 text-white">
+                            {report.reporter?.display_name?.[0] || "U"}
+                          </AvatarFallback>
+                        </Avatar>
                         <div className="flex items-center gap-2">
-                          <Avatar className="h-6 w-6">
-                            <AvatarImage src={report.reporter?.avatar_url || ""} />
-                            <AvatarFallback className="text-xs bg-slate-600">
-                              {report.reporter?.display_name?.[0] || "U"}
-                            </AvatarFallback>
-                          </Avatar>
-                          <span className="text-sm text-white">
+                          <span className="text-sm font-medium text-white">
                             {report.reporter?.display_name || report.reporter?.username || "Unknown"}
                           </span>
+                          <span className="text-xs text-slate-500">reported this</span>
                         </div>
                       </div>
 
                       {/* Description */}
                       {report.description && (
-                        <div className="bg-slate-700/50 rounded-lg p-3">
-                          <p className="text-sm text-slate-300">{report.description}</p>
+                        <div className="bg-slate-900/40 rounded-lg p-3 border border-slate-700/50">
+                          <p className="text-sm text-slate-300 italic">"{report.description}"</p>
                         </div>
                       )}
 
                       {/* Post Preview */}
                       {report.post ? (
-                        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
-                          <div className="flex items-center gap-2 mb-2">
-                            <FileText className="h-4 w-4 text-slate-500" />
-                            <span className="text-xs text-slate-500">Reported Post</span>
+                        <div className="bg-slate-900/60 rounded-xl p-4 border border-slate-700/50">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                              <FileText className="h-4 w-4 text-slate-500" />
+                              <span className="text-xs font-medium text-slate-400 uppercase tracking-wide">Reported Content</span>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-2 mb-2">
-                            <Avatar className="h-6 w-6">
+                          <div className="flex items-center gap-3 mb-3 p-2 rounded-lg bg-slate-800/50">
+                            <Avatar className="h-8 w-8 ring-2 ring-slate-600">
                               <AvatarImage src={report.post_author?.avatar_url || ""} />
-                              <AvatarFallback className="text-xs bg-slate-600">
+                              <AvatarFallback className="text-xs bg-slate-600 text-white">
                                 {report.post_author?.display_name?.[0] || "U"}
                               </AvatarFallback>
                             </Avatar>
-                            <span className="text-sm text-white">
-                              {report.post_author?.display_name || "Unknown"}
-                            </span>
-                            <span className="text-xs text-slate-500">
-                              @{report.post_author?.username || "unknown"}
-                            </span>
+                            <div>
+                              <span className="text-sm font-medium text-white block">
+                                {report.post_author?.display_name || "Unknown"}
+                              </span>
+                              <span className="text-xs text-slate-500">
+                                @{report.post_author?.username || "unknown"}
+                              </span>
+                            </div>
                           </div>
-                          <p className="text-sm text-slate-300 line-clamp-3">
+                          <p className="text-sm text-slate-300 line-clamp-3 leading-relaxed">
                             {report.post.content || "(No text content)"}
                           </p>
                           {report.post.media_urls && report.post.media_urls.length > 0 && (
-                            <div className="flex gap-2 mt-2">
-                              {report.post.media_urls.slice(0, 3).map((url, idx) => (
+                            <div className="flex gap-2 mt-3 pt-3 border-t border-slate-700/50">
+                              {report.post.media_urls.slice(0, 4).map((url, idx) => (
                                 <img 
                                   key={idx}
                                   src={url} 
                                   alt="" 
-                                  className="h-16 w-16 object-cover rounded"
+                                  className="h-14 w-14 object-cover rounded-lg ring-1 ring-slate-700"
                                 />
                               ))}
-                              {report.post.media_urls.length > 3 && (
-                                <div className="h-16 w-16 bg-slate-700 rounded flex items-center justify-center text-slate-400 text-sm">
-                                  +{report.post.media_urls.length - 3}
+                              {report.post.media_urls.length > 4 && (
+                                <div className="h-14 w-14 bg-slate-700/50 rounded-lg flex items-center justify-center text-slate-400 text-sm font-medium">
+                                  +{report.post.media_urls.length - 4}
                                 </div>
                               )}
                             </div>
                           )}
                         </div>
                       ) : (
-                        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700 text-center">
-                          <p className="text-sm text-slate-500">Post has been deleted</p>
+                        <div className="bg-slate-900/40 rounded-xl p-6 border border-dashed border-slate-700/50 text-center">
+                          <Trash2 className="h-5 w-5 mx-auto text-slate-600 mb-2" />
+                          <p className="text-sm text-slate-500">This post has been deleted</p>
                         </div>
                       )}
                     </div>
 
-                    {/* Actions */}
-                    <div className="flex lg:flex-col gap-2 shrink-0">
+                    {/* Actions Panel */}
+                    <div className="flex lg:flex-col gap-2 shrink-0 lg:min-w-[140px]">
                       <Button
                         variant="outline"
                         size="sm"
-                        className="border-slate-600 hover:bg-slate-700"
+                        className="flex-1 lg:flex-none border-slate-600 bg-slate-700/30 hover:bg-slate-700 text-slate-300"
                         onClick={() => setSelectedReport(report)}
                       >
-                        <Eye className="h-4 w-4 mr-1" />
-                        Details
+                        <Eye className="h-4 w-4 mr-2" />
+                        View Details
                       </Button>
                       {report.status === "pending" && (
                         <>
                           <Button
                             variant="outline"
                             size="sm"
-                            className="border-green-600 text-green-400 hover:bg-green-600/10"
+                            className="flex-1 lg:flex-none border-green-600/50 text-green-400 bg-green-500/10 hover:bg-green-500/20"
                             onClick={() => handleResolve(report)}
                             disabled={updateStatusMutation.isPending}
                           >
-                            <CheckCircle className="h-4 w-4 mr-1" />
+                            <CheckCircle className="h-4 w-4 mr-2" />
                             Resolve
                           </Button>
                           <Button
                             variant="outline"
                             size="sm"
-                            className="border-slate-600 hover:bg-slate-700"
+                            className="flex-1 lg:flex-none border-slate-600/50 bg-slate-700/30 hover:bg-slate-600 text-slate-300"
                             onClick={() => handleDismiss(report)}
                             disabled={updateStatusMutation.isPending}
                           >
-                            <XCircle className="h-4 w-4 mr-1" />
+                            <XCircle className="h-4 w-4 mr-2" />
                             Dismiss
                           </Button>
                           {report.post && (
                             <Button
                               variant="outline"
                               size="sm"
-                              className="border-red-600 text-red-400 hover:bg-red-600/10"
+                              className="flex-1 lg:flex-none border-red-600/50 text-red-400 bg-red-500/10 hover:bg-red-500/20"
                               onClick={() => handleDeletePost(report)}
                               disabled={deletePostMutation.isPending}
                             >
-                              <Trash2 className="h-4 w-4 mr-1" />
+                              <Trash2 className="h-4 w-4 mr-2" />
                               Delete Post
                             </Button>
                           )}
