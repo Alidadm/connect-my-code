@@ -1715,15 +1715,6 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
           <Button 
             variant="ghost" 
             size="sm" 
-            className="text-muted-foreground hover:text-foreground gap-1 sm:gap-1.5 px-1.5 sm:px-2.5 h-8 sm:h-9 flex-shrink-0"
-            onClick={handleOpenPostModal}
-          >
-            <Hash className="h-4 w-4 text-primary" />
-            <span className="text-[10px] sm:text-xs hidden xs:inline">{t('feed.hashtag', 'Hashtag')}</span>
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="sm" 
             className="text-muted-foreground hover:text-foreground gap-1 sm:gap-1.5 px-1.5 sm:px-2.5 h-8 sm:h-9 flex-shrink-0 hidden sm:flex"
             onClick={handleOpenPostModal}
           >
