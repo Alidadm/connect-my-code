@@ -83,7 +83,6 @@ const getQuickLinks = (t: (key: string) => string) => [
   { label: t("nav.templates") || "Templates", icon: Palette, path: "/templates" },
   { label: t("dashboard.commissions"), icon: CreditCard, path: "/commissions" },
   { label: t("dashboard.referralNetwork") || "Referral Network", icon: Users, path: "/commissions#referral-network" },
-  { label: t("dashboard.pricing"), icon: Heart, path: "/pricing" },
 ];
 
 const MemberDashboard = () => {
