@@ -85,9 +85,16 @@ export const useLanguage = () => {
     [i18n, user]
   );
 
-  // Sync language on mount and when user logs in
+  // Only sync from database on initial mount when no localStorage preference exists
   useEffect(() => {
-    const syncLanguage = async () => {
+    const syncLanguageFromDB = async () => {
+      // If localStorage already has a language, respect it (user's explicit choice)
+      const localLang = localStorage.getItem("i18nextLng");
+      if (localLang && supportedLanguages.some(l => l.code === localLang)) {
+        return; // User has already made a choice, don't override
+      }
+
+      // No local preference, check database for logged-in users
       if (user) {
         try {
           const { data, error } = await supabase
@@ -97,18 +104,18 @@ export const useLanguage = () => {
             .maybeSingle();
 
           if (!error && data?.language && data.language !== i18n.language) {
-            await i18n.changeLanguage(data.language);
             localStorage.setItem("i18nextLng", data.language);
+            await i18n.changeLanguage(data.language);
             document.documentElement.lang = data.language;
             document.documentElement.dir = data.language === "ar" ? "rtl" : "ltr";
           }
         } catch (error) {
-          console.error("Error syncing language:", error);
+          console.error("Error syncing language from database:", error);
         }
       }
     };
 
-    syncLanguage();
+    syncLanguageFromDB();
   }, [user, i18n]);
 
   return {
