@@ -104,7 +104,7 @@ serve(async (req) => {
         </head>
         <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f5;">
           <div style="max-width: 500px; margin: 0 auto; padding: 40px 20px;">
-            <div style="background: linear-gradient(135deg, #1c76e6 0%, #6366f1 100%); padding: 30px; border-radius: 16px 16px 0 0; text-align: center;">
+            <div style="background-color: #1c76e6; padding: 30px; border-radius: 16px 16px 0 0; text-align: center;">
               <h1 style="color: white; margin: 0; font-size: 28px;">🐬 DolphySN</h1>
               <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0;">Verify Your Email</p>
             </div>
@@ -112,7 +112,7 @@ serve(async (req) => {
               <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 20px;">
                 Welcome! Please use the verification code below to complete your profile setup:
               </p>
-              <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 2px dashed #1c76e6; border-radius: 12px; padding: 25px; text-align: center; margin: 20px 0;">
+              <div style="background-color: #f0f9ff; border: 2px dashed #1c76e6; border-radius: 12px; padding: 25px; text-align: center; margin: 20px 0;">
                 <p style="color: #6b7280; font-size: 14px; margin: 0 0 10px;">Your verification code:</p>
                 <p style="font-size: 36px; font-weight: bold; letter-spacing: 8px; color: #1c76e6; margin: 0; font-family: monospace;">${code}</p>
               </div>
@@ -120,8 +120,8 @@ serve(async (req) => {
                 This code expires in <strong>10 minutes</strong>
               </p>
               <div style="text-align: center; margin: 30px 0;">
-                <a href="${verifyUrl}" style="display: inline-block; background: linear-gradient(135deg, #1c76e6 0%, #6366f1 100%); color: white; text-decoration: none; padding: 14px 40px; border-radius: 8px; font-weight: 600; font-size: 16px;">
-                  Go to App & Enter Code
+                <a href="${verifyUrl}" style="display: inline-block; background-color: #1c76e6; color: white; text-decoration: none; padding: 14px 40px; border-radius: 8px; font-weight: 600; font-size: 16px;">
+                  Go to App &amp; Enter Code
                 </a>
               </div>
               <p style="color: #9ca3af; font-size: 13px; text-align: center; margin: 0;">
