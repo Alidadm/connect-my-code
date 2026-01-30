@@ -101,6 +101,44 @@ const parseGoogleNewsRSS = (xml: string): NewsItem[] => {
   return items.slice(0, 15); // Max 15 items
 };
 
+// Fetch Open Graph image from article URL as fallback
+const fetchOGImage = async (url: string): Promise<string | null> => {
+  try {
+    // Google News URLs redirect, so we need to follow them
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    
+    const response = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        "User-Agent": "Mozilla/5.0 (compatible; NewsBot/1.0)",
+      },
+      redirect: "follow",
+    });
+    clearTimeout(timeout);
+    
+    if (!response.ok) return null;
+    
+    const html = await response.text();
+    
+    // Try og:image first
+    const ogMatch = html.match(/<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/i);
+    if (ogMatch) return ogMatch[1];
+    
+    // Try twitter:image
+    const twitterMatch = html.match(/<meta[^>]*name=["']twitter:image["'][^>]*content=["']([^"']+)["']/i);
+    if (twitterMatch) return twitterMatch[1];
+    
+    // Try content first then property (alternate order)
+    const ogAltMatch = html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:image["']/i);
+    if (ogAltMatch) return ogAltMatch[1];
+    
+    return null;
+  } catch {
+    return null;
+  }
+};
+
 // Fetch Google News RSS for keywords
 const fetchGoogleNews = async (keywords: string): Promise<NewsItem[]> => {
   try {
@@ -124,7 +162,19 @@ const fetchGoogleNews = async (keywords: string): Promise<NewsItem[]> => {
     }
     
     const xml = await response.text();
-    return parseGoogleNewsRSS(xml);
+    const items = parseGoogleNewsRSS(xml);
+    
+    // Fetch OG images for items without images (limit to avoid timeouts)
+    const itemsNeedingImages = items.filter(item => !item.imageUrl).slice(0, 5);
+    const ogImagePromises = itemsNeedingImages.map(async (item) => {
+      const ogImage = await fetchOGImage(item.sourceUrl);
+      if (ogImage) {
+        item.imageUrl = ogImage;
+      }
+    });
+    await Promise.all(ogImagePromises);
+    
+    return items;
   } catch (error) {
     console.log(`[CUSTOM-NEWS] Error fetching for "${keywords}":`, error);
     return [];

@@ -7,46 +7,92 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-// RSS feed sources mapped to category slugs
+// RSS feed sources mapped to category slugs - prioritizing sources with good image support
 const RSS_FEEDS: Record<string, string[]> = {
   "world-news": [
+    "https://www.theguardian.com/world/rss",
     "https://feeds.bbci.co.uk/news/world/rss.xml",
     "https://rss.nytimes.com/services/xml/rss/nyt/World.xml",
   ],
   "politics": [
+    "https://www.theguardian.com/politics/rss",
     "https://feeds.bbci.co.uk/news/politics/rss.xml",
     "https://rss.nytimes.com/services/xml/rss/nyt/Politics.xml",
   ],
   "business": [
+    "https://www.theguardian.com/business/rss",
     "https://feeds.bbci.co.uk/news/business/rss.xml",
     "https://rss.nytimes.com/services/xml/rss/nyt/Business.xml",
   ],
   "technology": [
+    "https://www.theguardian.com/technology/rss",
     "https://feeds.bbci.co.uk/news/technology/rss.xml",
     "https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml",
   ],
   "science": [
+    "https://www.theguardian.com/science/rss",
     "https://feeds.bbci.co.uk/news/science_and_environment/rss.xml",
     "https://rss.nytimes.com/services/xml/rss/nyt/Science.xml",
   ],
   "health": [
+    "https://www.theguardian.com/lifeandstyle/health-and-wellbeing/rss",
     "https://feeds.bbci.co.uk/news/health/rss.xml",
     "https://rss.nytimes.com/services/xml/rss/nyt/Health.xml",
   ],
   "sports": [
+    "https://www.theguardian.com/sport/rss",
     "https://feeds.bbci.co.uk/sport/rss.xml",
     "https://rss.nytimes.com/services/xml/rss/nyt/Sports.xml",
   ],
   "entertainment": [
+    "https://www.theguardian.com/culture/rss",
     "https://feeds.bbci.co.uk/news/entertainment_and_arts/rss.xml",
     "https://rss.nytimes.com/services/xml/rss/nyt/Arts.xml",
   ],
   "finance": [
+    "https://www.theguardian.com/business/economics/rss",
     "https://feeds.bbci.co.uk/news/business/economy/rss.xml",
   ],
   "lifestyle": [
+    "https://www.theguardian.com/lifeandstyle/rss",
     "https://rss.nytimes.com/services/xml/rss/nyt/Fashion.xml",
   ],
+};
+
+// Fetch Open Graph image from article URL as fallback
+const fetchOGImage = async (url: string): Promise<string | null> => {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    
+    const response = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        "User-Agent": "Mozilla/5.0 (compatible; NewsBot/1.0)",
+      },
+    });
+    clearTimeout(timeout);
+    
+    if (!response.ok) return null;
+    
+    const html = await response.text();
+    
+    // Try og:image first
+    const ogMatch = html.match(/<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/i);
+    if (ogMatch) return ogMatch[1];
+    
+    // Try twitter:image
+    const twitterMatch = html.match(/<meta[^>]*name=["']twitter:image["'][^>]*content=["']([^"']+)["']/i);
+    if (twitterMatch) return twitterMatch[1];
+    
+    // Try content first then property (alternate order)
+    const ogAltMatch = html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:image["']/i);
+    if (ogAltMatch) return ogAltMatch[1];
+    
+    return null;
+  } catch {
+    return null;
+  }
 };
 
 interface NewsItem {
@@ -82,16 +128,26 @@ const parseRSSFeed = (xml: string): NewsItem[] => {
     // Strip HTML tags from summary
     summary = summary.replace(/<[^>]*>/g, "").substring(0, 300);
     
-    // Extract image - try multiple formats
+    // Extract image - try multiple formats in order of reliability
     let imageUrl: string | null = null;
     
-    // Try media:thumbnail
-    const mediaThumbnailMatch = itemContent.match(/<media:thumbnail[^>]*url=["']([^"']+)["']/i);
-    if (mediaThumbnailMatch) {
-      imageUrl = mediaThumbnailMatch[1];
+    // Try media:content with url attribute (Guardian, many others)
+    if (!imageUrl) {
+      const mediaContentUrlMatch = itemContent.match(/<media:content[^>]*url=["']([^"']+)["']/i);
+      if (mediaContentUrlMatch) {
+        imageUrl = mediaContentUrlMatch[1];
+      }
     }
     
-    // Try media:content
+    // Try media:thumbnail
+    if (!imageUrl) {
+      const mediaThumbnailMatch = itemContent.match(/<media:thumbnail[^>]*url=["']([^"']+)["']/i);
+      if (mediaThumbnailMatch) {
+        imageUrl = mediaThumbnailMatch[1];
+      }
+    }
+    
+    // Try media:content with image type
     if (!imageUrl) {
       const mediaContentMatch = itemContent.match(/<media:content[^>]*url=["']([^"']+)["'][^>]*(?:medium=["']image["']|type=["']image)/i);
       if (mediaContentMatch) {
@@ -104,6 +160,14 @@ const parseRSSFeed = (xml: string): NewsItem[] => {
       const enclosureMatch = itemContent.match(/<enclosure[^>]*url=["']([^"']+)["'][^>]*type=["']image/i);
       if (enclosureMatch) {
         imageUrl = enclosureMatch[1];
+      }
+    }
+    
+    // Try enclosure without type check (some feeds use it for images)
+    if (!imageUrl) {
+      const enclosureAnyMatch = itemContent.match(/<enclosure[^>]*url=["']([^"']+\.(jpg|jpeg|png|gif|webp)[^"']*)["']/i);
+      if (enclosureAnyMatch) {
+        imageUrl = enclosureAnyMatch[1];
       }
     }
     
@@ -222,6 +286,16 @@ const handler = async (req: Request): Promise<Response> => {
 
       // Take only the 15 most recent
       const recentItems = uniqueItems.slice(0, 15);
+
+      // Fetch OG images for items without images (limit to avoid timeouts)
+      const itemsNeedingImages = recentItems.filter(item => !item.imageUrl).slice(0, 5);
+      const ogImagePromises = itemsNeedingImages.map(async (item) => {
+        const ogImage = await fetchOGImage(item.sourceUrl);
+        if (ogImage) {
+          item.imageUrl = ogImage;
+        }
+      });
+      await Promise.all(ogImagePromises);
 
       // Delete existing items for this category
       await supabase
