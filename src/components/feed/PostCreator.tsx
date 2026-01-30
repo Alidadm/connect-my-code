@@ -430,8 +430,9 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
                             <span style="font-weight: 500; color: #374151; flex: 1;">${list.name}</span>
                             <span class="list-member-count" data-list-id="${list.id}" style="font-size: 11px; color: #666; background: #f3f4f6; padding: 2px 8px; border-radius: 12px;">0 ${t('feed.friends', 'friends')}</span>
                           </button>
-                          <button type="button" class="edit-list-btn" data-list-id="${list.id}" data-list-name="${list.name}" data-list-icon="${list.icon}" style="padding: 8px; border: 1px solid #fbbf24; background: white; cursor: pointer; border-radius: 8px; transition: all 0.2s;" title="${t('feed.editListMembers', 'Edit list members')}">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#92400e" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>
+                          <button type="button" class="edit-list-btn" data-list-id="${list.id}" data-list-name="${list.name}" data-list-icon="${list.icon}" style="padding: 8px 12px; border: 1px solid #fbbf24; background: #fef3c7; cursor: pointer; border-radius: 8px; transition: all 0.2s; display: flex; align-items: center; gap: 6px; font-size: 12px; color: #92400e; font-weight: 500;" title="${t('feed.editListMembers', 'Edit list members')}">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#92400e" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>
+                            <span>${t('common.edit', 'Edit')}</span>
                           </button>
                         </div>`
                       ).join('')
