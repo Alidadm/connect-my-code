@@ -28,34 +28,24 @@ export const BirthdayCelebration = () => {
       }
 
       try {
-        // Fetch user's birthday from profiles_private
-        const { data: privateProfile } = await supabase
-          .from("profiles_private")
-          .select("birthday")
-          .eq("user_id", user.id)
-          .single();
+        // Use edge function to check birthday (bypasses RLS with service role)
+        const response = await supabase.functions.invoke("check-user-birthday", {
+          body: { user_id: user.id },
+        });
 
-        if (!privateProfile?.birthday) return;
+        if (response.error) {
+          console.error("Error checking birthday:", response.error);
+          return;
+        }
 
-        // Check if today is the user's birthday
-        const todayDate = new Date();
-        const todayMonth = String(todayDate.getMonth() + 1).padStart(2, '0');
-        const todayDay = String(todayDate.getDate()).padStart(2, '0');
-        
-        const birthdayParts = privateProfile.birthday.split('-');
-        if (birthdayParts.length >= 3) {
-          const birthMonth = birthdayParts[1];
-          const birthDay = birthdayParts[2];
+        if (response.data?.isBirthday) {
+          // It's the user's birthday!
+          setFirstName(profile?.first_name || profile?.display_name?.split(' ')[0] || "");
+          setShowCelebration(true);
+          localStorage.setItem(lastCelebrationKey, today);
           
-          if (birthMonth === todayMonth && birthDay === todayDay) {
-            // It's the user's birthday!
-            setFirstName(profile?.first_name || profile?.display_name?.split(' ')[0] || "");
-            setShowCelebration(true);
-            localStorage.setItem(lastCelebrationKey, today);
-            
-            // Trigger initial confetti
-            triggerConfetti();
-          }
+          // Trigger initial confetti
+          triggerConfetti();
         }
       } catch (error) {
         console.error("Error checking birthday:", error);
