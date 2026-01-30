@@ -187,10 +187,6 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
       `<button type="button" class="emoji-btn" style="font-size: 24px; padding: 6px; border: none; background: transparent; cursor: pointer; border-radius: 8px; transition: background 0.2s;" data-emoji="${emoji}">${emoji}</button>`
     ).join('');
 
-    const trendingHashtags = ['#trending', '#viral', '#fyp', '#explore', '#community', '#lifestyle', '#motivation', '#inspiration', '#love', '#happy'];
-    const hashtagsHtml = trendingHashtags.map(tag => 
-      `<button type="button" class="hashtag-btn" style="font-size: 13px; padding: 6px 12px; border: 1px solid #e5e7eb; background: #f8fafc; cursor: pointer; border-radius: 16px; color: #1c76e6; transition: all 0.2s;" data-hashtag="${tag}">${tag}</button>`
-    ).join('');
 
     // Track uploaded files, tags, custom lists, and YouTube URLs
     let mediaFiles: MediaFile[] = [];
@@ -300,21 +296,6 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
             </div>
           </div>
 
-          <!-- Hashtag Panel -->
-          <div id="hashtag-panel" style="display: none; padding: 12px; background: #f8fafc; border-radius: 12px; margin-bottom: 12px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-              <span style="font-weight: 600; font-size: 14px; color: #374151;"># ${t('feed.trendingHashtags', 'Trending Hashtags')}</span>
-              <button type="button" id="close-hashtag" style="background: none; border: none; cursor: pointer; padding: 4px;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-              </button>
-            </div>
-            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-              ${hashtagsHtml}
-            </div>
-            <div style="margin-top: 12px;">
-              <input type="text" id="custom-hashtag" placeholder="${t('feed.addCustomHashtag', 'Add custom hashtag...')}" style="width: 100%; padding: 10px 14px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; outline: none;" />
-            </div>
-          </div>
 
           <!-- Tag Panel (Friends, Groups, Pages) -->
           <div id="tag-panel" style="display: none; padding: 12px; background: #f8fafc; border-radius: 12px; margin-bottom: 12px;">
@@ -565,10 +546,6 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/></svg>
               <span style="color: #f59e0b;">${t('feed.emoji', 'Emoji')}</span>
             </button>
-            <button type="button" id="btn-hashtag" class="swal-action-btn" style="display: flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 8px; border: none; background: transparent; cursor: pointer; color: #666; font-size: 13px; transition: background 0.2s;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1c76e6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="9" y2="9"/><line x1="4" x2="20" y1="15" y2="15"/><line x1="10" x2="8" y1="3" y2="21"/><line x1="16" x2="14" y1="3" y2="21"/></svg>
-              <span style="color: #1c76e6;">${t('feed.hashtag', 'Hashtag')}</span>
-            </button>
             <button type="button" id="btn-tag" class="swal-action-btn" style="display: flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 8px; border: none; background: transparent; cursor: pointer; color: #666; font-size: 13px; transition: background 0.2s;">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
               <span style="color: #0ea5e9;">${t('feed.tag', 'Tag')}</span>
@@ -607,12 +584,10 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
         const charCount = document.getElementById('char-count') as HTMLSpanElement;
         const charCounter = document.getElementById('char-counter') as HTMLDivElement;
         const emojiPanel = document.getElementById('emoji-panel') as HTMLDivElement;
-        const hashtagPanel = document.getElementById('hashtag-panel') as HTMLDivElement;
         const mentionPanel = document.getElementById('mention-panel') as HTMLDivElement;
         const mediaPanel = document.getElementById('media-panel') as HTMLDivElement;
         const mentionResults = document.getElementById('mention-results') as HTMLDivElement;
         const mentionSearch = document.getElementById('mention-search') as HTMLInputElement;
-        const customHashtag = document.getElementById('custom-hashtag') as HTMLInputElement;
         const mediaPreview = document.getElementById('media-preview') as HTMLDivElement;
         const mediaGrid = document.getElementById('media-grid') as HTMLDivElement;
         const mediaCountSpan = document.getElementById('media-count') as HTMLSpanElement;
@@ -776,7 +751,7 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
         
         const closeAllPanels = () => {
           emojiPanel.style.display = 'none';
-          hashtagPanel.style.display = 'none';
+          mentionPanel.style.display = 'none';
           mentionPanel.style.display = 'none';
           mediaPanel.style.display = 'none';
           tagPanel.style.display = 'none';
@@ -975,46 +950,6 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
           btn.addEventListener('mouseleave', (e) => {
             (e.currentTarget as HTMLElement).style.background = 'transparent';
           });
-        });
-
-        // Hashtag functionality
-        document.getElementById('btn-hashtag')?.addEventListener('click', () => {
-          const isVisible = hashtagPanel.style.display === 'block';
-          closeAllPanels();
-          hashtagPanel.style.display = isVisible ? 'none' : 'block';
-        });
-
-        document.getElementById('close-hashtag')?.addEventListener('click', () => {
-          hashtagPanel.style.display = 'none';
-        });
-
-        document.querySelectorAll('.hashtag-btn').forEach(btn => {
-          btn.addEventListener('click', (e) => {
-            const hashtag = (e.currentTarget as HTMLButtonElement).dataset.hashtag;
-            if (hashtag) insertAtCursor(' ' + hashtag + ' ');
-          });
-          btn.addEventListener('mouseenter', (e) => {
-            (e.currentTarget as HTMLElement).style.background = '#1c76e6';
-            (e.currentTarget as HTMLElement).style.color = 'white';
-            (e.currentTarget as HTMLElement).style.borderColor = '#1c76e6';
-          });
-          btn.addEventListener('mouseleave', (e) => {
-            (e.currentTarget as HTMLElement).style.background = '#f8fafc';
-            (e.currentTarget as HTMLElement).style.color = '#1c76e6';
-            (e.currentTarget as HTMLElement).style.borderColor = '#e5e7eb';
-          });
-        });
-
-        customHashtag?.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            let tag = customHashtag.value.trim();
-            if (tag) {
-              if (!tag.startsWith('#')) tag = '#' + tag;
-              insertAtCursor(' ' + tag + ' ');
-              customHashtag.value = '';
-            }
-          }
         });
 
         // Mention functionality
