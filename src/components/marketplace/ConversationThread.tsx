@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { formatDistanceToNow, format, isToday, isYesterday } from "date-fns";
-import { ArrowLeft, Send, DollarSign, Loader2 } from "lucide-react";
+import { formatDistanceToNow, format, isToday, isYesterday, isSameDay } from "date-fns";
+import { ArrowLeft, Send, DollarSign, Loader2, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface ConversationThreadProps {
@@ -65,19 +66,26 @@ export const ConversationThread = ({ listingId, otherUserId, onBack }: Conversat
     }).format(price);
   };
 
-  const formatMessageDate = (dateString: string) => {
+  const formatMessageTime = (dateString: string) => {
     const date = new Date(dateString);
-    if (isToday(date)) {
-      return format(date, "h:mm a");
-    } else if (isYesterday(date)) {
-      return `Yesterday ${format(date, "h:mm a")}`;
-    }
-    return format(date, "MMM d, h:mm a");
+    return format(date, "h:mm a");
+  };
+
+  const formatDateDivider = (dateString: string) => {
+    const date = new Date(dateString);
+    if (isToday(date)) return "Today";
+    if (isYesterday(date)) return "Yesterday";
+    return format(date, "EEEE, MMMM d");
+  };
+
+  const shouldShowDateDivider = (currentMsg: any, prevMsg: any) => {
+    if (!prevMsg) return true;
+    return !isSameDay(new Date(currentMsg.created_at), new Date(prevMsg.created_at));
   };
 
   if (isLoading) {
     return (
-      <div className="flex flex-col h-[600px]">
+      <div className="flex flex-col h-[calc(100vh-10rem)] bg-background rounded-xl border">
         <div className="flex items-center gap-3 p-4 border-b">
           <Skeleton className="h-10 w-10 rounded-full" />
           <div className="space-y-2">
@@ -95,24 +103,27 @@ export const ConversationThread = ({ listingId, otherUserId, onBack }: Conversat
   }
 
   return (
-    <div className="flex flex-col h-[600px] border rounded-lg overflow-hidden bg-background">
+    <div className="flex flex-col h-[calc(100vh-10rem)] bg-background rounded-xl border overflow-hidden">
       {/* Header */}
-      <div className="flex items-center gap-3 p-4 border-b bg-card">
-        <Button variant="ghost" size="icon" onClick={onBack}>
+      <div className="flex items-center gap-3 p-4 border-b bg-card/50 backdrop-blur-sm">
+        <Button variant="ghost" size="icon" onClick={onBack} className="flex-shrink-0">
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <Avatar className="h-10 w-10">
+        <Avatar className="h-10 w-10 ring-2 ring-background">
           <AvatarImage src={otherUser?.avatar_url || undefined} />
-          <AvatarFallback>{otherUser?.display_name?.[0] || "?"}</AvatarFallback>
+          <AvatarFallback className="bg-primary/10 text-primary">
+            {otherUser?.display_name?.[0] || "?"}
+          </AvatarFallback>
         </Avatar>
         <div className="flex-1 min-w-0">
-          <p className="font-medium truncate">{otherUser?.display_name || "User"}</p>
+          <p className="font-semibold truncate">{otherUser?.display_name || "User"}</p>
           {otherUser?.username && (
             <Link
               to={`/${otherUser.username}`}
-              className="text-xs text-primary hover:underline"
+              className="text-xs text-primary hover:underline inline-flex items-center gap-1"
             >
               View Profile
+              <ExternalLink className="h-3 w-3" />
             </Link>
           )}
         </div>
@@ -122,77 +133,106 @@ export const ConversationThread = ({ listingId, otherUserId, onBack }: Conversat
       {listing && (
         <Link
           to={`/marketplace/${listing.id}`}
-          className="flex items-center gap-3 p-3 border-b bg-muted/50 hover:bg-muted transition-colors"
+          className="flex items-center gap-3 p-3 border-b bg-muted/30 hover:bg-muted/50 transition-colors"
         >
           <img
             src={listing.images?.[0] || "/placeholder.svg"}
             alt={listing.title}
-            className="w-12 h-12 rounded-md object-cover"
+            className="w-14 h-14 rounded-lg object-cover"
           />
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">{listing.title}</p>
-            <p className="text-sm text-muted-foreground">
+            <p className="font-medium truncate">{listing.title}</p>
+            <p className="text-sm font-semibold text-primary">
               {formatPrice(listing.price, listing.currency)}
             </p>
           </div>
           {listing.status !== "active" && (
-            <Badge variant="secondary">{listing.status}</Badge>
+            <Badge variant="secondary" className="capitalize">{listing.status}</Badge>
           )}
         </Link>
       )}
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
-        {messages.map((message) => {
-          const isOwn = message.sender_id === user?.id;
-          return (
-            <div
-              key={message.id}
-              className={cn("flex", isOwn ? "justify-end" : "justify-start")}
-            >
-              <div
-                className={cn(
-                  "max-w-[75%] rounded-2xl px-4 py-2 space-y-1",
-                  isOwn
-                    ? "bg-primary text-primary-foreground rounded-br-md"
-                    : "bg-muted rounded-bl-md"
-                )}
-              >
-                {message.is_offer && message.offer_amount && (
-                  <div className={cn(
-                    "flex items-center gap-1 text-xs font-medium",
-                    isOwn ? "text-primary-foreground/80" : "text-emerald-600 dark:text-emerald-500"
-                  )}>
-                    <DollarSign className="h-3 w-3" />
-                    Offer: {formatPrice(message.offer_amount, listing?.currency || "USD")}
+      <ScrollArea className="flex-1">
+        <div className="p-4 space-y-4">
+          {messages.map((message, index) => {
+            const isOwn = message.sender_id === user?.id;
+            const prevMessage = messages[index - 1];
+            const showDivider = shouldShowDateDivider(message, prevMessage);
+
+            return (
+              <div key={message.id}>
+                {showDivider && (
+                  <div className="flex items-center justify-center my-4">
+                    <span className="text-xs text-muted-foreground bg-muted px-3 py-1 rounded-full">
+                      {formatDateDivider(message.created_at)}
+                    </span>
                   </div>
                 )}
-                <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
-                <p className={cn(
-                  "text-xs",
-                  isOwn ? "text-primary-foreground/60" : "text-muted-foreground"
-                )}>
-                  {formatMessageDate(message.created_at)}
-                </p>
+                <div className={cn("flex", isOwn ? "justify-end" : "justify-start")}>
+                  <div
+                    className={cn(
+                      "max-w-[80%] sm:max-w-[70%] space-y-1",
+                      isOwn ? "items-end" : "items-start"
+                    )}
+                  >
+                    {/* Offer badge */}
+                    {message.is_offer && message.offer_amount && (
+                      <div className={cn(
+                        "inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full mb-1",
+                        isOwn 
+                          ? "bg-primary/20 text-primary ml-auto" 
+                          : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                      )}>
+                        <DollarSign className="h-3.5 w-3.5" />
+                        Offer: {formatPrice(message.offer_amount, listing?.currency || "USD")}
+                      </div>
+                    )}
+                    
+                    {/* Message bubble */}
+                    <div
+                      className={cn(
+                        "rounded-2xl px-4 py-2.5",
+                        isOwn
+                          ? "bg-primary text-primary-foreground rounded-br-md"
+                          : "bg-muted rounded-bl-md"
+                      )}
+                    >
+                      <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
+                        {message.content}
+                      </p>
+                    </div>
+                    
+                    {/* Timestamp */}
+                    <p className={cn(
+                      "text-[10px] px-1",
+                      isOwn ? "text-right text-muted-foreground" : "text-muted-foreground"
+                    )}>
+                      {formatMessageTime(message.created_at)}
+                    </p>
+                  </div>
+                </div>
               </div>
-            </div>
-          );
-        })}
-        <div ref={messagesEndRef} />
-      </div>
+            );
+          })}
+          <div ref={messagesEndRef} />
+        </div>
+      </ScrollArea>
 
       {/* Input area */}
-      <div className="p-3 border-t bg-card space-y-2">
+      <div className="p-4 border-t bg-card/50 backdrop-blur-sm space-y-3">
         {showOfferInput && (
-          <div className="flex items-center gap-2 p-2 bg-muted rounded-lg">
-            <DollarSign className="h-4 w-4 text-emerald-600 dark:text-emerald-500" />
-            <span className="text-sm text-muted-foreground">Your offer:</span>
+          <div className="flex items-center gap-2 p-3 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
+            <DollarSign className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+            <span className="text-sm font-medium text-emerald-700 dark:text-emerald-300">
+              Your offer:
+            </span>
             <Input
               type="number"
               value={offerAmount}
               onChange={(e) => setOfferAmount(e.target.value)}
               placeholder="0.00"
-              className="w-28 h-8"
+              className="w-28 h-9 bg-background"
               min="0"
               step="0.01"
             />
@@ -203,6 +243,7 @@ export const ConversationThread = ({ listingId, otherUserId, onBack }: Conversat
                 setShowOfferInput(false);
                 setOfferAmount("");
               }}
+              className="ml-auto"
             >
               Cancel
             </Button>
@@ -212,28 +253,32 @@ export const ConversationThread = ({ listingId, otherUserId, onBack }: Conversat
           <Button
             variant={showOfferInput ? "default" : "outline"}
             size="icon"
-            className="flex-shrink-0"
+            className={cn(
+              "flex-shrink-0 h-11 w-11 rounded-full",
+              showOfferInput && "bg-emerald-600 hover:bg-emerald-700"
+            )}
             onClick={() => setShowOfferInput(!showOfferInput)}
           >
-            <DollarSign className="h-4 w-4" />
+            <DollarSign className="h-5 w-5" />
           </Button>
           <Input
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Type a message..."
-            className="flex-1"
+            className="flex-1 h-11 rounded-full bg-muted border-0 px-4"
             disabled={isSending}
           />
           <Button
             size="icon"
+            className="flex-shrink-0 h-11 w-11 rounded-full"
             onClick={handleSend}
             disabled={isSending || !newMessage.trim()}
           >
             {isSending ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="h-5 w-5 animate-spin" />
             ) : (
-              <Send className="h-4 w-4" />
+              <Send className="h-5 w-5" />
             )}
           </Button>
         </div>
