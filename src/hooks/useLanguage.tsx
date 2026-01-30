@@ -31,41 +31,48 @@ export const useLanguage = () => {
         // No-op if already selected
         if (i18n.language === langCode) return true;
 
-        // 1. Change i18n language (triggers re-render for components using useTranslation)
-        await i18n.changeLanguage(langCode);
-
-        // 2. Persist to localStorage for immediate next load
+        // 1. Persist to localStorage FIRST before changing i18n
+        // This ensures on refresh, the correct language is loaded
         localStorage.setItem("i18nextLng", langCode);
 
-        // 3. Update document attributes for RTL support
+        // 2. Update document attributes immediately
         const lang = supportedLanguages.find((l) => l.code === langCode);
         if (lang) {
           document.documentElement.lang = langCode;
           document.documentElement.dir = langCode === "ar" ? "rtl" : "ltr";
         }
 
-        // 4. Save to database for logged-in users
+        // 3. Change i18n language and wait for it to complete
+        await i18n.changeLanguage(langCode);
+        
+        // 4. Ensure the language bundle is fully loaded
+        if (!i18n.hasResourceBundle(langCode, 'translation')) {
+          await i18n.loadLanguages(langCode);
+        }
+
+        // 5. Save to database for logged-in users (non-blocking)
         if (user) {
-          const { data: existing } = await supabase
+          supabase
             .from("user_settings")
             .select("id")
             .eq("user_id", user.id)
-            .maybeSingle();
-
-          if (existing) {
-            await supabase
-              .from("user_settings")
-              .update({ language: langCode, updated_at: new Date().toISOString() })
-              .eq("user_id", user.id);
-          } else {
-            await supabase.from("user_settings").insert({
-              user_id: user.id,
-              language: langCode,
+            .maybeSingle()
+            .then(({ data: existing }) => {
+              if (existing) {
+                supabase
+                  .from("user_settings")
+                  .update({ language: langCode, updated_at: new Date().toISOString() })
+                  .eq("user_id", user.id);
+              } else {
+                supabase.from("user_settings").insert({
+                  user_id: user.id,
+                  language: langCode,
+                });
+              }
             });
-          }
         }
 
-        // 5. Dispatch custom event for any components that need to manually respond
+        // 6. Dispatch custom event for any components that need to manually respond
         window.dispatchEvent(new CustomEvent("languageChanged", { detail: langCode }));
 
         return true;
