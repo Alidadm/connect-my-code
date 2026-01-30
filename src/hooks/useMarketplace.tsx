@@ -300,49 +300,51 @@ export const useMarketplaceListing = (listingId: string | undefined) => {
   const [listing, setListing] = useState<MarketplaceListing | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchListing = async () => {
-      if (!listingId) {
-        setIsLoading(false);
-        return;
-      }
+  const fetchListing = useCallback(async () => {
+    if (!listingId) {
+      setIsLoading(false);
+      return;
+    }
 
-      const { data, error } = await supabase
-        .from("marketplace_listings")
-        .select(`
-          *,
-          category:marketplace_categories(*)
-        `)
-        .eq("id", listingId)
+    setIsLoading(true);
+
+    const { data, error } = await supabase
+      .from("marketplace_listings")
+      .select(`
+        *,
+        category:marketplace_categories(*)
+      `)
+      .eq("id", listingId)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Error fetching listing:", error);
+      setIsLoading(false);
+      return;
+    }
+
+    if (data) {
+      // Fetch seller profile
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("user_id, display_name, avatar_url, username")
+        .eq("user_id", data.user_id)
         .maybeSingle();
 
-      if (error) {
-        console.error("Error fetching listing:", error);
-        setIsLoading(false);
-        return;
-      }
+      setListing({
+        ...data,
+        seller: profile || undefined,
+      });
+    }
 
-      if (data) {
-        // Fetch seller profile
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("user_id, display_name, avatar_url, username")
-          .eq("user_id", data.user_id)
-          .maybeSingle();
-
-        setListing({
-          ...data,
-          seller: profile || undefined,
-        });
-      }
-
-      setIsLoading(false);
-    };
-
-    fetchListing();
+    setIsLoading(false);
   }, [listingId]);
 
-  return { listing, isLoading };
+  useEffect(() => {
+    fetchListing();
+  }, [fetchListing]);
+
+  return { listing, isLoading, refetch: fetchListing };
 };
 
 export const useMyListings = () => {
