@@ -22,6 +22,7 @@ import { MobileDrawer } from "./MobileDrawer";
 import { MessagesSheet } from "@/components/messages/MessagesSheet";
 import { ReferralQRCodeDialog } from "@/components/referral/ReferralQRCodeDialog";
 import { useDirectMessages } from "@/hooks/useDirectMessages";
+import { useMarketplaceMessages } from "@/hooks/useMarketplaceMessages";
 import { usePayoutStatus } from "@/hooks/usePayoutStatus";
 import {
   Tooltip,
@@ -55,8 +56,12 @@ export const Header = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [friendRequests, setFriendRequests] = useState<FriendRequest[]>([]);
   const { t } = useTranslation();
-  const { totalUnreadCount } = useDirectMessages();
+  const { totalUnreadCount: dmUnreadCount } = useDirectMessages();
+  const { unreadCount: marketplaceUnreadCount } = useMarketplaceMessages();
   const { needsSetup: needsPayoutSetup, loading: payoutLoading } = usePayoutStatus();
+  
+  // Combined unread count for messages badge
+  const totalUnreadCount = dmUnreadCount + marketplaceUnreadCount;
 
   // Fetch pending friend requests
   useEffect(() => {
