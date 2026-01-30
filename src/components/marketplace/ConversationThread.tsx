@@ -161,7 +161,7 @@ export const ConversationThread = ({ listingId, otherUserId, onBack }: Conversat
                 {message.is_offer && message.offer_amount && (
                   <div className={cn(
                     "flex items-center gap-1 text-xs font-medium",
-                    isOwn ? "text-primary-foreground/80" : "text-green-600"
+                    isOwn ? "text-primary-foreground/80" : "text-emerald-600 dark:text-emerald-500"
                   )}>
                     <DollarSign className="h-3 w-3" />
                     Offer: {formatPrice(message.offer_amount, listing?.currency || "USD")}
@@ -185,7 +185,7 @@ export const ConversationThread = ({ listingId, otherUserId, onBack }: Conversat
       <div className="p-3 border-t bg-card space-y-2">
         {showOfferInput && (
           <div className="flex items-center gap-2 p-2 bg-muted rounded-lg">
-            <DollarSign className="h-4 w-4 text-green-600" />
+            <DollarSign className="h-4 w-4 text-emerald-600 dark:text-emerald-500" />
             <span className="text-sm text-muted-foreground">Your offer:</span>
             <Input
               type="number"
