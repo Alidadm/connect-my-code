@@ -214,11 +214,14 @@ export const Header = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="gap-2 text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:text-amber-300 dark:hover:bg-amber-950 relative animate-pulse"
+                    className="gap-2 text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:text-amber-300 dark:hover:bg-amber-950 relative animate-pulse h-auto py-1.5"
                     onClick={() => navigate("/commissions")}
                   >
                     <CreditCard className="h-4 w-4" />
-                    <span className="hidden lg:inline">{t("header.setupPayout", { defaultValue: "Setup Payout" })}</span>
+                    <div className="hidden lg:flex flex-col items-start leading-tight">
+                      <span className="text-sm font-medium">{t("header.setupPayout", { defaultValue: "Setup Payout" })}</span>
+                      <span className="text-[10px] text-muted-foreground">{t("header.getCommission", { defaultValue: "Get Commission" })}</span>
+                    </div>
                     <Badge 
                       variant="destructive" 
                       className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-[10px]"
