@@ -17,7 +17,9 @@
     "language": "اللغة",
     "saving": "جاري الحفظ...",
     "back": "رجوع",
-    "goHome": "العودة للرئيسية"
+    "goHome": "العودة للرئيسية",
+    "create": "إنشاء",
+    "creating": "جاري الإنشاء..."
   },
   "header": {
     "myProfile": "ملفي الشخصي",
@@ -237,7 +239,9 @@
     "notifications": "الإشعارات",
     "profile": "الملف الشخصي",
     "games": "الألعاب",
-    "saved": "المحفوظ"
+    "saved": "المحفوظ",
+    "blogs": "المدونات",
+    "templates": "القوالب"
   },
   "sidebar": {
     "sudoku": "سودوكو",
@@ -823,5 +827,41 @@
     "sortRecent": "المضافة حديثاً",
     "sortAlphabetical": "أ-ي",
     "newFavorite": "{{name}} أضافك إلى المفضلة!"
+  },
+  "news": {
+    "myNews": "أخباري",
+    "selectCategories": "اختر الفئات",
+    "selectNewsCategories": "اختر فئات الأخبار",
+    "selectUpTo": "اختر حتى {{max}} فئات للمتابعة",
+    "selectedCount": "{{count}} من {{max}} مختارة",
+    "yourCategories": "فئاتك:",
+    "noCategories": "اختر فئات لمشاهدة الأخبار",
+    "noNewsYet": "لا توجد أخبار حتى الآن. تحقق مرة أخرى قريباً!",
+    "expires": "تنتهي",
+    "readMore": "اقرأ المزيد",
+    "categoryAdded": "تمت إضافة الفئة",
+    "categoryRemoved": "تمت إزالة الفئة",
+    "errorAddingCategory": "فشل في إضافة الفئة",
+    "errorRemovingCategory": "فشل في إزالة الفئة",
+    "maxCategoriesReached": "يمكنك اختيار 6 فئات كحد أقصى",
+    "createCustomCategory": "إنشاء مخصص",
+    "createCustomCategoryTitle": "إنشاء فئة مخصصة",
+    "categoryName": "اسم الفئة",
+    "categoryNamePlaceholder": "مثال، السيارات الكهربائية",
+    "keywords": "الكلمات المفتاحية",
+    "keywordsPlaceholder": "مثال، تسلا سيارات كهربائية",
+    "keywordsHint": "أدخل كلمات مفتاحية للبحث عن مقالات الأخبار",
+    "icon": "أيقونة",
+    "color": "لون",
+    "categoryCreated": "تم إنشاء الفئة المخصصة",
+    "categoryUpdated": "تم تحديث الفئة",
+    "categoryDeleted": "تم حذف الفئة",
+    "errorCreatingCategory": "فشل في إنشاء الفئة",
+    "errorUpdatingCategory": "فشل في تحديث الفئة",
+    "errorDeletingCategory": "فشل في حذف الفئة",
+    "maxCustomCategoriesReached": "يمكنك إنشاء 4 فئات مخصصة كحد أقصى",
+    "refresh": "تحديث",
+    "delete": "حذف",
+    "fetchingNews": "جاري جلب الأخبار..."
   }
 }

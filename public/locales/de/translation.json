@@ -57,7 +57,9 @@
     "language": "Sprache",
     "saving": "Speichert...",
     "back": "Zurück",
-    "goHome": "Zur Startseite"
+    "goHome": "Zur Startseite",
+    "create": "Erstellen",
+    "creating": "Erstellen..."
   },
   "header": {
     "myProfile": "Mein Profil",
@@ -263,7 +265,9 @@
     "notifications": "Benachrichtigungen",
     "profile": "Profil",
     "games": "Spiele",
-    "saved": "Gespeichert"
+    "saved": "Gespeichert",
+    "blogs": "Blogs",
+    "templates": "Vorlagen"
   },
   "sidebar": {
     "sudoku": "Sudoku",
@@ -835,5 +839,41 @@
     "sortRecent": "Kürzlich hinzugefügt",
     "sortAlphabetical": "A-Z",
     "newFavorite": "{{name}} hat Sie zu seinen Favoriten hinzugefügt!"
+  },
+  "news": {
+    "myNews": "Meine Nachrichten",
+    "selectCategories": "Kategorien Auswählen",
+    "selectNewsCategories": "Nachrichtenkategorien Auswählen",
+    "selectUpTo": "Wählen Sie bis zu {{max}} Kategorien zum Folgen",
+    "selectedCount": "{{count}} von {{max}} ausgewählt",
+    "yourCategories": "Ihre Kategorien:",
+    "noCategories": "Wählen Sie Kategorien, um Nachrichten zu sehen",
+    "noNewsYet": "Noch keine Nachrichten verfügbar. Schauen Sie bald wieder vorbei!",
+    "expires": "Läuft ab",
+    "readMore": "Mehr lesen",
+    "categoryAdded": "Kategorie hinzugefügt",
+    "categoryRemoved": "Kategorie entfernt",
+    "errorAddingCategory": "Fehler beim Hinzufügen der Kategorie",
+    "errorRemovingCategory": "Fehler beim Entfernen der Kategorie",
+    "maxCategoriesReached": "Sie können nur bis zu 6 Kategorien auswählen",
+    "createCustomCategory": "Benutzerdefiniert Erstellen",
+    "createCustomCategoryTitle": "Benutzerdefinierte Kategorie Erstellen",
+    "categoryName": "Kategoriename",
+    "categoryNamePlaceholder": "Z.B., Elektrofahrzeuge",
+    "keywords": "Schlüsselwörter",
+    "keywordsPlaceholder": "Z.B., Tesla Elektroautos EV",
+    "keywordsHint": "Geben Sie Schlüsselwörter ein, um Nachrichtenartikel zu suchen",
+    "icon": "Symbol",
+    "color": "Farbe",
+    "categoryCreated": "Benutzerdefinierte Kategorie erstellt",
+    "categoryUpdated": "Kategorie aktualisiert",
+    "categoryDeleted": "Kategorie gelöscht",
+    "errorCreatingCategory": "Fehler beim Erstellen der Kategorie",
+    "errorUpdatingCategory": "Fehler beim Aktualisieren der Kategorie",
+    "errorDeletingCategory": "Fehler beim Löschen der Kategorie",
+    "maxCustomCategoriesReached": "Sie können nur bis zu 4 benutzerdefinierte Kategorien erstellen",
+    "refresh": "Aktualisieren",
+    "delete": "Löschen",
+    "fetchingNews": "Nachrichten werden abgerufen..."
   }
 }
