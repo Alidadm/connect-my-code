@@ -24,7 +24,9 @@
     "trending": "热门",
     "recent": "最新",
     "saving": "保存中...",
-    "goHome": "返回首页"
+    "goHome": "返回首页",
+    "create": "创建",
+    "creating": "创建中..."
   },
   "header": {
     "myProfile": "我的资料",
@@ -256,7 +258,9 @@
     "notifications": "通知",
     "profile": "个人资料",
     "games": "游戏",
-    "saved": "已保存"
+    "saved": "已保存",
+    "blogs": "博客",
+    "templates": "模板"
   },
   "sidebar": {
     "sudoku": "数独",
@@ -847,5 +851,41 @@
     "sortRecent": "最近添加",
     "sortAlphabetical": "按字母排序",
     "newFavorite": "{{name}}把您添加到了收藏！"
+  },
+  "news": {
+    "myNews": "我的新闻",
+    "selectCategories": "选择分类",
+    "selectNewsCategories": "选择新闻分类",
+    "selectUpTo": "最多选择 {{max}} 个分类关注",
+    "selectedCount": "已选择 {{count}}/{{max}}",
+    "yourCategories": "您的分类：",
+    "noCategories": "选择分类以查看新闻",
+    "noNewsYet": "暂无新闻。请稍后再来！",
+    "expires": "过期",
+    "readMore": "阅读更多",
+    "categoryAdded": "分类已添加",
+    "categoryRemoved": "分类已移除",
+    "errorAddingCategory": "添加分类失败",
+    "errorRemovingCategory": "移除分类失败",
+    "maxCategoriesReached": "最多只能选择6个分类",
+    "createCustomCategory": "创建自定义",
+    "createCustomCategoryTitle": "创建自定义分类",
+    "categoryName": "分类名称",
+    "categoryNamePlaceholder": "例如，电动汽车",
+    "keywords": "关键词",
+    "keywordsPlaceholder": "例如，特斯拉 电动车 EV",
+    "keywordsHint": "输入关键词以搜索新闻文章",
+    "icon": "图标",
+    "color": "颜色",
+    "categoryCreated": "自定义分类已创建",
+    "categoryUpdated": "分类已更新",
+    "categoryDeleted": "分类已删除",
+    "errorCreatingCategory": "创建分类失败",
+    "errorUpdatingCategory": "更新分类失败",
+    "errorDeletingCategory": "删除分类失败",
+    "maxCustomCategoriesReached": "最多只能创建4个自定义分类",
+    "refresh": "刷新",
+    "delete": "删除",
+    "fetchingNews": "获取新闻中..."
   }
 }

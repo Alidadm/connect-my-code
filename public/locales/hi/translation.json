@@ -17,7 +17,9 @@
     "language": "भाषा",
     "saving": "सहेज रहा है...",
     "back": "वापस",
-    "goHome": "होम पर जाएं"
+    "goHome": "होम पर जाएं",
+    "create": "बनाएं",
+    "creating": "बना रहा है..."
   },
   "header": {
     "myProfile": "मेरी प्रोफ़ाइल",
@@ -237,7 +239,9 @@
     "notifications": "सूचनाएं",
     "profile": "प्रोफ़ाइल",
     "games": "गेम्स",
-    "saved": "सेव किए गए"
+    "saved": "सेव किए गए",
+    "blogs": "ब्लॉग",
+    "templates": "टेम्पलेट"
   },
   "sidebar": {
     "sudoku": "सुडोकू",
@@ -823,5 +827,41 @@
     "sortRecent": "हाल ही में जोड़े गए",
     "sortAlphabetical": "अ-ज्ञ",
     "newFavorite": "{{name}} ने आपको अपने पसंदीदा में जोड़ा!"
+  },
+  "news": {
+    "myNews": "मेरी खबरें",
+    "selectCategories": "श्रेणियां चुनें",
+    "selectNewsCategories": "समाचार श्रेणियां चुनें",
+    "selectUpTo": "फॉलो करने के लिए {{max}} तक श्रेणियां चुनें",
+    "selectedCount": "{{count}} / {{max}} चयनित",
+    "yourCategories": "आपकी श्रेणियां:",
+    "noCategories": "समाचार देखने के लिए श्रेणियां चुनें",
+    "noNewsYet": "अभी तक कोई समाचार उपलब्ध नहीं है। जल्द ही वापस आएं!",
+    "expires": "समाप्त",
+    "readMore": "और पढ़ें",
+    "categoryAdded": "श्रेणी जोड़ी गई",
+    "categoryRemoved": "श्रेणी हटाई गई",
+    "errorAddingCategory": "श्रेणी जोड़ने में विफल",
+    "errorRemovingCategory": "श्रेणी हटाने में विफल",
+    "maxCategoriesReached": "आप केवल 6 श्रेणियां तक चुन सकते हैं",
+    "createCustomCategory": "कस्टम बनाएं",
+    "createCustomCategoryTitle": "कस्टम श्रेणी बनाएं",
+    "categoryName": "श्रेणी का नाम",
+    "categoryNamePlaceholder": "उदा., इलेक्ट्रिक वाहन",
+    "keywords": "कीवर्ड",
+    "keywordsPlaceholder": "उदा., टेस्ला इलेक्ट्रिक कार EV",
+    "keywordsHint": "समाचार लेख खोजने के लिए कीवर्ड दर्ज करें",
+    "icon": "आइकन",
+    "color": "रंग",
+    "categoryCreated": "कस्टम श्रेणी बनाई गई",
+    "categoryUpdated": "श्रेणी अपडेट की गई",
+    "categoryDeleted": "श्रेणी हटाई गई",
+    "errorCreatingCategory": "श्रेणी बनाने में विफल",
+    "errorUpdatingCategory": "श्रेणी अपडेट करने में विफल",
+    "errorDeletingCategory": "श्रेणी हटाने में विफल",
+    "maxCustomCategoriesReached": "आप केवल 4 कस्टम श्रेणियां बना सकते हैं",
+    "refresh": "रिफ्रेश",
+    "delete": "हटाएं",
+    "fetchingNews": "समाचार प्राप्त हो रहे हैं..."
   }
 }

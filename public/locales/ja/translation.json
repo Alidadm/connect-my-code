@@ -17,7 +17,9 @@
     "language": "言語",
     "saving": "保存中...",
     "back": "戻る",
-    "goHome": "ホームへ戻る"
+    "goHome": "ホームへ戻る",
+    "create": "作成",
+    "creating": "作成中..."
   },
   "header": {
     "myProfile": "マイプロフィール",
@@ -237,7 +239,9 @@
     "notifications": "通知",
     "profile": "プロフィール",
     "games": "ゲーム",
-    "saved": "保存済み"
+    "saved": "保存済み",
+    "blogs": "ブログ",
+    "templates": "テンプレート"
   },
   "sidebar": {
     "sudoku": "数独",
@@ -823,5 +827,41 @@
     "sortRecent": "最近追加",
     "sortAlphabetical": "あ-ん",
     "newFavorite": "{{name}}があなたをお気に入りに追加しました！"
+  },
+  "news": {
+    "myNews": "マイニュース",
+    "selectCategories": "カテゴリを選択",
+    "selectNewsCategories": "ニュースカテゴリを選択",
+    "selectUpTo": "最大{{max}}個のカテゴリをフォロー",
+    "selectedCount": "{{count}} / {{max}} 選択済み",
+    "yourCategories": "あなたのカテゴリ：",
+    "noCategories": "ニュースを見るにはカテゴリを選択してください",
+    "noNewsYet": "まだニュースがありません。後でまた確認してください！",
+    "expires": "期限",
+    "readMore": "続きを読む",
+    "categoryAdded": "カテゴリを追加しました",
+    "categoryRemoved": "カテゴリを削除しました",
+    "errorAddingCategory": "カテゴリの追加に失敗しました",
+    "errorRemovingCategory": "カテゴリの削除に失敗しました",
+    "maxCategoriesReached": "最大6つのカテゴリまで選択できます",
+    "createCustomCategory": "カスタムを作成",
+    "createCustomCategoryTitle": "カスタムカテゴリを作成",
+    "categoryName": "カテゴリ名",
+    "categoryNamePlaceholder": "例：電気自動車",
+    "keywords": "キーワード",
+    "keywordsPlaceholder": "例：テスラ 電気自動車 EV",
+    "keywordsHint": "ニュース記事を検索するキーワードを入力",
+    "icon": "アイコン",
+    "color": "色",
+    "categoryCreated": "カスタムカテゴリを作成しました",
+    "categoryUpdated": "カテゴリを更新しました",
+    "categoryDeleted": "カテゴリを削除しました",
+    "errorCreatingCategory": "カテゴリの作成に失敗しました",
+    "errorUpdatingCategory": "カテゴリの更新に失敗しました",
+    "errorDeletingCategory": "カテゴリの削除に失敗しました",
+    "maxCustomCategoriesReached": "最大4つのカスタムカテゴリまで作成できます",
+    "refresh": "更新",
+    "delete": "削除",
+    "fetchingNews": "ニュースを取得中..."
   }
 }

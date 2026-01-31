@@ -17,7 +17,9 @@
     "language": "Langue",
     "saving": "Enregistrement...",
     "back": "Retour",
-    "goHome": "Retour à l'accueil"
+    "goHome": "Retour à l'accueil",
+    "create": "Créer",
+    "creating": "Création..."
   },
   "header": {
     "myProfile": "Mon Profil",
@@ -248,7 +250,9 @@
     "notifications": "Notifications",
     "profile": "Profil",
     "games": "Jeux",
-    "saved": "Sauvegardés"
+    "saved": "Sauvegardés",
+    "blogs": "Blogs",
+    "templates": "Modèles"
   },
   "sidebar": {
     "sudoku": "Sudoku",
@@ -820,5 +824,41 @@
     "sortRecent": "Récemment ajoutés",
     "sortAlphabetical": "A-Z",
     "newFavorite": "{{name}} vous a ajouté à ses favoris !"
+  },
+  "news": {
+    "myNews": "Mes Actualités",
+    "selectCategories": "Sélectionner des Catégories",
+    "selectNewsCategories": "Sélectionner des Catégories d'Actualités",
+    "selectUpTo": "Sélectionnez jusqu'à {{max}} catégories à suivre",
+    "selectedCount": "{{count}} sur {{max}} sélectionnées",
+    "yourCategories": "Vos catégories :",
+    "noCategories": "Sélectionnez des catégories pour voir les actualités",
+    "noNewsYet": "Pas encore d'actualités disponibles. Revenez bientôt !",
+    "expires": "Expire",
+    "readMore": "Lire plus",
+    "categoryAdded": "Catégorie ajoutée",
+    "categoryRemoved": "Catégorie supprimée",
+    "errorAddingCategory": "Échec de l'ajout de catégorie",
+    "errorRemovingCategory": "Échec de la suppression de catégorie",
+    "maxCategoriesReached": "Vous ne pouvez sélectionner que 6 catégories maximum",
+    "createCustomCategory": "Créer Personnalisée",
+    "createCustomCategoryTitle": "Créer une Catégorie Personnalisée",
+    "categoryName": "Nom de Catégorie",
+    "categoryNamePlaceholder": "Ex., Véhicules Électriques",
+    "keywords": "Mots-clés",
+    "keywordsPlaceholder": "Ex., Tesla voitures électriques VE",
+    "keywordsHint": "Entrez des mots-clés pour rechercher des articles",
+    "icon": "Icône",
+    "color": "Couleur",
+    "categoryCreated": "Catégorie personnalisée créée",
+    "categoryUpdated": "Catégorie mise à jour",
+    "categoryDeleted": "Catégorie supprimée",
+    "errorCreatingCategory": "Échec de la création de catégorie",
+    "errorUpdatingCategory": "Échec de la mise à jour de catégorie",
+    "errorDeletingCategory": "Échec de la suppression de catégorie",
+    "maxCustomCategoriesReached": "Vous ne pouvez créer que 4 catégories personnalisées maximum",
+    "refresh": "Actualiser",
+    "delete": "Supprimer",
+    "fetchingNews": "Récupération des actualités..."
   }
 }

@@ -65,7 +65,9 @@
     "recent": "Recent",
     "and": "and",
     "saving": "Saving...",
-    "goHome": "Go Home"
+    "goHome": "Go Home",
+    "create": "Create",
+    "creating": "Creating..."
   },
   "header": {
     "myProfile": "My Profile",

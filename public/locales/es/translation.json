@@ -17,7 +17,9 @@
     "language": "Idioma",
     "saving": "Guardando...",
     "back": "Atrás",
-    "goHome": "Ir al Inicio"
+    "goHome": "Ir al Inicio",
+    "create": "Crear",
+    "creating": "Creando..."
   },
   "header": {
     "myProfile": "Mi Perfil",
@@ -248,7 +250,9 @@
     "notifications": "Notificaciones",
     "profile": "Perfil",
     "games": "Juegos",
-    "saved": "Guardados"
+    "saved": "Guardados",
+    "blogs": "Blogs",
+    "templates": "Plantillas"
   },
   "sidebar": {
     "sudoku": "Sudoku",
@@ -820,5 +824,41 @@
     "sortRecent": "Añadidos recientemente",
     "sortAlphabetical": "A-Z",
     "newFavorite": "¡{{name}} te agregó a sus favoritos!"
+  },
+  "news": {
+    "myNews": "Mis Noticias",
+    "selectCategories": "Seleccionar Categorías",
+    "selectNewsCategories": "Seleccionar Categorías de Noticias",
+    "selectUpTo": "Selecciona hasta {{max}} categorías para seguir",
+    "selectedCount": "{{count}} de {{max}} seleccionadas",
+    "yourCategories": "Tus categorías:",
+    "noCategories": "Selecciona categorías para ver noticias",
+    "noNewsYet": "Aún no hay noticias disponibles. ¡Vuelve pronto!",
+    "expires": "Expira",
+    "readMore": "Leer más",
+    "categoryAdded": "Categoría agregada",
+    "categoryRemoved": "Categoría eliminada",
+    "errorAddingCategory": "Error al agregar categoría",
+    "errorRemovingCategory": "Error al eliminar categoría",
+    "maxCategoriesReached": "Solo puedes seleccionar hasta 6 categorías",
+    "createCustomCategory": "Crear Personalizada",
+    "createCustomCategoryTitle": "Crear Categoría Personalizada",
+    "categoryName": "Nombre de Categoría",
+    "categoryNamePlaceholder": "Ej., Vehículos Eléctricos",
+    "keywords": "Palabras Clave",
+    "keywordsPlaceholder": "Ej., Tesla autos eléctricos EV",
+    "keywordsHint": "Ingresa palabras clave para buscar artículos de noticias",
+    "icon": "Ícono",
+    "color": "Color",
+    "categoryCreated": "Categoría personalizada creada",
+    "categoryUpdated": "Categoría actualizada",
+    "categoryDeleted": "Categoría eliminada",
+    "errorCreatingCategory": "Error al crear categoría",
+    "errorUpdatingCategory": "Error al actualizar categoría",
+    "errorDeletingCategory": "Error al eliminar categoría",
+    "maxCustomCategoriesReached": "Solo puedes crear hasta 4 categorías personalizadas",
+    "refresh": "Actualizar",
+    "delete": "Eliminar",
+    "fetchingNews": "Obteniendo noticias..."
   }
 }
