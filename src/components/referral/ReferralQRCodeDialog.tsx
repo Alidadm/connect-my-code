@@ -197,7 +197,7 @@ export const ReferralQRCodeDialog = ({ children }: ReferralQRCodeDialogProps) =>
                 <div className="flex justify-center mb-2">
                   <svg ref={barcodeRef} className="max-w-full h-[50px]" />
                 </div>
-                <p className="text-center text-white font-mono font-bold text-sm tracking-[0.3em]">
+                <p className="text-center text-white font-mono font-bold text-xl tracking-[0.4em]">
                   {referralCode}
                 </p>
               </div>
