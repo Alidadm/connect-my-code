@@ -8,6 +8,7 @@ import { PullToRefreshIndicator } from "./PullToRefreshIndicator";
 import { ProfileTabContent } from "./ProfileTabContent";
 import { TodaysBirthdays } from "./TodaysBirthdays";
 import { PlatformGalleryCard } from "./PlatformGalleryCard";
+import { TikTokFeedRow } from "@/components/tiktok/TikTokFeedRow";
 
 import { ScrollProgressIndicator } from "./ScrollProgressIndicator";
 import { Button } from "@/components/ui/button";
@@ -450,6 +451,9 @@ export const Feed = () => {
 
           {/* Platform Gallery - Admin managed photos */}
           {user && <PlatformGalleryCard />}
+
+          {/* TikTok Short Videos - Admin managed */}
+          {user && <TikTokFeedRow />}
 
           {user ? <PostCreator onPostCreated={() => fetchPosts(0, false)} /> : <DemoPostCreator />}
 

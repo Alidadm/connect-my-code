@@ -1,7 +1,7 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { 
-  LayoutDashboard, Users, Megaphone, Wallet, Mail, LogOut, FileText, Trash2, Flag, Search, Calendar, MessageSquare, Images
+  LayoutDashboard, Users, Megaphone, Wallet, Mail, LogOut, FileText, Trash2, Flag, Search, Calendar, MessageSquare, Images, Video
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,6 +16,7 @@ const sidebarLinks = [
   { name: "Reported Posts", path: "/admin/reported-posts", icon: Flag },
   { name: "Platform Posts", path: "/admin/platform-posts", icon: Megaphone },
   { name: "Platform Gallery", path: "/admin/gallery", icon: Images },
+  { name: "TikTok Videos", path: "/admin/tiktok-videos", icon: Video },
   { name: "Payouts", path: "/admin/payouts", icon: Wallet },
   { name: "Email Templates", path: "/admin/email-templates", icon: Mail },
   { name: "Legal Pages", path: "/admin/legal-pages", icon: FileText },

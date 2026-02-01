@@ -3179,6 +3179,80 @@ export type Database = {
         }
         Relationships: []
       }
+      tiktok_video_groups: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          sort_order: number
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          sort_order?: number
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          sort_order?: number
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      tiktok_videos: {
+        Row: {
+          author_name: string | null
+          created_at: string
+          group_id: string
+          id: string
+          sort_order: number
+          thumbnail_url: string | null
+          tiktok_url: string
+          tiktok_video_id: string | null
+          video_title: string | null
+        }
+        Insert: {
+          author_name?: string | null
+          created_at?: string
+          group_id: string
+          id?: string
+          sort_order?: number
+          thumbnail_url?: string | null
+          tiktok_url: string
+          tiktok_video_id?: string | null
+          video_title?: string | null
+        }
+        Update: {
+          author_name?: string | null
+          created_at?: string
+          group_id?: string
+          id?: string
+          sort_order?: number
+          thumbnail_url?: string | null
+          tiktok_url?: string
+          tiktok_video_id?: string | null
+          video_title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tiktok_videos_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "tiktok_video_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       topics: {
         Row: {
           color: string | null
