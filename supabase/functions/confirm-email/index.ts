@@ -134,11 +134,9 @@ serve(async (req) => {
                   <li>Join groups and communities</li>
                   <li>Share your first post</li>
                 </ul>
-                <div style="text-align: center; margin-top: 30px;">
-                  <a href="https://dolphysn.com" style="background: linear-gradient(135deg, #1c76e6 0%, #3b82f6 100%); color: white; padding: 12px 30px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block;">
-                    Get Started
-                  </a>
-                </div>
+                <p style="color: #4b5563; font-size: 16px; text-align: center; margin-top: 30px;">
+                  Ready to get started? <a href="https://dolphysn.com" style="color: #1c76e6; text-decoration: underline;">Visit DolphySN</a>
+                </p>
                 <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
                   We're excited to have you on board!<br/>
                   — The DolphySN Team
