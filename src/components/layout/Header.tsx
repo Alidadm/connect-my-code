@@ -196,15 +196,6 @@ export const Header = () => {
             <Newspaper className="h-4 w-4" />
             {t("nav.feed")}
           </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="gap-2 text-muted-foreground hover:text-foreground"
-            onClick={() => navigate("/about")}
-          >
-            <Info className="h-4 w-4" />
-            {t("nav.about", { defaultValue: "About" })}
-          </Button>
           
           {/* Payout Setup Reminder - Shows when user hasn't set up both payment methods */}
           {user && !payoutLoading && needsPayoutSetup && (
