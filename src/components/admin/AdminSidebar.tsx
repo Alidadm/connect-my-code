@@ -1,7 +1,7 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { 
-  LayoutDashboard, Users, Megaphone, Wallet, Mail, LogOut, FileText, Trash2, Flag, Search, Calendar, MessageSquare, Images, Video
+  LayoutDashboard, Users, Megaphone, Wallet, Mail, LogOut, FileText, Trash2, Flag, Search, MessageSquare, Images, Video
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,19 +9,18 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 
 const sidebarLinks = [
-  { name: "Dashboard", path: "/adminindex", icon: LayoutDashboard },
-  { name: "User List", path: "/admin/users/list", icon: Users },
-  { name: "Admin Panel", path: "/adminindex", icon: Calendar },
-  { name: "Messages", path: "/admin/messages", icon: MessageSquare },
-  { name: "Reported Posts", path: "/admin/reported-posts", icon: Flag },
-  { name: "Platform Posts", path: "/admin/platform-posts", icon: Megaphone },
-  { name: "Platform Gallery", path: "/admin/gallery", icon: Images },
-  { name: "TikTok Videos", path: "/admin/tiktok-videos", icon: Video },
-  { name: "Payouts", path: "/admin/payouts", icon: Wallet },
-  { name: "Email Templates", path: "/admin/email-templates", icon: Mail },
-  { name: "Legal Pages", path: "/admin/legal-pages", icon: FileText },
-  { name: "SEO Settings", path: "/admin/seo-settings", icon: Search },
-  { name: "Data Cleanup", path: "/admin/data-cleanup", icon: Trash2 },
+  { id: "dashboard", name: "Dashboard", path: "/adminindex", icon: LayoutDashboard },
+  { id: "users", name: "User List", path: "/admin/users/list", icon: Users },
+  { id: "messages", name: "Messages", path: "/admin/messages", icon: MessageSquare },
+  { id: "reports", name: "Reported Posts", path: "/admin/reported-posts", icon: Flag },
+  { id: "posts", name: "Platform Posts", path: "/admin/platform-posts", icon: Megaphone },
+  { id: "gallery", name: "Platform Gallery", path: "/admin/gallery", icon: Images },
+  { id: "tiktok", name: "TikTok Videos", path: "/admin/tiktok-videos", icon: Video },
+  { id: "payouts", name: "Payouts", path: "/admin/payouts", icon: Wallet },
+  { id: "email", name: "Email Templates", path: "/admin/email-templates", icon: Mail },
+  { id: "legal", name: "Legal Pages", path: "/admin/legal-pages", icon: FileText },
+  { id: "seo", name: "SEO Settings", path: "/admin/seo-settings", icon: Search },
+  { id: "cleanup", name: "Data Cleanup", path: "/admin/data-cleanup", icon: Trash2 },
 ];
 
 export const AdminSidebar = () => {
@@ -84,7 +83,7 @@ export const AdminSidebar = () => {
           const showBadge = link.path === "/admin/reported-posts" && pendingReportsCount > 0;
           return (
             <button
-              key={link.path}
+              key={link.id}
               onClick={() => navigate(link.path)}
               className={cn(
                 "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
