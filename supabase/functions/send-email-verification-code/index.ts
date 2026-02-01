@@ -119,17 +119,9 @@ serve(async (req) => {
               <p style="color: #6b7280; font-size: 14px; text-align: center; margin: 20px 0 0;">
                 This code expires in <strong>10 minutes</strong>
               </p>
-              <div style="text-align: center; margin: 30px 0;">
-                <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto;">
-                  <tr>
-                    <td style="background-color: #1c76e6; border-radius: 8px;">
-                      <a href="${verifyUrl}" target="_blank" style="display: inline-block; background-color: #1c76e6; color: #ffffff; text-decoration: none; padding: 14px 40px; border-radius: 8px; font-weight: 600; font-size: 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
-                        Go to App &amp; Enter Code
-                      </a>
-                    </td>
-                  </tr>
-                </table>
-              </div>
+              <p style="color: #374151; font-size: 14px; text-align: center; margin: 30px 0 10px;">
+                Go to the app to enter your code: <a href="${verifyUrl}" target="_blank" style="color: #1c76e6; text-decoration: underline;">Open DolphySN</a>
+              </p>
               <p style="color: #9ca3af; font-size: 13px; text-align: center; margin: 0;">
                 Copy the code above and enter it in the app
               </p>
