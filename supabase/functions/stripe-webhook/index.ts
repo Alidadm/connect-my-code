@@ -114,24 +114,28 @@ serve(async (req) => {
       if (profileRowError) {
         logStep("Failed to fetch profile before update", { error: profileRowError.message });
       }
-
-      const wasAlreadyActive = profileRow?.subscription_status === "active";
       const userName =
         profileRow?.display_name ||
         `${profileRow?.first_name || ""} ${profileRow?.last_name || ""}`.trim() ||
         "Member";
 
-      // Update profile subscription status
-      const { error: profileUpdateError } = await supabaseClient
+      // Make activation idempotent: only the FIRST caller that flips the status to active
+      // should send the confirmation email. This prevents duplicate emails on webhook retries.
+      const { data: activatedRows, error: activationError } = await supabaseClient
         .from("profiles")
         .update({ subscription_status: "active" })
-        .eq("user_id", user.id);
+        .eq("user_id", user.id)
+        .or("subscription_status.is.null,subscription_status.neq.active")
+        .select("user_id");
 
-      if (profileUpdateError) {
-        logStep("Failed to update profile subscription status", { error: profileUpdateError.message });
-      } else {
-        logStep("Updated profile subscription status to active", { wasAlreadyActive });
+      if (activationError) {
+        logStep("Failed to set profile subscription status to active", { error: activationError.message });
       }
+
+      const firstActivation = !activationError && Array.isArray(activatedRows) && activatedRows.length > 0;
+      const wasAlreadyActive = activationError ? true : !firstActivation;
+
+      logStep("Ensured profile subscription status is active", { firstActivation, wasAlreadyActive });
 
       // Create or update subscription record
       const stripeSubscriptionId = invoice.subscription as string;

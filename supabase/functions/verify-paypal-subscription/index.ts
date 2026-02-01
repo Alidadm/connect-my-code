@@ -116,8 +116,7 @@ serve(async (req) => {
       await supabaseAdmin
         .from("profiles")
         .update({ 
-          subscription_status: "active",
-          email_verified: true 
+          subscription_status: "active"
         })
         .eq("user_id", user.id);
 
@@ -162,40 +161,14 @@ serve(async (req) => {
         `${profile?.first_name || ""} ${profile?.last_name || ""}`.trim() || 
         "Member";
 
-      // Send verification email
-      const emailToUse = privateProfile.email || user.email;
-      if (emailToUse) {
-        try {
-          const emailResponse = await fetch(
-            `${Deno.env.get("SUPABASE_URL")}/functions/v1/send-signup-confirmation`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
-              },
-              body: JSON.stringify({
-                email: emailToUse,
-                name: userName,
-                userId: user.id,
-              }),
-            }
-          );
-          
-          if (emailResponse.ok) {
-            logStep("Verification email sent");
-          } else {
-            logStep("Failed to send verification email", { status: emailResponse.status });
-          }
-        } catch (emailError) {
-          logStep("Email send error", { error: String(emailError) });
-        }
-      }
+      // IMPORTANT:
+      // Do NOT send the signup verification email from here.
+      // The PayPal webhook sends it on first activation; sending here causes duplicates.
 
       return new Response(JSON.stringify({ 
         verified: true, 
         status: subscription.status,
-        emailSent: true 
+        emailSent: false 
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,

@@ -150,25 +150,26 @@ serve(async (req) => {
         });
 
         if (userId) {
-          // Check if this is first activation
-          const { data: profileRow } = await supabaseClient
-            .from("profiles")
-            .select("subscription_status")
-            .eq("user_id", userId)
-            .single();
-
-          const wasAlreadyActive = profileRow?.subscription_status === "active";
-
-          // Update subscription status in profiles
-          await supabaseClient
+          // Make activation idempotent: only the FIRST caller that flips the status to active
+          // should send the confirmation email. This prevents duplicate emails on webhook retries.
+          const { data: activatedRows, error: activationError } = await supabaseClient
             .from("profiles")
             .update({ subscription_status: "active" })
-            .eq("user_id", userId);
-          
-          logStep("Updated subscription status to active", { wasAlreadyActive });
+            .eq("user_id", userId)
+            .or("subscription_status.is.null,subscription_status.neq.active")
+            .select("user_id");
+
+          if (activationError) {
+            logStep("Failed to set subscription status to active", { error: activationError.message });
+          }
+
+          const firstActivation = Array.isArray(activatedRows) && activatedRows.length > 0;
+          const wasAlreadyActive = !firstActivation;
+
+          logStep("Ensured subscription status is active", { firstActivation, wasAlreadyActive });
 
           // Auto-populate PayPal payout email from subscriber info (first activation only)
-          if (!wasAlreadyActive && subscription.subscriber?.email_address) {
+          if (firstActivation && subscription.subscriber?.email_address) {
             const subscriberEmail = subscription.subscriber.email_address;
             logStep("Auto-populating PayPal payout email from subscriber", { email: subscriberEmail });
             
@@ -261,7 +262,7 @@ serve(async (req) => {
           const userName = await getUserName(userId);
 
           if (userEmail) {
-            if (!wasAlreadyActive) {
+            if (firstActivation) {
               // First activation - send confirmation email
               try {
                 logStep("First activation detected; sending confirmation email", { email: userEmail });
