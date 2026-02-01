@@ -119,10 +119,9 @@ serve(async (req) => {
     const cancelUrl = new URL(`${origin}/pricing`);
     cancelUrl.searchParams.set("checkout", "canceled");
 
-    // TESTING MODE: Using daily billing interval (change to 'month' for production)
-    const TESTING_MODE = true;
-    const billingInterval = TESTING_MODE ? 'day' : 'month';
-    logStep("Billing mode", { testing: TESTING_MODE, interval: billingInterval });
+    // Production billing: monthly subscription
+    const billingInterval = 'month';
+    logStep("Billing mode", { interval: billingInterval });
 
     // Create or retrieve the test product
     let product;
