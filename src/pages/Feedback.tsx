@@ -2,7 +2,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { MessageSquarePlus, Star, Send, ThumbsUp, ThumbsDown, Sparkles, Bug, Lightbulb } from "lucide-react";
+import { MessageSquarePlus, Star, Send, ThumbsUp, Sparkles, Bug, Lightbulb } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 const Feedback = () => {
   const { user, loading } = useAuth();
@@ -29,20 +30,51 @@ const Feedback = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!feedbackType || !message) {
+    if (!feedbackType || !message.trim()) {
       toast.error(t("feedback.fillRequired", { defaultValue: "Please select a feedback type and write your message" }));
       return;
     }
 
+    if (message.length > 1000) {
+      toast.error(t("feedback.messageTooLong", { defaultValue: "Message must be less than 1000 characters" }));
+      return;
+    }
+
     setSubmitting(true);
-    // Simulate submission
-    setTimeout(() => {
-      setSubmitting(false);
+    try {
+      // Get user profile for display name
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("user_id", user?.id)
+        .single();
+
+      const feedbackTypeLabel = feedbackTypes.find(f => f.id === feedbackType)?.title || feedbackType;
+      const ratingText = rating > 0 ? ` (Rating: ${rating}/5)` : "";
+
+      const { error } = await supabase
+        .from("contact_messages")
+        .insert({
+          user_id: user?.id,
+          name: profile?.display_name || user?.email?.split("@")[0] || "User",
+          email: user?.email || "",
+          subject: `${feedbackTypeLabel}${ratingText}`,
+          message: message.trim(),
+          status: "new",
+        });
+
+      if (error) throw error;
+
       toast.success(t("feedback.thankYou", { defaultValue: "Thank you for your feedback! We really appreciate it." }));
       setFeedbackType("");
       setRating(0);
       setMessage("");
-    }, 1500);
+    } catch (error) {
+      console.error("Error submitting feedback:", error);
+      toast.error(t("feedback.submitError", { defaultValue: "Failed to submit feedback. Please try again." }));
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (loading) {
