@@ -194,9 +194,9 @@ const PlatformGallery = () => {
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="h-64 bg-muted animate-pulse rounded-lg" />
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <div key={i} className="h-32 bg-muted animate-pulse rounded-lg" />
             ))}
           </div>
         ) : photos.length === 0 ? (
@@ -209,10 +209,10 @@ const PlatformGallery = () => {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {photos.map((photo) => (
               <Card key={photo.id} className={`overflow-hidden ${!photo.is_active ? "opacity-50" : ""}`}>
-                <div className="relative aspect-video">
+                <div className="relative aspect-square">
                   <img
                     src={photo.image_url}
                     alt={photo.title || "Gallery photo"}
@@ -221,54 +221,54 @@ const PlatformGallery = () => {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                   
                   {/* Status badge */}
-                  <div className="absolute top-2 left-2">
+                  <div className="absolute top-1 left-1">
                     {photo.is_active ? (
-                      <span className="bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded">Active</span>
+                      <span className="bg-primary text-primary-foreground text-[10px] px-1.5 py-0.5 rounded">Active</span>
                     ) : (
-                      <span className="bg-muted text-muted-foreground text-xs px-2 py-0.5 rounded">Hidden</span>
+                      <span className="bg-muted text-muted-foreground text-[10px] px-1.5 py-0.5 rounded">Hidden</span>
                     )}
                   </div>
 
                   {/* Action buttons */}
-                  <div className="absolute top-2 right-2 flex gap-1">
+                  <div className="absolute top-1 right-1 flex gap-0.5">
                     <Button
                       variant="secondary"
                       size="icon"
-                      className="h-8 w-8 bg-white/90 hover:bg-white"
+                      className="h-6 w-6 bg-white/90 hover:bg-white"
                       onClick={() => toggleActive(photo)}
                     >
                       {photo.is_active ? (
-                        <EyeOff className="h-4 w-4" />
+                        <EyeOff className="h-3 w-3" />
                       ) : (
-                        <Eye className="h-4 w-4" />
+                        <Eye className="h-3 w-3" />
                       )}
                     </Button>
                     <Button
                       variant="secondary"
                       size="icon"
-                      className="h-8 w-8 bg-white/90 hover:bg-white"
+                      className="h-6 w-6 bg-white/90 hover:bg-white"
                       onClick={() => openEditDialog(photo)}
                     >
-                      <Pencil className="h-4 w-4" />
+                      <Pencil className="h-3 w-3" />
                     </Button>
                     <Button
                       variant="destructive"
                       size="icon"
-                      className="h-8 w-8"
+                      className="h-6 w-6"
                       onClick={() => handleDelete(photo.id)}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-3 w-3" />
                     </Button>
                   </div>
                 </div>
                 
                 {/* Title and description below image */}
-                <CardContent className="p-3">
-                  <h3 className="font-semibold text-foreground truncate">
+                <CardContent className="p-2">
+                  <h3 className="font-medium text-xs text-foreground truncate">
                     {photo.title || <span className="text-muted-foreground italic">No title</span>}
                   </h3>
                   {photo.description && (
-                    <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                    <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">
                       {photo.description}
                     </p>
                   )}
