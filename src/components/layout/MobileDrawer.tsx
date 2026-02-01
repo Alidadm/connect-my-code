@@ -6,15 +6,13 @@ import {
   Store,
   Bookmark,
   Gamepad2,
-  User,
   Settings,
   Lock,
   HelpCircle,
   MessageSquarePlus,
   LogOut,
   LayoutDashboard,
-  Shield,
-  Info
+  Shield
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -101,7 +99,6 @@ export const MobileDrawer = ({ open, onOpenChange }: MobileDrawerProps) => {
     { icon: UsersRound, label: t("nav.groups", { defaultValue: "Groups" }), path: "/groups", badge: null, iconColor: "text-purple-500" },
     { icon: Image, label: t("nav.photos"), path: "/__PHOTOS__", badge: null, iconColor: "text-pink-500" },
     { icon: Store, label: t("nav.marketplace"), path: "/marketplace", badge: null, iconColor: "text-cyan-500" },
-    { icon: Info, label: t("nav.about", { defaultValue: "About" }), path: "/about", badge: null, iconColor: "text-slate-500" },
   ];
 
   const settingsItems = user ? [
