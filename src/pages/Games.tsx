@@ -743,34 +743,35 @@ const GamesContent = () => {
           <TicTacToeModeSelector onSelectMode={handleTicTacToeModeSelect} />
         ) : (
           <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
+            <CardHeader className="pb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div className="min-w-0">
+                  <CardTitle className="flex items-center gap-2 text-lg">
                     {activeGameType === "tictactoe" ? (
                       <>
-                        <Grid3X3 className="w-5 h-5" />
-                        {t("games.ticTacToe.title", { defaultValue: "Tic-Tac-Toe" })}
+                        <Grid3X3 className="w-5 h-5 shrink-0" />
+                        <span className="truncate">{t("games.ticTacToe.title", { defaultValue: "Tic-Tac-Toe" })}</span>
                       </>
                     ) : (
                       <>
-                        <LayoutGrid className="w-5 h-5" />
-                        {t("games.memoryMatch.title", { defaultValue: "Memory Match" })}
+                        <LayoutGrid className="w-5 h-5 shrink-0" />
+                        <span className="truncate">{t("games.memoryMatch.title", { defaultValue: "Memory Match" })}</span>
                       </>
                     )}
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="mt-1 text-sm">
                     {activeGameType === "tictactoe" 
                       ? t("games.ticTacToeDesc", { defaultValue: "Classic game - take turns with friends, even when offline!" })
                       : t("games.memoryMatchDesc", { defaultValue: "Find matching pairs - challenge your friends' memory!" })
                     }
                   </CardDescription>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 shrink-0">
                   {activeGameType === "tictactoe" && (
                     <Button 
                       onClick={() => setShowTicTacToeModeSelector(true)}
-                      className="gap-2"
+                      className="gap-2 w-full sm:w-auto"
+                      size="sm"
                     >
                       <Plus className="w-4 h-4" />
                       {t("games.newGame", { defaultValue: "New Game" })}
@@ -779,7 +780,8 @@ const GamesContent = () => {
                   {activeGameType === "memory" && (
                     <Button 
                       onClick={() => setShowMemoryInvite(true)} 
-                      className="gap-2"
+                      className="gap-2 w-full sm:w-auto"
+                      size="sm"
                     >
                       <Users className="w-4 h-4" />
                       {t("games.inviteFriend", { defaultValue: "Invite Friend" })}
