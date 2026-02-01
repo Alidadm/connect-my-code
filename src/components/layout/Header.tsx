@@ -372,14 +372,6 @@ export const Header = () => {
             variant="ghost" 
             size="icon" 
             className="text-muted-foreground hover:text-foreground hover:bg-secondary h-9 w-9 sm:h-10 sm:w-10 hidden lg:flex"
-            title={t("header.externalLink", { defaultValue: "External Link" })}
-          >
-            <ExternalLink className="h-5 w-5" />
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="text-muted-foreground hover:text-foreground hover:bg-secondary h-9 w-9 sm:h-10 sm:w-10 hidden lg:flex"
             title={t("nav.saved", { defaultValue: "Saved" })}
             onClick={() => navigate("/saved")}
           >
