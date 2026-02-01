@@ -132,10 +132,6 @@ export const NewsWidget: React.FC = () => {
             </span>
           </div>
           <div className="flex items-center gap-1 shrink-0">
-            <CreateCustomCategoryDialog
-              onCreateCategory={createCustomCategory}
-              maxReached={customCategories.length >= maxCustomCategories}
-            />
             <NewsCategorySelector
               categories={categories}
               selectedCategories={userCategories}
