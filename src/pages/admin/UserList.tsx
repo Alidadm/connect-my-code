@@ -5,7 +5,7 @@ import { format, subDays, startOfMonth, endOfMonth, subMonths } from "date-fns";
 import {
   Search, Filter, Download, Upload, Plus, MoreHorizontal,
   ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight,
-  Edit, Trash2, Eye, Mail, Phone, ArrowUpDown, Loader2, AtSign, Calendar, X, Shield, ExternalLink
+  Edit, Trash2, Eye, Mail, Phone, ArrowUpDown, Loader2, AtSign, Calendar, X, Shield, ExternalLink, CreditCard
 } from "lucide-react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 
@@ -77,6 +77,7 @@ type DateRange = {
 };
 
 type DatePreset = 'all' | 'today' | 'last7days' | 'last30days' | 'thisMonth' | 'lastMonth' | 'custom';
+type PaymentFilter = 'all' | 'paid' | 'unpaid';
 
 // User type definition matching database schema
 type User = {
@@ -137,6 +138,9 @@ const UserList = () => {
   const [datePreset, setDatePreset] = useState<DatePreset>(filterParam || 'all');
   const [dateRange, setDateRange] = useState<DateRange>({ from: undefined, to: undefined });
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  
+  // Payment status filter
+  const [paymentFilter, setPaymentFilter] = useState<PaymentFilter>('all');
   
   // Data state
   const [users, setUsers] = useState<User[]>([]);
@@ -382,8 +386,17 @@ const UserList = () => {
           throw error;
         }
 
-        setUsers(data?.users || []);
-        setTotalCount(data?.totalCount || 0);
+        let fetchedUsers = data?.users || [];
+        
+        // Apply payment filter client-side
+        if (paymentFilter === 'paid') {
+          fetchedUsers = fetchedUsers.filter((u: User) => u.subscriptionStatus === 'active');
+        } else if (paymentFilter === 'unpaid') {
+          fetchedUsers = fetchedUsers.filter((u: User) => u.subscriptionStatus !== 'active');
+        }
+        
+        setUsers(fetchedUsers);
+        setTotalCount(paymentFilter === 'all' ? (data?.totalCount || 0) : fetchedUsers.length);
       } catch (error: any) {
         // Ignore aborted requests
         if (error?.name === 'AbortError' || error?.context?.name === 'AbortError') return;
@@ -414,6 +427,7 @@ const UserList = () => {
     datePreset,
     customRangeKey,
     refreshTrigger,
+    paymentFilter,
   ]);
 
   // Debounce search
@@ -1076,6 +1090,18 @@ const UserList = () => {
                 </Button>
               )}
 
+              {/* Payment Status Filter */}
+              <Select value={paymentFilter} onValueChange={(v: PaymentFilter) => { setPaymentFilter(v); setCurrentPage(1); }}>
+                <SelectTrigger className={cn("w-[140px]", paymentFilter === 'unpaid' && "border-red-300 bg-red-50")}>
+                  <SelectValue placeholder="Payment Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Users</SelectItem>
+                  <SelectItem value="paid">Paid Only</SelectItem>
+                  <SelectItem value="unpaid">Unpaid Only</SelectItem>
+                </SelectContent>
+              </Select>
+
               <div className="relative flex-1 max-w-md">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <Input 
@@ -1165,13 +1191,14 @@ const UserList = () => {
                     <ArrowUpDown className="w-4 h-4 text-slate-400" />
                   </div>
                 </TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="h-32">
+                  <TableCell colSpan={9} className="h-32">
                     <div className="flex items-center justify-center gap-2">
                       <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
                       <span className="text-slate-500">Loading users...</span>
@@ -1180,13 +1207,20 @@ const UserList = () => {
                 </TableRow>
               ) : users.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="h-32 text-center text-slate-500">
+                  <TableCell colSpan={9} className="h-32 text-center text-slate-500">
                     No users found
                   </TableCell>
                 </TableRow>
               ) : (
                 users.map((user) => (
-                  <TableRow key={user.id} className={cn("hover:bg-slate-50", selectedUsers.has(user.user_id) && "bg-blue-50")}>
+                  <TableRow 
+                    key={user.id} 
+                    className={cn(
+                      "hover:bg-slate-50", 
+                      selectedUsers.has(user.user_id) && "bg-blue-50",
+                      user.subscriptionStatus !== 'active' && !selectedUsers.has(user.user_id) && "bg-red-50/50"
+                    )}
+                  >
                     <TableCell>
                       <input 
                         type="checkbox" 
@@ -1245,6 +1279,18 @@ const UserList = () => {
                         )}
                         <span className="text-slate-600">{user.country}</span>
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge 
+                        variant={user.subscriptionStatus === 'active' ? 'default' : 'destructive'}
+                        className={cn(
+                          user.subscriptionStatus === 'active' 
+                            ? 'bg-green-100 text-green-700 hover:bg-green-100' 
+                            : 'bg-red-100 text-red-700 hover:bg-red-100'
+                        )}
+                      >
+                        {user.subscriptionStatus === 'active' ? 'Paid' : 'Unpaid'}
+                      </Badge>
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
