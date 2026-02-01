@@ -140,10 +140,10 @@ serve(async (req) => {
       logStep("Created new product", { productId: product.id });
     }
 
-    // Create a price with the appropriate interval
+    // Create a price with the appropriate interval ($10.99 = 1099 cents)
     const price = await stripe.prices.create({
       product: product.id,
-      unit_amount: 999, // $9.99
+      unit_amount: 1099, // $10.99 (includes $1 processing fee)
       currency: "usd",
       recurring: {
         interval: billingInterval,
