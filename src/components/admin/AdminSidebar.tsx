@@ -15,7 +15,6 @@ const sidebarLinks = [
   { id: "reports", name: "Reported Posts", path: "/admin/reported-posts", icon: Flag },
   { id: "posts", name: "Platform Posts", path: "/admin/platform-posts", icon: Megaphone },
   { id: "gallery", name: "Platform Gallery", path: "/admin/gallery", icon: Images },
-  { id: "tiktok", name: "TikTok Videos", path: "/admin/tiktok-videos", icon: Video },
   { id: "payouts", name: "Payouts", path: "/admin/payouts", icon: Wallet },
   { id: "email", name: "Email Templates", path: "/admin/email-templates", icon: Mail },
   { id: "legal", name: "Legal Pages", path: "/admin/legal-pages", icon: FileText },
