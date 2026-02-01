@@ -12,6 +12,7 @@ import { useUserSettings } from "@/hooks/useUserSettings";
 import { useLanguage } from "@/hooks/useLanguage";
 import { cn } from "@/lib/utils";
 import type { LanguageCode } from "@/lib/i18n";
+import { AccountEmailSection } from "@/components/settings/AccountEmailSection";
 
 const Settings = () => {
   const { user, loading: authLoading } = useAuth();
@@ -68,6 +69,9 @@ const Settings = () => {
             </div>
           )}
         </div>
+
+        {/* Account Email */}
+        <AccountEmailSection />
 
         {/* Appearance */}
         <Card>
