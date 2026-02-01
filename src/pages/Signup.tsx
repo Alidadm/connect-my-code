@@ -784,8 +784,11 @@ export const Signup = () => {
 
               <div className="bg-muted/50 rounded-lg p-4 mb-6">
                 <p className="text-center text-2xl font-bold">
-                  <span className="text-primary">$9.99</span>
+                  <span className="text-primary">$10.99</span>
                   <span className="text-muted-foreground font-normal"> / Month</span>
+                </p>
+                <p className="text-center text-xs text-muted-foreground mt-2">
+                  Includes $1.00 payment processing fee • You keep $5/referral
                 </p>
               </div>
 

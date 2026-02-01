@@ -4,9 +4,12 @@ export const ReferralDownlineDiagram = () => {
   return (
     <div className="text-center text-primary-foreground max-w-lg px-4">
       {/* Subscription Price */}
-      <h2 className="text-2xl sm:text-3xl font-bold mb-8">
-        $9.99 / month per member (DolphySN subscription)
+      <h2 className="text-2xl sm:text-3xl font-bold mb-6">
+        $10.99 / month per member
       </h2>
+      <p className="text-sm text-white/80 mb-8 bg-black/20 rounded-lg px-4 py-2 inline-block">
+        Base $9.99 + $1.00 processing fee
+      </p>
 
       {/* Diagram Container */}
       <div className="relative mb-8">
@@ -67,7 +70,7 @@ export const ReferralDownlineDiagram = () => {
       <div className="space-y-4 text-sm sm:text-base">
         <p className="leading-relaxed bg-black/10 backdrop-blur-sm rounded-lg p-4">
           Once someone becomes a subscribed member, they can refer friends or non-friends to join under them. 
-          Each referred person pays <strong>$9.99 per month</strong>, and half of that—<strong>$5.00 per month</strong>—is paid to the referring member
+          Each referred person pays <strong>$10.99 per month</strong> (includes processing fee), and <strong>$5.00 per month</strong> is paid to the referring member.
         </p>
         
         <p className="text-lg font-semibold opacity-90 italic">

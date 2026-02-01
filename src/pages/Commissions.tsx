@@ -60,7 +60,7 @@ const DEFAULT_EMAIL_MESSAGE_FALLBACK = `Hi everyone,
 
 DolphySN.com is a new social network built for people who want to connect, grow, and earn real monthly income at the same time.
 
-When you join through my link below, your membership is only $9.99 per month. After you sign up, you can invite anyone — friends, followers, or even people you've never met.
+When you join through my link below, your membership is only $10.99 per month (includes processing fee). After you sign up, you can invite anyone — friends, followers, or even people you've never met.
 
 For every person who subscribes through your link, you earn $5 every month as long as they stay active.
 
@@ -332,8 +332,8 @@ const Commissions = () => {
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const thisMonthSignups = commissions.filter(c => new Date(c.created_at) >= startOfMonth).length;
   
-  // Total subscription value (each referral = $9.99/month subscription)
-  const subscriptionRate = 9.99;
+  // Total subscription value (each referral = $10.99/month subscription)
+  const subscriptionRate = 10.99;
   const totalSubscriptionValue = totalReferrals * subscriptionRate;
 
   const getStatusBadge = (status: string) => {

@@ -125,7 +125,7 @@ async function getOrCreatePlan(accessToken: string, productId: string): Promise<
     }
   }
 
-  // Create new plan
+  // Create new plan ($10.99/month includes processing fee)
   logStep("Creating new plan...");
   const createResponse = await fetch(`${PAYPAL_API_BASE}/v1/billing/plans`, {
     method: "POST",
@@ -136,7 +136,7 @@ async function getOrCreatePlan(accessToken: string, productId: string): Promise<
     body: JSON.stringify({
       product_id: productId,
       name: "DolphySN Monthly Premium",
-      description: "$9.99/month subscription for DolphySN Premium access",
+      description: "$10.99/month subscription for DolphySN Premium access (includes processing fee)",
       status: "ACTIVE",
       billing_cycles: [
         {
@@ -149,7 +149,7 @@ async function getOrCreatePlan(accessToken: string, productId: string): Promise<
           total_cycles: 0, // Unlimited cycles
           pricing_scheme: {
             fixed_price: {
-              value: "9.99",
+              value: "10.99",
               currency_code: "USD",
             },
           },

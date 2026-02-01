@@ -136,10 +136,15 @@ export const LandingPage = () => {
               <h2 className="text-3xl sm:text-4xl font-bold mb-4">
                 Turn Your Network Into Income
               </h2>
-              <p className="text-muted-foreground mb-6">
+              <p className="text-muted-foreground mb-4">
                 For every friend you invite who subscribes, you earn <strong className="text-primary">$5/month</strong> in recurring commissions. 
                 Build your referral network and watch your earnings grow!
               </p>
+              <div className="bg-card/80 backdrop-blur-sm rounded-lg p-3 mb-6 border border-border">
+                <p className="text-sm text-muted-foreground">
+                  <strong className="text-foreground">$10.99/month</strong> subscription (includes $1.00 processing fee)
+                </p>
+              </div>
               <ul className="space-y-3 mb-8">
                 <li className="flex items-center gap-3">
                   <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
