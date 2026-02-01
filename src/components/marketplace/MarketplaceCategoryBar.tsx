@@ -1,4 +1,3 @@
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { MarketplaceCategory } from "@/hooks/useMarketplace";
 import { cn } from "@/lib/utils";
@@ -15,8 +14,8 @@ export const MarketplaceCategoryBar = ({
   onSelectCategory,
 }: MarketplaceCategoryBarProps) => {
   return (
-    <ScrollArea className="w-full whitespace-nowrap">
-      <div className="flex gap-2 pb-2">
+    <div className="w-full overflow-x-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
+      <div className="flex gap-2 pb-2 min-w-max">
         <Button
           variant={!selectedCategory ? "default" : "outline"}
           size="sm"
@@ -41,7 +40,6 @@ export const MarketplaceCategoryBar = ({
           </Button>
         ))}
       </div>
-      <ScrollBar orientation="horizontal" />
-    </ScrollArea>
+    </div>
   );
 };
