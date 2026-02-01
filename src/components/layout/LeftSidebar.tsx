@@ -159,33 +159,37 @@ export const LeftSidebar = () => {
 
         {/* Navigation */}
         <nav className="bg-card rounded-xl p-2 mb-4 border border-border sidebar-widget-border">
-          {navItems.map((item) => {
+          {navItems.map((item, index) => {
             const isPhotosItem = item.path === "/__PHOTOS__";
             const actualPath = isPhotosItem && username ? `/${username}?tab=photos` : item.path;
             const isActive = isPhotosItem 
               ? location.pathname === `/${username}` && location.search.includes('tab=photos')
               : location.pathname === item.path;
+            // Show hr after items from Friends (index 1) to Marketplace (index 8)
+            const showDivider = index >= 1 && index <= 8;
             return (
-              <Button
-                key={item.path}
-                variant="ghost"
-                className={cn(
-                  "w-full justify-start gap-3 mb-1 h-11 font-medium",
-                  isActive && "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
-                )}
-                onClick={() => navigate(isPhotosItem ? `/${username}?tab=photos` : item.path)}
-              >
-                <item.icon className={cn("h-5 w-5", isActive ? "" : item.iconColor)} />
-                <span className="flex-1 text-left">{item.label}</span>
-                {item.badge && (
-                  <span className={cn(
-                    "text-xs font-medium min-w-[20px] h-5 flex items-center justify-center rounded-full",
-                    isActive ? "bg-primary-foreground/20 text-primary-foreground" : "bg-destructive text-destructive-foreground"
-                  )}>
-                    {item.badge}
-                  </span>
-                )}
-              </Button>
+              <div key={item.path}>
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    "w-full justify-start gap-3 mb-1 h-11 font-medium",
+                    isActive && "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
+                  )}
+                  onClick={() => navigate(isPhotosItem ? `/${username}?tab=photos` : item.path)}
+                >
+                  <item.icon className={cn("h-5 w-5", isActive ? "" : item.iconColor)} />
+                  <span className="flex-1 text-left">{item.label}</span>
+                  {item.badge && (
+                    <span className={cn(
+                      "text-xs font-medium min-w-[20px] h-5 flex items-center justify-center rounded-full",
+                      isActive ? "bg-primary-foreground/20 text-primary-foreground" : "bg-destructive text-destructive-foreground"
+                    )}>
+                      {item.badge}
+                    </span>
+                  )}
+                </Button>
+                {showDivider && <hr className="w-[80%] mx-auto border-border my-1" />}
+              </div>
             );
           })}
         </nav>
