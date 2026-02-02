@@ -5,13 +5,16 @@ import { PayoutSetupModal } from "@/components/payout/PayoutSetupModal";
 import { BirthdayCelebration } from "@/components/birthday/BirthdayCelebration";
 import { LandingPage } from "@/components/landing/LandingPage";
 import { useAuth } from "@/hooks/useAuth";
+import { useMaintenanceMode } from "@/hooks/useMaintenanceMode";
+import Signup from "@/pages/Signup";
 
 const Index = () => {
   const { user, loading } = useAuth();
+  const { isMaintenanceMode, loading: maintenanceLoading } = useMaintenanceMode();
   const [payoutSetupComplete, setPayoutSetupComplete] = useState(false);
 
-  // Show loading state while checking auth
-  if (loading) {
+  // Show loading state while checking auth or maintenance mode
+  if (loading || maintenanceLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
@@ -19,7 +22,12 @@ const Index = () => {
     );
   }
 
-  // Show landing page for non-authenticated users
+  // Show signup page when maintenance mode is on and user is not logged in
+  if (!user && isMaintenanceMode) {
+    return <Signup />;
+  }
+
+  // Show landing page for non-authenticated users when not in maintenance mode
   if (!user) {
     return <LandingPage />;
   }
