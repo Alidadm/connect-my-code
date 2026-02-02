@@ -549,7 +549,7 @@ export const FirstTimeOnboarding = ({ onComplete }: FirstTimeOnboardingProps) =>
                       {resendCooldown > 0 ? (
                         <>
                           <RefreshCw className="mr-2 h-4 w-4" />
-                          {t("onboarding.resendIn", "Resend in")} {resendCooldown}s
+                          {t("onboarding.resendIn", { seconds: resendCooldown, defaultValue: "Resend in {{seconds}}s" })}
                         </>
                       ) : (
                         <>
