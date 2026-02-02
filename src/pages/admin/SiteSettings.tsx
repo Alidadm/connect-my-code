@@ -83,19 +83,19 @@ const SiteSettings = () => {
         </div>
 
         {/* Maintenance Mode Card */}
-        <Card className={maintenanceMode ? "border-amber-400 bg-amber-50/50" : "border-green-400 bg-green-50/50"}>
+        <Card className={maintenanceMode ? "border-amber-500/50 bg-amber-500/10" : "border-green-500/50 bg-green-500/10"}>
           <CardHeader>
             <div className="flex items-center gap-3">
               {maintenanceMode ? (
-                <AlertTriangle className="h-6 w-6 text-amber-500" />
+                <AlertTriangle className="h-6 w-6 text-amber-400" />
               ) : (
-                <CheckCircle className="h-6 w-6 text-green-500" />
+                <CheckCircle className="h-6 w-6 text-green-400" />
               )}
               <div>
-                <CardTitle className="text-lg">
+                <CardTitle className="text-lg text-foreground">
                   Maintenance Mode
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-muted-foreground">
                   {maintenanceMode 
                     ? "Website is currently showing the signup page to all visitors" 
                     : "Website is live with the full landing page visible"}
@@ -112,7 +112,7 @@ const SiteSettings = () => {
             ) : (
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
-                  <Label htmlFor="maintenance-toggle" className="text-base font-medium">
+                  <Label htmlFor="maintenance-toggle" className="text-base font-medium text-foreground">
                     {maintenanceMode ? "Under Maintenance" : "Website Live"}
                   </Label>
                   <p className="text-sm text-muted-foreground">
@@ -137,25 +137,25 @@ const SiteSettings = () => {
         </Card>
 
         {/* Info Card */}
-        <Card className="bg-blue-50/50 border-blue-200">
+        <Card className="bg-blue-500/10 border-blue-500/50">
           <CardHeader>
-            <CardTitle className="text-sm font-medium text-blue-700 flex items-center gap-2">
+            <CardTitle className="text-sm font-medium text-blue-400 flex items-center gap-2">
               <Settings className="h-4 w-4" />
               How Maintenance Mode Works
             </CardTitle>
           </CardHeader>
-          <CardContent className="text-sm text-blue-600 space-y-2">
+          <CardContent className="text-sm text-muted-foreground space-y-2">
             <p>
-              <strong>When enabled:</strong> Non-authenticated visitors will see the Signup page 
+              <strong className="text-foreground">When enabled:</strong> Non-authenticated visitors will see the Signup page 
               instead of the marketing landing page. This is useful when you want to focus on 
               member registration without showcasing all platform features.
             </p>
             <p>
-              <strong>When disabled:</strong> The full landing page with all marketing content 
+              <strong className="text-foreground">When disabled:</strong> The full landing page with all marketing content 
               (features, pricing, referral benefits) will be visible to all visitors.
             </p>
             <p>
-              <strong>Note:</strong> Logged-in members will always see their normal feed regardless 
+              <strong className="text-foreground">Note:</strong> Logged-in members will always see their normal feed regardless 
               of this setting.
             </p>
           </CardContent>
