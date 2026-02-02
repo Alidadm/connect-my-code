@@ -83,21 +83,21 @@ const SiteSettings = () => {
         </div>
 
         {/* Maintenance Mode Card */}
-        <Card className={maintenanceMode ? "border-amber-500/50 bg-amber-500/10" : "border-green-500/50 bg-green-500/10"}>
+        <Card className={maintenanceMode ? "border-amber-500 bg-white" : "border-green-500 bg-white"}>
           <CardHeader>
             <div className="flex items-center gap-3">
               {maintenanceMode ? (
-                <AlertTriangle className="h-6 w-6 text-amber-400" />
+                <AlertTriangle className="h-6 w-6 text-amber-600" />
               ) : (
-                <CheckCircle className="h-6 w-6 text-green-400" />
+                <CheckCircle className="h-6 w-6 text-green-600" />
               )}
               <div>
-                <CardTitle className="text-lg text-foreground">
+                <CardTitle className="text-lg text-gray-900">
                   Maintenance Mode
                 </CardTitle>
-                <CardDescription className="text-muted-foreground">
+                <CardDescription className="text-gray-600">
                   {maintenanceMode 
-                    ? "Website is currently showing the signup page to all visitors" 
+                    ? "Website is currently showing the signup page to all visitors"
                     : "Website is live with the full landing page visible"}
                 </CardDescription>
               </div>
@@ -112,17 +112,17 @@ const SiteSettings = () => {
             ) : (
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
-                  <Label htmlFor="maintenance-toggle" className="text-base font-medium text-foreground">
+                  <Label htmlFor="maintenance-toggle" className="text-base font-medium text-gray-900">
                     {maintenanceMode ? "Under Maintenance" : "Website Live"}
                   </Label>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-gray-600">
                     {maintenanceMode 
                       ? "Turn off to show the landing page to visitors" 
                       : "Turn on to redirect visitors to the signup page"}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  {updating && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {updating && <Loader2 className="h-4 w-4 animate-spin text-gray-600" />}
                   <Switch
                     id="maintenance-toggle"
                     checked={maintenanceMode}
@@ -137,25 +137,25 @@ const SiteSettings = () => {
         </Card>
 
         {/* Info Card */}
-        <Card className="bg-blue-500/10 border-blue-500/50">
+        <Card className="bg-white border-blue-500">
           <CardHeader>
-            <CardTitle className="text-sm font-medium text-blue-400 flex items-center gap-2">
+            <CardTitle className="text-sm font-medium text-blue-600 flex items-center gap-2">
               <Settings className="h-4 w-4" />
               How Maintenance Mode Works
             </CardTitle>
           </CardHeader>
-          <CardContent className="text-sm text-muted-foreground space-y-2">
+          <CardContent className="text-sm text-gray-600 space-y-2">
             <p>
-              <strong className="text-foreground">When enabled:</strong> Non-authenticated visitors will see the Signup page 
+              <strong className="text-gray-900">When enabled:</strong> Non-authenticated visitors will see the Signup page 
               instead of the marketing landing page. This is useful when you want to focus on 
               member registration without showcasing all platform features.
             </p>
             <p>
-              <strong className="text-foreground">When disabled:</strong> The full landing page with all marketing content 
+              <strong className="text-gray-900">When disabled:</strong> The full landing page with all marketing content 
               (features, pricing, referral benefits) will be visible to all visitors.
             </p>
             <p>
-              <strong className="text-foreground">Note:</strong> Logged-in members will always see their normal feed regardless 
+              <strong className="text-gray-900">Note:</strong> Logged-in members will always see their normal feed regardless 
               of this setting.
             </p>
           </CardContent>
