@@ -926,6 +926,27 @@ export type Database = {
         }
         Relationships: []
       }
+      follows: {
+        Row: {
+          created_at: string
+          follower_id: string
+          following_id: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          follower_id: string
+          following_id: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          follower_id?: string
+          following_id?: string
+          id?: string
+        }
+        Relationships: []
+      }
       friendships: {
         Row: {
           addressee_id: string
@@ -2604,6 +2625,8 @@ export type Database = {
           display_name: string | null
           email_verified: boolean | null
           first_name: string | null
+          followers_count: number | null
+          following_count: number | null
           id: string
           is_verified: boolean | null
           last_name: string | null
@@ -2628,6 +2651,8 @@ export type Database = {
           display_name?: string | null
           email_verified?: boolean | null
           first_name?: string | null
+          followers_count?: number | null
+          following_count?: number | null
           id?: string
           is_verified?: boolean | null
           last_name?: string | null
@@ -2652,6 +2677,8 @@ export type Database = {
           display_name?: string | null
           email_verified?: boolean | null
           first_name?: string | null
+          followers_count?: number | null
+          following_count?: number | null
           id?: string
           is_verified?: boolean | null
           last_name?: string | null

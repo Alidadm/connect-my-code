@@ -33,6 +33,8 @@ import { useBlockMute } from "@/hooks/useBlockMute";
 import { useUserPrivacySettings } from "@/hooks/useUserPrivacySettings";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useProfileBirthdayConfetti } from "@/hooks/useProfileBirthdayConfetti";
+import { useFollow } from "@/hooks/useFollow";
+import { FollowButton } from "@/components/profile/FollowButton";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
@@ -79,6 +81,25 @@ const countryNames: Record<string, string> = {
   VN: "Vietnam", PK: "Pakistan", BD: "Bangladesh", EG: "Egypt", NG: "Nigeria",
   KE: "Kenya", GH: "Ghana", MA: "Morocco", SA: "Saudi Arabia", AE: "UAE",
   IL: "Israel", TR: "Turkey", TW: "Taiwan",
+};
+
+// Inline component for follow stats display
+const FollowStatsDisplay = ({ userId }: { userId: string }) => {
+  const { t } = useTranslation();
+  const { followersCount, followingCount } = useFollow(userId);
+  
+  return (
+    <>
+      <span>
+        <span className="font-bold">{followersCount}</span>{" "}
+        <span className="text-muted-foreground">{t("follow.followers", "Followers")}</span>
+      </span>
+      <span>
+        <span className="font-bold">{followingCount}</span>{" "}
+        <span className="text-muted-foreground">{t("follow.following", "Following")}</span>
+      </span>
+    </>
+  );
 };
 
 const UserProfile = () => {
@@ -764,6 +785,8 @@ const UserProfile = () => {
                 {!isOwnProfile && (
                   <div className="flex gap-2 flex-shrink-0">
                       {renderFriendButton()}
+                      {/* Follow button */}
+                      <FollowButton userId={profile?.user_id || ""} variant="outline" />
                       {/* Favorite button */}
                       <TooltipProvider>
                         <Tooltip>
@@ -904,6 +927,7 @@ const UserProfile = () => {
                 <span className="font-bold">{postsCount}</span>{" "}
                 <span className="text-muted-foreground">{postsCount === 1 ? t("feed.post", { defaultValue: "Post" }) : t("feed.posts", { defaultValue: "Posts" })}</span>
               </button>
+              <FollowStatsDisplay userId={profile?.user_id || ""} />
             </div>
 
             {/* Mutual Friends Section - Only show when viewing someone else's profile */}
