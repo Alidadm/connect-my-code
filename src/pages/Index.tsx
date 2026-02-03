@@ -3,7 +3,6 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { Feed } from "@/components/feed/Feed";
 import { PayoutSetupModal } from "@/components/payout/PayoutSetupModal";
 import { BirthdayCelebration } from "@/components/birthday/BirthdayCelebration";
-import { LandingPage } from "@/components/landing/LandingPage";
 import { useAuth } from "@/hooks/useAuth";
 import { useMaintenanceMode } from "@/hooks/useMaintenanceMode";
 import Signup from "@/pages/Signup";
@@ -27,9 +26,9 @@ const Index = () => {
     return <Signup />;
   }
 
-  // Show landing page for non-authenticated users when not in maintenance mode
+  // Show signup page for non-authenticated users
   if (!user) {
-    return <LandingPage />;
+    return <Signup />;
   }
 
   // Show member feed for authenticated users
