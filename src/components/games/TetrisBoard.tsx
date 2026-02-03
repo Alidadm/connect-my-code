@@ -92,49 +92,18 @@ export const TetrisBoard = memo(({ board, currentPiece, position, ghostY }: Tetr
                     style={{ borderColor: ghostBoard[rowIndex][colIndex] || undefined }}
                   />
                 )}
-                {/* 3D Block styling */}
+                {/* 3D Block styling - flat with border */}
                 {cell && (
                   <div
-                    className="absolute inset-0.5 rounded-sm"
+                    className="absolute inset-0"
                     style={{
-                      background: `linear-gradient(135deg, 
-                        ${adjustColor(cell, 40)} 0%, 
-                        ${cell} 30%, 
-                        ${cell} 70%, 
-                        ${adjustColor(cell, -40)} 100%)`,
-                      boxShadow: `
-                        inset 2px 2px 4px ${adjustColor(cell, 60)},
-                        inset -2px -2px 4px ${adjustColor(cell, -60)},
-                        2px 2px 4px rgba(0,0,0,0.3)
-                      `,
+                      backgroundColor: cell,
+                      borderTop: `2px solid ${adjustColor(cell, 30)}`,
+                      borderLeft: `2px solid ${adjustColor(cell, 30)}`,
+                      borderBottom: `2px solid ${adjustColor(cell, -40)}`,
+                      borderRight: `2px solid ${adjustColor(cell, -40)}`,
                     }}
-                  >
-                    {/* Top highlight */}
-                    <div 
-                      className="absolute top-0 left-0 right-0 h-[3px] rounded-t-sm"
-                      style={{ background: `linear-gradient(180deg, ${adjustColor(cell, 80)}, transparent)` }}
-                    />
-                    {/* Left highlight */}
-                    <div 
-                      className="absolute top-0 left-0 bottom-0 w-[3px] rounded-l-sm"
-                      style={{ background: `linear-gradient(90deg, ${adjustColor(cell, 60)}, transparent)` }}
-                    />
-                    {/* Bottom shadow */}
-                    <div 
-                      className="absolute bottom-0 left-0 right-0 h-[3px] rounded-b-sm"
-                      style={{ background: `linear-gradient(0deg, ${adjustColor(cell, -70)}, transparent)` }}
-                    />
-                    {/* Right shadow */}
-                    <div 
-                      className="absolute top-0 right-0 bottom-0 w-[3px] rounded-r-sm"
-                      style={{ background: `linear-gradient(270deg, ${adjustColor(cell, -50)}, transparent)` }}
-                    />
-                    {/* Center shine */}
-                    <div 
-                      className="absolute top-1 left-1 w-2 h-2 rounded-full opacity-60"
-                      style={{ background: `radial-gradient(circle, ${adjustColor(cell, 90)}, transparent)` }}
-                    />
-                  </div>
+                  />
                 )}
               </div>
             );
