@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import { Users, MessageCircle, Share2, Heart, Sparkles, TrendingUp, Shield, Zap } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { ReferralDownlineDiagram } from "@/components/signup/ReferralDownlineDiagram";
 
 export const LandingPage = () => {
   const { t } = useTranslation();
@@ -30,12 +31,6 @@ export const LandingPage = () => {
     },
   ];
 
-  const stats = [
-    { value: "10K+", label: "Active Members" },
-    { value: "$50K+", label: "Commissions Paid" },
-    { value: "100K+", label: "Posts Shared" },
-    { value: "24/7", label: "Community Support" },
-  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
@@ -65,11 +60,6 @@ export const LandingPage = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button asChild size="lg" className="w-full sm:w-auto min-w-[200px] h-12 text-lg font-semibold shadow-lg hover:shadow-xl transition-all">
-                <Link to="/signup">
-                  Get Started Free
-                </Link>
-              </Button>
               <Button asChild variant="outline" size="lg" className="w-full sm:w-auto min-w-[200px] h-12 text-lg font-semibold">
                 <Link to="/login">
                   Sign In
@@ -80,19 +70,10 @@ export const LandingPage = () => {
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-12 bg-card/50 backdrop-blur-sm border-y border-border">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="text-3xl sm:text-4xl font-bold text-primary mb-1">
-                  {stat.value}
-                </div>
-                <div className="text-sm text-muted-foreground">{stat.label}</div>
-              </div>
-            ))}
-          </div>
+      {/* Referral Downline Diagram Section */}
+      <section className="py-12 bg-gradient-to-r from-primary via-accent to-primary">
+        <div className="max-w-6xl mx-auto px-4 flex justify-center">
+          <ReferralDownlineDiagram />
         </div>
       </section>
 
