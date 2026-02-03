@@ -453,6 +453,14 @@
     "sortAlphabetical": "A-Z",
     "newFavorite": "{{name}} added you to their favorites!"
   },
+  "follow": {
+    "follow": "Follow",
+    "following": "Following",
+    "unfollow": "Unfollow",
+    "followers": "Followers",
+    "followed": "Now following",
+    "unfollowed": "Unfollowed successfully"
+  },
   "nav": {
     "feed": "Feed",
     "about": "About",
