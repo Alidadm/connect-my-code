@@ -456,7 +456,7 @@ export const Signup = () => {
   const years = Array.from({ length: 100 }, (_, i) => (currentYear - i).toString());
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="min-h-screen bg-background flex flex-col lg:flex-row">
       {/* Left side - Form */}
       <div className="flex-1 flex items-center justify-center p-4 sm:p-8">
         <div className="w-full max-w-md">
@@ -849,8 +849,8 @@ export const Signup = () => {
         </div>
       </div>
 
-      {/* Right side - Referral Downline Diagram */}
-      <div className="hidden lg:flex flex-1 dolphy-gradient items-center justify-center p-8 overflow-y-auto">
+      {/* Right side / Bottom on mobile - Referral Downline Diagram */}
+      <div className="flex lg:flex-1 dolphy-gradient items-center justify-center p-8 overflow-y-auto">
         <ReferralDownlineDiagram />
       </div>
 
