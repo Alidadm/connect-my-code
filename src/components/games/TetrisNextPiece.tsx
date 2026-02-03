@@ -51,36 +51,15 @@ export const TetrisNextPiece = memo(({ piece }: TetrisNextPieceProps) => {
               )}
               {cell === 1 && (
                 <div
-                  className="absolute inset-0.5 rounded-sm"
+                  className="absolute inset-0"
                   style={{
-                    background: `linear-gradient(135deg, 
-                      ${adjustColor(piece.color, 40)} 0%, 
-                      ${piece.color} 30%, 
-                      ${piece.color} 70%, 
-                      ${adjustColor(piece.color, -40)} 100%)`,
-                    boxShadow: `
-                      inset 1px 1px 3px ${adjustColor(piece.color, 60)},
-                      inset -1px -1px 3px ${adjustColor(piece.color, -60)},
-                      1px 1px 3px rgba(0,0,0,0.3)
-                    `,
+                    backgroundColor: piece.color,
+                    borderTop: `2px solid ${adjustColor(piece.color, 30)}`,
+                    borderLeft: `2px solid ${adjustColor(piece.color, 30)}`,
+                    borderBottom: `2px solid ${adjustColor(piece.color, -40)}`,
+                    borderRight: `2px solid ${adjustColor(piece.color, -40)}`,
                   }}
-                >
-                  {/* Top highlight */}
-                  <div 
-                    className="absolute top-0 left-0 right-0 h-[2px] rounded-t-sm"
-                    style={{ background: `linear-gradient(180deg, ${adjustColor(piece.color, 80)}, transparent)` }}
-                  />
-                  {/* Left highlight */}
-                  <div 
-                    className="absolute top-0 left-0 bottom-0 w-[2px] rounded-l-sm"
-                    style={{ background: `linear-gradient(90deg, ${adjustColor(piece.color, 60)}, transparent)` }}
-                  />
-                  {/* Center shine */}
-                  <div 
-                    className="absolute top-0.5 left-0.5 w-1.5 h-1.5 rounded-full opacity-60"
-                    style={{ background: `radial-gradient(circle, ${adjustColor(piece.color, 90)}, transparent)` }}
-                  />
-                </div>
+                />
               )}
             </div>
           ))
