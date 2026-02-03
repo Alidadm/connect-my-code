@@ -8,7 +8,7 @@ interface TetrisBoardProps {
   ghostY: number;
 }
 
-const CELL_SIZE = 24;
+const CELL_SIZE = 28;
 
 // Helper function to adjust HSL color brightness
 const adjustColor = (hslColor: string, amount: number): string => {
