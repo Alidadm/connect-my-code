@@ -3194,6 +3194,81 @@ export type Database = {
         }
         Relationships: []
       }
+      tetris_high_scores: {
+        Row: {
+          created_at: string
+          difficulty: string
+          game_mode: string
+          id: string
+          level: number
+          lines_cleared: number
+          score: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          difficulty?: string
+          game_mode?: string
+          id?: string
+          level?: number
+          lines_cleared?: number
+          score?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          difficulty?: string
+          game_mode?: string
+          id?: string
+          level?: number
+          lines_cleared?: number
+          score?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      tetris_stats: {
+        Row: {
+          ai_losses: number
+          ai_wins: number
+          best_level: number
+          best_score: number
+          created_at: string
+          games_played: number
+          id: string
+          total_lines_cleared: number
+          total_score: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ai_losses?: number
+          ai_wins?: number
+          best_level?: number
+          best_score?: number
+          created_at?: string
+          games_played?: number
+          id?: string
+          total_lines_cleared?: number
+          total_score?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ai_losses?: number
+          ai_wins?: number
+          best_level?: number
+          best_score?: number
+          created_at?: string
+          games_played?: number
+          id?: string
+          total_lines_cleared?: number
+          total_score?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       tic_tac_toe_games: {
         Row: {
           board: string[]
