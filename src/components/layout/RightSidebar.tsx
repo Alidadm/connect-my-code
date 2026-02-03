@@ -24,6 +24,7 @@ import { ScheduleBirthdayWishDialog } from "@/components/birthday/ScheduleBirthd
 import { OnlineIndicator } from "@/components/ui/online-indicator";
 import { SavedGalleryWidget } from "@/components/sidebar/SavedGalleryWidget";
 import { NewsWidget } from "@/components/news/NewsWidget";
+import { PendingGameInvitesWidget } from "@/components/sidebar/PendingGameInvitesWidget";
 
 interface MessageWithSender {
   id: string;
@@ -595,6 +596,9 @@ export const RightSidebar = () => {
 
         {/* Saved Gallery Widget */}
         <SavedGalleryWidget />
+
+        {/* Pending Game Invites Widget */}
+        <PendingGameInvitesWidget />
 
         {/* Birthday Reminders */}
         {birthdays.length > 0 && (
