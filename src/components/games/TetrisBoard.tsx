@@ -10,6 +10,16 @@ interface TetrisBoardProps {
 
 const CELL_SIZE = 24;
 
+// Helper function to adjust HSL color brightness
+const adjustColor = (hslColor: string, amount: number): string => {
+  const match = hslColor.match(/hsl\((\d+),\s*(\d+)%,\s*(\d+)%\)/);
+  if (!match) return hslColor;
+  const h = parseInt(match[1]);
+  const s = parseInt(match[2]);
+  const l = Math.max(0, Math.min(100, parseInt(match[3]) + amount));
+  return `hsl(${h}, ${s}%, ${l}%)`;
+};
+
 export const TetrisBoard = memo(({ board, currentPiece, position, ghostY }: TetrisBoardProps) => {
   // Merge current piece and ghost piece onto display board
   const displayBoard = board.map((row) => [...row]);
@@ -65,28 +75,66 @@ export const TetrisBoard = memo(({ board, currentPiece, position, ghostY }: Tetr
             return (
               <div
                 key={`${rowIndex}-${colIndex}`}
-                className="relative border border-border/20"
+                className="relative"
                 style={{
                   width: CELL_SIZE,
                   height: CELL_SIZE,
-                  backgroundColor: cell || undefined,
                 }}
               >
+                {/* Empty cell grid */}
+                {!cell && !isGhost && (
+                  <div className="absolute inset-0 border border-border/10" />
+                )}
                 {/* Ghost piece indicator */}
                 {isGhost && (
                   <div
-                    className="absolute inset-0.5 border-2 border-dashed opacity-30"
+                    className="absolute inset-1 rounded-sm border-2 border-dashed opacity-40"
                     style={{ borderColor: ghostBoard[rowIndex][colIndex] || undefined }}
                   />
                 )}
-                {/* Pixel block styling */}
+                {/* 3D Block styling */}
                 {cell && (
-                  <>
-                    <div className="absolute top-0 left-0 right-0 h-1 bg-white/30" />
-                    <div className="absolute top-0 left-0 bottom-0 w-1 bg-white/20" />
-                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/30" />
-                    <div className="absolute top-0 right-0 bottom-0 w-1 bg-black/20" />
-                  </>
+                  <div
+                    className="absolute inset-0.5 rounded-sm"
+                    style={{
+                      background: `linear-gradient(135deg, 
+                        ${adjustColor(cell, 40)} 0%, 
+                        ${cell} 30%, 
+                        ${cell} 70%, 
+                        ${adjustColor(cell, -40)} 100%)`,
+                      boxShadow: `
+                        inset 2px 2px 4px ${adjustColor(cell, 60)},
+                        inset -2px -2px 4px ${adjustColor(cell, -60)},
+                        2px 2px 4px rgba(0,0,0,0.3)
+                      `,
+                    }}
+                  >
+                    {/* Top highlight */}
+                    <div 
+                      className="absolute top-0 left-0 right-0 h-[3px] rounded-t-sm"
+                      style={{ background: `linear-gradient(180deg, ${adjustColor(cell, 80)}, transparent)` }}
+                    />
+                    {/* Left highlight */}
+                    <div 
+                      className="absolute top-0 left-0 bottom-0 w-[3px] rounded-l-sm"
+                      style={{ background: `linear-gradient(90deg, ${adjustColor(cell, 60)}, transparent)` }}
+                    />
+                    {/* Bottom shadow */}
+                    <div 
+                      className="absolute bottom-0 left-0 right-0 h-[3px] rounded-b-sm"
+                      style={{ background: `linear-gradient(0deg, ${adjustColor(cell, -70)}, transparent)` }}
+                    />
+                    {/* Right shadow */}
+                    <div 
+                      className="absolute top-0 right-0 bottom-0 w-[3px] rounded-r-sm"
+                      style={{ background: `linear-gradient(270deg, ${adjustColor(cell, -50)}, transparent)` }}
+                    />
+                    {/* Center shine */}
+                    <div 
+                      className="absolute top-1 left-1 w-2 h-2 rounded-full opacity-60"
+                      style={{ background: `radial-gradient(circle, ${adjustColor(cell, 90)}, transparent)` }}
+                    />
+                  </div>
                 )}
               </div>
             );
