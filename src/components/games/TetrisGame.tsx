@@ -1,7 +1,7 @@
 import { useEffect, useCallback, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Play, RotateCcw, Bot, User, X } from "lucide-react";
+import { ArrowLeft, Play, RotateCcw, Bot, User } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useTetris } from "@/hooks/useTetris";
 import { TetrisBoard } from "./TetrisBoard";
@@ -229,21 +229,16 @@ export const TetrisGame = ({ onBack, isAIGame = false }: TetrisGameProps) => {
       {/* Game Lightbox */}
       <Dialog open={isLightboxOpen} onOpenChange={setIsLightboxOpen}>
         <DialogContent className="max-w-4xl w-full max-h-[95vh] overflow-y-auto p-0 bg-background/95 backdrop-blur-md">
-          <DialogHeader className="p-4 pb-2 border-b">
-            <div className="flex items-center justify-between">
-              <DialogTitle className="flex items-center gap-2 text-xl">
-                <span>🎮</span>
-                {t("games.tetris.title", { defaultValue: "Tetris" })}
-                {gameMode === "ai" && (
-                  <span className="text-sm font-normal text-muted-foreground ml-2">
-                    (vs AI)
-                  </span>
-                )}
-              </DialogTitle>
-              <Button variant="ghost" size="icon" onClick={handleCloseLightbox}>
-                <X className="w-5 h-5" />
-              </Button>
-            </div>
+          <DialogHeader className="p-4 pb-2 border-b pr-12">
+            <DialogTitle className="flex items-center gap-2 text-xl">
+              <span>🎮</span>
+              {t("games.tetris.title", { defaultValue: "Tetris" })}
+              {gameMode === "ai" && (
+                <span className="text-sm font-normal text-muted-foreground ml-2">
+                  (vs AI)
+                </span>
+              )}
+            </DialogTitle>
           </DialogHeader>
 
           <div className="p-4 pt-2">
