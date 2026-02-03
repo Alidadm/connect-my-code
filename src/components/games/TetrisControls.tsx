@@ -37,25 +37,34 @@ export const TetrisControls = memo(({
   return (
     <div className="flex flex-col gap-3">
       {/* Pause Button */}
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={onTogglePause}
-        disabled={disabled}
-        className="w-full"
+      <div
+        className="p-[1px] rounded-lg"
+        style={{
+          background: "linear-gradient(135deg, hsl(280, 80%, 50%), hsl(200, 90%, 50%), hsl(160, 80%, 45%), hsl(280, 80%, 50%))",
+          backgroundSize: "300% 300%",
+          animation: "borderGlow 4s ease infinite",
+        }}
       >
-        {isPaused ? (
-          <>
-            <Play className="w-4 h-4 mr-2" />
-            {t("games.tetris.resume", { defaultValue: "Resume" })}
-          </>
-        ) : (
-          <>
-            <Pause className="w-4 h-4 mr-2" />
-            {t("games.tetris.pause", { defaultValue: "Pause" })}
-          </>
-        )}
-      </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onTogglePause}
+          disabled={disabled}
+          className="w-full border-0 bg-card hover:bg-accent"
+        >
+          {isPaused ? (
+            <>
+              <Play className="w-4 h-4 mr-2 text-green-500" />
+              {t("games.tetris.resume", { defaultValue: "Resume" })}
+            </>
+          ) : (
+            <>
+              <Pause className="w-4 h-4 mr-2 text-amber-500" />
+              {t("games.tetris.pause", { defaultValue: "Pause" })}
+            </>
+          )}
+        </Button>
+      </div>
 
       {/* Mobile Touch Controls */}
       <div className="grid grid-cols-3 gap-2 md:hidden">

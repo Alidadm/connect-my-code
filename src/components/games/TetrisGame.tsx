@@ -382,15 +382,24 @@ export const TetrisGame = ({ onBack, isAIGame = false }: TetrisGameProps) => {
                       )}
                       {/* Restart Button */}
                       {state.isPlaying && !state.gameOver && (
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="w-full mt-2"
-                          onClick={() => handleStartGame(gameMode!)}
+                        <div
+                          className="p-[1px] rounded-lg mt-2"
+                          style={{
+                            background: "linear-gradient(135deg, hsl(280, 80%, 50%), hsl(200, 90%, 50%), hsl(160, 80%, 45%), hsl(280, 80%, 50%))",
+                            backgroundSize: "300% 300%",
+                            animation: "borderGlow 4s ease infinite",
+                          }}
                         >
-                          <RotateCcw className="w-4 h-4 mr-2" />
-                          {t("games.tetris.restart", { defaultValue: "Restart" })}
-                        </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="w-full border-0 bg-card hover:bg-accent"
+                            onClick={() => handleStartGame(gameMode!)}
+                          >
+                            <RotateCcw className="w-4 h-4 mr-2 text-cyan-500" />
+                            {t("games.tetris.restart", { defaultValue: "Restart" })}
+                          </Button>
+                        </div>
                       )}
                     </CardContent>
                   </Card>
