@@ -40,50 +40,59 @@ export const TetrisBoard = memo(({ board, currentPiece, position }: TetrisBoardP
 
   return (
     <div
-      className="relative border-4 border-border bg-background/80 shadow-lg"
+      className="relative p-1 rounded-lg shadow-xl"
       style={{
-        width: BOARD_WIDTH * CELL_SIZE + 8,
-        height: BOARD_HEIGHT * CELL_SIZE + 8,
-        imageRendering: "pixelated",
+        background: "linear-gradient(135deg, hsl(280, 80%, 50%), hsl(200, 90%, 50%), hsl(160, 80%, 45%), hsl(280, 80%, 50%))",
+        backgroundSize: "300% 300%",
+        animation: "borderGlow 4s ease infinite",
       }}
     >
-      {/* Grid lines for retro effect */}
-      <div className="absolute inset-1 grid"
+      <div
+        className="relative bg-background/95 rounded-md"
         style={{
-          gridTemplateColumns: `repeat(${BOARD_WIDTH}, ${CELL_SIZE}px)`,
-          gridTemplateRows: `repeat(${BOARD_HEIGHT}, ${CELL_SIZE}px)`,
+          width: BOARD_WIDTH * CELL_SIZE + 8,
+          height: BOARD_HEIGHT * CELL_SIZE + 8,
+          imageRendering: "pixelated",
         }}
       >
-        {displayBoard.map((row, rowIndex) =>
-          row.map((cell, colIndex) => (
-            <div
-              key={`${rowIndex}-${colIndex}`}
-              className="relative"
-              style={{
-                width: CELL_SIZE,
-                height: CELL_SIZE,
-              }}
-            >
-              {/* Empty cell grid */}
-              {!cell && (
-                <div className="absolute inset-0 border border-border/10" />
-              )}
-              {/* 3D Block styling - flat with border */}
-              {cell && (
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    backgroundColor: cell,
-                    borderTop: `2px solid ${adjustColor(cell, 30)}`,
-                    borderLeft: `2px solid ${adjustColor(cell, 30)}`,
-                    borderBottom: `2px solid ${adjustColor(cell, -40)}`,
-                    borderRight: `2px solid ${adjustColor(cell, -40)}`,
-                  }}
-                />
-              )}
-            </div>
-          ))
-        )}
+        {/* Grid lines for retro effect */}
+        <div className="absolute inset-1 grid"
+          style={{
+            gridTemplateColumns: `repeat(${BOARD_WIDTH}, ${CELL_SIZE}px)`,
+            gridTemplateRows: `repeat(${BOARD_HEIGHT}, ${CELL_SIZE}px)`,
+          }}
+        >
+          {displayBoard.map((row, rowIndex) =>
+            row.map((cell, colIndex) => (
+              <div
+                key={`${rowIndex}-${colIndex}`}
+                className="relative"
+                style={{
+                  width: CELL_SIZE,
+                  height: CELL_SIZE,
+                }}
+              >
+                {/* Empty cell grid */}
+                {!cell && (
+                  <div className="absolute inset-0 border border-border/10" />
+                )}
+                {/* 3D Block styling - flat with border */}
+                {cell && (
+                  <div
+                    className="absolute inset-0"
+                    style={{
+                      backgroundColor: cell,
+                      borderTop: `2px solid ${adjustColor(cell, 30)}`,
+                      borderLeft: `2px solid ${adjustColor(cell, 30)}`,
+                      borderBottom: `2px solid ${adjustColor(cell, -40)}`,
+                      borderRight: `2px solid ${adjustColor(cell, -40)}`,
+                    }}
+                  />
+                )}
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </div>
   );
