@@ -228,8 +228,8 @@ export const TetrisGame = ({ onBack, isAIGame = false }: TetrisGameProps) => {
 
       {/* Game Lightbox */}
       <Dialog open={isLightboxOpen} onOpenChange={setIsLightboxOpen}>
-        <DialogContent className="max-w-4xl w-full max-h-[95vh] overflow-y-auto p-0 bg-background/95 backdrop-blur-md">
-          <DialogHeader className="p-4 pb-2 border-b pr-12">
+        <DialogContent className="max-w-5xl w-[95vw] h-[90vh] flex flex-col p-0 bg-background/95 backdrop-blur-md">
+          <DialogHeader className="p-4 pb-2 border-b pr-12 flex-shrink-0">
             <DialogTitle className="flex items-center gap-2 text-xl">
               <span>🎮</span>
               {t("games.tetris.title", { defaultValue: "Tetris" })}
@@ -241,9 +241,9 @@ export const TetrisGame = ({ onBack, isAIGame = false }: TetrisGameProps) => {
             </DialogTitle>
           </DialogHeader>
 
-          <div className="p-4 pt-2">
+          <div className="flex-1 overflow-y-auto p-4 pt-2">
             {/* Game Area */}
-            <div className="flex flex-col lg:flex-row gap-6 justify-center items-center lg:items-start">
+            <div className="flex flex-col lg:flex-row gap-6 justify-center items-center lg:items-start min-h-full">
               {/* Left Panel - Next Piece & Controls */}
               <div className="flex flex-col gap-4 w-full lg:w-auto order-2 lg:order-1">
                 {state.nextPiece && <TetrisNextPiece piece={state.nextPiece} />}
@@ -259,8 +259,8 @@ export const TetrisGame = ({ onBack, isAIGame = false }: TetrisGameProps) => {
                 />
               </div>
 
-              {/* Center - Game Board (Bigger) */}
-              <div className="relative order-1 lg:order-2 scale-110 lg:scale-125 origin-top">
+              {/* Center - Game Board */}
+              <div className="relative order-1 lg:order-2">
                 <TetrisBoard
                   board={state.board}
                   currentPiece={state.currentPiece}
