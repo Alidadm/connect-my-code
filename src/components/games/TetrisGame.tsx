@@ -342,50 +342,59 @@ export const TetrisGame = ({ onBack, isAIGame = false }: TetrisGameProps) => {
               {/* Right Panel - Score */}
               <div className="flex flex-col gap-4 w-full lg:w-56 order-3">
                 {/* Score Display */}
-                <Card>
-                  <CardContent className="py-4 space-y-3">
-                    <div>
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider">
-                        {t("games.tetris.score", { defaultValue: "Score" })}
-                      </p>
-                      <p className="text-3xl font-bold font-mono">{state.score.toLocaleString()}</p>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
+                <div
+                  className="p-[1px] rounded-lg"
+                  style={{
+                    background: "linear-gradient(135deg, hsl(280, 80%, 50%), hsl(200, 90%, 50%), hsl(160, 80%, 45%), hsl(280, 80%, 50%))",
+                    backgroundSize: "300% 300%",
+                    animation: "borderGlow 4s ease infinite",
+                  }}
+                >
+                  <Card className="border-0">
+                    <CardContent className="py-4 space-y-3">
                       <div>
                         <p className="text-xs text-muted-foreground uppercase tracking-wider">
-                          {t("games.tetris.level", { defaultValue: "Level" })}
+                          {t("games.tetris.score", { defaultValue: "Score" })}
                         </p>
-                        <p className="text-xl font-bold">{state.level}</p>
+                        <p className="text-3xl font-bold font-mono">{state.score.toLocaleString()}</p>
                       </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground uppercase tracking-wider">
-                          {t("games.tetris.lines", { defaultValue: "Lines" })}
-                        </p>
-                        <p className="text-xl font-bold">{state.linesCleared}</p>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                            {t("games.tetris.level", { defaultValue: "Level" })}
+                          </p>
+                          <p className="text-xl font-bold">{state.level}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                            {t("games.tetris.lines", { defaultValue: "Lines" })}
+                          </p>
+                          <p className="text-xl font-bold">{state.linesCleared}</p>
+                        </div>
                       </div>
-                    </div>
-                    {gameMode === "ai" && (
-                      <div className="pt-2 border-t">
-                        <p className="text-xs text-muted-foreground uppercase tracking-wider">
-                          {t("games.tetris.aiTarget", { defaultValue: "AI Target" })}
-                        </p>
-                        <p className="text-xl font-bold text-orange-500">{aiScore.toLocaleString()}</p>
-                      </div>
-                    )}
-                    {/* Restart Button */}
-                    {state.isPlaying && !state.gameOver && (
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="w-full mt-2"
-                        onClick={() => handleStartGame(gameMode!)}
-                      >
-                        <RotateCcw className="w-4 h-4 mr-2" />
-                        {t("games.tetris.restart", { defaultValue: "Restart" })}
-                      </Button>
-                    )}
-                  </CardContent>
-                </Card>
+                      {gameMode === "ai" && (
+                        <div className="pt-2 border-t">
+                          <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                            {t("games.tetris.aiTarget", { defaultValue: "AI Target" })}
+                          </p>
+                          <p className="text-xl font-bold text-orange-500">{aiScore.toLocaleString()}</p>
+                        </div>
+                      )}
+                      {/* Restart Button */}
+                      {state.isPlaying && !state.gameOver && (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="w-full mt-2"
+                          onClick={() => handleStartGame(gameMode!)}
+                        >
+                          <RotateCcw className="w-4 h-4 mr-2" />
+                          {t("games.tetris.restart", { defaultValue: "Restart" })}
+                        </Button>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
               </div>
             </div>
           </div>

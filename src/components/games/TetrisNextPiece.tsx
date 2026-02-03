@@ -22,10 +22,18 @@ export const TetrisNextPiece = memo(({ piece }: TetrisNextPieceProps) => {
   const { t } = useTranslation();
   
   return (
-    <div className="bg-card border-2 border-border rounded-lg p-3">
-      <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider">
-        {t("games.tetris.next", { defaultValue: "Next" })}
-      </p>
+    <div
+      className="p-[1px] rounded-lg"
+      style={{
+        background: "linear-gradient(135deg, hsl(280, 80%, 50%), hsl(200, 90%, 50%), hsl(160, 80%, 45%), hsl(280, 80%, 50%))",
+        backgroundSize: "300% 300%",
+        animation: "borderGlow 4s ease infinite",
+      }}
+    >
+      <div className="bg-card rounded-lg p-3">
+        <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider">
+          {t("games.tetris.next", { defaultValue: "Next" })}
+        </p>
       <div
         className="grid gap-0.5 mx-auto"
         style={{
@@ -64,6 +72,7 @@ export const TetrisNextPiece = memo(({ piece }: TetrisNextPieceProps) => {
             </div>
           ))
         )}
+      </div>
       </div>
     </div>
   );
