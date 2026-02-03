@@ -265,7 +265,6 @@ export const TetrisGame = ({ onBack, isAIGame = false }: TetrisGameProps) => {
                   board={state.board}
                   currentPiece={state.currentPiece}
                   position={state.position}
-                  ghostY={ghostY}
                 />
 
                 {/* Pause Overlay */}
