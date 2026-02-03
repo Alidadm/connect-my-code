@@ -269,15 +269,36 @@ export const TetrisGame = ({ onBack, isAIGame = false }: TetrisGameProps) => {
                 />
 
                 {/* Pause Overlay */}
-                {state.isPaused && (
+                {state.isPaused && !state.gameOver && (
                   <div className="absolute inset-0 bg-background/80 flex items-center justify-center backdrop-blur-sm">
-                    <div className="text-center">
-                      <p className="text-xl font-bold mb-4">
+                    <div className="text-center space-y-4">
+                      <p className="text-xl font-bold">
                         {t("games.tetris.paused", { defaultValue: "PAUSED" })}
                       </p>
-                      <Button onClick={togglePause}>
+                      <div className="flex flex-col gap-2">
+                        <Button onClick={togglePause}>
+                          <Play className="w-4 h-4 mr-2" />
+                          {t("games.tetris.resume", { defaultValue: "Resume" })}
+                        </Button>
+                        <Button variant="outline" onClick={() => handleStartGame(gameMode!)}>
+                          <RotateCcw className="w-4 h-4 mr-2" />
+                          {t("games.tetris.restart", { defaultValue: "Restart" })}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Not Playing Overlay (game stopped unexpectedly) */}
+                {!state.isPlaying && !state.gameOver && !state.isPaused && (
+                  <div className="absolute inset-0 bg-background/80 flex items-center justify-center backdrop-blur-sm">
+                    <div className="text-center space-y-4">
+                      <p className="text-lg font-medium text-muted-foreground">
+                        {t("games.tetris.gameStopped", { defaultValue: "Game Stopped" })}
+                      </p>
+                      <Button onClick={() => handleStartGame(gameMode!)}>
                         <Play className="w-4 h-4 mr-2" />
-                        {t("games.tetris.resume", { defaultValue: "Resume" })}
+                        {t("games.tetris.startNew", { defaultValue: "Start New Game" })}
                       </Button>
                     </div>
                   </div>
@@ -351,6 +372,18 @@ export const TetrisGame = ({ onBack, isAIGame = false }: TetrisGameProps) => {
                         </p>
                         <p className="text-xl font-bold text-orange-500">{aiScore.toLocaleString()}</p>
                       </div>
+                    )}
+                    {/* Restart Button */}
+                    {state.isPlaying && !state.gameOver && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full mt-2"
+                        onClick={() => handleStartGame(gameMode!)}
+                      >
+                        <RotateCcw className="w-4 h-4 mr-2" />
+                        {t("games.tetris.restart", { defaultValue: "Restart" })}
+                      </Button>
                     )}
                   </CardContent>
                 </Card>
