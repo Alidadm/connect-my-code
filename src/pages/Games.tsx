@@ -19,11 +19,14 @@ import { Gamepad2, Plus, Clock, Trophy, Users, Loader2, History, Grid3X3, Layout
 import tictactoePreview from "@/assets/games/tictactoe-preview.png";
 import memoryPreview from "@/assets/games/memory-preview.png";
 import sudokuPreview from "@/assets/games/sudoku-preview.png";
+import tetrisPreview from "@/assets/games/tetris-preview.png";
 import { useTranslation } from "react-i18next";
 import { SudokuGame } from "@/components/games/SudokuGame";
 import { SudokuStats } from "@/components/games/SudokuStats";
 import { SudokuDifficultySelector } from "@/components/games/SudokuDifficultySelector";
 import { InviteFriendToSudokuDialog } from "@/components/games/InviteFriendToSudokuDialog";
+import { TetrisGame } from "@/components/games/TetrisGame";
+import { TetrisStats } from "@/components/games/TetrisStats";
 import { generateSudoku } from "@/lib/sudokuGenerator";
 import { Json } from "@/integrations/supabase/types";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -98,9 +101,13 @@ const GamesContent = () => {
   const [activeTab, setActiveTab] = useState("active");
   const [isPlayingVsAI, setIsPlayingVsAI] = useState(false);
   const [showTicTacToeModeSelector, setShowTicTacToeModeSelector] = useState(false);
+  
+  // Tetris state
+  const [showTetris, setShowTetris] = useState(false);
+  const [tetrisStats, setTetrisStats] = useState<any>(null);
 
   const [loading, setLoading] = useState(true);
-  const [activeGameType, setActiveGameType] = useState<"tictactoe" | "memory" | "sudoku">(() => {
+  const [activeGameType, setActiveGameType] = useState<"tictactoe" | "memory" | "sudoku" | "tetris">(() => {
     // If coming from a saved game link, start on sudoku tab
     const sudokuParam = searchParams.get("sudoku");
     if (sudokuParam && sudokuParam !== "null" && sudokuParam !== "undefined") {
@@ -130,9 +137,20 @@ const GamesContent = () => {
       fetchAllGames();
       fetchSudokuStats();
       fetchSavedSudokuGames();
+      fetchTetrisStats();
       subscribeToGames();
     }
   }, [user]);
+
+  const fetchTetrisStats = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("tetris_stats")
+      .select("*")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    setTetrisStats(data);
+  };
 
   const fetchSudokuStats = async () => {
     if (!user) return;
@@ -701,6 +719,27 @@ const GamesContent = () => {
               </TooltipContent>
             </Tooltip>
           </div>
+
+          {/* Tetris Game Selector */}
+          <div className="flex flex-col items-center gap-2">
+            <button
+              onClick={() => setActiveGameType("tetris")}
+              className={`relative group flex flex-col items-center p-3 rounded-xl border-2 transition-all ${
+                activeGameType === "tetris"
+                  ? "border-primary bg-primary/10 shadow-md"
+                  : "border-border hover:border-primary/50 hover:bg-accent"
+              }`}
+            >
+              <img 
+                src={tetrisPreview} 
+                alt="Tetris" 
+                className="w-16 h-16 sm:w-20 sm:h-20 object-contain rounded-lg"
+              />
+              <span className={`mt-2 text-sm font-medium ${activeGameType === "tetris" ? "text-primary" : "text-foreground"}`}>
+                {t("games.tetris.title", { defaultValue: "Tetris" })}
+              </span>
+            </button>
+          </div>
         </div>
 
         {/* Stats Card */}
@@ -713,9 +752,19 @@ const GamesContent = () => {
         {activeGameType === "sudoku" && (
           <SudokuStats stats={sudokuStats} />
         )}
+        {activeGameType === "tetris" && (
+          <TetrisStats stats={tetrisStats} />
+        )}
 
         {/* Game Card */}
-        {activeGameType === "sudoku" ? (
+        {activeGameType === "tetris" ? (
+          <TetrisGame
+            onBack={() => {
+              setActiveGameType("tictactoe");
+              fetchTetrisStats();
+            }}
+          />
+        ) : activeGameType === "sudoku" ? (
           selectedSudokuId || sudokuPuzzle ? (
             <SudokuGame
               gameId={selectedSudokuId}
@@ -741,7 +790,7 @@ const GamesContent = () => {
           )
         ) : activeGameType === "tictactoe" && showTicTacToeModeSelector ? (
           <TicTacToeModeSelector onSelectMode={handleTicTacToeModeSelect} />
-        ) : (
+        ) : (activeGameType === "memory" || activeGameType === "tictactoe") ? (
           <Card>
             <CardHeader className="pb-4">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -851,7 +900,7 @@ const GamesContent = () => {
               </Tabs>
             </CardContent>
           </Card>
-        )}
+        ) : null}
       </div>
 
       <InviteFriendToGameDialog
