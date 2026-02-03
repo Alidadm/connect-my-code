@@ -60,6 +60,11 @@ export const LandingPage = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Button asChild size="lg" className="w-full sm:w-auto min-w-[200px] h-12 text-lg font-semibold shadow-lg hover:shadow-xl transition-all">
+                <Link to="/signup">
+                  Sign Up
+                </Link>
+              </Button>
               <Button asChild variant="outline" size="lg" className="w-full sm:w-auto min-w-[200px] h-12 text-lg font-semibold">
                 <Link to="/login">
                   Sign In
@@ -190,20 +195,19 @@ export const LandingPage = () => {
             Ready to Join the Community?
           </h2>
           <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Create your free account today and start connecting with thousands of members worldwide.
+            Create your account today and start connecting with thousands of members worldwide.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button asChild size="lg" className="w-full sm:w-auto min-w-[200px] h-12 text-lg font-semibold shadow-lg">
               <Link to="/signup">
-                Create Free Account
+                Sign Up
               </Link>
             </Button>
-            <p className="text-sm text-muted-foreground">
-              Already have an account?{" "}
-              <Link to="/login" className="text-primary hover:underline font-medium">
-                Sign in here
+            <Button asChild variant="outline" size="lg" className="w-full sm:w-auto min-w-[200px] h-12 text-lg font-semibold">
+              <Link to="/login">
+                Sign In
               </Link>
-            </p>
+            </Button>
           </div>
         </div>
       </section>
