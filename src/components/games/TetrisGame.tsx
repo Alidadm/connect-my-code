@@ -1,7 +1,7 @@
 import { useEffect, useCallback, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Play, RotateCcw, Bot, User } from "lucide-react";
+import { ArrowLeft, Play, RotateCcw, Bot, User, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useTetris } from "@/hooks/useTetris";
 import { TetrisBoard } from "./TetrisBoard";
@@ -13,6 +13,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { useGameSounds } from "@/hooks/useGameSounds";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface TetrisGameProps {
   onBack: () => void;
@@ -27,6 +33,7 @@ export const TetrisGame = ({ onBack, isAIGame = false }: TetrisGameProps) => {
   const [gameMode, setGameMode] = useState<"solo" | "ai" | null>(isAIGame ? "ai" : null);
   const [aiScore, setAiScore] = useState(0);
   const [scoreSaved, setScoreSaved] = useState(false);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
   const {
     state,
@@ -50,6 +57,7 @@ export const TetrisGame = ({ onBack, isAIGame = false }: TetrisGameProps) => {
   const handleStartGame = (mode: "solo" | "ai") => {
     setGameMode(mode);
     setScoreSaved(false);
+    setIsLightboxOpen(true);
     if (mode === "ai") {
       setAiScore(generateAIScore());
     }
@@ -122,7 +130,7 @@ export const TetrisGame = ({ onBack, isAIGame = false }: TetrisGameProps) => {
 
   // Keyboard controls
   useEffect(() => {
-    if (!state.isPlaying) return;
+    if (!state.isPlaying || !isLightboxOpen) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (state.gameOver) return;
@@ -150,20 +158,32 @@ export const TetrisGame = ({ onBack, isAIGame = false }: TetrisGameProps) => {
           break;
         case "p":
         case "P":
-        case "Escape":
           e.preventDefault();
           togglePause();
+          break;
+        case "Escape":
+          e.preventDefault();
+          if (!state.isPaused) {
+            togglePause();
+          }
           break;
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [state.isPlaying, state.gameOver, movePiece, rotate, softDrop, hardDrop, togglePause]);
+  }, [state.isPlaying, state.gameOver, state.isPaused, isLightboxOpen, movePiece, rotate, softDrop, hardDrop, togglePause]);
+
+  const handleCloseLightbox = () => {
+    setIsLightboxOpen(false);
+    if (state.isPlaying && !state.isPaused && !state.gameOver) {
+      togglePause();
+    }
+  };
 
   // Mode selector
-  if (gameMode === null) {
-    return (
+  return (
+    <>
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
@@ -200,147 +220,150 @@ export const TetrisGame = ({ onBack, isAIGame = false }: TetrisGameProps) => {
               <span>{t("games.tetris.vsAI", { defaultValue: "vs AI" })}</span>
             </Button>
           </div>
+
+          {/* Leaderboard shown in main view */}
+          <TetrisLeaderboard />
         </CardContent>
       </Card>
-    );
-  }
 
-  return (
-    <div className="space-y-4">
-      {/* Header */}
-      <Card>
-        <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" onClick={onBack}>
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-              <CardTitle className="flex items-center gap-2 text-lg">
+      {/* Game Lightbox */}
+      <Dialog open={isLightboxOpen} onOpenChange={setIsLightboxOpen}>
+        <DialogContent className="max-w-4xl w-full max-h-[95vh] overflow-y-auto p-0 bg-background/95 backdrop-blur-md">
+          <DialogHeader className="p-4 pb-2 border-b">
+            <div className="flex items-center justify-between">
+              <DialogTitle className="flex items-center gap-2 text-xl">
                 <span>🎮</span>
                 {t("games.tetris.title", { defaultValue: "Tetris" })}
                 {gameMode === "ai" && (
-                  <span className="text-sm font-normal text-muted-foreground">
+                  <span className="text-sm font-normal text-muted-foreground ml-2">
                     (vs AI)
                   </span>
                 )}
-              </CardTitle>
+              </DialogTitle>
+              <Button variant="ghost" size="icon" onClick={handleCloseLightbox}>
+                <X className="w-5 h-5" />
+              </Button>
             </div>
-          </div>
-        </CardHeader>
-      </Card>
+          </DialogHeader>
 
-      {/* Game Area */}
-      <div className="flex flex-col lg:flex-row gap-4 justify-center items-start">
-        {/* Left Panel - Next Piece & Controls */}
-        <div className="flex flex-col gap-3 w-full lg:w-auto order-2 lg:order-1">
-          {state.nextPiece && <TetrisNextPiece piece={state.nextPiece} />}
-          <TetrisControls
-            onMoveLeft={() => movePiece(-1, 0)}
-            onMoveRight={() => movePiece(1, 0)}
-            onRotate={rotate}
-            onSoftDrop={softDrop}
-            onHardDrop={hardDrop}
-            onTogglePause={togglePause}
-            isPaused={state.isPaused}
-            disabled={state.gameOver || !state.isPlaying}
-          />
-        </div>
-
-        {/* Center - Game Board */}
-        <div className="relative order-1 lg:order-2">
-          <TetrisBoard
-            board={state.board}
-            currentPiece={state.currentPiece}
-            position={state.position}
-            ghostY={ghostY}
-          />
-
-          {/* Pause Overlay */}
-          {state.isPaused && (
-            <div className="absolute inset-0 bg-background/80 flex items-center justify-center backdrop-blur-sm">
-              <div className="text-center">
-                <p className="text-xl font-bold mb-4">
-                  {t("games.tetris.paused", { defaultValue: "PAUSED" })}
-                </p>
-                <Button onClick={togglePause}>
-                  <Play className="w-4 h-4 mr-2" />
-                  {t("games.tetris.resume", { defaultValue: "Resume" })}
-                </Button>
+          <div className="p-4 pt-2">
+            {/* Game Area */}
+            <div className="flex flex-col lg:flex-row gap-6 justify-center items-center lg:items-start">
+              {/* Left Panel - Next Piece & Controls */}
+              <div className="flex flex-col gap-4 w-full lg:w-auto order-2 lg:order-1">
+                {state.nextPiece && <TetrisNextPiece piece={state.nextPiece} />}
+                <TetrisControls
+                  onMoveLeft={() => movePiece(-1, 0)}
+                  onMoveRight={() => movePiece(1, 0)}
+                  onRotate={rotate}
+                  onSoftDrop={softDrop}
+                  onHardDrop={hardDrop}
+                  onTogglePause={togglePause}
+                  isPaused={state.isPaused}
+                  disabled={state.gameOver || !state.isPlaying}
+                />
               </div>
-            </div>
-          )}
 
-          {/* Game Over Overlay */}
-          {state.gameOver && (
-            <div className="absolute inset-0 bg-background/90 flex items-center justify-center backdrop-blur-sm">
-              <div className="text-center space-y-4">
-                <p className="text-2xl font-bold text-destructive">
-                  {t("games.tetris.gameOver", { defaultValue: "GAME OVER" })}
-                </p>
-                {gameMode === "ai" && (
-                  <div className="space-y-2">
-                    <p className="text-lg">
-                      {t("games.tetris.yourScore", { defaultValue: "Your Score" })}: <span className="font-bold">{state.score.toLocaleString()}</span>
-                    </p>
-                    <p className="text-lg">
-                      {t("games.tetris.aiScore", { defaultValue: "AI Score" })}: <span className="font-bold">{aiScore.toLocaleString()}</span>
-                    </p>
-                    <p className={`text-xl font-bold ${state.score > aiScore ? "text-green-500" : "text-destructive"}`}>
-                      {state.score > aiScore
-                        ? t("games.tetris.youWin", { defaultValue: "YOU WIN!" })
-                        : t("games.tetris.aiWins", { defaultValue: "AI WINS!" })}
-                    </p>
+              {/* Center - Game Board (Bigger) */}
+              <div className="relative order-1 lg:order-2 scale-110 lg:scale-125 origin-top">
+                <TetrisBoard
+                  board={state.board}
+                  currentPiece={state.currentPiece}
+                  position={state.position}
+                  ghostY={ghostY}
+                />
+
+                {/* Pause Overlay */}
+                {state.isPaused && (
+                  <div className="absolute inset-0 bg-background/80 flex items-center justify-center backdrop-blur-sm">
+                    <div className="text-center">
+                      <p className="text-xl font-bold mb-4">
+                        {t("games.tetris.paused", { defaultValue: "PAUSED" })}
+                      </p>
+                      <Button onClick={togglePause}>
+                        <Play className="w-4 h-4 mr-2" />
+                        {t("games.tetris.resume", { defaultValue: "Resume" })}
+                      </Button>
+                    </div>
                   </div>
                 )}
-                <Button onClick={() => handleStartGame(gameMode)} className="gap-2">
-                  <RotateCcw className="w-4 h-4" />
-                  {t("games.tetris.playAgain", { defaultValue: "Play Again" })}
-                </Button>
+
+                {/* Game Over Overlay */}
+                {state.gameOver && (
+                  <div className="absolute inset-0 bg-background/90 flex items-center justify-center backdrop-blur-sm">
+                    <div className="text-center space-y-4">
+                      <p className="text-2xl font-bold text-destructive">
+                        {t("games.tetris.gameOver", { defaultValue: "GAME OVER" })}
+                      </p>
+                      {gameMode === "ai" && (
+                        <div className="space-y-2">
+                          <p className="text-lg">
+                            {t("games.tetris.yourScore", { defaultValue: "Your Score" })}: <span className="font-bold">{state.score.toLocaleString()}</span>
+                          </p>
+                          <p className="text-lg">
+                            {t("games.tetris.aiScore", { defaultValue: "AI Score" })}: <span className="font-bold">{aiScore.toLocaleString()}</span>
+                          </p>
+                          <p className={`text-xl font-bold ${state.score > aiScore ? "text-green-500" : "text-destructive"}`}>
+                            {state.score > aiScore
+                              ? t("games.tetris.youWin", { defaultValue: "YOU WIN!" })
+                              : t("games.tetris.aiWins", { defaultValue: "AI WINS!" })}
+                          </p>
+                        </div>
+                      )}
+                      <div className="flex gap-2 justify-center">
+                        <Button onClick={() => handleStartGame(gameMode!)} className="gap-2">
+                          <RotateCcw className="w-4 h-4" />
+                          {t("games.tetris.playAgain", { defaultValue: "Play Again" })}
+                        </Button>
+                        <Button variant="outline" onClick={handleCloseLightbox}>
+                          {t("common.close", { defaultValue: "Close" })}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Right Panel - Score */}
+              <div className="flex flex-col gap-4 w-full lg:w-56 order-3">
+                {/* Score Display */}
+                <Card>
+                  <CardContent className="py-4 space-y-3">
+                    <div>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                        {t("games.tetris.score", { defaultValue: "Score" })}
+                      </p>
+                      <p className="text-3xl font-bold font-mono">{state.score.toLocaleString()}</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                          {t("games.tetris.level", { defaultValue: "Level" })}
+                        </p>
+                        <p className="text-xl font-bold">{state.level}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                          {t("games.tetris.lines", { defaultValue: "Lines" })}
+                        </p>
+                        <p className="text-xl font-bold">{state.linesCleared}</p>
+                      </div>
+                    </div>
+                    {gameMode === "ai" && (
+                      <div className="pt-2 border-t">
+                        <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                          {t("games.tetris.aiTarget", { defaultValue: "AI Target" })}
+                        </p>
+                        <p className="text-xl font-bold text-orange-500">{aiScore.toLocaleString()}</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
               </div>
             </div>
-          )}
-        </div>
-
-        {/* Right Panel - Score & Leaderboard */}
-        <div className="flex flex-col gap-3 w-full lg:w-64 order-3">
-          {/* Score Display */}
-          <Card>
-            <CardContent className="py-4 space-y-3">
-              <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wider">
-                  {t("games.tetris.score", { defaultValue: "Score" })}
-                </p>
-                <p className="text-2xl font-bold font-mono">{state.score.toLocaleString()}</p>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider">
-                    {t("games.tetris.level", { defaultValue: "Level" })}
-                  </p>
-                  <p className="text-lg font-bold">{state.level}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider">
-                    {t("games.tetris.lines", { defaultValue: "Lines" })}
-                  </p>
-                  <p className="text-lg font-bold">{state.linesCleared}</p>
-                </div>
-              </div>
-              {gameMode === "ai" && (
-                <div className="pt-2 border-t">
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider">
-                    {t("games.tetris.aiTarget", { defaultValue: "AI Target" })}
-                  </p>
-                  <p className="text-lg font-bold text-orange-500">{aiScore.toLocaleString()}</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Leaderboard */}
-          <TetrisLeaderboard />
-        </div>
-      </div>
-    </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
