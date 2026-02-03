@@ -7,9 +7,6 @@ export const ReferralDownlineDiagram = () => {
       <h2 className="text-2xl sm:text-3xl font-bold mb-6">
         $10.99 / month per member
       </h2>
-      <p className="text-sm text-white/80 mb-8 bg-black/20 rounded-lg px-4 py-2 inline-block">
-        Base $9.99 + $1.00 processing fee
-      </p>
 
       {/* Diagram Container */}
       <div className="relative mb-8">
