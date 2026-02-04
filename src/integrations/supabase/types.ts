@@ -2082,6 +2082,7 @@ export type Database = {
           id: string
           interests: string[] | null
           is_discoverable: boolean | null
+          is_suspended: boolean | null
           looking_for_description: string | null
           preferred_countries: string[] | null
           updated_at: string
@@ -2092,6 +2093,7 @@ export type Database = {
           id?: string
           interests?: string[] | null
           is_discoverable?: boolean | null
+          is_suspended?: boolean | null
           looking_for_description?: string | null
           preferred_countries?: string[] | null
           updated_at?: string
@@ -2102,6 +2104,7 @@ export type Database = {
           id?: string
           interests?: string[] | null
           is_discoverable?: boolean | null
+          is_suspended?: boolean | null
           looking_for_description?: string | null
           preferred_countries?: string[] | null
           updated_at?: string
