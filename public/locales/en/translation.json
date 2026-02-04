@@ -476,7 +476,32 @@
     "profile": "Profile",
     "games": "Games",
     "saved": "Saved",
-    "templates": "Templates"
+    "templates": "Templates",
+    "penpals": "PenPals"
+  },
+  "penpal": {
+    "title": "PenPals",
+    "subtitle": "Discover and connect with new friends worldwide",
+    "discover": "Discover",
+    "myPenpals": "My PenPals",
+    "connect": "Connect",
+    "viewProfile": "View Profile",
+    "preferences": "Preferences",
+    "preferencesTitle": "PenPal Preferences",
+    "preferencesDesc": "Customize your PenPal profile to help others find you",
+    "discoverable": "Discoverable",
+    "discoverableDesc": "Allow others to find you in PenPal discovery",
+    "lookingFor": "What are you looking for?",
+    "lookingForPlaceholder": "Tell potential pen pals what kind of connections you're seeking...",
+    "interests": "Your Interests",
+    "interestsHint": "Select interests to help match with like-minded people",
+    "discoverHint": "Find new friends to connect with",
+    "noMoreProfiles": "No more profiles to discover",
+    "checkBackLater": "Check back later for new members or adjust your preferences",
+    "noPenpals": "No pen pals yet",
+    "startDiscovering": "Start discovering and connecting with new friends!",
+    "loginRequired": "Sign in to find Pen Pals",
+    "loginDesc": "Connect with new friends from around the world"
   },
   "birthday": {
     "scheduleWish": "Schedule Birthday Wish",

@@ -59,6 +59,7 @@ import Marketplace from "./pages/Marketplace";
 import MarketplaceListing from "./pages/MarketplaceListing";
 import Templates from "./pages/Templates";
 import PostView from "./pages/PostView";
+import PenPals from "./pages/PenPals";
 
 const queryClient = new QueryClient();
 
@@ -88,6 +89,7 @@ const router = createBrowserRouter([
     children: [
       { path: "/", element: <Index /> },
       { path: "/about", element: <About /> },
+      { path: "/penpals", element: <PenPals /> },
       { path: "/friends", element: <Friends /> },
       { path: "/login", element: <Login /> },
       { path: "/signup", element: <Signup /> },

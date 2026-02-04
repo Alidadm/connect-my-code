@@ -12,7 +12,8 @@ import {
   MessageSquarePlus,
   LogOut,
   LayoutDashboard,
-  Shield
+  Shield,
+  Sparkles
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -94,6 +95,7 @@ export const MobileDrawer = ({ open, onOpenChange }: MobileDrawerProps) => {
   const navItems = [
     { icon: Newspaper, label: t("nav.feed"), path: "/", badge: null, iconColor: "text-blue-500" },
     { icon: Users, label: t("nav.friends"), path: "/friends", badge: null, iconColor: "text-green-500" },
+    { icon: Sparkles, label: t("nav.penpals", { defaultValue: "PenPals" }), path: "/penpals", badge: null, iconColor: "text-rose-500" },
     { icon: Gamepad2, label: t("nav.games", { defaultValue: "Games" }), path: "/games", badge: gameBadge, iconColor: "text-red-500" },
     { icon: Bookmark, label: t("nav.saved", { defaultValue: "Saved" }), path: "/saved", badge: null, iconColor: "text-yellow-500" },
     { icon: UsersRound, label: t("nav.groups", { defaultValue: "Groups" }), path: "/groups", badge: null, iconColor: "text-purple-500" },
