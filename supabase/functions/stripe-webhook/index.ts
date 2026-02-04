@@ -653,7 +653,7 @@ serve(async (req) => {
         const subscriptionItem = subscription.items?.data?.[0];
         const amount = subscriptionItem?.price?.unit_amount 
           ? subscriptionItem.price.unit_amount / 100 
-          : 9.99;
+          : 10.99;
         const currency = subscriptionItem?.price?.currency?.toUpperCase() || "USD";
 
         // Safely convert timestamps - they may be undefined

@@ -107,7 +107,7 @@ serve(async (req) => {
       : "your next billing cycle";
 
     // Format amount
-    const formattedAmount = `$${(amount || 9.99).toFixed(2)} ${currency || 'USD'}`;
+    const formattedAmount = `$${(amount || 10.99).toFixed(2)} ${currency || 'USD'}`;
 
     // Replace placeholders in the template
     htmlBody = htmlBody

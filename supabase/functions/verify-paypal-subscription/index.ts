@@ -142,7 +142,7 @@ serve(async (req) => {
             status: "active",
             payment_provider: "paypal",
             provider_subscription_id: subscriptionId,
-            amount: 9.99,
+            amount: 10.99,
             currency: "USD",
             current_period_start: now,
             current_period_end: periodEnd.toISOString(),
