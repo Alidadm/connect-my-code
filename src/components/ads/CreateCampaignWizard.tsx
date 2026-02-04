@@ -11,10 +11,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { 
   ArrowLeft, ArrowRight, Eye, MousePointer, TrendingUp, 
   Users, DollarSign, Smartphone, Target, ImageIcon, 
-  Check, Monitor, Square, Loader2
+  Check, Monitor, Square, Loader2, CalendarIcon
 } from "lucide-react";
 import { AdFeedPreview } from "./AdFeedPreview";
 import { AdImageEditor } from "./AdImageEditor";
@@ -25,6 +27,8 @@ import {
 } from "@/hooks/useAds";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface CreateCampaignWizardProps {
   onClose: () => void;
@@ -76,9 +80,9 @@ export const CreateCampaignWizard = ({ onClose }: CreateCampaignWizardProps) => 
     behaviors: [] as string[],
     placements: ["all"] as string[],
     
-    // Schedule (optional)
-    startDate: "",
-    endDate: "",
+    // Schedule (required)
+    startDate: null as Date | null,
+    endDate: null as Date | null,
     
     // Step 3: Creative
     adName: "",
@@ -124,8 +128,8 @@ export const CreateCampaignWizard = ({ onClose }: CreateCampaignWizardProps) => 
         objective: formData.objective,
         budget_type: "daily", // Default, admin sets actual price
         budget_amount: 0, // Will be set by admin
-        start_date: formData.startDate || null,
-        end_date: formData.endDate || null,
+        start_date: formData.startDate ? formData.startDate.toISOString() : null,
+        end_date: formData.endDate ? formData.endDate.toISOString() : null,
         guest_email: user ? undefined : formData.guestEmail,
         guest_name: user ? undefined : formData.guestName,
       });
@@ -182,7 +186,7 @@ export const CreateCampaignWizard = ({ onClose }: CreateCampaignWizardProps) => 
       case 1:
         return formData.objective && formData.campaignName;
       case 2:
-        return true; // Targeting is optional
+        return formData.startDate && formData.endDate; // Dates are required
       case 3:
         return formData.headline && formData.destinationUrl;
       case 4:
@@ -426,6 +430,109 @@ export const CreateCampaignWizard = ({ onClose }: CreateCampaignWizardProps) => 
                     ))}
                   </div>
                 </div>
+
+                {/* Schedule - Start and End Dates */}
+                <div className="space-y-4 pt-4 border-t">
+                  <div>
+                    <Label className="text-base font-semibold flex items-center gap-2">
+                      <CalendarIcon className="h-4 w-4" />
+                      Campaign Schedule *
+                    </Label>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Set when your ad campaign starts and ends. Ads will only run during this period.
+                    </p>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Start Date */}
+                    <div className="space-y-2">
+                      <Label>Start Date *</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !formData.startDate && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {formData.startDate ? format(formData.startDate, "PPP") : "Select start date"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={formData.startDate || undefined}
+                            onSelect={(date) => {
+                              updateFormData("startDate", date || null);
+                              // Reset end date if it's before the new start date
+                              if (date && formData.endDate && formData.endDate < date) {
+                                updateFormData("endDate", null);
+                              }
+                            }}
+                            disabled={(date) => date < new Date()}
+                            initialFocus
+                            className="p-3 pointer-events-auto"
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+
+                    {/* End Date */}
+                    <div className="space-y-2">
+                      <Label>End Date *</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !formData.endDate && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {formData.endDate ? format(formData.endDate, "PPP") : "Select end date"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={formData.endDate || undefined}
+                            onSelect={(date) => updateFormData("endDate", date || null)}
+                            disabled={(date) => {
+                              const minDate = formData.startDate || new Date();
+                              return date < minDate;
+                            }}
+                            initialFocus
+                            className="p-3 pointer-events-auto"
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </div>
+
+                  {/* Duration Preview */}
+                  {formData.startDate && formData.endDate && (
+                    <div className="p-3 bg-primary/10 rounded-lg border border-primary/20">
+                      <div className="flex items-center gap-2 text-sm">
+                        <CalendarIcon className="h-4 w-4 text-primary" />
+                        <span className="font-medium">Campaign Duration:</span>
+                        <span>
+                          {Math.ceil((formData.endDate.getTime() - formData.startDate.getTime()) / (1000 * 60 * 60 * 24))} days
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        From {format(formData.startDate, "MMM d, yyyy")} to {format(formData.endDate, "MMM d, yyyy")}
+                      </p>
+                    </div>
+                  )}
+
+                  <p className="text-xs text-muted-foreground">
+                    Note: Ads expire automatically on the end date. Expired ads are not deleted but won't be shown. 
+                    You can reorder the same ad to run it again. Ads are permanently deleted 90 days after expiration.
+                  </p>
+                </div>
               </div>
             )}
 
@@ -631,6 +738,23 @@ export const CreateCampaignWizard = ({ onClose }: CreateCampaignWizardProps) => 
                         }, Ages {formData.ageMin}-{formData.ageMax}
                       </span>
                     </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Schedule</span>
+                      <span className="font-medium">
+                        {formData.startDate && formData.endDate 
+                          ? `${format(formData.startDate, "MMM d, yyyy")} - ${format(formData.endDate, "MMM d, yyyy")}`
+                          : "Not set"
+                        }
+                      </span>
+                    </div>
+                    {formData.startDate && formData.endDate && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Duration</span>
+                        <span className="font-medium">
+                          {Math.ceil((formData.endDate.getTime() - formData.startDate.getTime()) / (1000 * 60 * 60 * 24))} days
+                        </span>
+                      </div>
+                    )}
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Headline</span>
                       <span className="font-medium">{formData.headline}</span>
