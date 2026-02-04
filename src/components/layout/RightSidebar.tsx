@@ -25,6 +25,7 @@ import { OnlineIndicator } from "@/components/ui/online-indicator";
 import { SavedGalleryWidget } from "@/components/sidebar/SavedGalleryWidget";
 import { NewsWidget } from "@/components/news/NewsWidget";
 import { PendingGameInvitesWidget } from "@/components/sidebar/PendingGameInvitesWidget";
+import { SidebarAdWidget } from "@/components/ads/SidebarAdWidget";
 
 interface MessageWithSender {
   id: string;
@@ -1028,6 +1029,9 @@ export const RightSidebar = () => {
           </div>
         </div>
         )}
+
+        {/* Sidebar Ad Widget (admin-controlled) */}
+        <SidebarAdWidget />
 
         {/* News Widget */}
         <NewsWidget />

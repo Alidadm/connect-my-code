@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Settings, AlertTriangle, CheckCircle, Loader2 } from "lucide-react";
+import { Settings, AlertTriangle, CheckCircle, Loader2, Megaphone } from "lucide-react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
@@ -10,22 +10,28 @@ import { useToast } from "@/hooks/use-toast";
 const SiteSettings = () => {
   const { toast } = useToast();
   const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const [sidebarAdEnabled, setSidebarAdEnabled] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [updating, setUpdating] = useState(false);
+  const [updating, setUpdating] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchSettings = async () => {
       try {
         const { data, error } = await supabase
           .from("site_settings")
-          .select("value")
-          .eq("key", "maintenance_mode")
-          .single();
+          .select("key, value")
+          .in("key", ["maintenance_mode", "sidebar_ad_enabled"]);
 
         if (error) throw error;
         
-        const value = data?.value as { enabled?: boolean } | null;
-        setMaintenanceMode(value?.enabled ?? false);
+        data?.forEach(setting => {
+          if (setting.key === "maintenance_mode") {
+            const value = setting.value as { enabled?: boolean } | null;
+            setMaintenanceMode(value?.enabled ?? false);
+          } else if (setting.key === "sidebar_ad_enabled") {
+            setSidebarAdEnabled(setting.value === "true");
+          }
+        });
       } catch (error) {
         console.error("Error fetching settings:", error);
       } finally {
@@ -37,7 +43,7 @@ const SiteSettings = () => {
   }, []);
 
   const toggleMaintenanceMode = async (enabled: boolean) => {
-    setUpdating(true);
+    setUpdating("maintenance");
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -67,7 +73,43 @@ const SiteSettings = () => {
         variant: "destructive",
       });
     } finally {
-      setUpdating(false);
+      setUpdating(null);
+    }
+  };
+
+  const toggleSidebarAd = async (enabled: boolean) => {
+    setUpdating("sidebar_ad");
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      // Upsert the setting
+      const { error } = await supabase
+        .from("site_settings")
+        .upsert({ 
+          key: "sidebar_ad_enabled",
+          value: enabled ? "true" : "false",
+          updated_at: new Date().toISOString(),
+          updated_by: user?.id
+        }, { onConflict: "key" });
+
+      if (error) throw error;
+
+      setSidebarAdEnabled(enabled);
+      toast({
+        title: enabled ? "Sidebar Ads Enabled" : "Sidebar Ads Disabled",
+        description: enabled 
+          ? "Active ads will now appear in the sidebar." 
+          : "Sidebar ads are now hidden.",
+      });
+    } catch (error: any) {
+      console.error("Error updating sidebar ad setting:", error);
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to update sidebar ad setting",
+        variant: "destructive",
+      });
+    } finally {
+      setUpdating(null);
     }
   };
 
@@ -122,13 +164,62 @@ const SiteSettings = () => {
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  {updating && <Loader2 className="h-4 w-4 animate-spin text-gray-600" />}
+                  {updating === "maintenance" && <Loader2 className="h-4 w-4 animate-spin text-gray-600" />}
                   <Switch
                     id="maintenance-toggle"
                     checked={maintenanceMode}
                     onCheckedChange={toggleMaintenanceMode}
-                    disabled={updating}
+                    disabled={updating !== null}
                     className="data-[state=checked]:bg-amber-500"
+                  />
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Sidebar Ad Card */}
+        <Card className={sidebarAdEnabled ? "border-primary bg-white" : "border-muted bg-white"}>
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <Megaphone className={`h-6 w-6 ${sidebarAdEnabled ? "text-primary" : "text-muted-foreground"}`} />
+              <div>
+                <CardTitle className="text-lg text-gray-900">
+                  Sidebar Advertisements
+                </CardTitle>
+                <CardDescription className="text-gray-600">
+                  {sidebarAdEnabled 
+                    ? "Active ads are being displayed in the right sidebar"
+                    : "No ads are currently shown in the sidebar"}
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span className="text-muted-foreground">Loading...</span>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <Label htmlFor="sidebar-ad-toggle" className="text-base font-medium text-gray-900">
+                    {sidebarAdEnabled ? "Ads Enabled" : "Ads Disabled"}
+                  </Label>
+                  <p className="text-sm text-gray-600">
+                    {sidebarAdEnabled 
+                      ? "Active ad campaigns will be shown to users" 
+                      : "Turn on to display approved ads in the sidebar"}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  {updating === "sidebar_ad" && <Loader2 className="h-4 w-4 animate-spin text-gray-600" />}
+                  <Switch
+                    id="sidebar-ad-toggle"
+                    checked={sidebarAdEnabled}
+                    onCheckedChange={toggleSidebarAd}
+                    disabled={updating !== null}
                   />
                 </div>
               </div>
