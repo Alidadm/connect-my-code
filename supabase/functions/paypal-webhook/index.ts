@@ -244,7 +244,7 @@ serve(async (req) => {
                 status: "active",
                 payment_provider: "paypal",
                 provider_subscription_id: subscription.id,
-                amount: 9.99,
+                amount: 10.99,
                 currency: "USD",
                 current_period_start: currentPeriodStart,
                 current_period_end: periodEnd.toISOString(),
@@ -295,7 +295,7 @@ serve(async (req) => {
                   body: JSON.stringify({
                     email: userEmail,
                     name: userName,
-                    amount: 9.99,
+                    amount: 10.99,
                     currency: "USD",
                     nextBillingDate: periodEnd.toISOString(),
                   }),
@@ -529,7 +529,7 @@ serve(async (req) => {
                     body: JSON.stringify({
                       email: userEmail,
                       name: userName,
-                      amount: 9.99,
+                      amount: 10.99,
                       currency: "USD",
                       nextAttemptDate: null, // PayPal handles retries automatically
                     }),
