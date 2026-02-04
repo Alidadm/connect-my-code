@@ -2154,6 +2154,36 @@ export type Database = {
         }
         Relationships: []
       }
+      penpal_requests: {
+        Row: {
+          created_at: string
+          id: string
+          message: string | null
+          receiver_id: string
+          sender_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          receiver_id: string
+          sender_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          receiver_id?: string
+          sender_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       phone_verification_codes: {
         Row: {
           code: string
@@ -3825,6 +3855,36 @@ export type Database = {
           user_id?: string
           video_id?: string
           viewed_at?: string
+        }
+        Relationships: []
+      }
+      virtual_postcards: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string | null
+          receiver_id: string
+          sender_id: string
+          template: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string | null
+          receiver_id: string
+          sender_id: string
+          template?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string | null
+          receiver_id?: string
+          sender_id?: string
+          template?: string
         }
         Relationships: []
       }
