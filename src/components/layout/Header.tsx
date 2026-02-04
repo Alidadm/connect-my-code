@@ -1,4 +1,4 @@
-import { Bell, Bookmark, ChevronDown, LogOut, Settings, User, ExternalLink, Shield, LayoutDashboard, UserPlus, Check, Lock, HelpCircle, MessageSquarePlus, Search, Newspaper, Info, Menu, MessageCircle, QrCode, CreditCard } from "lucide-react";
+import { Bell, Bookmark, ChevronDown, LogOut, Settings, User, ExternalLink, Shield, LayoutDashboard, UserPlus, Check, Lock, HelpCircle, MessageSquarePlus, Search, Newspaper, Info, Menu, MessageCircle, QrCode, CreditCard, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -8,7 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
@@ -50,6 +50,7 @@ const demoProfile = {
 
 export const Header = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, profile } = useAuth();
   const [searchOpen, setSearchOpen] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
@@ -250,6 +251,19 @@ export const Header = () => {
         >
           <Search className="h-5 w-5" />
         </Button>
+
+        {/* Feed/Home Button - Mobile only (visible on non-home pages) */}
+        {location.pathname !== "/" && (
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="lg:hidden text-primary hover:text-primary/80 hover:bg-primary/10 h-9 w-9"
+            onClick={() => navigate("/")}
+            title={t("nav.feed", { defaultValue: "Feed" })}
+          >
+            <Home className="h-5 w-5" />
+          </Button>
+        )}
 
         {/* Right side actions */}
         <div className="flex items-center gap-0.5 sm:gap-1">
