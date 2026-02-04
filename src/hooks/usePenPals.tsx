@@ -232,12 +232,20 @@ export const usePenPals = () => {
     if (!user) return false;
 
     try {
-      const { error } = await supabase.from("penpal_preferences").upsert({
+      // IMPORTANT: penpal_preferences enforces uniqueness on user_id.
+      // If we upsert without specifying the conflict target, PostgREST may default
+      // to the table primary key instead of the user_id unique constraint, causing
+      // a duplicate key error when a row already exists.
+      const payload = {
         user_id: user.id,
-        ...myPreferences,
+        ...(myPreferences ?? {}),
         ...prefs,
         updated_at: new Date().toISOString(),
-      });
+      };
+
+      const { error } = await supabase
+        .from("penpal_preferences")
+        .upsert(payload, { onConflict: "user_id" });
 
       if (error) throw error;
 
