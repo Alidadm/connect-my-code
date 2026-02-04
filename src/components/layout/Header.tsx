@@ -167,6 +167,23 @@ export const Header = () => {
     checkAdminRole();
   }, [user]);
 
+  const goToFeed = () => {
+    const params = new URLSearchParams(location.search);
+    const currentTab = params.get("tab");
+
+    // When already on the main feed tab, provide useful feedback instead of a no-op.
+    if (location.pathname === "/" && currentTab === "feed") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
+    params.set("tab", "feed");
+    const search = params.toString();
+    navigate({ pathname: "/", search: search ? `?${search}` : "" }, { replace: location.pathname === "/" });
+    // Ensure the user sees immediate feedback on touch devices.
+    setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 0);
+  };
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/login");
@@ -196,13 +213,7 @@ export const Header = () => {
                 ? "text-primary"
                 : "text-muted-foreground hover:text-foreground"
             }`}
-            onClick={() => {
-              if (location.pathname === "/") {
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              } else {
-                navigate("/");
-              }
-            }}
+            onClick={goToFeed}
           >
             <Newspaper className="h-4 w-4" />
             {t("nav.feed")}
@@ -273,13 +284,7 @@ export const Header = () => {
                 ? "text-primary"
                 : "text-muted-foreground hover:text-foreground hover:bg-secondary"
             }`}
-            onClick={() => {
-              if (location.pathname === "/") {
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              } else {
-                navigate("/");
-              }
-            }}
+            onClick={goToFeed}
             title={t("nav.feed", { defaultValue: "Feed" })}
           >
             <Home className="h-5 w-5" />

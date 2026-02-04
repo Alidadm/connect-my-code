@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import { MemberCoverHeader } from "./MemberCoverHeader";
 import { PostCreator } from "./PostCreator";
 import { DemoPostCreator } from "./DemoPostCreator";
@@ -108,17 +109,49 @@ const POSTS_PER_PAGE = 10;
 export const Feed = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [filter, setFilter] = useState<FilterType>("recent");
-  const [activeTab, setActiveTab] = useState("feed");
+  const tabFromUrl = searchParams.get("tab");
+  const normalizedTab =
+    tabFromUrl && ["feed", "posts", "photos", "videos", "friends"].includes(tabFromUrl)
+      ? tabFromUrl
+      : "feed";
+  const [activeTab, setActiveTab] = useState(normalizedTab);
   const [blockedUserIds, setBlockedUserIds] = useState<Set<string>>(new Set());
   const [isTabsSticky, setIsTabsSticky] = useState(false);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
+
+  // Allow global header actions (Feed/Home) to reliably bring the user back to the main feed
+  // even when they're already on "/" but viewing a different feed tab (photos/videos/etc.).
+  useEffect(() => {
+    const onGo: EventListener = (event) => {
+      const detail = (event as CustomEvent<{ tab?: string }>).detail;
+      const requested = detail?.tab;
+
+      if (requested === "photos" || requested === "videos" || requested === "friends") {
+        setActiveTab(requested);
+        return;
+      }
+
+      // Default / aliases
+      setActiveTab("feed");
+    };
+
+    window.addEventListener("dolphy:feed:go", onGo);
+    return () => window.removeEventListener("dolphy:feed:go", onGo);
+  }, []);
+
+  // Keep tab state in sync with URL (?tab=...)
+  useEffect(() => {
+    setActiveTab(normalizedTab);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [normalizedTab]);
 
   // Fetch blocked and muted user IDs
   const fetchBlockedUsers = useCallback(async () => {
@@ -408,6 +441,11 @@ export const Feed = () => {
   // Handle tab change with smooth scroll
   const handleTabChange = useCallback((tab: string) => {
     setActiveTab(tab);
+
+    // Persist tab in URL so header navigation can reliably reset it to feed
+    const next = new URLSearchParams(searchParams);
+    next.set("tab", tab);
+    setSearchParams(next, { replace: true });
     
     // Smooth scroll to content section after a brief delay for state update
     setTimeout(() => {
@@ -422,7 +460,7 @@ export const Feed = () => {
         });
       }
     }, 100);
-  }, []);
+  }, [searchParams, setSearchParams]);
 
   return (
     <div ref={containerRef} className="max-w-2xl mx-auto scroll-smooth">
