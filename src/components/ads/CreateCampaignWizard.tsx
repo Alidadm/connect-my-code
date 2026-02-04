@@ -7,19 +7,21 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   ArrowLeft, ArrowRight, Eye, MousePointer, TrendingUp, 
   Users, DollarSign, Smartphone, Target, ImageIcon, 
-  Check, Upload, X, Loader2
+  Check, Monitor, Square, Loader2
 } from "lucide-react";
+import { AdFeedPreview } from "./AdFeedPreview";
+import { AdImageEditor } from "./AdImageEditor";
 import { useAuth } from "@/hooks/useAuth";
 import { 
   useCreateCampaign, useCreateAdSet, useCreateAd, 
-  useTargetingOptions, uploadAdMedia, AdCampaignObjective 
+  useTargetingOptions, AdCampaignObjective 
 } from "@/hooks/useAds";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -58,7 +60,6 @@ export const CreateCampaignWizard = ({ onClose }: CreateCampaignWizardProps) => 
 
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -112,22 +113,6 @@ export const CreateCampaignWizard = ({ onClose }: CreateCampaignWizardProps) => 
       }
       return { ...prev, [field]: [...arr, value] };
     });
-  };
-
-  const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setIsUploading(true);
-    try {
-      const url = await uploadAdMedia(file);
-      setFormData(prev => ({ ...prev, mediaUrl: url, mediaFile: file }));
-      toast.success("Image uploaded successfully");
-    } catch (error: any) {
-      toast.error("Failed to upload image: " + error.message);
-    } finally {
-      setIsUploading(false);
-    }
   };
 
   const handleSubmit = async () => {
@@ -450,161 +435,169 @@ export const CreateCampaignWizard = ({ onClose }: CreateCampaignWizardProps) => 
                 <div>
                   <CardTitle className="mb-2">Create Your Ad</CardTitle>
                   <CardDescription>
-                    Design the creative that people will see
+                    Design the creative that people will see. See a live preview as you build.
                   </CardDescription>
                 </div>
 
-                {/* Ad Name */}
-                <div className="space-y-2">
-                  <Label htmlFor="adName">Ad Name</Label>
-                  <Input
-                    id="adName"
-                    value={formData.adName}
-                    onChange={(e) => updateFormData("adName", e.target.value)}
-                    placeholder="e.g., Summer Sale Banner"
-                  />
-                </div>
-
-                {/* Media Upload */}
-                <div className="space-y-2">
-                  <Label>Ad Image</Label>
-                  {formData.mediaUrl ? (
-                    <div className="relative">
-                      <img
-                        src={formData.mediaUrl}
-                        alt="Ad preview"
-                        className="w-full max-h-64 object-cover rounded-lg"
+                {/* Two-column layout: Editor + Preview */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Left Column: Form Fields */}
+                  <div className="space-y-4 order-2 lg:order-1">
+                    {/* Ad Name */}
+                    <div className="space-y-2">
+                      <Label htmlFor="adName">Ad Name</Label>
+                      <Input
+                        id="adName"
+                        value={formData.adName}
+                        onChange={(e) => updateFormData("adName", e.target.value)}
+                        placeholder="e.g., Summer Sale Banner"
                       />
-                      <Button
-                        variant="destructive"
-                        size="icon"
-                        className="absolute top-2 right-2"
-                        onClick={() => updateFormData("mediaUrl", "")}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
                     </div>
-                  ) : (
-                    <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={handleMediaUpload}
-                        disabled={isUploading}
+
+                    {/* Image Editor */}
+                    <AdImageEditor
+                      mediaUrl={formData.mediaUrl}
+                      onMediaChange={(url) => updateFormData("mediaUrl", url)}
+                    />
+
+                    {/* Headline */}
+                    <div className="space-y-2">
+                      <Label htmlFor="headline">Headline *</Label>
+                      <Input
+                        id="headline"
+                        value={formData.headline}
+                        onChange={(e) => updateFormData("headline", e.target.value)}
+                        placeholder="e.g., Up to 50% Off Summer Collection"
+                        maxLength={40}
                       />
-                      {isUploading ? (
-                        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                      ) : (
-                        <>
-                          <Upload className="h-8 w-8 text-muted-foreground mb-2" />
-                          <span className="text-sm text-muted-foreground">Click to upload image</span>
-                          <span className="text-xs text-muted-foreground">PNG, JPG up to 10MB</span>
-                        </>
-                      )}
-                    </label>
-                  )}
-                </div>
-
-                {/* Headline */}
-                <div className="space-y-2">
-                  <Label htmlFor="headline">Headline *</Label>
-                  <Input
-                    id="headline"
-                    value={formData.headline}
-                    onChange={(e) => updateFormData("headline", e.target.value)}
-                    placeholder="e.g., Up to 50% Off Summer Collection"
-                    maxLength={40}
-                  />
-                  <div className="text-xs text-muted-foreground text-right">
-                    {formData.headline.length}/40
-                  </div>
-                </div>
-
-                {/* Primary Text */}
-                <div className="space-y-2">
-                  <Label htmlFor="primaryText">Primary Text</Label>
-                  <Textarea
-                    id="primaryText"
-                    value={formData.primaryText}
-                    onChange={(e) => updateFormData("primaryText", e.target.value)}
-                    placeholder="Tell people more about your offer..."
-                    rows={3}
-                    maxLength={125}
-                  />
-                  <div className="text-xs text-muted-foreground text-right">
-                    {formData.primaryText.length}/125
-                  </div>
-                </div>
-
-                {/* Description */}
-                <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Input
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) => updateFormData("description", e.target.value)}
-                    placeholder="Optional description"
-                    maxLength={30}
-                  />
-                </div>
-
-                {/* CTA */}
-                <div className="space-y-2">
-                  <Label>Call to Action</Label>
-                  <Select
-                    value={formData.callToAction}
-                    onValueChange={(v) => updateFormData("callToAction", v)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {CTA_OPTIONS.map((cta) => (
-                        <SelectItem key={cta} value={cta}>{cta}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Destination URL */}
-                <div className="space-y-2">
-                  <Label htmlFor="destinationUrl">Destination URL *</Label>
-                  <Input
-                    id="destinationUrl"
-                    type="url"
-                    value={formData.destinationUrl}
-                    onChange={(e) => updateFormData("destinationUrl", e.target.value)}
-                    placeholder="https://yourwebsite.com/landing-page"
-                  />
-                </div>
-
-                {/* Ad Preview */}
-                <Card className="overflow-hidden">
-                  <CardHeader className="bg-muted/50 py-2 px-4">
-                    <span className="text-xs text-muted-foreground">Ad Preview</span>
-                  </CardHeader>
-                  <CardContent className="p-4">
-                    <div className="border rounded-lg overflow-hidden">
-                      {formData.mediaUrl && (
-                        <img
-                          src={formData.mediaUrl}
-                          alt="Ad preview"
-                          className="w-full h-48 object-cover"
-                        />
-                      )}
-                      <div className="p-4">
-                        <div className="font-bold">{formData.headline || "Your headline here"}</div>
-                        <div className="text-sm text-muted-foreground mt-1">
-                          {formData.primaryText || "Your primary text here"}
-                        </div>
-                        <Button size="sm" className="mt-3">
-                          {formData.callToAction}
-                        </Button>
+                      <div className="text-xs text-muted-foreground text-right">
+                        {formData.headline.length}/40
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
+
+                    {/* Primary Text */}
+                    <div className="space-y-2">
+                      <Label htmlFor="primaryText">Primary Text</Label>
+                      <Textarea
+                        id="primaryText"
+                        value={formData.primaryText}
+                        onChange={(e) => updateFormData("primaryText", e.target.value)}
+                        placeholder="Tell people more about your offer..."
+                        rows={3}
+                        maxLength={125}
+                      />
+                      <div className="text-xs text-muted-foreground text-right">
+                        {formData.primaryText.length}/125
+                      </div>
+                    </div>
+
+                    {/* Description */}
+                    <div className="space-y-2">
+                      <Label htmlFor="description">Description</Label>
+                      <Input
+                        id="description"
+                        value={formData.description}
+                        onChange={(e) => updateFormData("description", e.target.value)}
+                        placeholder="Optional description"
+                        maxLength={30}
+                      />
+                    </div>
+
+                    {/* CTA */}
+                    <div className="space-y-2">
+                      <Label>Call to Action</Label>
+                      <Select
+                        value={formData.callToAction}
+                        onValueChange={(v) => updateFormData("callToAction", v)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {CTA_OPTIONS.map((cta) => (
+                            <SelectItem key={cta} value={cta}>{cta}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Destination URL */}
+                    <div className="space-y-2">
+                      <Label htmlFor="destinationUrl">Destination URL *</Label>
+                      <Input
+                        id="destinationUrl"
+                        type="url"
+                        value={formData.destinationUrl}
+                        onChange={(e) => updateFormData("destinationUrl", e.target.value)}
+                        placeholder="https://yourwebsite.com/landing-page"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Right Column: Live Preview */}
+                  <div className="order-1 lg:order-2 lg:sticky lg:top-4">
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Eye className="h-4 w-4 text-primary" />
+                        <span className="text-sm font-medium">Live Preview</span>
+                      </div>
+                      
+                      {/* Preview Tabs for different placements */}
+                      <Tabs defaultValue="feed" className="w-full">
+                        <TabsList className="grid w-full grid-cols-3">
+                          <TabsTrigger value="feed" className="text-xs gap-1">
+                            <Monitor className="h-3 w-3" />
+                            Feed
+                          </TabsTrigger>
+                          <TabsTrigger value="sidebar" className="text-xs gap-1">
+                            <Square className="h-3 w-3" />
+                            Sidebar
+                          </TabsTrigger>
+                          <TabsTrigger value="stories" className="text-xs gap-1">
+                            <Smartphone className="h-3 w-3" />
+                            Stories
+                          </TabsTrigger>
+                        </TabsList>
+                        
+                        <TabsContent value="feed" className="mt-4">
+                          <AdFeedPreview
+                            headline={formData.headline}
+                            primaryText={formData.primaryText}
+                            description={formData.description}
+                            mediaUrl={formData.mediaUrl}
+                            callToAction={formData.callToAction}
+                            destinationUrl={formData.destinationUrl}
+                            placement="feed"
+                          />
+                        </TabsContent>
+                        
+                        <TabsContent value="sidebar" className="mt-4">
+                          <AdFeedPreview
+                            headline={formData.headline}
+                            primaryText={formData.primaryText}
+                            description={formData.description}
+                            mediaUrl={formData.mediaUrl}
+                            callToAction={formData.callToAction}
+                            destinationUrl={formData.destinationUrl}
+                            placement="sidebar"
+                          />
+                        </TabsContent>
+                        
+                        <TabsContent value="stories" className="mt-4">
+                          <AdFeedPreview
+                            headline={formData.headline}
+                            primaryText={formData.primaryText}
+                            description={formData.description}
+                            mediaUrl={formData.mediaUrl}
+                            callToAction={formData.callToAction}
+                            destinationUrl={formData.destinationUrl}
+                            placement="stories"
+                          />
+                        </TabsContent>
+                      </Tabs>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -691,7 +684,7 @@ export const CreateCampaignWizard = ({ onClose }: CreateCampaignWizardProps) => 
                 </Card>
 
                 {/* Review Notice */}
-                <Card className="bg-amber-500/10 border-amber-500/20">
+                <Card className="bg-warning/10 border-warning/20">
                   <CardContent className="p-4">
                     <div className="text-sm">
                       <strong>What happens next:</strong>
