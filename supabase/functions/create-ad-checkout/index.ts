@@ -55,7 +55,8 @@ serve(async (req) => {
 
     const origin = req.headers.get("origin") || "https://dolphysn.com";
 
-    // Create checkout session for one-time payment
+    // Create checkout session with payment_intent_data for manual capture (authorization hold)
+    // This authorizes the card but doesn't charge until admin captures the payment
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : userEmail,
@@ -66,7 +67,7 @@ serve(async (req) => {
             currency: "usd",
             product_data: {
               name: "Ad Campaign",
-              description: `Campaign ID: ${campaignId.slice(0, 8)}`,
+              description: `Campaign ID: ${campaignId.slice(0, 8)} - Payment will be held until approval`,
             },
             unit_amount: Math.round(amount * 100), // Convert to cents
           },
@@ -74,6 +75,16 @@ serve(async (req) => {
         },
       ],
       mode: "payment",
+      // IMPORTANT: Use manual capture - this authorizes but doesn't charge
+      payment_intent_data: {
+        capture_method: "manual",
+        metadata: {
+          campaign_id: campaignId,
+          user_id: userId || "",
+          guest_email: guestEmail || "",
+          guest_name: guestName || "",
+        },
+      },
       success_url: `${origin}/ads?success=true&campaign=${campaignId}`,
       cancel_url: `${origin}/ads?canceled=true`,
       metadata: {
@@ -91,7 +102,7 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    // Check if there's an existing order for this campaign (from quote flow)
+    // Check if there's an existing order for this campaign
     const { data: existingOrder } = await supabaseAdmin
       .from("ad_orders")
       .select("id")
@@ -105,11 +116,11 @@ serve(async (req) => {
         .update({
           amount: amount,
           stripe_checkout_session_id: session.id,
-          payment_status: "pending",
+          payment_status: "authorized_pending", // Card is authorized, awaiting admin approval
         })
         .eq("id", existingOrder.id);
     } else {
-      // Create new order (shouldn't happen in new flow, but fallback)
+      // Create new order
       await supabaseAdmin.from("ad_orders").insert({
         campaign_id: campaignId,
         user_id: userId,
@@ -117,7 +128,7 @@ serve(async (req) => {
         guest_name: guestName,
         amount: amount,
         stripe_checkout_session_id: session.id,
-        payment_status: "pending",
+        payment_status: "authorized_pending",
         status: "pending_review",
       });
     }

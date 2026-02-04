@@ -16,7 +16,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { 
   ArrowLeft, ArrowRight, Eye, MousePointer, TrendingUp, 
   Users, DollarSign, Smartphone, Target, ImageIcon, 
-  Check, Monitor, Square, Loader2, CalendarIcon
+  Check, Monitor, Square, Loader2, CalendarIcon, CreditCard,
+  Clock, Shield
 } from "lucide-react";
 import { AdFeedPreview } from "./AdFeedPreview";
 import { AdImageEditor } from "./AdImageEditor";
@@ -27,8 +28,9 @@ import {
 } from "@/hooks/useAds";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { format, differenceInDays, addDays } from "date-fns";
 import { cn } from "@/lib/utils";
+import { AD_PRICING_TIERS, calculateAdPrice, formatPrice } from "@/lib/adPricing";
 
 interface CreateCampaignWizardProps {
   onClose: () => void;
@@ -36,9 +38,10 @@ interface CreateCampaignWizardProps {
 
 const STEPS = [
   { id: 1, name: "Objective", icon: Target },
-  { id: 2, name: "Audience", icon: Users },
-  { id: 3, name: "Creative", icon: ImageIcon },
-  { id: 4, name: "Review & Submit", icon: Check },
+  { id: 2, name: "Schedule & Price", icon: DollarSign },
+  { id: 3, name: "Audience", icon: Users },
+  { id: 4, name: "Creative", icon: ImageIcon },
+  { id: 5, name: "Payment", icon: CreditCard },
 ];
 
 const OBJECTIVES = [
@@ -83,6 +86,7 @@ export const CreateCampaignWizard = ({ onClose }: CreateCampaignWizardProps) => 
     // Schedule (required)
     startDate: null as Date | null,
     endDate: null as Date | null,
+    selectedTierDays: null as number | null,
     
     // Step 3: Creative
     adName: "",
@@ -105,6 +109,12 @@ export const CreateCampaignWizard = ({ onClose }: CreateCampaignWizardProps) => 
 
   const progress = (currentStep / STEPS.length) * 100;
 
+  // Calculate price based on selected dates
+  const campaignDays = formData.startDate && formData.endDate 
+    ? differenceInDays(formData.endDate, formData.startDate) + 1
+    : 0;
+  const priceInfo = campaignDays > 0 ? calculateAdPrice(campaignDays) : null;
+
   const updateFormData = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
@@ -119,15 +129,32 @@ export const CreateCampaignWizard = ({ onClose }: CreateCampaignWizardProps) => 
     });
   };
 
+  // Handle tier selection - auto-set dates based on tier
+  const handleTierSelect = (tierDays: number) => {
+    const startDate = formData.startDate || new Date();
+    const endDate = addDays(startDate, tierDays - 1);
+    setFormData(prev => ({
+      ...prev,
+      selectedTierDays: tierDays,
+      startDate,
+      endDate,
+    }));
+  };
+
   const handleSubmit = async () => {
+    if (!priceInfo) {
+      toast.error("Please select a valid campaign duration");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       // Create campaign
       const campaign = await createCampaign.mutateAsync({
         name: formData.campaignName || `Campaign - ${new Date().toLocaleDateString()}`,
         objective: formData.objective,
-        budget_type: "daily", // Default, admin sets actual price
-        budget_amount: 0, // Will be set by admin
+        budget_type: "lifetime",
+        budget_amount: priceInfo.price,
         start_date: formData.startDate ? formData.startDate.toISOString() : null,
         end_date: formData.endDate ? formData.endDate.toISOString() : null,
         guest_email: user ? undefined : formData.guestEmail,
@@ -159,7 +186,7 @@ export const CreateCampaignWizard = ({ onClose }: CreateCampaignWizardProps) => 
         media_url: formData.mediaUrl,
       });
 
-      // Create order without payment (admin will set price)
+      // Create order with pending payment authorization
       const { data: { user: currentUser } } = await supabase.auth.getUser();
       
       await supabase.from("ad_orders").insert({
@@ -167,13 +194,27 @@ export const CreateCampaignWizard = ({ onClose }: CreateCampaignWizardProps) => 
         user_id: currentUser?.id || null,
         guest_email: formData.guestEmail || null,
         guest_name: formData.guestName || null,
-        amount: 0, // Admin will set the price
+        amount: priceInfo.price,
         payment_status: "pending",
-        status: "pending_review",
+        status: "pending_payment",
       });
 
-      toast.success("Campaign submitted for review! You'll receive a price quote soon.");
-      onClose();
+      // Redirect to Stripe checkout with authorization hold
+      const { data, error } = await supabase.functions.invoke("create-ad-checkout", {
+        body: {
+          campaignId: campaign.id,
+          amount: priceInfo.price,
+          guestEmail: formData.guestEmail || undefined,
+          guestName: formData.guestName || undefined,
+        },
+      });
+
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, "_blank");
+        toast.success("Redirecting to payment... Your card will be authorized but not charged until approval.");
+        onClose();
+      }
     } catch (error: any) {
       toast.error("Failed to create campaign: " + error.message);
     } finally {
@@ -186,10 +227,12 @@ export const CreateCampaignWizard = ({ onClose }: CreateCampaignWizardProps) => 
       case 1:
         return formData.objective && formData.campaignName;
       case 2:
-        return formData.startDate && formData.endDate; // Dates are required
+        return formData.startDate && formData.endDate && campaignDays > 0;
       case 3:
-        return formData.headline && formData.destinationUrl;
+        return true; // Audience targeting is optional
       case 4:
+        return formData.headline && formData.destinationUrl;
+      case 5:
         return user || (formData.guestEmail && formData.guestName);
       default:
         return true;
@@ -291,13 +334,163 @@ export const CreateCampaignWizard = ({ onClose }: CreateCampaignWizardProps) => 
               </div>
             )}
 
-            {/* Step 2: Audience */}
+            {/* Step 2: Schedule & Pricing */}
             {currentStep === 2 && (
+              <div className="space-y-6">
+                <div>
+                  <CardTitle className="mb-2">Campaign Schedule & Pricing</CardTitle>
+                  <CardDescription>
+                    Choose how long you want your ad to run. Price is based on duration.
+                  </CardDescription>
+                </div>
+
+                {/* Pricing Tiers */}
+                <div className="space-y-4">
+                  <Label className="text-base font-semibold">Select Duration</Label>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {AD_PRICING_TIERS.map((tier) => (
+                      <div
+                        key={tier.days}
+                        onClick={() => handleTierSelect(tier.days)}
+                        className={cn(
+                          "p-4 border rounded-lg cursor-pointer transition-all hover:border-primary",
+                          formData.selectedTierDays === tier.days
+                            ? "border-primary bg-primary/10 ring-2 ring-primary"
+                            : "border-border"
+                        )}
+                      >
+                        <div className="font-medium">{tier.label}</div>
+                        <div className="text-2xl font-bold text-primary mt-1">
+                          {formatPrice(tier.price)}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {tier.days} days
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Custom Date Selection */}
+                <div className="space-y-4 pt-4 border-t">
+                  <Label className="text-sm text-muted-foreground">Or customize your dates:</Label>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Start Date */}
+                    <div className="space-y-2">
+                      <Label>Start Date *</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !formData.startDate && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {formData.startDate ? format(formData.startDate, "PPP") : "Select start date"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={formData.startDate || undefined}
+                            onSelect={(date) => {
+                              updateFormData("startDate", date || null);
+                              updateFormData("selectedTierDays", null);
+                              if (date && formData.endDate && formData.endDate < date) {
+                                updateFormData("endDate", null);
+                              }
+                            }}
+                            disabled={(date) => date < new Date()}
+                            initialFocus
+                            className="p-3 pointer-events-auto"
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+
+                    {/* End Date */}
+                    <div className="space-y-2">
+                      <Label>End Date *</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !formData.endDate && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {formData.endDate ? format(formData.endDate, "PPP") : "Select end date"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={formData.endDate || undefined}
+                            onSelect={(date) => {
+                              updateFormData("endDate", date || null);
+                              updateFormData("selectedTierDays", null);
+                            }}
+                            disabled={(date) => {
+                              const minDate = formData.startDate || new Date();
+                              return date < minDate;
+                            }}
+                            initialFocus
+                            className="p-3 pointer-events-auto"
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Price Summary */}
+                {priceInfo && (
+                  <Card className="bg-primary/10 border-primary/20">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <CalendarIcon className="h-4 w-4 text-primary" />
+                            <span className="font-medium">
+                              {campaignDays} day{campaignDays !== 1 ? "s" : ""} campaign
+                            </span>
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {formData.startDate && formData.endDate && (
+                              <>From {format(formData.startDate, "MMM d, yyyy")} to {format(formData.endDate, "MMM d, yyyy")}</>
+                            )}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-sm text-muted-foreground">Total Price</div>
+                          <div className="text-2xl font-bold text-primary">
+                            {formatPrice(priceInfo.price)}
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                <p className="text-xs text-muted-foreground">
+                  Note: Ads expire automatically on the end date. Expired ads are not deleted but won't be shown. 
+                  You can reorder the same ad to run it again. Ads are permanently deleted 90 days after expiration.
+                </p>
+              </div>
+            )}
+
+            {/* Step 3: Audience */}
+            {currentStep === 3 && (
               <div className="space-y-6">
                 <div>
                   <CardTitle className="mb-2">Define Your Audience</CardTitle>
                   <CardDescription>
-                    Who do you want to reach with your ads?
+                    Who do you want to reach with your ads? (Optional - leave blank for all audiences)
                   </CardDescription>
                 </div>
 
@@ -430,114 +623,11 @@ export const CreateCampaignWizard = ({ onClose }: CreateCampaignWizardProps) => 
                     ))}
                   </div>
                 </div>
-
-                {/* Schedule - Start and End Dates */}
-                <div className="space-y-4 pt-4 border-t">
-                  <div>
-                    <Label className="text-base font-semibold flex items-center gap-2">
-                      <CalendarIcon className="h-4 w-4" />
-                      Campaign Schedule *
-                    </Label>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Set when your ad campaign starts and ends. Ads will only run during this period.
-                    </p>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Start Date */}
-                    <div className="space-y-2">
-                      <Label>Start Date *</Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              "w-full justify-start text-left font-normal",
-                              !formData.startDate && "text-muted-foreground"
-                            )}
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {formData.startDate ? format(formData.startDate, "PPP") : "Select start date"}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={formData.startDate || undefined}
-                            onSelect={(date) => {
-                              updateFormData("startDate", date || null);
-                              // Reset end date if it's before the new start date
-                              if (date && formData.endDate && formData.endDate < date) {
-                                updateFormData("endDate", null);
-                              }
-                            }}
-                            disabled={(date) => date < new Date()}
-                            initialFocus
-                            className="p-3 pointer-events-auto"
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-
-                    {/* End Date */}
-                    <div className="space-y-2">
-                      <Label>End Date *</Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              "w-full justify-start text-left font-normal",
-                              !formData.endDate && "text-muted-foreground"
-                            )}
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {formData.endDate ? format(formData.endDate, "PPP") : "Select end date"}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={formData.endDate || undefined}
-                            onSelect={(date) => updateFormData("endDate", date || null)}
-                            disabled={(date) => {
-                              const minDate = formData.startDate || new Date();
-                              return date < minDate;
-                            }}
-                            initialFocus
-                            className="p-3 pointer-events-auto"
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                  </div>
-
-                  {/* Duration Preview */}
-                  {formData.startDate && formData.endDate && (
-                    <div className="p-3 bg-primary/10 rounded-lg border border-primary/20">
-                      <div className="flex items-center gap-2 text-sm">
-                        <CalendarIcon className="h-4 w-4 text-primary" />
-                        <span className="font-medium">Campaign Duration:</span>
-                        <span>
-                          {Math.ceil((formData.endDate.getTime() - formData.startDate.getTime()) / (1000 * 60 * 60 * 24))} days
-                        </span>
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        From {format(formData.startDate, "MMM d, yyyy")} to {format(formData.endDate, "MMM d, yyyy")}
-                      </p>
-                    </div>
-                  )}
-
-                  <p className="text-xs text-muted-foreground">
-                    Note: Ads expire automatically on the end date. Expired ads are not deleted but won't be shown. 
-                    You can reorder the same ad to run it again. Ads are permanently deleted 90 days after expiration.
-                  </p>
-                </div>
               </div>
             )}
 
-            {/* Step 3: Creative (was Step 4) */}
-            {currentStep === 3 && (
+            {/* Step 4: Creative */}
+            {currentStep === 4 && (
               <div className="space-y-6">
                 <div>
                   <CardTitle className="mb-2">Create Your Ad</CardTitle>
@@ -708,13 +798,13 @@ export const CreateCampaignWizard = ({ onClose }: CreateCampaignWizardProps) => 
               </div>
             )}
 
-            {/* Step 4: Review & Submit */}
-            {currentStep === 4 && (
+            {/* Step 5: Payment */}
+            {currentStep === 5 && (
               <div className="space-y-6">
                 <div>
-                  <CardTitle className="mb-2">Review & Submit</CardTitle>
+                  <CardTitle className="mb-2">Review & Payment</CardTitle>
                   <CardDescription>
-                    Review your campaign details. Our team will send you a price quote.
+                    Review your campaign and complete payment. Your card will be authorized but not charged until admin approval.
                   </CardDescription>
                 </div>
 
@@ -747,17 +837,19 @@ export const CreateCampaignWizard = ({ onClose }: CreateCampaignWizardProps) => 
                         }
                       </span>
                     </div>
-                    {formData.startDate && formData.endDate && (
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Duration</span>
-                        <span className="font-medium">
-                          {Math.ceil((formData.endDate.getTime() - formData.startDate.getTime()) / (1000 * 60 * 60 * 24))} days
-                        </span>
-                      </div>
-                    )}
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Duration</span>
+                      <span className="font-medium">{campaignDays} days</span>
+                    </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Headline</span>
                       <span className="font-medium">{formData.headline}</span>
+                    </div>
+                    <div className="flex justify-between border-t pt-4">
+                      <span className="font-semibold">Total Price</span>
+                      <span className="font-bold text-xl text-primary">
+                        {priceInfo ? formatPrice(priceInfo.price) : "$0.00"}
+                      </span>
                     </div>
                   </CardContent>
                 </Card>
@@ -766,7 +858,7 @@ export const CreateCampaignWizard = ({ onClose }: CreateCampaignWizardProps) => 
                 {!user && (
                   <div className="space-y-4">
                     <div className="text-sm text-muted-foreground">
-                      Enter your details to receive your price quote (no account needed)
+                      Enter your details to proceed with payment
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
@@ -792,35 +884,42 @@ export const CreateCampaignWizard = ({ onClose }: CreateCampaignWizardProps) => 
                   </div>
                 )}
 
-                {/* Pricing Notice */}
-                <Card className="bg-primary/10 border-primary/20">
+                {/* Payment Authorization Notice */}
+                <Card className="bg-blue-500/10 border-blue-500/20">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-3">
-                      <DollarSign className="h-5 w-5 text-primary" />
+                      <Shield className="h-5 w-5 text-blue-500" />
                       <div>
-                        <div className="font-medium">Custom Pricing</div>
+                        <div className="font-medium">Secure Payment Authorization</div>
                         <div className="text-sm text-muted-foreground">
-                          Our team will review your ad and send you a personalized price quote based on your campaign details, targeting, and creative.
+                          Your card will be <strong>authorized</strong> for {priceInfo ? formatPrice(priceInfo.price) : "$0.00"}, 
+                          but <strong>not charged</strong> until our team approves your ad.
                         </div>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
 
-                {/* Review Notice */}
-                <Card className="bg-warning/10 border-warning/20">
+                {/* What happens next */}
+                <Card className="bg-muted/50">
                   <CardContent className="p-4">
                     <div className="text-sm">
                       <strong>What happens next:</strong>
                       <ol className="list-decimal list-inside mt-2 space-y-1">
+                        <li>Your payment is authorized (held, not charged yet)</li>
                         <li>Our team reviews your ad creative and targeting</li>
-                        <li>You'll receive a price quote via email (usually within 24 hours)</li>
-                        <li>Accept the quote and pay to activate your campaign</li>
-                        <li>Your ad goes live!</li>
+                        <li>If approved, your payment is captured and your ad goes live!</li>
+                        <li>If rejected, the authorization is released and you're not charged</li>
                       </ol>
                     </div>
                   </CardContent>
                 </Card>
+
+                {/* Expiration Notice */}
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Clock className="h-4 w-4" />
+                  <span>Payment authorizations expire in 7 days if not approved.</span>
+                </div>
               </div>
             )}
           </CardContent>
@@ -857,8 +956,8 @@ export const CreateCampaignWizard = ({ onClose }: CreateCampaignWizardProps) => 
                 </>
               ) : (
                 <>
-                  <Check className="h-4 w-4 mr-2" />
-                  Submit for Review
+                  <CreditCard className="h-4 w-4 mr-2" />
+                  Pay & Submit
                 </>
               )}
             </Button>
