@@ -168,20 +168,10 @@ export const Header = () => {
   }, [user]);
 
   const goToFeed = () => {
-    const params = new URLSearchParams(location.search);
-    const currentTab = params.get("tab");
-
-    // When already on the main feed tab, provide useful feedback instead of a no-op.
-    if (location.pathname === "/" && currentTab === "feed") {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      return;
-    }
-
-    params.set("tab", "feed");
-    const search = params.toString();
-    navigate({ pathname: "/", search: search ? `?${search}` : "" }, { replace: location.pathname === "/" });
-    // Ensure the user sees immediate feedback on touch devices.
-    setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 0);
+    // Always navigate to the feed tab, regardless of current location
+    navigate("/?tab=feed");
+    // Scroll to top after navigation
+    setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50);
   };
 
   const handleLogout = async () => {
@@ -200,7 +190,7 @@ export const Header = () => {
           <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl dolphy-gradient flex items-center justify-center shadow-md">
             <span className="text-primary-foreground font-bold text-lg sm:text-xl">D</span>
           </div>
-          <span className="text-lg sm:text-xl font-bold text-foreground hidden xs:block">DolphySN</span>
+          <span className="text-lg sm:text-xl font-bold text-foreground hidden sm:block">Dolphysn.com</span>
         </div>
 
         {/* Navigation Links */}
