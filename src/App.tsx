@@ -134,7 +134,7 @@ const router = createBrowserRouter([
       { path: "/admin/tiktok-videos", element: <AdminLayout><TikTokVideos /></AdminLayout> },
       { path: "/admin/site-settings", element: <AdminLayout><SiteSettings /></AdminLayout> },
       { path: "/admin/penpals", element: <AdminLayout><PenPalsManagement /></AdminLayout> },
-      { path: "/admin/database-backups", element: <AdminLayout><DatabaseBackups /></AdminLayout> },
+      { path: "/admin/database-backups", element: <I18nextProvider i18n={adminI18n}><DatabaseBackups /></I18nextProvider> },
       { path: "/terms", element: <Terms /> },
       { path: "/privacy-policy", element: <PrivacyPolicy /> },
       { path: "/cookies-policy", element: <CookiesPolicy /> },
