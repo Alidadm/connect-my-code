@@ -37,6 +37,7 @@ import PlatformGallery from "./pages/admin/PlatformGallery";
 import TikTokVideos from "./pages/admin/TikTokVideos";
 import SiteSettings from "./pages/admin/SiteSettings";
 import PenPalsManagement from "./pages/admin/PenPalsManagement";
+import DatabaseBackups from "./pages/admin/DatabaseBackups";
 import MemberDashboard from "./pages/MemberDashboard";
 import UserProfile from "./pages/UserProfile";
 import ConfirmEmail from "./pages/ConfirmEmail";
@@ -133,6 +134,7 @@ const router = createBrowserRouter([
       { path: "/admin/tiktok-videos", element: <AdminLayout><TikTokVideos /></AdminLayout> },
       { path: "/admin/site-settings", element: <AdminLayout><SiteSettings /></AdminLayout> },
       { path: "/admin/penpals", element: <AdminLayout><PenPalsManagement /></AdminLayout> },
+      { path: "/admin/database-backups", element: <AdminLayout><DatabaseBackups /></AdminLayout> },
       { path: "/terms", element: <Terms /> },
       { path: "/privacy-policy", element: <PrivacyPolicy /> },
       { path: "/cookies-policy", element: <CookiesPolicy /> },
