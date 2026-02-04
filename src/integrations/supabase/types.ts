@@ -14,6 +14,273 @@ export type Database = {
   }
   public: {
     Tables: {
+      ad_campaigns: {
+        Row: {
+          budget_amount: number
+          budget_type: Database["public"]["Enums"]["ad_budget_type"]
+          created_at: string
+          end_date: string | null
+          guest_email: string | null
+          guest_name: string | null
+          id: string
+          name: string
+          objective: Database["public"]["Enums"]["ad_campaign_objective"]
+          start_date: string | null
+          status: Database["public"]["Enums"]["ad_status"]
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          budget_amount?: number
+          budget_type?: Database["public"]["Enums"]["ad_budget_type"]
+          created_at?: string
+          end_date?: string | null
+          guest_email?: string | null
+          guest_name?: string | null
+          id?: string
+          name: string
+          objective?: Database["public"]["Enums"]["ad_campaign_objective"]
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["ad_status"]
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          budget_amount?: number
+          budget_type?: Database["public"]["Enums"]["ad_budget_type"]
+          created_at?: string
+          end_date?: string | null
+          guest_email?: string | null
+          guest_name?: string | null
+          id?: string
+          name?: string
+          objective?: Database["public"]["Enums"]["ad_campaign_objective"]
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["ad_status"]
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      ad_orders: {
+        Row: {
+          admin_notes: string | null
+          amount: number
+          campaign_id: string
+          created_at: string
+          currency: string | null
+          guest_email: string | null
+          guest_name: string | null
+          id: string
+          payment_status: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string | null
+          stripe_checkout_session_id: string | null
+          stripe_payment_intent_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          amount: number
+          campaign_id: string
+          created_at?: string
+          currency?: string | null
+          guest_email?: string | null
+          guest_name?: string | null
+          id?: string
+          payment_status?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          stripe_checkout_session_id?: string | null
+          stripe_payment_intent_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          amount?: number
+          campaign_id?: string
+          created_at?: string
+          currency?: string | null
+          guest_email?: string | null
+          guest_name?: string | null
+          id?: string
+          payment_status?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          stripe_checkout_session_id?: string | null
+          stripe_payment_intent_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_orders_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "ad_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ad_sets: {
+        Row: {
+          campaign_id: string
+          created_at: string
+          daily_budget: number | null
+          id: string
+          name: string
+          placements: Database["public"]["Enums"]["ad_placement"][] | null
+          status: Database["public"]["Enums"]["ad_status"]
+          target_age_max: number | null
+          target_age_min: number | null
+          target_behaviors: string[] | null
+          target_genders: string[] | null
+          target_interests: string[] | null
+          target_languages: string[] | null
+          target_locations: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          campaign_id: string
+          created_at?: string
+          daily_budget?: number | null
+          id?: string
+          name: string
+          placements?: Database["public"]["Enums"]["ad_placement"][] | null
+          status?: Database["public"]["Enums"]["ad_status"]
+          target_age_max?: number | null
+          target_age_min?: number | null
+          target_behaviors?: string[] | null
+          target_genders?: string[] | null
+          target_interests?: string[] | null
+          target_languages?: string[] | null
+          target_locations?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          campaign_id?: string
+          created_at?: string
+          daily_budget?: number | null
+          id?: string
+          name?: string
+          placements?: Database["public"]["Enums"]["ad_placement"][] | null
+          status?: Database["public"]["Enums"]["ad_status"]
+          target_age_max?: number | null
+          target_age_min?: number | null
+          target_behaviors?: string[] | null
+          target_genders?: string[] | null
+          target_interests?: string[] | null
+          target_languages?: string[] | null
+          target_locations?: string[] | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_sets_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "ad_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ad_targeting_options: {
+        Row: {
+          category: string
+          created_at: string
+          icon: string | null
+          id: string
+          name: string
+          value: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          icon?: string | null
+          id?: string
+          name: string
+          value: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          icon?: string | null
+          id?: string
+          name?: string
+          value?: string
+        }
+        Relationships: []
+      }
+      ads: {
+        Row: {
+          ad_set_id: string
+          call_to_action: string | null
+          clicks: number | null
+          created_at: string
+          description: string | null
+          destination_url: string
+          headline: string
+          id: string
+          impressions: number | null
+          media_type: string | null
+          media_url: string | null
+          name: string
+          primary_text: string | null
+          spent: number | null
+          status: Database["public"]["Enums"]["ad_status"]
+          updated_at: string
+        }
+        Insert: {
+          ad_set_id: string
+          call_to_action?: string | null
+          clicks?: number | null
+          created_at?: string
+          description?: string | null
+          destination_url: string
+          headline: string
+          id?: string
+          impressions?: number | null
+          media_type?: string | null
+          media_url?: string | null
+          name: string
+          primary_text?: string | null
+          spent?: number | null
+          status?: Database["public"]["Enums"]["ad_status"]
+          updated_at?: string
+        }
+        Update: {
+          ad_set_id?: string
+          call_to_action?: string | null
+          clicks?: number | null
+          created_at?: string
+          description?: string | null
+          destination_url?: string
+          headline?: string
+          id?: string
+          impressions?: number | null
+          media_type?: string | null
+          media_url?: string | null
+          name?: string
+          primary_text?: string | null
+          spent?: number | null
+          status?: Database["public"]["Enums"]["ad_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ads_ad_set_id_fkey"
+            columns: ["ad_set_id"]
+            isOneToOne: false
+            referencedRelation: "ad_sets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blocked_users: {
         Row: {
           blocked_user_id: string
@@ -4094,6 +4361,23 @@ export type Database = {
       }
     }
     Enums: {
+      ad_budget_type: "daily" | "lifetime"
+      ad_campaign_objective:
+        | "awareness"
+        | "traffic"
+        | "engagement"
+        | "leads"
+        | "app_promotion"
+        | "sales"
+      ad_placement: "feed" | "sidebar" | "stories" | "marketplace" | "all"
+      ad_status:
+        | "draft"
+        | "pending_review"
+        | "approved"
+        | "rejected"
+        | "active"
+        | "paused"
+        | "completed"
       app_role: "admin" | "moderator" | "user"
     }
     CompositeTypes: {
@@ -4222,6 +4506,25 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      ad_budget_type: ["daily", "lifetime"],
+      ad_campaign_objective: [
+        "awareness",
+        "traffic",
+        "engagement",
+        "leads",
+        "app_promotion",
+        "sales",
+      ],
+      ad_placement: ["feed", "sidebar", "stories", "marketplace", "all"],
+      ad_status: [
+        "draft",
+        "pending_review",
+        "approved",
+        "rejected",
+        "active",
+        "paused",
+        "completed",
+      ],
       app_role: ["admin", "moderator", "user"],
     },
   },
