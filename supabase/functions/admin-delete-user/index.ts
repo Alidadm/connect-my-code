@@ -64,27 +64,62 @@ serve(async (req) => {
           .update({ referrer_id: null })
           .eq("referrer_id", userId);
 
-        // 1. Get user's active subscriptions from database
+        // 1. Get user's private profile for Stripe customer ID
+        const { data: privateProfile } = await supabaseClient
+          .from("profiles_private")
+          .select("stripe_customer_id")
+          .eq("user_id", userId)
+          .single();
+
+        // 2. Get user's active subscriptions from database
         const { data: subscriptions } = await supabaseClient
           .from("subscriptions")
           .select("provider_subscription_id, payment_provider, status")
           .eq("user_id", userId)
           .in("status", ["active", "trialing"]);
 
-        // 2. Cancel Stripe subscriptions if any exist
-        if (stripeSecretKey && subscriptions && subscriptions.length > 0) {
+        // 3. Cancel Stripe subscriptions AND delete customer if exists
+        if (stripeSecretKey) {
           const stripe = new Stripe(stripeSecretKey, {
             apiVersion: "2023-10-16",
           });
 
-          for (const sub of subscriptions) {
-            if (sub.payment_provider === "stripe" && sub.provider_subscription_id) {
-              try {
-                await stripe.subscriptions.cancel(sub.provider_subscription_id);
-                console.log(`Cancelled Stripe subscription: ${sub.provider_subscription_id}`);
-              } catch (stripeError: any) {
-                console.error(`Failed to cancel Stripe subscription: ${stripeError.message}`);
+          // Cancel all active subscriptions
+          if (subscriptions && subscriptions.length > 0) {
+            for (const sub of subscriptions) {
+              if (sub.payment_provider === "stripe" && sub.provider_subscription_id) {
+                try {
+                  await stripe.subscriptions.cancel(sub.provider_subscription_id);
+                  console.log(`Cancelled Stripe subscription: ${sub.provider_subscription_id}`);
+                } catch (stripeError: any) {
+                  console.error(`Failed to cancel Stripe subscription: ${stripeError.message}`);
+                }
               }
+            }
+          }
+
+          // DELETE THE STRIPE CUSTOMER to prevent future webhook triggers
+          if (privateProfile?.stripe_customer_id) {
+            try {
+              await stripe.customers.del(privateProfile.stripe_customer_id);
+              console.log(`Deleted Stripe customer: ${privateProfile.stripe_customer_id}`);
+            } catch (stripeError: any) {
+              console.error(`Failed to delete Stripe customer: ${stripeError.message}`);
+              // Continue with deletion even if customer deletion fails
+            }
+          } else {
+            // Also try to find and delete customer by email from auth.users
+            try {
+              const { data: authUser } = await supabaseClient.auth.admin.getUserById(userId);
+              if (authUser?.user?.email) {
+                const customers = await stripe.customers.list({ email: authUser.user.email, limit: 1 });
+                if (customers.data.length > 0) {
+                  await stripe.customers.del(customers.data[0].id);
+                  console.log(`Deleted Stripe customer by email: ${customers.data[0].id}`);
+                }
+              }
+            } catch (lookupError: any) {
+              console.error(`Failed to lookup/delete Stripe customer by email: ${lookupError.message}`);
             }
           }
         }
