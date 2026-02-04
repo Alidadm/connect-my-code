@@ -190,7 +190,7 @@ export const Header = () => {
           <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl dolphy-gradient flex items-center justify-center shadow-md">
             <span className="text-primary-foreground font-bold text-lg sm:text-xl">D</span>
           </div>
-          <span className="text-lg sm:text-xl font-bold text-foreground hidden sm:block">Dolphysn.com</span>
+          <span className="text-lg sm:text-xl font-bold text-foreground hidden sm:block">Dolphysn</span>
         </div>
 
         {/* Navigation Links */}
