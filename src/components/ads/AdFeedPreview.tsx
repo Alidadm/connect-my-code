@@ -17,6 +17,18 @@ interface AdFeedPreviewProps {
   placement?: "feed" | "sidebar" | "stories";
 }
 
+// Helper function to safely extract hostname from URL
+const safeGetHostname = (url: string): string => {
+  if (!url) return "yourwebsite.com";
+  try {
+    const fullUrl = url.startsWith("http") ? url : `https://${url}`;
+    return new URL(fullUrl).hostname;
+  } catch {
+    // Return a placeholder for invalid/incomplete URLs
+    return url.replace(/^https?:\/\//, "").split("/")[0] || "yourwebsite.com";
+  }
+};
+
 export const AdFeedPreview = ({
   headline,
   primaryText,
@@ -89,8 +101,8 @@ export const AdFeedPreview = ({
             {/* Link Preview Card */}
             <div className="mx-3 my-2 border rounded-lg overflow-hidden bg-muted/20">
               <div className="p-3">
-                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
-                  {destinationUrl ? new URL(destinationUrl.startsWith("http") ? destinationUrl : `https://${destinationUrl}`).hostname : "yourwebsite.com"}
+              <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+                {safeGetHostname(destinationUrl)}
                 </p>
                 <h4 className="font-semibold text-foreground text-sm line-clamp-2">
                   {headline || "Your headline here"}
