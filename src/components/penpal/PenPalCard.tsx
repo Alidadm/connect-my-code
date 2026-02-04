@@ -14,6 +14,7 @@ import {
   Sparkles
 } from "lucide-react";
 import { type PenPalProfile } from "@/hooks/usePenPals";
+import { PenPalProfileCommentsDialog } from "./PenPalProfileCommentsDialog";
 
 interface PenPalCardProps {
   profile: PenPalProfile;
@@ -30,6 +31,7 @@ export const PenPalCard = ({
 }: PenPalCardProps) => {
   const { t } = useTranslation();
   const [imageError, setImageError] = useState(false);
+  const [commentsOpen, setCommentsOpen] = useState(false);
 
   const getDisplayName = () => {
     if (profile.display_name) return profile.display_name;
@@ -131,10 +133,10 @@ export const PenPalCard = ({
             </div>
           )}
 
-          {/* Action Button */}
-          <div className="w-full pt-2">
+          {/* Action Buttons */}
+          <div className="w-full pt-2 space-y-2">
             {isConnected ? (
-              <Link to={`/${profile.username || profile.user_id}`} className="w-full">
+              <Link to={`/${profile.username || profile.user_id}`} className="w-full block">
                 <Button variant="outline" size="sm" className="w-full gap-2">
                   <MessageCircle className="h-4 w-4" />
                   {t("penpal.viewProfile", "View Profile")}
@@ -155,9 +157,27 @@ export const PenPalCard = ({
                 {t("penpal.connect", "Connect")}
               </Button>
             )}
+            
+            {/* Comments button */}
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="w-full gap-2 text-muted-foreground"
+              onClick={() => setCommentsOpen(true)}
+            >
+              <MessageCircle className="h-4 w-4" />
+              {t("penpal.comments", "Comments")}
+            </Button>
           </div>
         </div>
       </CardContent>
+
+      {/* Comments Dialog */}
+      <PenPalProfileCommentsDialog
+        open={commentsOpen}
+        onOpenChange={setCommentsOpen}
+        profile={profile}
+      />
     </Card>
   );
 };
