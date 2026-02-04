@@ -258,7 +258,6 @@ export const Header = () => {
           <Button
             variant="ghost"
             size="icon"
-            disabled={location.pathname === "/"}
             className={`lg:hidden h-9 w-9 ${
               location.pathname === "/"
                 ? "text-primary"
