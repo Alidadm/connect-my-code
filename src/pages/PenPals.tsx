@@ -5,6 +5,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 import { 
   Users, 
   Compass, 
@@ -12,12 +13,18 @@ import {
   Settings2, 
   RefreshCw,
   UserX,
-  Sparkles
+  Sparkles,
+  Inbox,
+  Mail
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { usePenPals } from "@/hooks/usePenPals";
+import { usePenPalRequests } from "@/hooks/usePenPalRequests";
+import { useVirtualPostcards } from "@/hooks/useVirtualPostcards";
 import { PenPalCard } from "@/components/penpal/PenPalCard";
 import { PenPalPreferencesDialog } from "@/components/penpal/PenPalPreferencesDialog";
+import { PenPalRequestsTab } from "@/components/penpal/PenPalRequestsTab";
+import { PostcardsTab } from "@/components/penpal/PostcardsTab";
 
 const PenPals = () => {
   const { t } = useTranslation();
@@ -28,12 +35,33 @@ const PenPals = () => {
     myConnections,
     myPreferences,
     loading,
-    connecting,
     connectWithPenPal,
     disconnectPenPal,
     updatePreferences,
     refreshDiscover,
   } = usePenPals();
+
+  const {
+    incomingRequests,
+    outgoingRequests,
+    loading: requestsLoading,
+    processing,
+    sendRequest,
+    acceptRequest,
+    declineRequest,
+    cancelRequest,
+    hasPendingRequest,
+  } = usePenPalRequests();
+
+  const {
+    receivedPostcards,
+    sentPostcards,
+    unreadCount,
+    loading: postcardsLoading,
+    sending: sendingPostcard,
+    sendPostcard,
+    markAsRead,
+  } = useVirtualPostcards();
 
   const [prefsOpen, setPrefsOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -42,6 +70,14 @@ const PenPals = () => {
     setRefreshing(true);
     await refreshDiscover();
     setRefreshing(false);
+  };
+
+  const handleConnect = async (userId: string, message?: string) => {
+    return sendRequest(userId, message);
+  };
+
+  const handleSendPostcard = async (receiverId: string, template: string, message?: string) => {
+    return sendPostcard(receiverId, template, message);
   };
 
   if (authLoading) {
@@ -73,6 +109,9 @@ const PenPals = () => {
     );
   }
 
+  const pendingRequestsCount = incomingRequests.length;
+  const myInterests = myPreferences?.interests || [];
+
   return (
     <MainLayout>
       <div className="space-y-6">
@@ -99,18 +138,36 @@ const PenPals = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="discover" className="w-full">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsList className="grid w-full max-w-2xl grid-cols-4">
             <TabsTrigger value="discover" className="gap-2">
               <Compass className="h-4 w-4" />
-              {t("penpal.discover", "Discover")}
+              <span className="hidden sm:inline">{t("penpal.discover", "Discover")}</span>
+            </TabsTrigger>
+            <TabsTrigger value="requests" className="gap-2 relative">
+              <Inbox className="h-4 w-4" />
+              <span className="hidden sm:inline">{t("penpal.requests", "Requests")}</span>
+              {pendingRequestsCount > 0 && (
+                <Badge variant="destructive" className="ml-1 h-4 min-w-[16px] px-1 text-[10px]">
+                  {pendingRequestsCount}
+                </Badge>
+              )}
             </TabsTrigger>
             <TabsTrigger value="connections" className="gap-2">
               <Heart className="h-4 w-4" />
-              {t("penpal.myPenpals", "My PenPals")}
+              <span className="hidden sm:inline">{t("penpal.myPenpals", "My PenPals")}</span>
               {myConnections.length > 0 && (
                 <span className="ml-1 text-xs bg-primary/20 text-primary px-1.5 rounded-full">
                   {myConnections.length}
                 </span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="postcards" className="gap-2">
+              <Mail className="h-4 w-4" />
+              <span className="hidden sm:inline">{t("penpal.postcards", "Postcards")}</span>
+              {unreadCount > 0 && (
+                <Badge variant="destructive" className="ml-1 h-4 min-w-[16px] px-1 text-[10px]">
+                  {unreadCount}
+                </Badge>
               )}
             </TabsTrigger>
           </TabsList>
@@ -167,12 +224,27 @@ const PenPals = () => {
                   <PenPalCard
                     key={profile.user_id}
                     profile={profile}
-                    onConnect={connectWithPenPal}
-                    connecting={connecting === profile.user_id}
+                    onConnect={handleConnect}
+                    connecting={processing === profile.user_id}
+                    hasPendingRequest={hasPendingRequest(profile.user_id)}
+                    myInterests={myInterests}
                   />
                 ))}
               </div>
             )}
+          </TabsContent>
+
+          {/* Requests Tab */}
+          <TabsContent value="requests" className="mt-6">
+            <PenPalRequestsTab
+              incomingRequests={incomingRequests}
+              outgoingRequests={outgoingRequests}
+              loading={requestsLoading}
+              processing={processing}
+              onAccept={acceptRequest}
+              onDecline={declineRequest}
+              onCancel={cancelRequest}
+            />
           </TabsContent>
 
           {/* My Connections Tab */}
@@ -203,11 +275,24 @@ const PenPals = () => {
                       onConnect={async () => true}
                       connecting={false}
                       isConnected
+                      myInterests={myInterests}
+                      onSendPostcard={handleSendPostcard}
+                      sendingPostcard={sendingPostcard}
                     />
                   )
                 ))}
               </div>
             )}
+          </TabsContent>
+
+          {/* Postcards Tab */}
+          <TabsContent value="postcards" className="mt-6">
+            <PostcardsTab
+              receivedPostcards={receivedPostcards}
+              sentPostcards={sentPostcards}
+              loading={postcardsLoading}
+              onMarkAsRead={markAsRead}
+            />
           </TabsContent>
         </Tabs>
       </div>
