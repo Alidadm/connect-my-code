@@ -17,17 +17,27 @@ import {
 } from "@/components/ui/dialog";
 import { 
   Megaphone, CheckCircle, XCircle, Clock, Eye, 
-  Search, RefreshCw, DollarSign, User, Mail, Send, CreditCard
+  Search, RefreshCw, DollarSign, User, Mail, Send, CreditCard,
+  Shield, Loader2, Ban
 } from "lucide-react";
 import { useAdOrders, useUpdateOrderStatus, useUpdateCampaignStatus, AdOrder } from "@/hooks/useAds";
+import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
 const statusConfig: Record<string, { color: string; icon: any; label: string }> = {
   pending_review: { color: "bg-amber-500", icon: Clock, label: "Pending Review" },
+  pending_payment: { color: "bg-purple-500", icon: CreditCard, label: "Awaiting Payment" },
   quoted: { color: "bg-blue-500", icon: Send, label: "Quote Sent" },
   approved: { color: "bg-green-500", icon: CheckCircle, label: "Approved" },
   rejected: { color: "bg-red-500", icon: XCircle, label: "Rejected" },
+};
+
+const paymentStatusConfig: Record<string, { color: string; label: string }> = {
+  pending: { color: "bg-slate-500", label: "No Payment" },
+  authorized_pending: { color: "bg-yellow-500", label: "Authorized (Held)" },
+  paid: { color: "bg-green-500", label: "Paid" },
+  canceled: { color: "bg-red-500", label: "Canceled" },
 };
 
 const AdsManagement = () => {
@@ -36,11 +46,12 @@ const AdsManagement = () => {
   const updateCampaignStatus = useUpdateCampaignStatus();
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState("pending");
+  const [activeTab, setActiveTab] = useState("authorized");
   const [selectedOrder, setSelectedOrder] = useState<AdOrder | null>(null);
   const [adminNotes, setAdminNotes] = useState("");
   const [quotedPrice, setQuotedPrice] = useState<string>("");
-  const [actionType, setActionType] = useState<"quote" | "approve" | "reject" | null>(null);
+  const [actionType, setActionType] = useState<"quote" | "approve" | "reject" | "capture" | "cancel" | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const filteredOrders = orders.filter(order => {
     const matchesSearch = 
@@ -48,10 +59,10 @@ const AdsManagement = () => {
       order.guest_email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       order.guest_name?.toLowerCase().includes(searchQuery.toLowerCase());
 
-    if (activeTab === "pending") {
+    if (activeTab === "authorized") {
+      return matchesSearch && order.payment_status === "authorized_pending";
+    } else if (activeTab === "pending") {
       return matchesSearch && order.status === "pending_review";
-    } else if (activeTab === "quoted") {
-      return matchesSearch && order.status === "quoted";
     } else if (activeTab === "approved") {
       return matchesSearch && order.status === "approved";
     } else if (activeTab === "rejected") {
@@ -60,58 +71,56 @@ const AdsManagement = () => {
     return matchesSearch;
   });
 
+  const authorizedCount = orders.filter(o => o.payment_status === "authorized_pending").length;
   const pendingCount = orders.filter(o => o.status === "pending_review").length;
-  const quotedCount = orders.filter(o => o.status === "quoted").length;
   const approvedCount = orders.filter(o => o.status === "approved").length;
   const rejectedCount = orders.filter(o => o.status === "rejected").length;
 
   const handleAction = async () => {
     if (!selectedOrder || !actionType) return;
 
+    setIsProcessing(true);
     try {
-      if (actionType === "quote") {
-        const price = parseFloat(quotedPrice);
-        if (isNaN(price) || price <= 0) {
-          toast.error("Please enter a valid price");
-          return;
-        }
-
-        await updateOrderStatus.mutateAsync({
-          id: selectedOrder.id,
-          status: "quoted",
-          adminNotes,
-          quotedPrice: price,
+      if (actionType === "capture" || actionType === "cancel") {
+        // Call edge function to capture or cancel the payment
+        const { data, error } = await supabase.functions.invoke("capture-ad-payment", {
+          body: {
+            orderId: selectedOrder.id,
+            action: actionType,
+          },
         });
 
-        toast.success("Price quote sent to customer!");
-      } else {
+        if (error) throw error;
+        toast.success(data.message);
+        refetch();
+      } else if (actionType === "reject") {
         await updateOrderStatus.mutateAsync({
           id: selectedOrder.id,
-          status: actionType === "approve" ? "approved" : "rejected",
+          status: "rejected",
           adminNotes,
         });
 
-        // Update campaign status
         if (selectedOrder.campaign_id) {
           await updateCampaignStatus.mutateAsync({
             id: selectedOrder.campaign_id,
-            status: actionType === "approve" ? "active" : "rejected",
+            status: "rejected",
           });
         }
 
-        toast.success(`Order ${actionType === "approve" ? "approved" : "rejected"} successfully`);
+        toast.success("Order rejected");
       }
 
       setSelectedOrder(null);
       setAdminNotes("");
-      setQuotedPrice("");
       setActionType(null);
     } catch (error: any) {
-      toast.error("Failed to update order: " + error.message);
+      toast.error("Failed to process: " + error.message);
+    } finally {
+      setIsProcessing(false);
     }
   };
 
-  const openActionDialog = (order: AdOrder, action: "quote" | "approve" | "reject") => {
+  const openActionDialog = (order: AdOrder, action: "quote" | "approve" | "reject" | "capture" | "cancel") => {
     setSelectedOrder(order);
     setActionType(action);
     setAdminNotes("");
@@ -155,10 +164,10 @@ const AdsManagement = () => {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-slate-400 text-sm">Quotes Sent</p>
-                  <p className="text-3xl font-bold text-blue-500">{quotedCount}</p>
+                  <p className="text-slate-400 text-sm">Authorized (Ready)</p>
+                  <p className="text-3xl font-bold text-yellow-500">{authorizedCount}</p>
                 </div>
-                <Send className="h-8 w-8 text-blue-500/50" />
+                <Shield className="h-8 w-8 text-yellow-500/50" />
               </div>
             </CardContent>
           </Card>
@@ -200,11 +209,11 @@ const AdsManagement = () => {
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="bg-slate-800">
+            <TabsTrigger value="authorized" className="data-[state=active]:bg-slate-700">
+              Ready to Approve ({authorizedCount})
+            </TabsTrigger>
             <TabsTrigger value="pending" className="data-[state=active]:bg-slate-700">
               Pending ({pendingCount})
-            </TabsTrigger>
-            <TabsTrigger value="quoted" className="data-[state=active]:bg-slate-700">
-              Quoted ({quotedCount})
             </TabsTrigger>
             <TabsTrigger value="approved" className="data-[state=active]:bg-slate-700">
               Approved ({approvedCount})
@@ -309,47 +318,37 @@ const AdsManagement = () => {
                           </div>
 
                           <div className="flex gap-2 flex-wrap">
-                            {order.status === "pending_review" && (
+                            {/* Show capture/cancel for authorized payments */}
+                            {order.payment_status === "authorized_pending" && (
                               <>
                                 <Button
                                   size="sm"
-                                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                                  onClick={() => openActionDialog(order, "quote")}
+                                  className="bg-green-600 hover:bg-green-700 text-white"
+                                  onClick={() => openActionDialog(order, "capture")}
                                 >
-                                  <DollarSign className="h-4 w-4 mr-1" />
-                                  Set Price
+                                  <CheckCircle className="h-4 w-4 mr-1" />
+                                  Approve & Charge
                                 </Button>
                                 <Button
                                   size="sm"
                                   variant="outline"
                                   className="border-red-500 text-red-500 hover:bg-red-500/10"
-                                  onClick={() => openActionDialog(order, "reject")}
+                                  onClick={() => openActionDialog(order, "cancel")}
                                 >
-                                  <XCircle className="h-4 w-4 mr-1" />
-                                  Reject
+                                  <Ban className="h-4 w-4 mr-1" />
+                                  Reject & Refund
                                 </Button>
                               </>
                             )}
-                            {order.status === "quoted" && order.payment_status === "paid" && (
+                            {order.status === "pending_review" && order.payment_status !== "authorized_pending" && (
                               <Button
                                 size="sm"
                                 variant="outline"
-                                className="border-green-500 text-green-500 hover:bg-green-500/10"
-                                onClick={() => openActionDialog(order, "approve")}
+                                className="border-red-500 text-red-500 hover:bg-red-500/10"
+                                onClick={() => openActionDialog(order, "reject")}
                               >
-                                <CheckCircle className="h-4 w-4 mr-1" />
-                                Approve
-                              </Button>
-                            )}
-                            {order.status === "quoted" && order.payment_status !== "paid" && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="border-blue-500 text-blue-500 hover:bg-blue-500/10"
-                                onClick={() => openActionDialog(order, "quote")}
-                              >
-                                <DollarSign className="h-4 w-4 mr-1" />
-                                Update Price
+                                <XCircle className="h-4 w-4 mr-1" />
+                                Reject
                               </Button>
                             )}
                           </div>
