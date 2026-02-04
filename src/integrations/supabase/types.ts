@@ -615,6 +615,48 @@ export type Database = {
         }
         Relationships: []
       }
+      database_backups: {
+        Row: {
+          backup_date: string
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          error_message: string | null
+          file_path: string
+          file_size: number | null
+          id: string
+          row_counts: Json | null
+          status: string
+          tables_included: string[]
+        }
+        Insert: {
+          backup_date: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          error_message?: string | null
+          file_path: string
+          file_size?: number | null
+          id?: string
+          row_counts?: Json | null
+          status?: string
+          tables_included: string[]
+        }
+        Update: {
+          backup_date?: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          error_message?: string | null
+          file_path?: string
+          file_size?: number | null
+          id?: string
+          row_counts?: Json | null
+          status?: string
+          tables_included?: string[]
+        }
+        Relationships: []
+      }
       email_verification_codes: {
         Row: {
           code: string
