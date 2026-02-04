@@ -53,7 +53,12 @@ serve(async (req) => {
       customerId = customers.data[0].id;
     }
 
-    const origin = req.headers.get("origin") || "https://dolphysn.com";
+    // IMPORTANT: Always redirect back to /ads page, not dolphysn.com main site
+    // Use SITE_URL env if set, otherwise derive from request origin
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+    const projectRef = supabaseUrl.match(/https:\/\/([^.]+)/)?.[1] || "";
+    const defaultUrl = projectRef ? `https://${projectRef.replace('ahruzugnghcqkonygydo', 'id-preview--7da6d8d7-03a1-4436-af31-faa165a6dce0')}.lovable.app` : "https://dolphysn.com";
+    const origin = Deno.env.get("SITE_URL") || req.headers.get("origin") || defaultUrl;
 
     // Create checkout session with payment_intent_data for manual capture (authorization hold)
     // This authorizes the card but doesn't charge until admin captures the payment
@@ -85,6 +90,7 @@ serve(async (req) => {
           guest_name: guestName || "",
         },
       },
+      // Redirect back to ads page after payment (not main site)
       success_url: `${origin}/ads?success=true&campaign=${campaignId}`,
       cancel_url: `${origin}/ads?canceled=true`,
       metadata: {

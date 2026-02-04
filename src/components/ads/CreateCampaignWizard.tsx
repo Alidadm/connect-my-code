@@ -97,10 +97,6 @@ export const CreateCampaignWizard = ({ onClose }: CreateCampaignWizardProps) => 
     destinationUrl: "",
     mediaUrl: "",
     mediaFile: null as File | null,
-    
-    // Guest info
-    guestEmail: "",
-    guestName: "",
   });
 
   const interests = targetingOptions.filter(o => o.category === "interests");
@@ -147,6 +143,11 @@ export const CreateCampaignWizard = ({ onClose }: CreateCampaignWizardProps) => 
       return;
     }
 
+    if (!user) {
+      toast.error("You must be logged in to create a campaign");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       // Create campaign
@@ -157,8 +158,6 @@ export const CreateCampaignWizard = ({ onClose }: CreateCampaignWizardProps) => 
         budget_amount: priceInfo.price,
         start_date: formData.startDate ? formData.startDate.toISOString() : null,
         end_date: formData.endDate ? formData.endDate.toISOString() : null,
-        guest_email: user ? undefined : formData.guestEmail,
-        guest_name: user ? undefined : formData.guestName,
       });
 
       // Create ad set
@@ -187,13 +186,9 @@ export const CreateCampaignWizard = ({ onClose }: CreateCampaignWizardProps) => 
       });
 
       // Create order with pending payment authorization
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
-      
       await supabase.from("ad_orders").insert({
         campaign_id: campaign.id,
-        user_id: currentUser?.id || null,
-        guest_email: formData.guestEmail || null,
-        guest_name: formData.guestName || null,
+        user_id: user.id,
         amount: priceInfo.price,
         payment_status: "pending",
         status: "pending_payment",
@@ -204,16 +199,14 @@ export const CreateCampaignWizard = ({ onClose }: CreateCampaignWizardProps) => 
         body: {
           campaignId: campaign.id,
           amount: priceInfo.price,
-          guestEmail: formData.guestEmail || undefined,
-          guestName: formData.guestName || undefined,
         },
       });
 
       if (error) throw error;
       if (data?.url) {
-        window.open(data.url, "_blank");
-        toast.success("Redirecting to payment... Your card will be authorized but not charged until approval.");
-        onClose();
+        // Open in same window to redirect user back to /ads after payment
+        window.location.href = data.url;
+        toast.success("Redirecting to payment...");
       }
     } catch (error: any) {
       toast.error("Failed to create campaign: " + error.message);
@@ -233,7 +226,7 @@ export const CreateCampaignWizard = ({ onClose }: CreateCampaignWizardProps) => 
       case 4:
         return formData.headline && formData.destinationUrl;
       case 5:
-        return user || (formData.guestEmail && formData.guestName);
+        return !!user; // Must be logged in
       default:
         return true;
     }
@@ -854,34 +847,21 @@ export const CreateCampaignWizard = ({ onClose }: CreateCampaignWizardProps) => 
                   </CardContent>
                 </Card>
 
-                {/* Guest Info */}
-                {!user && (
-                  <div className="space-y-4">
-                    <div className="text-sm text-muted-foreground">
-                      Enter your details to proceed with payment
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="guestName">Your Name *</Label>
-                        <Input
-                          id="guestName"
-                          value={formData.guestName}
-                          onChange={(e) => updateFormData("guestName", e.target.value)}
-                          placeholder="John Doe"
-                        />
+                {/* Logged in user info */}
+                {user && (
+                  <Card className="bg-muted/50">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <Check className="h-5 w-5 text-green-500" />
+                        <div>
+                          <div className="font-medium">Logged in as {user.email}</div>
+                          <div className="text-sm text-muted-foreground">
+                            Your campaign will be linked to your account
+                          </div>
+                        </div>
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="guestEmail">Your Email *</Label>
-                        <Input
-                          id="guestEmail"
-                          type="email"
-                          value={formData.guestEmail}
-                          onChange={(e) => updateFormData("guestEmail", e.target.value)}
-                          placeholder="john@example.com"
-                        />
-                      </div>
-                    </div>
-                  </div>
+                    </CardContent>
+                  </Card>
                 )}
 
                 {/* Payment Authorization Notice */}
