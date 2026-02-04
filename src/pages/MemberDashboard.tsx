@@ -4,7 +4,7 @@ import {
   ChevronRight, Eye, EyeOff, Lock, Mail, Phone, Globe, Calendar,
   Home, CreditCard, Users, Heart, MessageCircle, LogOut, Clock,
   CheckCircle2, XCircle, Loader2, ExternalLink, Languages, UsersRound,
-  Building2, Info, AlertTriangle, RotateCcw, Menu, X, Youtube, Images, Newspaper
+  Building2, Info, AlertTriangle, RotateCcw, Menu, X, Youtube, Images, Newspaper, Sparkles
 } from "lucide-react";
 import { format, isValid as isValidDate, parseISO } from "date-fns";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -80,6 +80,7 @@ const getMenuItems = (t: (key: string) => string) => [
 
 const getQuickLinks = (t: (key: string) => string) => [
   { label: t("common.home"), icon: Home, path: "/" },
+  { label: t("nav.penpals") || "PenPals", icon: Sparkles, path: "/penpals" },
   { label: t("nav.templates") || "Templates", icon: Palette, path: "/templates" },
   { label: t("dashboard.commissions"), icon: CreditCard, path: "/commissions" },
   { label: t("dashboard.referralNetwork") || "Referral Network", icon: Users, path: "/commissions#referral-network" },
