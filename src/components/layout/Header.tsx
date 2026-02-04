@@ -191,8 +191,18 @@ export const Header = () => {
           <Button
             variant="ghost"
             size="sm"
-            className="gap-2 text-muted-foreground hover:text-foreground"
-            onClick={() => navigate("/")}
+            className={`gap-2 ${
+              location.pathname === "/"
+                ? "text-primary"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+            onClick={() => {
+              if (location.pathname === "/") {
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              } else {
+                navigate("/");
+              }
+            }}
           >
             <Newspaper className="h-4 w-4" />
             {t("nav.feed")}
@@ -263,7 +273,13 @@ export const Header = () => {
                 ? "text-primary"
                 : "text-muted-foreground hover:text-foreground hover:bg-secondary"
             }`}
-            onClick={() => navigate("/")}
+            onClick={() => {
+              if (location.pathname === "/") {
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              } else {
+                navigate("/");
+              }
+            }}
             title={t("nav.feed", { defaultValue: "Feed" })}
           >
             <Home className="h-5 w-5" />
