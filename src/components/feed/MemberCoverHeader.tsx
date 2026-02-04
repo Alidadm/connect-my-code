@@ -27,7 +27,6 @@ const demoProfile = {
 interface ProfileStats {
   friendsCount: number;
   postsCount: number;
-  blogsCount: number;
 }
 
 export const MemberCoverHeader = ({ activeTab: externalActiveTab, onTabChange, onStickyChange }: MemberCoverHeaderProps = {}) => {
@@ -35,7 +34,7 @@ export const MemberCoverHeader = ({ activeTab: externalActiveTab, onTabChange, o
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const [internalActiveTab, setInternalActiveTab] = useState("feed");
-  const [stats, setStats] = useState<ProfileStats>({ friendsCount: 0, postsCount: 0, blogsCount: 0 });
+  const [stats, setStats] = useState<ProfileStats>({ friendsCount: 0, postsCount: 0 });
   const [aboutOpen, setAboutOpen] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
   const tabsRef = useRef<HTMLDivElement>(null);
@@ -81,17 +80,9 @@ export const MemberCoverHeader = ({ activeTab: externalActiveTab, onTabChange, o
         .select("id", { count: "exact", head: true })
         .eq("user_id", user.id);
 
-      // Fetch blogs count
-      const { count: blogsCount } = await supabase
-        .from("blogs")
-        .select("id", { count: "exact", head: true })
-        .eq("user_id", user.id)
-        .eq("status", "published");
-
       setStats({
         friendsCount: (friendsAsRequester || 0) + (friendsAsAddressee || 0),
         postsCount: postsCount || 0,
-        blogsCount: blogsCount || 0,
       });
     };
 
@@ -122,14 +113,21 @@ export const MemberCoverHeader = ({ activeTab: externalActiveTab, onTabChange, o
     return () => window.removeEventListener("scroll", handleScroll);
   }, [isSticky, onStickyChange]);
 
-  const tabs = [
+  type TabItem = {
+    id: string;
+    label: string;
+    isToggle?: boolean;
+    count?: number;
+    disabled?: boolean;
+  };
+
+  const tabs: TabItem[] = [
     { id: "feed", label: t("profile.feed", { defaultValue: "Feed" }) },
     { id: "about", label: t("profile.about", { defaultValue: "About" }), isToggle: true },
     { id: "photos", label: t("profile.photos", { defaultValue: "Photos" }) },
     { id: "videos", label: t("profile.videos", { defaultValue: "Videos" }) },
     { id: "friends", label: t("profile.friends", { defaultValue: "Friends" }), count: stats.friendsCount },
     { id: "posts", label: t("profile.posts", { defaultValue: "Posts" }), count: stats.postsCount },
-    { id: "blogs", label: t("profile.blogs", { defaultValue: "Blogs" }), count: stats.blogsCount, disabled: stats.blogsCount === 0 },
   ];
 
   const handleTabClick = (tabId: string) => {
@@ -248,7 +246,7 @@ export const MemberCoverHeader = ({ activeTab: externalActiveTab, onTabChange, o
           isSticky ? "max-w-3xl mx-auto px-2 sm:px-4" : "justify-start sm:justify-center"
         )}>
           {/* Tabs */}
-          <ul className="flex items-center gap-0.5 sm:gap-2 py-2 px-2 sm:px-4 w-full justify-center">
+          <ul className="flex items-center gap-0.5 sm:gap-2 py-2 px-2 sm:px-4 w-full justify-start sm:justify-center">
             {tabs.map((tab) => (
               <li key={tab.id} className="flex-shrink-0">
                 <button

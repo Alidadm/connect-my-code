@@ -254,18 +254,21 @@ export const Header = () => {
 
         {/* Right side actions */}
         <div className="flex items-center gap-0.5 sm:gap-1">
-          {/* Feed/Home Button - Mobile/Tablet only (visible on non-home pages) */}
-          {location.pathname !== "/" && (
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="lg:hidden text-primary hover:text-primary/80 hover:bg-primary/10 h-9 w-9"
-              onClick={() => navigate("/")}
-              title={t("nav.feed", { defaultValue: "Feed" })}
-            >
-              <Home className="h-5 w-5" />
-            </Button>
-          )}
+          {/* Feed/Home Button - Mobile/Tablet */}
+          <Button
+            variant="ghost"
+            size="icon"
+            disabled={location.pathname === "/"}
+            className={`lg:hidden h-9 w-9 ${
+              location.pathname === "/"
+                ? "text-primary"
+                : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+            }`}
+            onClick={() => navigate("/")}
+            title={t("nav.feed", { defaultValue: "Feed" })}
+          >
+            <Home className="h-5 w-5" />
+          </Button>
 
           {/* Language Switcher */}
           <LanguageSwitcher variant="icon" />
