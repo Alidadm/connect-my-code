@@ -1,21 +1,42 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Megaphone, Target, BarChart3, Plus, Eye, MousePointer, 
-  TrendingUp, DollarSign, Users, Globe
+  TrendingUp, DollarSign, Users, Globe, LogOut, CheckCircle
 } from "lucide-react";
 import { CreateCampaignWizard } from "@/components/ads/CreateCampaignWizard";
 import { CampaignsList } from "@/components/ads/CampaignsList";
 import { AdOrdersList } from "@/components/ads/AdOrdersList";
+import { AdsAuthForm } from "@/components/ads/AdsAuthForm";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const AdsManager = () => {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
   const [showWizard, setShowWizard] = useState(false);
+  const [showAuth, setShowAuth] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
+
+  // Handle success/cancel redirects from Stripe
+  useEffect(() => {
+    const success = searchParams.get("success");
+    const canceled = searchParams.get("canceled");
+    
+    if (success === "true") {
+      toast.success("Payment authorized! Your ad is pending review.", {
+        description: "Our team will review your ad and you'll be notified once approved.",
+        duration: 6000,
+      });
+    } else if (canceled === "true") {
+      toast.info("Payment was canceled. You can try again anytime.");
+    }
+  }, [searchParams]);
 
   const features = [
     {
@@ -48,6 +69,37 @@ const AdsManager = () => {
     { id: "sales", name: "Sales", icon: DollarSign, color: "bg-pink-500" },
   ];
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    toast.success("Logged out successfully");
+    setShowAuth(false);
+  };
+
+  const handleCreateCampaign = () => {
+    if (!user) {
+      setShowAuth(true);
+    } else {
+      setShowWizard(true);
+    }
+  };
+
+  // Show auth form
+  if (showAuth && !user) {
+    return (
+      <MainLayout>
+        <div className="max-w-7xl mx-auto p-4 md:p-6">
+          <AdsAuthForm 
+            onSuccess={() => {
+              setShowAuth(false);
+              setShowWizard(true);
+            }}
+            onBack={() => setShowAuth(false)}
+          />
+        </div>
+      </MainLayout>
+    );
+  }
+
   if (showWizard) {
     return <CreateCampaignWizard onClose={() => setShowWizard(false)} />;
   }
@@ -55,6 +107,25 @@ const AdsManager = () => {
   return (
     <MainLayout>
       <div className="max-w-7xl mx-auto p-4 md:p-6 space-y-6">
+        {/* User Header */}
+        {user && (
+          <div className="flex items-center justify-between bg-muted/50 rounded-lg p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-full bg-primary/10">
+                <CheckCircle className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="font-medium">Logged in as {user.email}</p>
+                <p className="text-sm text-muted-foreground">Manage your ad campaigns below</p>
+              </div>
+            </div>
+            <Button variant="outline" onClick={handleLogout} className="gap-2">
+              <LogOut className="h-4 w-4" />
+              Log Out
+            </Button>
+          </div>
+        )}
+
         {/* Hero Section */}
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-background border p-8 md:p-12">
           <div className="relative z-10">
@@ -67,7 +138,7 @@ const AdsManager = () => {
             <p className="text-muted-foreground text-lg max-w-2xl mb-6">
               Create and manage ads to reach your target audience. Get your message in front of the right people at the right time.
             </p>
-            <Button size="lg" onClick={() => setShowWizard(true)} className="gap-2">
+            <Button size="lg" onClick={handleCreateCampaign} className="gap-2">
               <Plus className="h-5 w-5" />
               Create New Campaign
             </Button>
@@ -109,7 +180,7 @@ const AdsManager = () => {
               {objectives.map((obj) => (
                 <button
                   key={obj.id}
-                  onClick={() => setShowWizard(true)}
+                  onClick={handleCreateCampaign}
                   className="flex flex-col items-center gap-2 p-4 rounded-xl border hover:border-primary hover:bg-primary/5 transition-colors"
                 >
                   <div className={`p-3 rounded-full ${obj.color}/10`}>
@@ -122,32 +193,34 @@ const AdsManager = () => {
           </CardContent>
         </Card>
 
-        {/* Tabs for Campaigns and Orders */}
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2 max-w-md">
-            <TabsTrigger value="overview">My Campaigns</TabsTrigger>
-            <TabsTrigger value="orders">My Orders</TabsTrigger>
-          </TabsList>
+        {/* Tabs for Campaigns and Orders - Only show when logged in */}
+        {user ? (
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid w-full grid-cols-2 max-w-md">
+              <TabsTrigger value="overview">My Campaigns</TabsTrigger>
+              <TabsTrigger value="orders">My Orders</TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="overview" className="mt-6">
-            <CampaignsList />
-          </TabsContent>
+            <TabsContent value="overview" className="mt-6">
+              <CampaignsList />
+            </TabsContent>
 
-          <TabsContent value="orders" className="mt-6">
-            <AdOrdersList />
-          </TabsContent>
-        </Tabs>
-
-        {/* Info for non-members */}
-        {!user && (
+            <TabsContent value="orders" className="mt-6">
+              <AdOrdersList />
+            </TabsContent>
+          </Tabs>
+        ) : (
+          /* Info for non-members */
           <Card className="border-dashed">
             <CardContent className="p-6 text-center">
               <p className="text-muted-foreground mb-4">
-                You don't need an account to create ads! Simply enter your email during checkout to track your campaigns.
+                Create an account to manage your ad campaigns. Email verification is required.
               </p>
-              <Button variant="outline" onClick={() => setShowWizard(true)}>
-                Get Started Without Signing Up
-              </Button>
+              <div className="flex gap-3 justify-center">
+                <Button variant="default" onClick={() => setShowAuth(true)}>
+                  Sign Up / Log In
+                </Button>
+              </div>
             </CardContent>
           </Card>
         )}
