@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { MainLayout } from "@/components/layout/MainLayout";
+import { AdsLayout } from "@/components/ads/AdsLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -86,17 +86,15 @@ const AdsManager = () => {
   // Show auth form
   if (showAuth && !user) {
     return (
-      <MainLayout>
-        <div className="max-w-7xl mx-auto p-4 md:p-6">
-          <AdsAuthForm 
-            onSuccess={() => {
-              setShowAuth(false);
-              setShowWizard(true);
-            }}
-            onBack={() => setShowAuth(false)}
-          />
-        </div>
-      </MainLayout>
+      <AdsLayout>
+        <AdsAuthForm 
+          onSuccess={() => {
+            setShowAuth(false);
+            setShowWizard(true);
+          }}
+          onBack={() => setShowAuth(false)}
+        />
+      </AdsLayout>
     );
   }
 
@@ -105,8 +103,8 @@ const AdsManager = () => {
   }
 
   return (
-    <MainLayout>
-      <div className="max-w-7xl mx-auto p-4 md:p-6 space-y-6">
+    <AdsLayout>
+      <div className="space-y-6">
         {/* User Header */}
         {user && (
           <div className="flex items-center justify-between bg-muted/50 rounded-lg p-4">
@@ -225,7 +223,7 @@ const AdsManager = () => {
           </Card>
         )}
       </div>
-    </MainLayout>
+    </AdsLayout>
   );
 };
 
