@@ -46,8 +46,8 @@ export const usePenPals = () => {
     if (!user) return;
 
     try {
-      // Get existing connections and blocked users
-      const [connectionsRes, blockedRes] = await Promise.all([
+      // Get existing connections, blocked users, and my preferences in parallel
+      const [connectionsRes, blockedRes, myPrefsRes] = await Promise.all([
         supabase
           .from("penpal_connections")
           .select("penpal_id, user_id")
@@ -55,7 +55,12 @@ export const usePenPals = () => {
         supabase
           .from("blocked_users")
           .select("blocked_user_id")
+          .eq("user_id", user.id),
+        supabase
+          .from("penpal_preferences")
+          .select("interests")
           .eq("user_id", user.id)
+          .maybeSingle(),
       ]);
 
       const connectedIds = new Set<string>();
@@ -65,6 +70,7 @@ export const usePenPals = () => {
       });
 
       const blockedIds = new Set(blockedRes.data?.map((b) => b.blocked_user_id) || []);
+      const myInterests: string[] = myPrefsRes.data?.interests || [];
 
       // Get discoverable users with preferences
       const { data: prefsData } = await supabase
@@ -89,14 +95,23 @@ export const usePenPals = () => {
         .filter((p) => !connectedIds.has(p.user_id) && !blockedIds.has(p.user_id))
         .map((p) => {
           const prefs = prefsData?.find((pref) => pref.user_id === p.user_id);
+          const theirInterests = prefs?.interests || [];
+          // Compute match score as the number of shared interests
+          const matchScore = myInterests.filter((i) => theirInterests.includes(i)).length;
           return {
             ...p,
-            interests: prefs?.interests || [],
+            interests: theirInterests,
             looking_for_description: prefs?.looking_for_description || undefined,
+            mutual_friends_count: matchScore, // repurpose this field as match score for sorting
           };
         })
-        // Shuffle for random discovery
-        .sort(() => Math.random() - 0.5)
+        // Sort by match score descending, then shuffle within same score
+        .sort((a, b) => {
+          const scoreA = a.mutual_friends_count || 0;
+          const scoreB = b.mutual_friends_count || 0;
+          if (scoreB !== scoreA) return scoreB - scoreA;
+          return Math.random() - 0.5;
+        })
         .slice(0, 20);
 
       setDiscoverProfiles(enrichedProfiles);

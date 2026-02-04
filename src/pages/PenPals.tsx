@@ -145,15 +145,21 @@ const PenPals = () => {
               <div className="flex flex-col items-center justify-center py-16 space-y-4">
                 <UserX className="h-16 w-16 text-muted-foreground" />
                 <h3 className="text-lg font-medium">
-                  {t("penpal.noMoreProfiles", "No more profiles to discover")}
+                  {t("penpal.noMoreProfiles", "No one new to discover right now")}
                 </h3>
                 <p className="text-muted-foreground text-center max-w-md">
-                  {t("penpal.checkBackLater", "Check back later for new members or adjust your preferences")}
+                  {t("penpal.emptyTips", "Try updating your interests in Preferences, or check back later as new members join.")}
                 </p>
-                <Button onClick={handleRefresh} variant="outline" className="gap-2">
-                  <RefreshCw className="h-4 w-4" />
-                  {t("common.refresh", "Refresh")}
-                </Button>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  <Button onClick={() => setPrefsOpen(true)} variant="outline" className="gap-2">
+                    <Settings2 className="h-4 w-4" />
+                    {t("penpal.preferences", "Preferences")}
+                  </Button>
+                  <Button onClick={handleRefresh} variant="outline" className="gap-2">
+                    <RefreshCw className="h-4 w-4" />
+                    {t("common.refresh", "Refresh")}
+                  </Button>
+                </div>
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
