@@ -72,14 +72,17 @@ export const usePenPals = () => {
       const blockedIds = new Set(blockedRes.data?.map((b) => b.blocked_user_id) || []);
       const myInterests: string[] = myPrefsRes.data?.interests || [];
 
-      // Get discoverable users with preferences
+      // Get discoverable users with preferences (excluding suspended users)
       const { data: prefsData } = await supabase
         .from("penpal_preferences")
-        .select("user_id, interests, looking_for_description")
+        .select("user_id, interests, looking_for_description, is_suspended")
         .eq("is_discoverable", true)
         .neq("user_id", user.id);
 
-      const userIdsWithPrefs = new Set(prefsData?.map((p) => p.user_id) || []);
+      // Filter out suspended users
+      const activePrefsData = (prefsData || []).filter((p) => !p.is_suspended);
+
+      const userIdsWithPrefs = new Set(activePrefsData?.map((p) => p.user_id) || []);
 
       // Fetch profiles from safe_profiles
       const { data: profiles, error } = await supabase
@@ -92,9 +95,9 @@ export const usePenPals = () => {
 
       // Filter and enrich profiles
       const enrichedProfiles: PenPalProfile[] = (profiles || [])
-        .filter((p) => !connectedIds.has(p.user_id) && !blockedIds.has(p.user_id))
+        .filter((p) => !connectedIds.has(p.user_id) && !blockedIds.has(p.user_id) && userIdsWithPrefs.has(p.user_id))
         .map((p) => {
-          const prefs = prefsData?.find((pref) => pref.user_id === p.user_id);
+          const prefs = activePrefsData?.find((pref) => pref.user_id === p.user_id);
           const theirInterests = prefs?.interests || [];
           // Compute match score as the number of shared interests
           const matchScore = myInterests.filter((i) => theirInterests.includes(i)).length;
