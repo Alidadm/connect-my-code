@@ -2028,6 +2028,33 @@ export type Database = {
         }
         Relationships: []
       }
+      penpal_comments: {
+        Row: {
+          author_user_id: string
+          content: string
+          created_at: string
+          id: string
+          profile_user_id: string
+          updated_at: string
+        }
+        Insert: {
+          author_user_id: string
+          content: string
+          created_at?: string
+          id?: string
+          profile_user_id: string
+          updated_at?: string
+        }
+        Update: {
+          author_user_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          profile_user_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       penpal_connections: {
         Row: {
           created_at: string
