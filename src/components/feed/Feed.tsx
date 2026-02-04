@@ -9,7 +9,7 @@ import { ProfileTabContent } from "./ProfileTabContent";
 import { TodaysBirthdays } from "./TodaysBirthdays";
 import { PlatformGalleryCard } from "./PlatformGalleryCard";
 import { TikTokFeedRow } from "@/components/tiktok/TikTokFeedRow";
-
+import { FeedPolls } from "./FeedPolls";
 import { ScrollProgressIndicator } from "./ScrollProgressIndicator";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -454,6 +454,9 @@ export const Feed = () => {
 
           {/* TikTok Short Videos - Admin managed */}
           {user && <TikTokFeedRow />}
+
+          {/* Polls Section */}
+          {user && <FeedPolls />}
 
           {user ? <PostCreator onPostCreated={() => fetchPosts(0, false)} /> : <DemoPostCreator />}
 

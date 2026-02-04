@@ -39,6 +39,7 @@ import SiteSettings from "./pages/admin/SiteSettings";
 import PenPalsManagement from "./pages/admin/PenPalsManagement";
 import DatabaseBackups from "./pages/admin/DatabaseBackups";
 import AdsManagement from "./pages/admin/AdsManagement";
+import Polls from "./pages/admin/Polls";
 import AdsManager from "./pages/AdsManager";
 import MemberDashboard from "./pages/MemberDashboard";
 import UserProfile from "./pages/UserProfile";
@@ -139,6 +140,7 @@ const router = createBrowserRouter([
       { path: "/admin/penpals", element: <AdminLayout><PenPalsManagement /></AdminLayout> },
       { path: "/admin/database-backups", element: <I18nextProvider i18n={adminI18n}><DatabaseBackups /></I18nextProvider> },
       { path: "/admin/ads", element: <AdminLayout><AdsManagement /></AdminLayout> },
+      { path: "/admin/polls", element: <AdminLayout><Polls /></AdminLayout> },
       { path: "/terms", element: <Terms /> },
       { path: "/privacy-policy", element: <PrivacyPolicy /> },
       { path: "/cookies-policy", element: <CookiesPolicy /> },

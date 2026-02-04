@@ -1,7 +1,7 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { 
-  LayoutDashboard, Users, Megaphone, Wallet, Mail, LogOut, FileText, Trash2, Flag, Search, MessageSquare, Images, Video, Settings, Heart, Database, Tv
+  LayoutDashboard, Users, Megaphone, Wallet, Mail, LogOut, FileText, Trash2, Flag, Search, MessageSquare, Images, Video, Settings, Heart, Database, Tv, BarChart3
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,6 +14,7 @@ const sidebarLinks = [
   { id: "messages", name: "Messages", path: "/admin/messages", icon: MessageSquare },
   { id: "reports", name: "Reported Posts", path: "/admin/reported-posts", icon: Flag },
   { id: "ads", name: "Ads Management", path: "/admin/ads", icon: Tv },
+  { id: "polls", name: "Polls", path: "/admin/polls", icon: BarChart3 },
   { id: "posts", name: "Platform Posts", path: "/admin/platform-posts", icon: Megaphone },
   { id: "gallery", name: "Platform Gallery", path: "/admin/gallery", icon: Images },
   { id: "tiktok", name: "TikTok Videos", path: "/admin/tiktok-videos", icon: Video },
