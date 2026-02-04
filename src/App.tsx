@@ -38,6 +38,8 @@ import TikTokVideos from "./pages/admin/TikTokVideos";
 import SiteSettings from "./pages/admin/SiteSettings";
 import PenPalsManagement from "./pages/admin/PenPalsManagement";
 import DatabaseBackups from "./pages/admin/DatabaseBackups";
+import AdsManagement from "./pages/admin/AdsManagement";
+import AdsManager from "./pages/AdsManager";
 import MemberDashboard from "./pages/MemberDashboard";
 import UserProfile from "./pages/UserProfile";
 import ConfirmEmail from "./pages/ConfirmEmail";
@@ -91,6 +93,7 @@ const router = createBrowserRouter([
     children: [
       { path: "/", element: <Index /> },
       { path: "/about", element: <About /> },
+      { path: "/ads", element: <AdsManager /> },
       { path: "/penpals", element: <PenPals /> },
       { path: "/friends", element: <Friends /> },
       { path: "/login", element: <Login /> },
@@ -135,6 +138,7 @@ const router = createBrowserRouter([
       { path: "/admin/site-settings", element: <AdminLayout><SiteSettings /></AdminLayout> },
       { path: "/admin/penpals", element: <AdminLayout><PenPalsManagement /></AdminLayout> },
       { path: "/admin/database-backups", element: <I18nextProvider i18n={adminI18n}><DatabaseBackups /></I18nextProvider> },
+      { path: "/admin/ads", element: <AdminLayout><AdsManagement /></AdminLayout> },
       { path: "/terms", element: <Terms /> },
       { path: "/privacy-policy", element: <PrivacyPolicy /> },
       { path: "/cookies-policy", element: <CookiesPolicy /> },
