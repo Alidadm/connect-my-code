@@ -31,9 +31,8 @@ interface CreateCampaignWizardProps {
 const STEPS = [
   { id: 1, name: "Objective", icon: Target },
   { id: 2, name: "Audience", icon: Users },
-  { id: 3, name: "Budget", icon: DollarSign },
-  { id: 4, name: "Creative", icon: ImageIcon },
-  { id: 5, name: "Review & Pay", icon: Check },
+  { id: 3, name: "Creative", icon: ImageIcon },
+  { id: 4, name: "Review & Submit", icon: Check },
 ];
 
 const OBJECTIVES = [
@@ -76,13 +75,11 @@ export const CreateCampaignWizard = ({ onClose }: CreateCampaignWizardProps) => 
     behaviors: [] as string[],
     placements: ["all"] as string[],
     
-    // Step 3: Budget
-    budgetType: "daily" as "daily" | "lifetime",
-    budgetAmount: 10,
+    // Schedule (optional)
     startDate: "",
     endDate: "",
     
-    // Step 4: Creative
+    // Step 3: Creative
     adName: "",
     headline: "",
     primaryText: "",
@@ -140,8 +137,8 @@ export const CreateCampaignWizard = ({ onClose }: CreateCampaignWizardProps) => 
       const campaign = await createCampaign.mutateAsync({
         name: formData.campaignName || `Campaign - ${new Date().toLocaleDateString()}`,
         objective: formData.objective,
-        budget_type: formData.budgetType,
-        budget_amount: formData.budgetAmount,
+        budget_type: "daily", // Default, admin sets actual price
+        budget_amount: 0, // Will be set by admin
         start_date: formData.startDate || null,
         end_date: formData.endDate || null,
         guest_email: user ? undefined : formData.guestEmail,
@@ -173,22 +170,20 @@ export const CreateCampaignWizard = ({ onClose }: CreateCampaignWizardProps) => 
         media_url: formData.mediaUrl,
       });
 
-      // Redirect to Stripe checkout
-      const { data, error } = await supabase.functions.invoke("create-ad-checkout", {
-        body: {
-          campaignId: campaign.id,
-          amount: formData.budgetAmount,
-          guestEmail: formData.guestEmail,
-          guestName: formData.guestName,
-        },
+      // Create order without payment (admin will set price)
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      
+      await supabase.from("ad_orders").insert({
+        campaign_id: campaign.id,
+        user_id: currentUser?.id || null,
+        guest_email: formData.guestEmail || null,
+        guest_name: formData.guestName || null,
+        amount: 0, // Admin will set the price
+        payment_status: "pending",
+        status: "pending_review",
       });
 
-      if (error) throw error;
-      if (data?.url) {
-        window.open(data.url, "_blank");
-      }
-
-      toast.success("Campaign created! Complete payment to activate.");
+      toast.success("Campaign submitted for review! You'll receive a price quote soon.");
       onClose();
     } catch (error: any) {
       toast.error("Failed to create campaign: " + error.message);
@@ -204,10 +199,8 @@ export const CreateCampaignWizard = ({ onClose }: CreateCampaignWizardProps) => 
       case 2:
         return true; // Targeting is optional
       case 3:
-        return formData.budgetAmount >= 5;
-      case 4:
         return formData.headline && formData.destinationUrl;
-      case 5:
+      case 4:
         return user || (formData.guestEmail && formData.guestName);
       default:
         return true;
@@ -451,98 +444,8 @@ export const CreateCampaignWizard = ({ onClose }: CreateCampaignWizardProps) => 
               </div>
             )}
 
-            {/* Step 3: Budget */}
+            {/* Step 3: Creative (was Step 4) */}
             {currentStep === 3 && (
-              <div className="space-y-6">
-                <div>
-                  <CardTitle className="mb-2">Set Your Budget</CardTitle>
-                  <CardDescription>
-                    How much do you want to spend on this campaign?
-                  </CardDescription>
-                </div>
-
-                {/* Budget Type */}
-                <div className="space-y-2">
-                  <Label>Budget Type</Label>
-                  <RadioGroup
-                    value={formData.budgetType}
-                    onValueChange={(v) => updateFormData("budgetType", v)}
-                    className="flex gap-4"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="daily" id="daily" />
-                      <Label htmlFor="daily">Daily Budget</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="lifetime" id="lifetime" />
-                      <Label htmlFor="lifetime">Lifetime Budget</Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-
-                {/* Budget Amount */}
-                <div className="space-y-4">
-                  <Label>
-                    {formData.budgetType === "daily" ? "Daily" : "Total"} Budget: ${formData.budgetAmount}
-                  </Label>
-                  <Slider
-                    value={[formData.budgetAmount]}
-                    onValueChange={([v]) => updateFormData("budgetAmount", v)}
-                    min={5}
-                    max={1000}
-                    step={5}
-                    className="w-full"
-                  />
-                  <div className="flex justify-between text-sm text-muted-foreground">
-                    <span>$5</span>
-                    <span>$1000</span>
-                  </div>
-                  <Input
-                    type="number"
-                    min={5}
-                    value={formData.budgetAmount}
-                    onChange={(e) => updateFormData("budgetAmount", parseInt(e.target.value) || 5)}
-                    className="w-32"
-                  />
-                </div>
-
-                {/* Schedule */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="startDate">Start Date</Label>
-                    <Input
-                      id="startDate"
-                      type="date"
-                      value={formData.startDate}
-                      onChange={(e) => updateFormData("startDate", e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="endDate">End Date (Optional)</Label>
-                    <Input
-                      id="endDate"
-                      type="date"
-                      value={formData.endDate}
-                      onChange={(e) => updateFormData("endDate", e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                {/* Estimated reach */}
-                <Card className="bg-muted/50">
-                  <CardContent className="p-4">
-                    <div className="text-sm text-muted-foreground">Estimated Daily Reach</div>
-                    <div className="text-2xl font-bold">
-                      {(formData.budgetAmount * 100).toLocaleString()} - {(formData.budgetAmount * 200).toLocaleString()}
-                    </div>
-                    <div className="text-sm text-muted-foreground">people per day</div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-
-            {/* Step 4: Creative */}
-            {currentStep === 4 && (
               <div className="space-y-6">
                 <div>
                   <CardTitle className="mb-2">Create Your Ad</CardTitle>
@@ -705,13 +608,13 @@ export const CreateCampaignWizard = ({ onClose }: CreateCampaignWizardProps) => 
               </div>
             )}
 
-            {/* Step 5: Review & Pay */}
-            {currentStep === 5 && (
+            {/* Step 4: Review & Submit */}
+            {currentStep === 4 && (
               <div className="space-y-6">
                 <div>
-                  <CardTitle className="mb-2">Review & Pay</CardTitle>
+                  <CardTitle className="mb-2">Review & Submit</CardTitle>
                   <CardDescription>
-                    Review your campaign and complete payment
+                    Review your campaign details. Our team will send you a price quote.
                   </CardDescription>
                 </div>
 
@@ -727,12 +630,6 @@ export const CreateCampaignWizard = ({ onClose }: CreateCampaignWizardProps) => 
                       <span className="font-medium capitalize">{formData.objective.replace("_", " ")}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Budget</span>
-                      <span className="font-medium">
-                        ${formData.budgetAmount} {formData.budgetType === "daily" ? "/day" : " total"}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
                       <span className="text-muted-foreground">Audience</span>
                       <span className="font-medium">
                         {formData.locations.length > 0 
@@ -741,9 +638,9 @@ export const CreateCampaignWizard = ({ onClose }: CreateCampaignWizardProps) => 
                         }, Ages {formData.ageMin}-{formData.ageMax}
                       </span>
                     </div>
-                    <div className="border-t pt-4 flex justify-between text-lg font-bold">
-                      <span>Amount Due</span>
-                      <span>${formData.budgetAmount}.00</span>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Headline</span>
+                      <span className="font-medium">{formData.headline}</span>
                     </div>
                   </CardContent>
                 </Card>
@@ -752,7 +649,7 @@ export const CreateCampaignWizard = ({ onClose }: CreateCampaignWizardProps) => 
                 {!user && (
                   <div className="space-y-4">
                     <div className="text-sm text-muted-foreground">
-                      Enter your details to track your campaign (no account needed)
+                      Enter your details to receive your price quote (no account needed)
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
@@ -778,15 +675,15 @@ export const CreateCampaignWizard = ({ onClose }: CreateCampaignWizardProps) => 
                   </div>
                 )}
 
-                {/* Payment Notice */}
-                <Card className="bg-blue-500/10 border-blue-500/20">
+                {/* Pricing Notice */}
+                <Card className="bg-primary/10 border-primary/20">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-3">
-                      <DollarSign className="h-5 w-5 text-blue-500" />
+                      <DollarSign className="h-5 w-5 text-primary" />
                       <div>
-                        <div className="font-medium">Secure Payment via Stripe</div>
+                        <div className="font-medium">Custom Pricing</div>
                         <div className="text-sm text-muted-foreground">
-                          Credit card only. Your ad will be reviewed after payment.
+                          Our team will review your ad and send you a personalized price quote based on your campaign details, targeting, and creative.
                         </div>
                       </div>
                     </div>
@@ -797,8 +694,13 @@ export const CreateCampaignWizard = ({ onClose }: CreateCampaignWizardProps) => 
                 <Card className="bg-amber-500/10 border-amber-500/20">
                   <CardContent className="p-4">
                     <div className="text-sm">
-                      <strong>Note:</strong> All ads are reviewed by our team before going live. 
-                      You'll receive an email once your ad is approved (usually within 24 hours).
+                      <strong>What happens next:</strong>
+                      <ol className="list-decimal list-inside mt-2 space-y-1">
+                        <li>Our team reviews your ad creative and targeting</li>
+                        <li>You'll receive a price quote via email (usually within 24 hours)</li>
+                        <li>Accept the quote and pay to activate your campaign</li>
+                        <li>Your ad goes live!</li>
+                      </ol>
                     </div>
                   </CardContent>
                 </Card>
@@ -834,12 +736,12 @@ export const CreateCampaignWizard = ({ onClose }: CreateCampaignWizardProps) => 
               {isSubmitting ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Processing...
+                  Submitting...
                 </>
               ) : (
                 <>
-                  <DollarSign className="h-4 w-4 mr-2" />
-                  Pay ${formData.budgetAmount} & Submit
+                  <Check className="h-4 w-4 mr-2" />
+                  Submit for Review
                 </>
               )}
             </Button>

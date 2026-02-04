@@ -84,29 +84,43 @@ serve(async (req) => {
       },
     });
 
-    // Create order record
+    // Create or update order record
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
       { auth: { persistSession: false } }
     );
 
-    await supabaseAdmin.from("ad_orders").insert({
-      campaign_id: campaignId,
-      user_id: userId,
-      guest_email: guestEmail,
-      guest_name: guestName,
-      amount: amount,
-      stripe_checkout_session_id: session.id,
-      payment_status: "pending",
-      status: "pending_review",
-    });
+    // Check if there's an existing order for this campaign (from quote flow)
+    const { data: existingOrder } = await supabaseAdmin
+      .from("ad_orders")
+      .select("id")
+      .eq("campaign_id", campaignId)
+      .single();
 
-    // Update campaign status to pending_review
-    await supabaseAdmin
-      .from("ad_campaigns")
-      .update({ status: "pending_review" })
-      .eq("id", campaignId);
+    if (existingOrder) {
+      // Update existing order with checkout session
+      await supabaseAdmin
+        .from("ad_orders")
+        .update({
+          amount: amount,
+          stripe_checkout_session_id: session.id,
+          payment_status: "pending",
+        })
+        .eq("id", existingOrder.id);
+    } else {
+      // Create new order (shouldn't happen in new flow, but fallback)
+      await supabaseAdmin.from("ad_orders").insert({
+        campaign_id: campaignId,
+        user_id: userId,
+        guest_email: guestEmail,
+        guest_name: guestName,
+        amount: amount,
+        stripe_checkout_session_id: session.id,
+        payment_status: "pending",
+        status: "pending_review",
+      });
+    }
 
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

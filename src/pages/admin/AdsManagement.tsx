@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -16,7 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { 
   Megaphone, CheckCircle, XCircle, Clock, Eye, 
-  Search, RefreshCw, DollarSign, User, Mail
+  Search, RefreshCw, DollarSign, User, Mail, Send, CreditCard
 } from "lucide-react";
 import { useAdOrders, useUpdateOrderStatus, useUpdateCampaignStatus, AdOrder } from "@/hooks/useAds";
 import { format } from "date-fns";
@@ -24,6 +25,7 @@ import { toast } from "sonner";
 
 const statusConfig: Record<string, { color: string; icon: any; label: string }> = {
   pending_review: { color: "bg-amber-500", icon: Clock, label: "Pending Review" },
+  quoted: { color: "bg-blue-500", icon: Send, label: "Quote Sent" },
   approved: { color: "bg-green-500", icon: CheckCircle, label: "Approved" },
   rejected: { color: "bg-red-500", icon: XCircle, label: "Rejected" },
 };
@@ -37,7 +39,8 @@ const AdsManagement = () => {
   const [activeTab, setActiveTab] = useState("pending");
   const [selectedOrder, setSelectedOrder] = useState<AdOrder | null>(null);
   const [adminNotes, setAdminNotes] = useState("");
-  const [actionType, setActionType] = useState<"approve" | "reject" | null>(null);
+  const [quotedPrice, setQuotedPrice] = useState<string>("");
+  const [actionType, setActionType] = useState<"quote" | "approve" | "reject" | null>(null);
 
   const filteredOrders = orders.filter(order => {
     const matchesSearch = 
@@ -47,6 +50,8 @@ const AdsManagement = () => {
 
     if (activeTab === "pending") {
       return matchesSearch && order.status === "pending_review";
+    } else if (activeTab === "quoted") {
+      return matchesSearch && order.status === "quoted";
     } else if (activeTab === "approved") {
       return matchesSearch && order.status === "approved";
     } else if (activeTab === "rejected") {
@@ -56,6 +61,7 @@ const AdsManagement = () => {
   });
 
   const pendingCount = orders.filter(o => o.status === "pending_review").length;
+  const quotedCount = orders.filter(o => o.status === "quoted").length;
   const approvedCount = orders.filter(o => o.status === "approved").length;
   const rejectedCount = orders.filter(o => o.status === "rejected").length;
 
@@ -63,33 +69,53 @@ const AdsManagement = () => {
     if (!selectedOrder || !actionType) return;
 
     try {
-      await updateOrderStatus.mutateAsync({
-        id: selectedOrder.id,
-        status: actionType === "approve" ? "approved" : "rejected",
-        adminNotes,
-      });
+      if (actionType === "quote") {
+        const price = parseFloat(quotedPrice);
+        if (isNaN(price) || price <= 0) {
+          toast.error("Please enter a valid price");
+          return;
+        }
 
-      // Update campaign status
-      if (selectedOrder.campaign_id) {
-        await updateCampaignStatus.mutateAsync({
-          id: selectedOrder.campaign_id,
-          status: actionType === "approve" ? "active" : "rejected",
+        await updateOrderStatus.mutateAsync({
+          id: selectedOrder.id,
+          status: "quoted",
+          adminNotes,
+          quotedPrice: price,
         });
+
+        toast.success("Price quote sent to customer!");
+      } else {
+        await updateOrderStatus.mutateAsync({
+          id: selectedOrder.id,
+          status: actionType === "approve" ? "approved" : "rejected",
+          adminNotes,
+        });
+
+        // Update campaign status
+        if (selectedOrder.campaign_id) {
+          await updateCampaignStatus.mutateAsync({
+            id: selectedOrder.campaign_id,
+            status: actionType === "approve" ? "active" : "rejected",
+          });
+        }
+
+        toast.success(`Order ${actionType === "approve" ? "approved" : "rejected"} successfully`);
       }
 
-      toast.success(`Order ${actionType === "approve" ? "approved" : "rejected"} successfully`);
       setSelectedOrder(null);
       setAdminNotes("");
+      setQuotedPrice("");
       setActionType(null);
     } catch (error: any) {
       toast.error("Failed to update order: " + error.message);
     }
   };
 
-  const openActionDialog = (order: AdOrder, action: "approve" | "reject") => {
+  const openActionDialog = (order: AdOrder, action: "quote" | "approve" | "reject") => {
     setSelectedOrder(order);
     setActionType(action);
     setAdminNotes("");
+    setQuotedPrice(order.admin_quoted_price?.toString() || "");
   };
 
   return (
@@ -103,7 +129,7 @@ const AdsManagement = () => {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-white">Ads Management</h1>
-              <p className="text-slate-400">Review and approve ad campaigns</p>
+              <p className="text-slate-400">Review ads and set custom pricing</p>
             </div>
           </div>
           <Button variant="outline" onClick={() => refetch()} className="gap-2">
@@ -113,7 +139,7 @@ const AdsManagement = () => {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card className="bg-slate-800 border-slate-700">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
@@ -122,6 +148,17 @@ const AdsManagement = () => {
                   <p className="text-3xl font-bold text-amber-500">{pendingCount}</p>
                 </div>
                 <Clock className="h-8 w-8 text-amber-500/50" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-slate-800 border-slate-700">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-slate-400 text-sm">Quotes Sent</p>
+                  <p className="text-3xl font-bold text-blue-500">{quotedCount}</p>
+                </div>
+                <Send className="h-8 w-8 text-blue-500/50" />
               </div>
             </CardContent>
           </Card>
@@ -165,6 +202,9 @@ const AdsManagement = () => {
           <TabsList className="bg-slate-800">
             <TabsTrigger value="pending" className="data-[state=active]:bg-slate-700">
               Pending ({pendingCount})
+            </TabsTrigger>
+            <TabsTrigger value="quoted" className="data-[state=active]:bg-slate-700">
+              Quoted ({quotedCount})
             </TabsTrigger>
             <TabsTrigger value="approved" className="data-[state=active]:bg-slate-700">
               Approved ({approvedCount})
@@ -220,13 +260,28 @@ const AdsManagement = () => {
                                 <StatusIcon className="h-3 w-3 mr-1" />
                                 {status.label}
                               </Badge>
+                              {order.payment_status === "paid" && (
+                                <Badge className="bg-green-600 text-white">
+                                  <CreditCard className="h-3 w-3 mr-1" />
+                                  Paid
+                                </Badge>
+                              )}
                             </div>
 
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                              <div className="flex items-center gap-2 text-slate-300">
-                                <DollarSign className="h-4 w-4 text-slate-500" />
-                                <span>${order.amount} {order.currency}</span>
-                              </div>
+                              {order.admin_quoted_price ? (
+                                <div className="flex items-center gap-2 text-slate-300">
+                                  <DollarSign className="h-4 w-4 text-green-500" />
+                                  <span className="font-semibold text-green-400">
+                                    ${order.admin_quoted_price}
+                                  </span>
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-2 text-slate-400">
+                                  <DollarSign className="h-4 w-4" />
+                                  <span>No price set</span>
+                                </div>
+                              )}
                               <div className="flex items-center gap-2 text-slate-300">
                                 <User className="h-4 w-4 text-slate-500" />
                                 <span>{order.guest_name || "Member"}</span>
@@ -245,10 +300,37 @@ const AdsManagement = () => {
                                 <strong>Notes:</strong> {order.admin_notes}
                               </div>
                             )}
+
+                            {order.quote_expires_at && order.status === "quoted" && (
+                              <div className="mt-2 text-xs text-slate-400">
+                                Quote expires: {format(new Date(order.quote_expires_at), "MMM d, yyyy")}
+                              </div>
+                            )}
                           </div>
 
-                          {order.status === "pending_review" && (
-                            <div className="flex gap-2">
+                          <div className="flex gap-2 flex-wrap">
+                            {order.status === "pending_review" && (
+                              <>
+                                <Button
+                                  size="sm"
+                                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                                  onClick={() => openActionDialog(order, "quote")}
+                                >
+                                  <DollarSign className="h-4 w-4 mr-1" />
+                                  Set Price
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="border-red-500 text-red-500 hover:bg-red-500/10"
+                                  onClick={() => openActionDialog(order, "reject")}
+                                >
+                                  <XCircle className="h-4 w-4 mr-1" />
+                                  Reject
+                                </Button>
+                              </>
+                            )}
+                            {order.status === "quoted" && order.payment_status === "paid" && (
                               <Button
                                 size="sm"
                                 variant="outline"
@@ -258,17 +340,19 @@ const AdsManagement = () => {
                                 <CheckCircle className="h-4 w-4 mr-1" />
                                 Approve
                               </Button>
+                            )}
+                            {order.status === "quoted" && order.payment_status !== "paid" && (
                               <Button
                                 size="sm"
                                 variant="outline"
-                                className="border-red-500 text-red-500 hover:bg-red-500/10"
-                                onClick={() => openActionDialog(order, "reject")}
+                                className="border-blue-500 text-blue-500 hover:bg-blue-500/10"
+                                onClick={() => openActionDialog(order, "quote")}
                               >
-                                <XCircle className="h-4 w-4 mr-1" />
-                                Reject
+                                <DollarSign className="h-4 w-4 mr-1" />
+                                Update Price
                               </Button>
-                            </div>
-                          )}
+                            )}
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
@@ -287,12 +371,18 @@ const AdsManagement = () => {
           <DialogContent className="bg-slate-800 border-slate-700 text-white">
             <DialogHeader>
               <DialogTitle>
-                {actionType === "approve" ? "Approve" : "Reject"} Ad Order
+                {actionType === "quote" 
+                  ? "Set Price Quote" 
+                  : actionType === "approve" 
+                  ? "Approve Order" 
+                  : "Reject Order"}
               </DialogTitle>
               <DialogDescription className="text-slate-400">
-                {actionType === "approve" 
+                {actionType === "quote" 
+                  ? "Set a custom price for this ad campaign based on the creative, targeting, and placement."
+                  : actionType === "approve"
                   ? "This will activate the campaign and start showing ads."
-                  : "This will reject the campaign. The user may be eligible for a refund."}
+                  : "This will reject the campaign."}
               </DialogDescription>
             </DialogHeader>
 
@@ -301,19 +391,41 @@ const AdsManagement = () => {
                 <p className="text-sm text-slate-400 mb-1">Campaign</p>
                 <p className="font-medium">{selectedOrder?.campaign?.name}</p>
               </div>
+
+              {actionType === "quote" && (
+                <div className="space-y-2">
+                  <Label htmlFor="price" className="text-white">Price (USD) *</Label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Input
+                      id="price"
+                      type="number"
+                      min="1"
+                      step="0.01"
+                      value={quotedPrice}
+                      onChange={(e) => setQuotedPrice(e.target.value)}
+                      placeholder="Enter price..."
+                      className="pl-10 bg-slate-700 border-slate-600 text-white"
+                    />
+                  </div>
+                  <p className="text-xs text-slate-400">
+                    Customer will receive this quote and can pay via Stripe.
+                  </p>
+                </div>
+              )}
+
               <div>
-                <p className="text-sm text-slate-400 mb-1">Amount</p>
-                <p className="font-medium">${selectedOrder?.amount}</p>
-              </div>
-              <div>
-                <p className="text-sm text-slate-400 mb-1">Admin Notes (optional)</p>
+                <Label htmlFor="notes" className="text-white">Admin Notes (optional)</Label>
                 <Textarea
+                  id="notes"
                   value={adminNotes}
                   onChange={(e) => setAdminNotes(e.target.value)}
                   placeholder={actionType === "reject" 
                     ? "Reason for rejection..."
+                    : actionType === "quote"
+                    ? "Notes about pricing decision..."
                     : "Any notes for this approval..."}
-                  className="bg-slate-700 border-slate-600"
+                  className="bg-slate-700 border-slate-600 text-white mt-2"
                 />
               </div>
             </div>
@@ -327,12 +439,20 @@ const AdsManagement = () => {
               </Button>
               <Button
                 onClick={handleAction}
-                className={actionType === "approve" 
-                  ? "bg-green-600 hover:bg-green-700"
-                  : "bg-red-600 hover:bg-red-700"}
-                disabled={updateOrderStatus.isPending}
+                className={
+                  actionType === "quote" 
+                    ? "bg-blue-600 hover:bg-blue-700"
+                    : actionType === "approve" 
+                    ? "bg-green-600 hover:bg-green-700"
+                    : "bg-red-600 hover:bg-red-700"
+                }
+                disabled={updateOrderStatus.isPending || (actionType === "quote" && !quotedPrice)}
               >
-                {actionType === "approve" ? "Approve" : "Reject"} Order
+                {actionType === "quote" 
+                  ? "Send Quote" 
+                  : actionType === "approve" 
+                  ? "Approve Order" 
+                  : "Reject Order"}
               </Button>
             </DialogFooter>
           </DialogContent>

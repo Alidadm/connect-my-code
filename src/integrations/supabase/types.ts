@@ -65,6 +65,7 @@ export type Database = {
       ad_orders: {
         Row: {
           admin_notes: string | null
+          admin_quoted_price: number | null
           amount: number
           campaign_id: string
           created_at: string
@@ -73,6 +74,8 @@ export type Database = {
           guest_name: string | null
           id: string
           payment_status: string | null
+          quote_expires_at: string | null
+          quote_sent_at: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           status: string | null
@@ -83,6 +86,7 @@ export type Database = {
         }
         Insert: {
           admin_notes?: string | null
+          admin_quoted_price?: number | null
           amount: number
           campaign_id: string
           created_at?: string
@@ -91,6 +95,8 @@ export type Database = {
           guest_name?: string | null
           id?: string
           payment_status?: string | null
+          quote_expires_at?: string | null
+          quote_sent_at?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string | null
@@ -101,6 +107,7 @@ export type Database = {
         }
         Update: {
           admin_notes?: string | null
+          admin_quoted_price?: number | null
           amount?: number
           campaign_id?: string
           created_at?: string
@@ -109,6 +116,8 @@ export type Database = {
           guest_name?: string | null
           id?: string
           payment_status?: string | null
+          quote_expires_at?: string | null
+          quote_sent_at?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string | null

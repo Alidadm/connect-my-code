@@ -75,6 +75,9 @@ export interface AdOrder {
   admin_notes: string | null;
   reviewed_by: string | null;
   reviewed_at: string | null;
+  admin_quoted_price: number | null;
+  quote_sent_at: string | null;
+  quote_expires_at: string | null;
   created_at: string;
   updated_at: string;
   campaign?: AdCampaign;
@@ -342,22 +345,36 @@ export const useUpdateOrderStatus = () => {
     mutationFn: async ({ 
       id, 
       status, 
-      adminNotes 
+      adminNotes,
+      quotedPrice,
     }: { 
       id: string; 
       status: string; 
       adminNotes?: string;
+      quotedPrice?: number;
     }) => {
       const { data: { user } } = await supabase.auth.getUser();
       
+      const updateData: Record<string, any> = { 
+        status, 
+        admin_notes: adminNotes,
+        reviewed_by: user?.id,
+        reviewed_at: new Date().toISOString(),
+      };
+      
+      // If sending a quote, add price and expiration
+      if (quotedPrice !== undefined && status === 'quoted') {
+        updateData.admin_quoted_price = quotedPrice;
+        updateData.quote_sent_at = new Date().toISOString();
+        // Quote expires in 7 days
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + 7);
+        updateData.quote_expires_at = expiresAt.toISOString();
+      }
+      
       const { error } = await supabase
         .from("ad_orders")
-        .update({ 
-          status, 
-          admin_notes: adminNotes,
-          reviewed_by: user?.id,
-          reviewed_at: new Date().toISOString(),
-        })
+        .update(updateData)
         .eq("id", id);
 
       if (error) throw error;
