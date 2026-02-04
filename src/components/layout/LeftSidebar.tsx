@@ -21,7 +21,8 @@ import {
   Trash2,
   CalendarDays,
   Palette,
-  PenSquare
+  PenSquare,
+  Sparkles
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -45,6 +46,7 @@ const formatTime = (seconds: number): string => {
 const getNavItems = (t: TFunction, gameBadge: number | null) => [
   { icon: Newspaper, label: t("nav.feed"), path: "/", badge: null, iconColor: "text-blue-500" },
   { icon: Users, label: t("nav.friends"), path: "/friends", badge: null, iconColor: "text-green-500" },
+  { icon: Sparkles, label: t("nav.penpals", { defaultValue: "PenPals" }), path: "/penpals", badge: null, iconColor: "text-rose-500" },
   { icon: CalendarDays, label: t("nav.events", { defaultValue: "Events" }), path: "/events", badge: null, iconColor: "text-orange-500" },
   { icon: PenSquare, label: t("nav.blogs", { defaultValue: "Blogs" }), path: "/blogs", badge: null, iconColor: "text-indigo-500" },
   { icon: Gamepad2, label: t("nav.games", { defaultValue: "Games" }), path: "/games", badge: gameBadge, iconColor: "text-red-500" },

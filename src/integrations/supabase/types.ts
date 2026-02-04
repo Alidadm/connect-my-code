@@ -2028,6 +2028,60 @@ export type Database = {
         }
         Relationships: []
       }
+      penpal_connections: {
+        Row: {
+          created_at: string
+          id: string
+          penpal_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          penpal_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          penpal_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      penpal_preferences: {
+        Row: {
+          created_at: string
+          id: string
+          interests: string[] | null
+          is_discoverable: boolean | null
+          looking_for_description: string | null
+          preferred_countries: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          interests?: string[] | null
+          is_discoverable?: boolean | null
+          looking_for_description?: string | null
+          preferred_countries?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          interests?: string[] | null
+          is_discoverable?: boolean | null
+          looking_for_description?: string | null
+          preferred_countries?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       phone_verification_codes: {
         Row: {
           code: string
