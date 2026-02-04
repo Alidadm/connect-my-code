@@ -108,6 +108,20 @@ serve(async (req) => {
           .eq("id", order.campaign_id);
       }
 
+      // Send approval notification email
+      try {
+        await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/send-ad-notification`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+          },
+          body: JSON.stringify({ orderId, type: "approved" }),
+        });
+      } catch (emailError) {
+        console.error("Failed to send approval email:", emailError);
+      }
+
       return new Response(JSON.stringify({ 
         success: true, 
         message: "Payment captured and campaign activated" 
@@ -137,6 +151,20 @@ serve(async (req) => {
           .from("ad_campaigns")
           .update({ status: "rejected" })
           .eq("id", order.campaign_id);
+      }
+
+      // Send rejection notification email
+      try {
+        await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/send-ad-notification`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+          },
+          body: JSON.stringify({ orderId, type: "rejected" }),
+        });
+      } catch (emailError) {
+        console.error("Failed to send rejection email:", emailError);
       }
 
       return new Response(JSON.stringify({ 
