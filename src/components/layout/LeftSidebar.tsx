@@ -437,11 +437,15 @@ export const LeftSidebar = () => {
         {/* Footer */}
         <div className="mt-4 px-2 text-xs text-muted-foreground">
           <div className="flex flex-wrap gap-x-2 gap-y-1">
-            <a href="#" className="hover:underline">{t("footer.privacyTerms")}</a>
-            <a href="#" className="hover:underline">{t("footer.advertising")}</a>
-            <a href="#" className="hover:underline">{t("footer.cookies")}</a>
+            <a href="/privacy-policy" className="hover:underline">{t("footer.privacy", { defaultValue: "Privacy" })}</a>
+            <span>·</span>
+            <a href="/terms" className="hover:underline">{t("footer.terms", { defaultValue: "Terms" })}</a>
+            <span>·</span>
+            <a href="/ads-manager" className="hover:underline">{t("footer.advertising", { defaultValue: "Advertising" })}</a>
+            <span>·</span>
+            <a href="/cookies-policy" className="hover:underline">{t("footer.cookies", { defaultValue: "Cookies" })}</a>
           </div>
-          <div className="mt-2">Platform © 2024</div>
+          <div className="mt-2">DolphySN © 2026</div>
         </div>
       </div>
     </aside>
