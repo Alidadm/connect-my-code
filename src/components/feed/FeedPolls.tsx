@@ -39,29 +39,11 @@ export const FeedPolls = () => {
         return new Date(poll.expires_at) > now;
       });
 
-      // If user is logged in, fetch their voted polls
-      if (user) {
-        const { data: votesData } = await supabase
-          .from("poll_votes")
-          .select("poll_id")
-          .eq("user_id", user.id);
-
-        const votedIds = new Set((votesData || []).map((v) => v.poll_id));
-        setVotedPollIds(votedIds);
-
-        // Filter out polls user has already voted on
-        const unvotedPolls = activePolls.filter((poll) => !votedIds.has(poll.id));
-        setPolls(unvotedPolls.map(p => ({
-          ...p,
-          options: p.options as unknown as PollOption[]
-        })));
-      } else {
-        // Show all active polls for non-logged in users (they can see results)
-        setPolls(activePolls.map(p => ({
-          ...p,
-          options: p.options as unknown as PollOption[]
-        })));
-      }
+      // Show all active polls - PollCard handles showing results vs voting form
+      setPolls(activePolls.map(p => ({
+        ...p,
+        options: p.options as unknown as PollOption[]
+      })));
     } catch (error) {
       console.error("Error fetching polls:", error);
     }
