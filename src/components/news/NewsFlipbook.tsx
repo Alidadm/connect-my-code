@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { ChevronLeft, ChevronRight, ExternalLink, Clock, Newspaper } from "lucide-react";
+import { ChevronLeft, ChevronRight, ExternalLink, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -30,13 +30,16 @@ interface NewsFlipbookProps {
   categoryColor?: string;
 }
 
+const ITEMS_PER_PAGE = 3;
+const MAX_PAGES = 10;
+
 export const NewsFlipbook: React.FC<NewsFlipbookProps> = ({
   items,
   categoryName,
   categoryColor,
 }) => {
   const { t } = useTranslation();
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentPage, setCurrentPage] = useState(0);
   const [isFlipping, setIsFlipping] = useState(false);
   const [flipDirection, setFlipDirection] = useState<"next" | "prev">("next");
   const containerRef = useRef<HTMLDivElement>(null);
@@ -47,25 +50,28 @@ export const NewsFlipbook: React.FC<NewsFlipbookProps> = ({
     return null;
   }
 
-  const currentItem = items[currentIndex];
+  // Calculate pages - limit to MAX_PAGES
+  const totalPages = Math.min(Math.ceil(items.length / ITEMS_PER_PAGE), MAX_PAGES);
+  const startIndex = currentPage * ITEMS_PER_PAGE;
+  const pageItems = items.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   const goToNext = () => {
-    if (currentIndex < items.length - 1 && !isFlipping) {
+    if (currentPage < totalPages - 1 && !isFlipping) {
       setFlipDirection("next");
       setIsFlipping(true);
       setTimeout(() => {
-        setCurrentIndex((prev) => prev + 1);
+        setCurrentPage((prev) => prev + 1);
         setIsFlipping(false);
       }, 300);
     }
   };
 
   const goToPrev = () => {
-    if (currentIndex > 0 && !isFlipping) {
+    if (currentPage > 0 && !isFlipping) {
       setFlipDirection("prev");
       setIsFlipping(true);
       setTimeout(() => {
-        setCurrentIndex((prev) => prev - 1);
+        setCurrentPage((prev) => prev - 1);
         setIsFlipping(false);
       }, 300);
     }
@@ -84,10 +90,6 @@ export const NewsFlipbook: React.FC<NewsFlipbookProps> = ({
     }
   };
 
-  const timeUntilExpiry = formatDistanceToNow(new Date(currentItem.expires_at), {
-    addSuffix: true,
-  });
-
   return (
     <div className="relative" ref={containerRef}>
       {/* Category header */}
@@ -101,20 +103,20 @@ export const NewsFlipbook: React.FC<NewsFlipbookProps> = ({
             {categoryName}
           </Badge>
           <span className="text-xs text-muted-foreground">
-            {currentIndex + 1} / {items.length}
+            {t("news.page", "Page")} {currentPage + 1} / {totalPages}
           </span>
         </div>
       )}
 
       {/* Flipbook container */}
       <div
-        className="relative bg-card rounded-xl shadow-lg overflow-hidden"
+        className="relative bg-card rounded-xl overflow-hidden"
         onTouchStart={(e) => {
           handleTouchStart.current = e.touches[0].clientX;
         }}
         onTouchEnd={handleTouchEnd}
       >
-        {/* News card with flip animation */}
+        {/* News list with flip animation */}
         <div
           className={cn(
             "transition-all duration-300 transform-gpu",
@@ -122,139 +124,110 @@ export const NewsFlipbook: React.FC<NewsFlipbookProps> = ({
             isFlipping && flipDirection === "prev" && "animate-flip-out-left"
           )}
         >
-          {/* Image or Placeholder - clickable if source_url exists */}
-          <div className="relative h-32 overflow-hidden bg-muted/50">
-            {currentItem.image_url ? (
-              currentItem.source_url ? (
-                <a
-                  href={currentItem.source_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block w-full h-full"
-                >
-                  <img
-                    src={currentItem.image_url}
-                    alt={currentItem.title}
-                    className="w-full h-full object-cover transition-transform hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                  <div className="absolute bottom-2 right-2">
-                    <ExternalLink className="h-4 w-4 text-white/80" />
-                  </div>
-                </a>
-              ) : (
-                <>
-                  <img
-                    src={currentItem.image_url}
-                    alt={currentItem.title}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                </>
-              )
-            ) : (
-              currentItem.source_url ? (
-                <a
-                  href={currentItem.source_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-amber-100 to-amber-50 dark:from-amber-900/30 dark:to-amber-800/20 hover:opacity-90 transition-opacity"
-                >
-                  <Newspaper className="h-8 w-8 text-amber-500 dark:text-amber-400 mb-1" />
-                  <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
-                    {t("news.noImage", "No Image")}
-                  </span>
-                  <ExternalLink className="h-3 w-3 text-amber-500 dark:text-amber-400 mt-1" />
-                </a>
-              ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-amber-100 to-amber-50 dark:from-amber-900/30 dark:to-amber-800/20">
-                  <Newspaper className="h-8 w-8 text-amber-500 dark:text-amber-400 mb-1" />
-                  <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
-                    {t("news.noImage", "No Image")}
-                  </span>
-                </div>
-              )
-            )}
-          </div>
-
-          {/* Content */}
-          <div className="p-3">
-            <h3 className="font-medium text-sm text-foreground line-clamp-2 mb-2 leading-snug">
-              {currentItem.title}
-            </h3>
-
-            {currentItem.summary && currentItem.summary.length > 10 && (
-              <p className="text-xs text-muted-foreground line-clamp-3 mb-3">
-                {currentItem.summary}
-              </p>
-            )}
-
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Clock className="h-3 w-3" />
-              <span>{t("news.expires", "Expires")} {timeUntilExpiry}</span>
-            </div>
+          <div className="divide-y divide-border/50">
+            {pageItems.map((item) => (
+              <NewsRow key={item.id} item={item} />
+            ))}
           </div>
         </div>
-
       </div>
 
-      {/* Navigation arrows - moved outside card to prevent overlap */}
-      <div className="flex items-center justify-between mt-2 px-1">
-        <Button
-          variant="ghost"
-          size="sm"
-          className={cn(
-            "h-7 w-7 p-0 rounded-full",
-            currentIndex === 0 && "opacity-30 cursor-not-allowed"
-          )}
-          onClick={goToPrev}
-          disabled={currentIndex === 0}
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
+      {/* Navigation arrows */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-2 px-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            className={cn(
+              "h-7 w-7 p-0 rounded-full",
+              currentPage === 0 && "opacity-30 cursor-not-allowed"
+            )}
+            onClick={goToPrev}
+            disabled={currentPage === 0}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
 
-        {/* Dots indicator */}
-        <div className="flex justify-center gap-1">
-          {items.slice(0, 10).map((_, idx) => (
-            <button
-              key={idx}
-              className={cn(
-                "w-1.5 h-1.5 rounded-full transition-colors",
-                idx === currentIndex ? "bg-primary" : "bg-muted-foreground/30"
-              )}
-              onClick={() => {
-                if (!isFlipping) {
-                  setFlipDirection(idx > currentIndex ? "next" : "prev");
-                  setIsFlipping(true);
-                  setTimeout(() => {
-                    setCurrentIndex(idx);
-                    setIsFlipping(false);
-                  }, 300);
-                }
-              }}
-            />
-          ))}
-          {items.length > 10 && (
-            <span className="text-[10px] text-muted-foreground ml-1">
-              +{items.length - 10}
+          {/* Dots indicator */}
+          <div className="flex justify-center gap-1">
+            {Array.from({ length: totalPages }).map((_, idx) => (
+              <button
+                key={idx}
+                className={cn(
+                  "w-1.5 h-1.5 rounded-full transition-colors",
+                  idx === currentPage ? "bg-primary" : "bg-muted-foreground/30"
+                )}
+                onClick={() => {
+                  if (!isFlipping) {
+                    setFlipDirection(idx > currentPage ? "next" : "prev");
+                    setIsFlipping(true);
+                    setTimeout(() => {
+                      setCurrentPage(idx);
+                      setIsFlipping(false);
+                    }, 300);
+                  }
+                }}
+              />
+            ))}
+          </div>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            className={cn(
+              "h-7 w-7 p-0 rounded-full",
+              currentPage === totalPages - 1 && "opacity-30 cursor-not-allowed"
+            )}
+            onClick={goToNext}
+            disabled={currentPage === totalPages - 1}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Compact news row component (no image)
+const NewsRow: React.FC<{ item: NewsItem }> = ({ item }) => {
+  const { t } = useTranslation();
+  
+  const timeAgo = formatDistanceToNow(new Date(item.published_at), {
+    addSuffix: true,
+  });
+
+  return (
+    <div className="py-2.5 px-1">
+      {item.source_url ? (
+        <a
+          href={item.source_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group block"
+        >
+          <h3 className="text-sm font-medium text-foreground line-clamp-2 leading-snug group-hover:text-primary transition-colors">
+            {item.title}
+          </h3>
+          <div className="flex items-center gap-2 mt-1">
+            <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+              <Clock className="h-2.5 w-2.5" />
+              {timeAgo}
             </span>
-          )}
+            <ExternalLink className="h-3 w-3 text-muted-foreground group-hover:text-primary transition-colors" />
+          </div>
+        </a>
+      ) : (
+        <div>
+          <h3 className="text-sm font-medium text-foreground line-clamp-2 leading-snug">
+            {item.title}
+          </h3>
+          <div className="flex items-center gap-1 mt-1">
+            <Clock className="h-2.5 w-2.5 text-muted-foreground" />
+            <span className="text-[10px] text-muted-foreground">{timeAgo}</span>
+          </div>
         </div>
-
-        <Button
-          variant="ghost"
-          size="sm"
-          className={cn(
-            "h-7 w-7 p-0 rounded-full",
-            currentIndex === items.length - 1 && "opacity-30 cursor-not-allowed"
-          )}
-          onClick={goToNext}
-          disabled={currentIndex === items.length - 1}
-        >
-          <ChevronRight className="h-4 w-4" />
-        </Button>
-      </div>
-
+      )}
     </div>
   );
 };
