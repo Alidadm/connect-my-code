@@ -744,26 +744,54 @@ serve(async (req) => {
               `${profileData?.first_name || ""} ${profileData?.last_name || ""}`.trim() || 
               "Member";
 
-            // Send cancellation notification email
+            // Send cancellation notification email with deduplication
             try {
-              const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
-              const endDate = subscription.current_period_end 
-                ? new Date(subscription.current_period_end * 1000).toISOString() 
-                : null;
+              const dedupeKey = `stripe_cancel_${subscription.id}`;
+              
+              // Check if we already sent this cancellation email
+              const { data: existingEmail } = await supabaseClient
+                .from("sent_emails")
+                .select("id")
+                .eq("email_type", "cancellation")
+                .eq("identifier", dedupeKey)
+                .single();
 
-              await fetch(`${supabaseUrl}/functions/v1/send-cancellation-notification`, {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
-                },
-                body: JSON.stringify({
-                  email: customer.email,
-                  name: userName,
-                  endDate,
-                }),
-              });
-              logStep("Cancellation notification sent", { email: customer.email });
+              if (existingEmail) {
+                logStep("Cancellation email already sent, skipping duplicate", { subscriptionId: subscription.id });
+              } else {
+                // Record that we're sending this email (insert first to prevent race conditions)
+                const { error: insertError } = await supabaseClient
+                  .from("sent_emails")
+                  .insert({
+                    email_type: "cancellation",
+                    identifier: dedupeKey,
+                    recipient_email: customer.email,
+                  });
+
+                if (insertError) {
+                  // If insert fails due to unique constraint, another webhook already handled it
+                  logStep("Cancellation email already being sent by another webhook", { error: insertError.message });
+                } else {
+                  const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+                  const endDate = subscription.current_period_end 
+                    ? new Date(subscription.current_period_end * 1000).toISOString() 
+                    : null;
+
+                  await fetch(`${supabaseUrl}/functions/v1/send-cancellation-notification`, {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                      "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+                    },
+                    body: JSON.stringify({
+                      email: customer.email,
+                      name: userName,
+                      endDate,
+                    }),
+                  });
+                  logStep("Cancellation notification sent", { email: customer.email });
+                }
+              }
             } catch (notifError) {
               logStep("Failed to send cancellation notification", { error: String(notifError) });
             }

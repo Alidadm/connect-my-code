@@ -3362,6 +3362,33 @@ export type Database = {
         }
         Relationships: []
       }
+      sent_emails: {
+        Row: {
+          created_at: string
+          email_type: string
+          id: string
+          identifier: string
+          recipient_email: string
+          sent_at: string
+        }
+        Insert: {
+          created_at?: string
+          email_type: string
+          id?: string
+          identifier: string
+          recipient_email: string
+          sent_at?: string
+        }
+        Update: {
+          created_at?: string
+          email_type?: string
+          id?: string
+          identifier?: string
+          recipient_email?: string
+          sent_at?: string
+        }
+        Relationships: []
+      }
       seo_settings: {
         Row: {
           canonical_url: string | null
