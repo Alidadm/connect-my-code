@@ -460,26 +460,54 @@ serve(async (req) => {
             logStep("Updated subscription record to " + canceledStatus);
           }
 
-          // Send cancellation notification email
+          // Send cancellation notification email with deduplication
           const userEmail = await getUserEmail(userId);
           const userName = await getUserName(userId);
 
           if (userEmail) {
             try {
-              logStep("Sending cancellation notification", { email: userEmail });
-              await fetch(`${supabaseUrl}/functions/v1/send-cancellation-notification`, {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  "Authorization": `Bearer ${serviceRoleKey}`,
-                },
-                body: JSON.stringify({
-                  email: userEmail,
-                  name: userName,
-                  endDate,
-                }),
-              });
-              logStep("Cancellation notification sent");
+              const dedupeKey = `paypal_cancel_${subscription.id}`;
+              
+              // Check if we already sent this cancellation email
+              const { data: existingEmail } = await supabaseClient
+                .from("sent_emails")
+                .select("id")
+                .eq("email_type", "cancellation")
+                .eq("identifier", dedupeKey)
+                .single();
+
+              if (existingEmail) {
+                logStep("Cancellation email already sent, skipping duplicate", { subscriptionId: subscription.id });
+              } else {
+                // Record that we're sending this email (insert first to prevent race conditions)
+                const { error: insertError } = await supabaseClient
+                  .from("sent_emails")
+                  .insert({
+                    email_type: "cancellation",
+                    identifier: dedupeKey,
+                    recipient_email: userEmail,
+                  });
+
+                if (insertError) {
+                  // If insert fails due to unique constraint, another webhook already handled it
+                  logStep("Cancellation email already being sent by another webhook", { error: insertError.message });
+                } else {
+                  logStep("Sending cancellation notification", { email: userEmail });
+                  await fetch(`${supabaseUrl}/functions/v1/send-cancellation-notification`, {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                      "Authorization": `Bearer ${serviceRoleKey}`,
+                    },
+                    body: JSON.stringify({
+                      email: userEmail,
+                      name: userName,
+                      endDate,
+                    }),
+                  });
+                  logStep("Cancellation notification sent");
+                }
+              }
             } catch (notifError) {
               logStep("Failed to send cancellation notification", { error: String(notifError) });
             }
