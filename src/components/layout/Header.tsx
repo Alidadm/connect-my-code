@@ -187,11 +187,10 @@ export const Header = () => {
       <div className="flex items-center justify-between h-full px-2 sm:px-4 max-w-[1920px] mx-auto">
         {/* Logo */}
         <div className="flex items-center gap-2 cursor-pointer flex-shrink-0" onClick={() => navigate("/")}>
-          <img 
-            src="/images/dolphysn-logo.png" 
-            alt="DolphySN" 
-            className="h-8 sm:h-10 w-auto"
-          />
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl dolphy-gradient flex items-center justify-center shadow-md">
+            <span className="text-primary-foreground font-bold text-lg sm:text-xl">D</span>
+          </div>
+          <span className="text-lg sm:text-xl font-bold text-foreground hidden sm:block">Dolphysn</span>
         </div>
 
         {/* Navigation Links */}
