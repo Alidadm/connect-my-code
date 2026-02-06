@@ -104,7 +104,10 @@ serve(async (req) => {
             <a href="${referralUrl}" style="background: linear-gradient(135deg, #1c76e6 0%, #3b82f6 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Join DolphySN Now</a>
           </div>
           <p style="color: #6b7280; font-size: 14px; text-align: center;">
-            Your referral link: <a href="${referralUrl}" style="color: #1c76e6;">${referralUrl}</a>
+            Your referral link: <a href="${referralUrl}" style="color: #1c76e6; text-decoration: underline;">${referralUrl}</a>
+          </p>
+          <p style="color: #6b7280; font-size: 14px; text-align: center; margin-top: 8px;">
+            👉 <a href="${referralUrl}" style="color: #1c76e6; text-decoration: underline; font-weight: bold;">Click here to join DolphySN</a>
           </p>
           <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
           <p style="color: #9ca3af; font-size: 12px; text-align: center;">
