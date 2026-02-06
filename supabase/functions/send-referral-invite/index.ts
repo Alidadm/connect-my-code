@@ -101,14 +101,13 @@ serve(async (req) => {
         <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px;">
           <p style="color: #4b5563; font-size: 16px; line-height: 1.6;">${message.replace(/\n/g, '<br>')}</p>
           <div style="text-align: center; margin: 30px 0;">
-            <a href="${referralUrl}" style="background: linear-gradient(135deg, #1c76e6 0%, #3b82f6 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Join DolphySN Now</a>
+            <p style="font-size: 18px; margin: 0 0 12px 0;">
+              👉 <a href="${referralUrl}" style="color: #1c76e6; text-decoration: underline; font-weight: bold; font-size: 18px;">Click here to sign up on DolphySN</a>
+            </p>
+            <p style="color: #6b7280; font-size: 14px; margin: 0;">
+              Or copy this link: <a href="${referralUrl}" style="color: #1c76e6; text-decoration: underline;">${referralUrl}</a>
+            </p>
           </div>
-          <p style="color: #6b7280; font-size: 14px; text-align: center;">
-            Your referral link: <a href="${referralUrl}" style="color: #1c76e6; text-decoration: underline;">${referralUrl}</a>
-          </p>
-          <p style="color: #6b7280; font-size: 14px; text-align: center; margin-top: 8px;">
-            👉 <a href="${referralUrl}" style="color: #1c76e6; text-decoration: underline; font-weight: bold;">Click here to join DolphySN</a>
-          </p>
           <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
           <p style="color: #9ca3af; font-size: 12px; text-align: center;">
             This invitation was sent by ${senderName} via DolphySN.
