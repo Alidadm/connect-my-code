@@ -778,7 +778,7 @@ const Commissions = () => {
                       >
                         {t("commissions.clickToCopyLink", { defaultValue: "Click here to sign up" })}
                       </a>
-                      <span className="text-muted-foreground text-xs truncate">{referralUrl}</span>
+                      <a href={referralUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground text-xs truncate hover:underline">{referralUrl}</a>
                     </div>
                   ) : (
                     <span className="text-muted-foreground italic">
