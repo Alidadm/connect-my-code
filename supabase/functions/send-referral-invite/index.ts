@@ -48,16 +48,28 @@ serve(async (req) => {
 
     // Parse request body
     const body = await req.json();
-    const { recipientEmail, subject, message } = body;
+    const { recipientEmails, recipientEmail, subject, message } = body;
 
-    if (!recipientEmail || !subject || !message) {
-      throw new Error("recipientEmail, subject, and message are required");
+    // Support both single email (legacy) and multiple emails
+    const emails: string[] = recipientEmails 
+      ? (Array.isArray(recipientEmails) ? recipientEmails : [recipientEmails])
+      : recipientEmail 
+        ? [recipientEmail] 
+        : [];
+
+    if (emails.length === 0 || !subject || !message) {
+      throw new Error("At least one recipientEmail, subject, and message are required");
     }
 
-    // Validate email format
+    if (emails.length > 10) {
+      throw new Error("Maximum 10 recipients allowed per request");
+    }
+
+    // Validate all email formats
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(recipientEmail)) {
-      throw new Error("Invalid email address");
+    const invalidEmails = emails.filter(e => !emailRegex.test(e));
+    if (invalidEmails.length > 0) {
+      throw new Error(`Invalid email address(es): ${invalidEmails.join(", ")}`);
     }
 
     // Get the sender's profile
@@ -76,7 +88,7 @@ serve(async (req) => {
       : "https://dolphysn.com";
 
     logStep("Sending referral invite", { 
-      to: recipientEmail.slice(0, 3) + "***",
+      count: emails.length,
       from: senderName 
     });
 
@@ -104,37 +116,52 @@ serve(async (req) => {
 
     const plainText = `${message}\n\nJoin here: ${referralUrl}\n\n---\nThis invitation was sent by ${senderName} via DolphySN.`;
 
-    // Send email via Resend
-    const emailResponse = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${resendApiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: `${senderName} via DolphySN <noreply@dolphysn.com>`,
-        to: [recipientEmail],
-        subject: subject,
-        text: plainText,
-        html: htmlBody,
-        reply_to: user.email,
-      }),
-    });
+    // Send email to all recipients via Resend
+    const results = [];
+    const errors = [];
 
-    if (!emailResponse.ok) {
-      const errorData = await emailResponse.text();
-      logStep("Resend API error", { error: errorData });
-      throw new Error("Failed to send invitation email");
+    for (const recipientEmail of emails) {
+      try {
+        const emailResponse = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${resendApiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            from: `${senderName} via DolphySN <noreply@dolphysn.com>`,
+            to: [recipientEmail],
+            subject: subject,
+            text: plainText,
+            html: htmlBody,
+            reply_to: user.email,
+          }),
+        });
+
+        if (!emailResponse.ok) {
+          const errorData = await emailResponse.text();
+          logStep("Resend API error for " + recipientEmail, { error: errorData });
+          errors.push(recipientEmail);
+        } else {
+          const resendPayload = await emailResponse.json().catch(() => null);
+          results.push({ email: recipientEmail, id: resendPayload?.id ?? null });
+        }
+      } catch (err) {
+        logStep("Send error for " + recipientEmail, { error: String(err) });
+        errors.push(recipientEmail);
+      }
     }
 
-    const resendPayload = await emailResponse.json().catch(() => null);
-    logStep("Email sent successfully", { id: resendPayload?.id ?? null });
+    logStep("Batch complete", { sent: results.length, failed: errors.length });
 
     return new Response(
       JSON.stringify({
-        success: true,
-        message: "Invitation email sent successfully",
-        resend_id: resendPayload?.id ?? null,
+        success: errors.length === 0,
+        message: errors.length === 0 
+          ? `${results.length} invitation(s) sent successfully`
+          : `${results.length} sent, ${errors.length} failed`,
+        sent: results,
+        failed: errors,
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
