@@ -87,6 +87,10 @@ serve(async (req) => {
       ? `https://dolphysn.com/${profile.username}`
       : "https://dolphysn.com";
 
+    const signupUrl = profile?.username 
+      ? `https://dolphysn.com/signup?ref=${profile.username}`
+      : "https://dolphysn.com/signup";
+
     logStep("Sending referral invite", { 
       count: emails.length,
       from: senderName 
@@ -102,7 +106,7 @@ serve(async (req) => {
           <p style="color: #4b5563; font-size: 16px; line-height: 1.6;">${message.replace(/\n/g, '<br>')}</p>
           <div style="text-align: center; margin: 30px 0;">
             <p style="font-size: 18px; margin: 0 0 12px 0;">
-              👉 <a href="${referralUrl}" style="color: #1c76e6; text-decoration: underline; font-weight: bold; font-size: 18px;">Click here to sign up on DolphySN</a>
+              👉 <a href="${signupUrl}" style="color: #1c76e6; text-decoration: underline; font-weight: bold; font-size: 18px;">Click here to sign up on DolphySN</a>
             </p>
             <p style="color: #6b7280; font-size: 14px; margin: 0;">
               Or copy this link: <a href="${referralUrl}" style="color: #1c76e6; text-decoration: underline;">${referralUrl}</a>
