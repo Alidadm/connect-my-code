@@ -109,7 +109,7 @@ serve(async (req) => {
               👉 <a href="${signupUrl}" style="color: #1c76e6; text-decoration: underline; font-weight: bold; font-size: 18px;">Click here to sign up on DolphySN</a>
             </p>
             <p style="color: #6b7280; font-size: 14px; margin: 0;">
-              Or copy this link: <a href="${referralUrl}" style="color: #1c76e6; text-decoration: underline;">${referralUrl}</a>
+              Or copy this link: <a href="${signupUrl}" style="color: #1c76e6; text-decoration: underline;">${signupUrl}</a>
             </p>
           </div>
           <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
