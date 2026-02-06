@@ -28,7 +28,10 @@ import {
   CreditCard,
   Eye,
   RotateCcw,
-  ArrowLeft
+  ArrowLeft,
+  Plus,
+  X,
+  Link as LinkIcon
 } from "lucide-react";
 import {
   Dialog,
@@ -93,7 +96,7 @@ const Commissions = () => {
   const getDefaultEmailMessage = () => t("commissions.defaultEmailMessage", DEFAULT_EMAIL_MESSAGE_FALLBACK);
 
   // Email form state
-  const [emailTo, setEmailTo] = useState("");
+  const [emailRecipients, setEmailRecipients] = useState<string[]>([""]);
   const [isEmailTemplateCustomized, setIsEmailTemplateCustomized] = useState(() => {
     const customized = localStorage.getItem(REFERRAL_EMAIL_CUSTOMIZED_KEY);
     if (customized !== null) return customized === "true";
@@ -174,16 +177,35 @@ const Commissions = () => {
     }
   };
 
+  const handleAddRecipient = () => {
+    if (emailRecipients.length < 10) {
+      setEmailRecipients([...emailRecipients, ""]);
+    }
+  };
+
+  const handleRemoveRecipient = (index: number) => {
+    if (emailRecipients.length > 1) {
+      setEmailRecipients(emailRecipients.filter((_, i) => i !== index));
+    }
+  };
+
+  const handleRecipientChange = (index: number, value: string) => {
+    const updated = [...emailRecipients];
+    updated[index] = value;
+    setEmailRecipients(updated);
+  };
+
   const handleSendEmail = async () => {
-    if (!emailTo.trim()) {
-      toast.error("Please enter an email address");
+    const validEmails = emailRecipients.map(e => e.trim()).filter(Boolean);
+    if (validEmails.length === 0) {
+      toast.error("Please enter at least one email address");
       return;
     }
 
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(emailTo)) {
-      toast.error("Please enter a valid email address");
+    const invalidEmails = validEmails.filter(e => !emailRegex.test(e));
+    if (invalidEmails.length > 0) {
+      toast.error(`Invalid email(s): ${invalidEmails.join(", ")}`);
       return;
     }
     
@@ -197,13 +219,12 @@ const Commissions = () => {
         return;
       }
 
-      // Replace {{referral_link}} placeholder with actual referral URL
       const currentMessage = getCurrentMessage();
       const processedMessage = currentMessage.replace(/\{\{referral_link\}\}/g, referralUrl);
 
       const response = await supabase.functions.invoke("send-referral-invite", {
         body: {
-          recipientEmail: emailTo,
+          recipientEmails: validEmails,
           subject: getCurrentSubject(),
           message: processedMessage,
         },
@@ -213,10 +234,10 @@ const Commissions = () => {
         throw new Error(response.error.message || "Failed to send invitation");
       }
 
-      toast.success("Invitation email sent successfully!");
+      const count = validEmails.length;
+      toast.success(`Invitation${count > 1 ? 's' : ''} sent to ${count} recipient${count > 1 ? 's' : ''}!`);
       
-      // Clear the form
-      setEmailTo("");
+      setEmailRecipients([""]);
     } catch (error: any) {
       console.error("Error sending invitation:", error);
       toast.error(error.message || "Failed to send invitation email");
@@ -226,7 +247,7 @@ const Commissions = () => {
   };
 
   const handleCancelEmail = () => {
-    setEmailTo("");
+    setEmailRecipients([""]);
     setIsEmailTemplateCustomized(false);
     setEmailSubject("");
     setEmailMessage("");
@@ -591,14 +612,41 @@ const Commissions = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="emailTo">{t("commissions.emailAddress")}</Label>
-              <Input
-                id="emailTo"
-                type="email"
-                placeholder="friend@example.com"
-                value={emailTo}
-                onChange={(e) => setEmailTo(e.target.value)}
-              />
+              <div className="flex items-center justify-between">
+                <Label>{t("commissions.emailAddress")}</Label>
+                <span className="text-xs text-muted-foreground">{emailRecipients.length}/10</span>
+              </div>
+              {emailRecipients.map((email, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <Input
+                    type="email"
+                    placeholder="friend@example.com"
+                    value={email}
+                    onChange={(e) => handleRecipientChange(index, e.target.value)}
+                  />
+                  {emailRecipients.length > 1 && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
+                      onClick={() => handleRemoveRecipient(index)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+              {emailRecipients.length < 10 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleAddRecipient}
+                  className="text-primary hover:text-primary/80"
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  {t("commissions.addAnotherEmail", { defaultValue: "Add another email" })}
+                </Button>
+              )}
             </div>
             
             <div className="space-y-2">
@@ -673,7 +721,7 @@ const Commissions = () => {
                   <div className="space-y-1">
                     <Label className="text-xs text-muted-foreground">To</Label>
                     <div className="bg-muted rounded-md px-3 py-2 text-sm">
-                      {emailTo || <span className="text-muted-foreground italic">No recipient specified</span>}
+                      {emailRecipients.filter(e => e.trim()).join(", ") || <span className="text-muted-foreground italic">No recipient specified</span>}
                     </div>
                   </div>
                   
@@ -698,7 +746,7 @@ const Commissions = () => {
                       setShowPreview(false);
                       handleSendEmail();
                     }} 
-                    disabled={sendingEmail || !emailTo} 
+                    disabled={sendingEmail || !emailRecipients.some(e => e.trim())} 
                     className="flex-1"
                   >
                     <Send className="h-4 w-4 mr-2" />
@@ -715,11 +763,19 @@ const Commissions = () => {
             <div className="pt-4 border-t">
               <Label className="text-sm text-muted-foreground mb-2 block">{t("commissions.yourReferralLink")}</Label>
               <div className="flex items-center gap-2">
-                <div className="flex-1 bg-muted rounded-md px-3 py-2 text-sm font-mono truncate">
+                <div className="flex-1 bg-muted rounded-md px-3 py-2 text-sm flex items-center gap-2 min-w-0">
+                  <LinkIcon className="h-4 w-4 text-primary shrink-0" />
                   {authLoading ? (
                     t("common.loading")
                   ) : referralUrl ? (
-                    referralUrl
+                    <a 
+                      href={referralUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="text-primary hover:underline truncate"
+                    >
+                      {t("commissions.clickToCopyLink", { defaultValue: "Your Referral Link" })}
+                    </a>
                   ) : (
                     <span className="text-muted-foreground italic">
                       No referral code found. Please contact support.
@@ -728,11 +784,13 @@ const Commissions = () => {
                 </div>
                 <Button 
                   variant="outline" 
-                  size="icon"
+                  size="sm"
                   onClick={handleCopyUrl}
                   disabled={!referralUrl}
+                  className="shrink-0"
                 >
-                  <Copy className="h-4 w-4" />
+                  <Copy className="h-4 w-4 mr-2" />
+                  {t("referral.copyLink", { defaultValue: "Copy Link" })}
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground mt-2">
