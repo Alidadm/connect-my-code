@@ -31,7 +31,8 @@ import {
   ArrowLeft,
   Plus,
   X,
-  Link as LinkIcon
+  Link as LinkIcon,
+  ExternalLink
 } from "lucide-react";
 import {
   Dialog,
@@ -763,19 +764,22 @@ const Commissions = () => {
             <div className="pt-4 border-t">
               <Label className="text-sm text-muted-foreground mb-2 block">{t("commissions.yourReferralLink")}</Label>
               <div className="flex items-center gap-2">
-                <div className="flex-1 bg-muted rounded-md px-3 py-2 text-sm flex items-center gap-2 min-w-0">
-                  <LinkIcon className="h-4 w-4 text-primary shrink-0" />
+                <div className="flex-1 bg-muted rounded-md px-3 py-2 text-sm min-w-0">
+                  <ExternalLink className="h-4 w-4 text-muted-foreground inline mr-1 align-middle" />
                   {authLoading ? (
                     t("common.loading")
                   ) : referralUrl ? (
-                    <a 
-                      href={referralUrl} 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      className="text-primary hover:underline truncate"
-                    >
-                      {t("commissions.clickToCopyLink", { defaultValue: "Your Referral Link" })}
-                    </a>
+                    <div className="flex flex-col gap-1">
+                      <a 
+                        href={referralUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="text-primary hover:underline font-medium"
+                      >
+                        {t("commissions.clickToCopyLink", { defaultValue: "Click here to sign up" })}
+                      </a>
+                      <span className="text-muted-foreground text-xs truncate">{referralUrl}</span>
+                    </div>
                   ) : (
                     <span className="text-muted-foreground italic">
                       No referral code found. Please contact support.
