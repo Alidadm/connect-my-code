@@ -58,7 +58,7 @@ export const ReferralDownlineDiagram = () => {
           <p className="text-sm sm:text-base leading-relaxed">
             The First Member earns <strong>$5.00 per month</strong> from each 
             Second Member's subscription. With 7 active Second Members, the second member receives 
-            a total of <strong>$35.00 per month</strong> in referral earnings
+            a total of <strong>$35.00 per month</strong> in referral earnings.
           </p>
         </div>
       </div>
