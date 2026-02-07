@@ -5,7 +5,7 @@ import { PayoutSetupModal } from "@/components/payout/PayoutSetupModal";
 import { BirthdayCelebration } from "@/components/birthday/BirthdayCelebration";
 import { useAuth } from "@/hooks/useAuth";
 import { useMaintenanceMode } from "@/hooks/useMaintenanceMode";
-import Signup from "@/pages/Signup";
+import { LandingPage } from "@/components/landing/LandingPage";
 
 const Index = () => {
   const { user, loading } = useAuth();
@@ -21,14 +21,9 @@ const Index = () => {
     );
   }
 
-  // Show signup page when maintenance mode is on and user is not logged in
-  if (!user && isMaintenanceMode) {
-    return <Signup />;
-  }
-
-  // Show signup page for non-authenticated users
+  // Temporarily show landing page for non-authenticated users
   if (!user) {
-    return <Signup />;
+    return <LandingPage />;
   }
 
   // Show member feed for authenticated users
