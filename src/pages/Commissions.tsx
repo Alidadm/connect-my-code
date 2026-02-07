@@ -59,7 +59,7 @@ const REFERRAL_EMAIL_SUBJECT_KEY = "referral_email_subject";
 const REFERRAL_EMAIL_MESSAGE_KEY = "referral_email_message";
 const REFERRAL_EMAIL_CUSTOMIZED_KEY = "referral_email_customized";
 
-const DEFAULT_EMAIL_SUBJECT_FALLBACK = "Build Your Monthly Income with DolphySN";
+const DEFAULT_EMAIL_SUBJECT_FALLBACK = "A New Social Network You Should See";
 const DEFAULT_EMAIL_MESSAGE_FALLBACK = `Hi everyone,
 
 DolphySN.com is a new social network built for people who want to connect, grow, and earn real monthly income at the same time.

@@ -409,7 +409,7 @@
     "enterEmail": "请输入电子邮件地址",
     "defaultSubject": "加入我在DolphySN！",
     "defaultMessage": "嘿！我一直在使用DolphySN，觉得你也会喜欢。使用下面的推荐链接注册，我们可以联系！",
-    "defaultEmailSubject": "通过DolphySN建立您的月收入",
+    "defaultEmailSubject": "一个你应该看看的新社交网络",
     "defaultEmailMessage": "大家好，\n\nDolphySN.com是一个为想要联系、成长并同时赚取真正月收入的人们打造的新型社交网络。\n\n当您通过我的链接加入时，您的会员费每月仅需9.99美元。注册后，您可以邀请任何人——朋友、粉丝，甚至是您从未见过的人。\n\n通过您的链接订阅的每个人，您每月可以赚取5美元，只要他们保持活跃。\n\n例如：\n如果有20人加入您，那就是每月100美元（20 × 5美元）。\n随着您的下线增长，您的月收入也会增长——无论是现有会员还是新会员。\n\n今天就开始建立您的网络和收入。\n点击这里加入：{{referral_link}}\n\n在DolphySN见！"
   },
   "footer": {

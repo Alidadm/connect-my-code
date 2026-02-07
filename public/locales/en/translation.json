@@ -620,7 +620,7 @@
     "enterEmail": "Please enter an email address",
     "defaultSubject": "Join me on DolphySN!",
     "defaultMessage": "Hey! I've been using DolphySN and thought you might enjoy it too. Sign up using my referral link below and we can connect!",
-    "defaultEmailSubject": "Build Your Monthly Income with DolphySN",
+    "defaultEmailSubject": "A New Social Network You Should See",
     "defaultEmailMessage": "Hi everyone,\n\nDolphySN.com is a new social network built for people who want to connect, grow, and earn real monthly income at the same time.\n\nWhen you join through my link below, your membership is only $9.99 per month. After you sign up, you can invite anyone — friends, followers, or even people you've never met.\n\nFor every person who subscribes through your link, you earn $5 every month as long as they stay active.\n\nExample:\nIf 20 people join under you, that's $100 every month (20 × $5).\nAs your downline grows, your monthly income grows too — from both existing members and new members.\n\nStart building your network and your income today.\nJoin here: {{referral_link}}\n\nSee you inside DolphySN."
   },
   "footer": {
