@@ -35,14 +35,6 @@ export const LandingPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-      {/* Logo */}
-      <div className="max-w-6xl mx-auto px-4 pt-4">
-        <img 
-          src={dolphysnLogo} 
-          alt="DolphySN Logo" 
-          className="w-20 h-auto sm:w-24 md:w-28 lg:w-32 object-contain"
-        />
-      </div>
 
       {/* Hero Section */}
       <section className="relative overflow-hidden">
@@ -58,11 +50,18 @@ export const LandingPage = () => {
               <span className="text-sm font-medium">Welcome to DolphySN</span>
             </div>
             
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-6">
-              <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-                Connect. Share. Earn.
-              </span>
-            </h1>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 mb-6">
+              <img 
+                src={dolphysnLogo} 
+                alt="DolphySN Logo" 
+                className="w-[150px] h-auto object-contain"
+              />
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight">
+                <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+                  Connect. Share. Earn.
+                </span>
+              </h1>
+            </div>
             
             <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
               Join the social network that rewards you. Connect with friends, share your moments, 
