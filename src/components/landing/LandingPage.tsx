@@ -34,7 +34,7 @@ export const LandingPage = () => {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 -mt-[10px]">
 
       {/* Hero Section */}
       <section className="relative overflow-hidden">
