@@ -45,11 +45,8 @@ export const LandingPage = () => {
         
         <div className="relative max-w-6xl mx-auto px-4 py-16 sm:py-24">
           <div className="text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary mb-6">
-              <Sparkles className="h-4 w-4" />
-              <span className="text-sm font-medium">Welcome to DolphySN</span>
-            </div>
-            
+
+
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-6">
               <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
                 Connect. Share. Earn.
