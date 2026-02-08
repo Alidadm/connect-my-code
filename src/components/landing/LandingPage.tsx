@@ -44,16 +44,21 @@ export const LandingPage = () => {
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/20 rounded-full blur-3xl" />
         
         <div className="relative max-w-6xl mx-auto px-4 py-16 sm:py-24">
-          <div className="text-center">
-
-
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-6">
-              <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-                Connect. Share. Earn.
-              </span>
-            </h1>
+          <div className="flex flex-col items-center">
+            <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-8 mb-6">
+              <img 
+                src={dolphysnLogo} 
+                alt="DolphySN Logo" 
+                className="w-[120px] h-[120px] sm:w-[150px] sm:h-[150px] md:w-[180px] md:h-[180px] object-contain rounded-full shrink-0"
+              />
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-center sm:text-left">
+                <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+                  Connect. Share. Earn.
+                </span>
+              </h1>
+            </div>
             
-            <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
+            <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-8 text-center">
               Join the social network that rewards you. Connect with friends, share your moments, 
               and earn real money through our unique referral program.
             </p>
