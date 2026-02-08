@@ -12,6 +12,7 @@ import { GroupsManagement } from "@/components/dashboard/GroupsManagement";
 import { BusinessManagement } from "@/components/business/BusinessManagement";
 import { AboutSettings } from "@/components/settings/AboutSettings";
 import { RecentlyWatchedSection } from "@/components/dashboard/RecentlyWatchedSection";
+import { PayoutMethodsSection } from "@/components/dashboard/PayoutMethodsSection";
 
 import { AvatarEditor } from "@/components/avatar/AvatarEditor";
 import { CoverEditor } from "@/components/cover/CoverEditor";
@@ -1259,6 +1260,9 @@ const MemberDashboard = () => {
             <Button variant="outline" size="sm" onClick={handleChangePassword}>{t("account.changePassword")}</Button>
           </div>
         </div>
+
+        {/* Payout Methods Section */}
+        {user && <PayoutMethodsSection userId={user.id} />}
 
         <div className="p-4 bg-red-50 rounded-xl border border-red-200">
           <h4 className="font-medium text-red-800 mb-2">{t("account.dangerZone")}</h4>
