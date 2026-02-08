@@ -173,15 +173,15 @@ export const LandingPage = () => {
                 <div className="space-y-4">
                   <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
                     <span className="text-sm">10 referrals</span>
-                    <span className="font-semibold text-primary">$50/mo</span>
+                    <span className="font-semibold text-primary">$50/M</span>
                   </div>
                   <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
                     <span className="text-sm">50 referrals</span>
-                    <span className="font-semibold text-primary">$250/mo</span>
+                    <span className="font-semibold text-primary">$250/M</span>
                   </div>
                   <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg border border-primary/20">
                     <span className="text-sm">100 referrals</span>
-                    <span className="font-semibold text-primary">$500/mo</span>
+                    <span className="font-semibold text-primary">$500/M</span>
                   </div>
                 </div>
               </div>
