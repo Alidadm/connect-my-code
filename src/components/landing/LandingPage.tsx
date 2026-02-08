@@ -45,13 +45,13 @@ export const LandingPage = () => {
         
         <div className="relative max-w-6xl mx-auto px-4 py-16 sm:py-24">
           <div className="flex flex-col items-center">
-            <div className="flex flex-col sm:flex-row items-center sm:items-center gap-6 sm:gap-10">
+            <div className="flex flex-col lg:flex-row items-center lg:items-center gap-6 lg:gap-10">
               <img 
                 src={dolphysnLogo} 
                 alt="DolphySN Logo" 
-                className="w-[200px] h-[200px] sm:w-[220px] sm:h-[220px] md:w-[260px] md:h-[260px] object-contain rounded-full shrink-0"
+                className="w-[200px] h-[200px] md:w-[220px] md:h-[220px] lg:w-[260px] lg:h-[260px] object-contain rounded-full shrink-0"
               />
-              <div className="text-center sm:text-left">
+              <div className="text-center lg:text-left">
                 <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-4">
                   <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
                     Connect. Share. Earn.
