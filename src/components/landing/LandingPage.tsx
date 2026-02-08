@@ -222,7 +222,7 @@ export const LandingPage = () => {
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="text-sm text-muted-foreground">
-              © 2025 DolphySN. All rights reserved.
+              © 2026 DolphySN. All rights reserved.
             </div>
             <div className="flex items-center gap-6 text-sm">
               <Link to="/terms" className="text-muted-foreground hover:text-primary transition-colors">
