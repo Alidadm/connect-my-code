@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { Users, MessageCircle, Share2, Heart, Sparkles, TrendingUp, Shield, Zap } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { ReferralDownlineDiagram } from "@/components/signup/ReferralDownlineDiagram";
+import dolphysnLogo from "@/assets/dolphysn-white-logo.jpg";
 
 export const LandingPage = () => {
   const { t } = useTranslation();
@@ -34,6 +35,15 @@ export const LandingPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+      {/* Logo */}
+      <div className="max-w-6xl mx-auto px-4 pt-4">
+        <img 
+          src={dolphysnLogo} 
+          alt="DolphySN Logo" 
+          className="w-20 h-auto sm:w-24 md:w-28 lg:w-32 object-contain"
+        />
+      </div>
+
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         {/* Background decoration */}
