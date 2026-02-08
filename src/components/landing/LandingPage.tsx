@@ -49,7 +49,7 @@ export const LandingPage = () => {
               <img 
                 src={dolphysnLogo} 
                 alt="DolphySN Logo" 
-                className="w-[220px] h-[220px] md:w-[240px] md:h-[240px] lg:w-[280px] lg:h-[280px] object-contain rounded-full shrink-0"
+                className="w-[240px] h-[240px] md:w-[260px] md:h-[260px] lg:w-[280px] lg:h-[280px] object-contain rounded-full shrink-0"
               />
               <div className="text-center lg:text-left">
                 <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-4">
