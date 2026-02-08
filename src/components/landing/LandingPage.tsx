@@ -50,18 +50,11 @@ export const LandingPage = () => {
               <span className="text-sm font-medium">Welcome to DolphySN</span>
             </div>
             
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 mb-6">
-              <img 
-                src={dolphysnLogo} 
-                alt="DolphySN Logo" 
-                className="w-[150px] h-auto object-contain"
-              />
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight">
-                <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-                  Connect. Share. Earn.
-                </span>
-              </h1>
-            </div>
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-6">
+              <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+                Connect. Share. Earn.
+              </span>
+            </h1>
             
             <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
               Join the social network that rewards you. Connect with friends, share your moments, 
