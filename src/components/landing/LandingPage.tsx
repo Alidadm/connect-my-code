@@ -133,7 +133,7 @@ export const LandingPage = () => {
               </p>
               <div className="bg-card/80 backdrop-blur-sm rounded-lg p-3 mb-6 border border-border">
                 <p className="text-sm text-muted-foreground">
-                  <strong className="text-foreground">$10.99/month</strong> subscription (includes $1.00 processing fee)
+                  <strong className="text-foreground">$10.99/month</strong> subscription
                 </p>
               </div>
               <ul className="space-y-3 mb-8">
