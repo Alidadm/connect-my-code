@@ -5,7 +5,9 @@ export const ReferralDownlineDiagram = () => {
     <div className="text-center text-primary-foreground max-w-lg px-4">
       {/* Subscription Price */}
       <h2 className="text-2xl sm:text-3xl font-bold mb-6">
-        $10<sup className="text-sm sm:text-base align-super">.99</sup> / month per member
+        <span className="text-4xl sm:text-5xl font-extrabold">$10.99</span>
+        <br />
+        <span className="text-xl sm:text-2xl font-semibold">a month</span>
       </h2>
 
       {/* Diagram Container */}
