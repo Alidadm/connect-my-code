@@ -53,7 +53,7 @@ serve(async (req) => {
     for (let attempt = 0; attempt < 3; attempt++) {
       const { data: profileData, error } = await supabaseAdmin
         .from("profiles_private")
-        .select("email, phone, birthday, paypal_payout_email, payout_setup_completed, stripe_connect_id")
+        .select("email, phone, birthday, paypal_payout_email, payout_setup_completed, stripe_connect_id, wise_email, wise_account_id, payoneer_email, payoneer_account_id, preferred_payout_method")
         .eq("user_id", userId)
         .maybeSingle();
 
