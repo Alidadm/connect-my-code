@@ -6,6 +6,8 @@ interface PayoutStatus {
   stripeConnected: boolean;
   stripeActive: boolean;
   paypalConfigured: boolean;
+  wiseConfigured: boolean;
+  payoneerConfigured: boolean;
   loading: boolean;
   needsSetup: boolean;
 }
@@ -16,6 +18,8 @@ export const usePayoutStatus = () => {
     stripeConnected: false,
     stripeActive: false,
     paypalConfigured: false,
+    wiseConfigured: false,
+    payoneerConfigured: false,
     loading: true,
     needsSetup: false,
   });
@@ -40,10 +44,14 @@ export const usePayoutStatus = () => {
       );
 
       let paypalConfigured = false;
+      let wiseConfigured = false;
+      let payoneerConfigured = false;
       
       if (profileResponse.ok) {
         const profileData = await profileResponse.json();
         paypalConfigured = !!profileData.paypal_payout_email;
+        wiseConfigured = !!profileData.wise_email;
+        payoneerConfigured = !!profileData.payoneer_email;
       }
 
       // Check Stripe Connect status
@@ -67,13 +75,16 @@ export const usePayoutStatus = () => {
         stripeActive = stripeData.connected && stripeData.status === "active";
       }
 
-      // User needs setup if either Stripe is not active OR PayPal is not configured
-      const needsSetup = !stripeActive || !paypalConfigured;
+      // User needs setup if no payout method is configured at all
+      const hasAnyMethod = stripeActive || paypalConfigured || wiseConfigured || payoneerConfigured;
+      const needsSetup = !hasAnyMethod;
 
       setStatus({
         stripeConnected,
         stripeActive,
         paypalConfigured,
+        wiseConfigured,
+        payoneerConfigured,
         loading: false,
         needsSetup,
       });

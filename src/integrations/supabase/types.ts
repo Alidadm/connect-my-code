@@ -3214,45 +3214,60 @@ export type Database = {
           created_at: string
           email: string | null
           id: string
+          payoneer_account_id: string | null
+          payoneer_email: string | null
           payout_setup_completed: boolean | null
           paypal_customer_id: string | null
           paypal_payout_email: string | null
           phone: string | null
+          preferred_payout_method: string | null
           signup_ip_address: string | null
           stripe_connect_id: string | null
           stripe_customer_id: string | null
           updated_at: string
           user_id: string
+          wise_account_id: string | null
+          wise_email: string | null
         }
         Insert: {
           birthday?: string | null
           created_at?: string
           email?: string | null
           id?: string
+          payoneer_account_id?: string | null
+          payoneer_email?: string | null
           payout_setup_completed?: boolean | null
           paypal_customer_id?: string | null
           paypal_payout_email?: string | null
           phone?: string | null
+          preferred_payout_method?: string | null
           signup_ip_address?: string | null
           stripe_connect_id?: string | null
           stripe_customer_id?: string | null
           updated_at?: string
           user_id: string
+          wise_account_id?: string | null
+          wise_email?: string | null
         }
         Update: {
           birthday?: string | null
           created_at?: string
           email?: string | null
           id?: string
+          payoneer_account_id?: string | null
+          payoneer_email?: string | null
           payout_setup_completed?: boolean | null
           paypal_customer_id?: string | null
           paypal_payout_email?: string | null
           phone?: string | null
+          preferred_payout_method?: string | null
           signup_ip_address?: string | null
           stripe_connect_id?: string | null
           stripe_customer_id?: string | null
           updated_at?: string
           user_id?: string
+          wise_account_id?: string | null
+          wise_email?: string | null
         }
         Relationships: []
       }
