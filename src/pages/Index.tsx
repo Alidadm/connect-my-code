@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Navigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Feed } from "@/components/feed/Feed";
 import { PayoutSetupModal } from "@/components/payout/PayoutSetupModal";
@@ -22,12 +21,7 @@ const Index = () => {
     );
   }
 
-  // Redirect to under construction page when maintenance mode is enabled and user is not logged in
-  if (!user && isMaintenanceMode) {
-    return <Navigate to="/under-construction" replace />;
-  }
-
-  // Show landing page for non-authenticated users when not in maintenance
+  // Show landing page for non-authenticated users
   if (!user) {
     return <LandingPage />;
   }
