@@ -8,6 +8,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { GameSidebarVisibilityProvider } from "@/hooks/useGameSidebarVisibility";
 import { OnboardingWrapper } from "@/components/onboarding/OnboardingWrapper";
+import { MaintenanceGuard } from "@/components/maintenance/MaintenanceGuard";
 import AdminRouteGuard from "@/components/admin/AdminRouteGuard";
 import { adminI18n } from "@/lib/adminI18n";
 import Index from "./pages/Index";
@@ -74,9 +75,11 @@ const RootLayout = () => (
   <AuthProvider>
     <ThemeProvider>
       <GameSidebarVisibilityProvider>
-        <OnboardingWrapper>
-          <Outlet />
-        </OnboardingWrapper>
+        <MaintenanceGuard>
+          <OnboardingWrapper>
+            <Outlet />
+          </OnboardingWrapper>
+        </MaintenanceGuard>
       </GameSidebarVisibilityProvider>
     </ThemeProvider>
   </AuthProvider>
