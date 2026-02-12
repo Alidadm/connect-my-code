@@ -65,6 +65,7 @@ import MarketplaceListing from "./pages/MarketplaceListing";
 import Templates from "./pages/Templates";
 import PostView from "./pages/PostView";
 import PenPals from "./pages/PenPals";
+import UnderConstruction from "./pages/UnderConstruction";
 
 const queryClient = new QueryClient();
 
@@ -93,6 +94,7 @@ const router = createBrowserRouter([
     element: <RootLayout />,
     children: [
       { path: "/", element: <Index /> },
+      { path: "/under-construction", element: <UnderConstruction /> },
       { path: "/about", element: <About /> },
       { path: "/ads", element: <AdsManager /> },
       { path: "/penpals", element: <PenPals /> },
