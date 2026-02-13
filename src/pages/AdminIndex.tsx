@@ -23,7 +23,7 @@ const favoriteProjects = [
   { name: "Member Home", starred: true, path: "/" },
   { name: "Member List", starred: true, path: "/admin/users/list" },
   { name: "Platform Posts", starred: true, path: "/admin/platform-posts", icon: "megaphone" },
-  { name: "Short Videos", starred: true, path: "/admin/short-videos", icon: "video" },
+  { name: "Short Videos", starred: true, path: "/admin/tiktok-videos", icon: "video" },
   { name: "Payouts", starred: true, path: "/admin/payouts", icon: "paypal" },
   { name: "Legal Pages", starred: true, path: "/admin/legal-pages", icon: "filetext" },
 ];
