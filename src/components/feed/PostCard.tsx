@@ -1041,23 +1041,33 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
               );
             }
             
-            // Regular Reddit post link
+            // Regular Reddit post - embed via iframe
+            const embedUrl = url.replace(/\?.*$/, '').replace(/\/$/, '') + '/?ref_source=embed&ref=share&embed=true&theme=dark';
             return (
-              <a
-                key={index}
-                href={url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-3 p-3 bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-950/30 transition-colors"
-              >
-                <div className="h-10 w-10 rounded-full bg-orange-500 flex items-center justify-center flex-shrink-0">
-                  <span className="text-white font-bold text-sm">r/</span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <span className="text-sm font-medium text-foreground block truncate">{url}</span>
-                  <span className="text-xs text-muted-foreground">Open on Reddit →</span>
-                </div>
-              </a>
+              <div key={index} className="rounded-lg overflow-hidden border border-border">
+                <iframe
+                  src={embedUrl.replace('www.reddit.com', 'www.redditmedia.com')}
+                  sandbox="allow-scripts allow-same-origin allow-popups"
+                  className="w-full border-0"
+                  style={{ minHeight: '320px', maxHeight: '520px' }}
+                  loading="lazy"
+                  title={`Reddit post ${index + 1}`}
+                  onLoad={(e) => {
+                    // Try to auto-resize based on content
+                    const iframe = e.target as HTMLIFrameElement;
+                    iframe.style.height = '420px';
+                  }}
+                />
+                <a
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-3 py-2 bg-secondary/50 hover:bg-secondary transition-colors text-xs text-muted-foreground"
+                >
+                  <span className="text-orange-500 font-bold">r/</span>
+                  <span>View on Reddit →</span>
+                </a>
+              </div>
             );
           })}
         </div>
