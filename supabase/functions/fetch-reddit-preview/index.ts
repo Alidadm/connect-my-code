@@ -2,12 +2,12 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response("ok", { headers: corsHeaders });
   }
 
   try {
@@ -20,88 +20,45 @@ serve(async (req) => {
     }
 
     // Normalize the URL
-    let cleanUrl = url.trim().replace(/\?.*$/, "").replace(/\/$/, "");
+    let cleanUrl = url.trim().replace(/\/$/, "");
     if (!cleanUrl.startsWith("http")) {
       cleanUrl = `https://${cleanUrl}`;
     }
 
-    // Fetch Reddit JSON data
-    const jsonUrl = `${cleanUrl}.json`;
-    const response = await fetch(jsonUrl, {
+    // Use Reddit's official oEmbed endpoint (publicly available, no auth needed)
+    const oembedUrl = `https://www.reddit.com/oembed?url=${encodeURIComponent(cleanUrl)}&format=json`;
+    console.log("Fetching Reddit oEmbed:", oembedUrl);
+
+    const response = await fetch(oembedUrl, {
       headers: {
-        "User-Agent": "Dolphysn/1.0 (Social Platform Preview Bot)",
+        "Accept": "application/json",
       },
     });
 
+    console.log("Reddit oEmbed response status:", response.status);
+
     if (!response.ok) {
+      const body = await response.text();
+      console.error("oEmbed error body:", body);
       return new Response(
         JSON.stringify({ error: "Failed to fetch Reddit data", status: response.status }),
         { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const data = await response.json();
-    const post = data?.[0]?.data?.children?.[0]?.data;
+    const oembed = await response.json();
+    console.log("oEmbed data:", JSON.stringify(oembed));
 
-    if (!post) {
-      return new Response(
-        JSON.stringify({ error: "Could not parse Reddit post" }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Extract media info
-    let mediaType: "image" | "video" | "text" = "text";
-    let mediaUrl: string | null = null;
-    let videoUrl: string | null = null;
-    let thumbnail: string | null = null;
-
-    // Check for image
-    if (post.post_hint === "image" || /\.(jpg|jpeg|png|gif|webp)$/i.test(post.url || "")) {
-      mediaType = "image";
-      mediaUrl = post.url;
-    }
-    // Check for Reddit-hosted video
-    else if (post.is_video && post.media?.reddit_video?.fallback_url) {
-      mediaType = "video";
-      videoUrl = post.media.reddit_video.fallback_url;
-      thumbnail = post.thumbnail && post.thumbnail !== "self" && post.thumbnail !== "default"
-        ? post.thumbnail.replace(/&amp;/g, "&")
-        : null;
-    }
-    // Check for gallery
-    else if (post.is_gallery && post.media_metadata) {
-      mediaType = "image";
-      const firstKey = Object.keys(post.media_metadata)[0];
-      const firstMedia = post.media_metadata[firstKey];
-      if (firstMedia?.s?.u) {
-        mediaUrl = firstMedia.s.u.replace(/&amp;/g, "&");
-      }
-    }
-    // Check for external image link
-    else if (post.preview?.images?.[0]?.source?.url) {
-      thumbnail = post.preview.images[0].source.url.replace(/&amp;/g, "&");
-    }
-
-    // Build clean thumbnail fallback
-    if (!thumbnail && post.thumbnail && post.thumbnail !== "self" && post.thumbnail !== "default" && post.thumbnail !== "nsfw" && post.thumbnail !== "spoiler") {
-      thumbnail = post.thumbnail.replace(/&amp;/g, "&");
-    }
-
+    // oEmbed returns HTML embed code, title, author, etc.
     const result = {
-      title: post.title || "Reddit Post",
-      subreddit: post.subreddit_name_prefixed || `r/${post.subreddit}`,
-      author: post.author ? `u/${post.author}` : null,
-      score: post.score || 0,
-      num_comments: post.num_comments || 0,
-      selftext: post.selftext ? post.selftext.substring(0, 200) : null,
-      permalink: `https://www.reddit.com${post.permalink}`,
-      media_type: mediaType,
-      media_url: mediaUrl,
-      video_url: videoUrl,
-      thumbnail,
-      created_utc: post.created_utc,
-      over_18: post.over_18 || false,
+      title: oembed.title || "Reddit Post",
+      author: oembed.author_name || null,
+      subreddit: oembed.provider_name || "Reddit",
+      html: oembed.html || null,
+      thumbnail_url: oembed.thumbnail_url || null,
+      thumbnail_width: oembed.thumbnail_width || null,
+      thumbnail_height: oembed.thumbnail_height || null,
+      permalink: cleanUrl,
     };
 
     return new Response(JSON.stringify(result), {
