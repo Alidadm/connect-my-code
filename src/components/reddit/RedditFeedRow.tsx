@@ -3,7 +3,7 @@ import { useRedditFeedVideos } from "@/hooks/useRedditVideos";
 import { RedditPreviewCard } from "@/components/feed/RedditPreviewCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Bookmark, Share2, Copy } from "lucide-react";
+import { ExternalLink, Bookmark, Share2, Copy, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -98,6 +98,16 @@ const RedditCardActions = ({ videoId, url }: { videoId: string; url: string }) =
         >
           <Share2 className="h-5 w-5" />
           <span className="hidden sm:inline">Share</span>
+        </Button>
+
+        <Button
+          variant="ghost"
+          size="sm"
+          className="gap-1 sm:gap-2 text-muted-foreground hover:text-white"
+          onClick={() => window.open(url, "_blank")}
+        >
+          <MessageCircle className="h-5 w-5" />
+          <span className="hidden sm:inline">Comment</span>
         </Button>
       </div>
 
