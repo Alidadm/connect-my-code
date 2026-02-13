@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,15 @@ interface PlatformPhoto {
 
 export const PlatformGalleryCard = () => {
   const { t } = useTranslation();
-  const { photos, savedPhotoIds, loading, toggleSave } = usePlatformPhotos();
+  const { photos: allPhotos, savedPhotoIds, loading, toggleSave } = usePlatformPhotos();
+  
+  // Randomly pick 2-3 photos per mount when there are many
+  const photos = useMemo(() => {
+    if (allPhotos.length <= 3) return allPhotos;
+    const count = Math.min(allPhotos.length, Math.random() < 0.5 ? 2 : 3);
+    const shuffled = [...allPhotos].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, count);
+  }, [allPhotos]);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [isHidden, setIsHidden] = useState(() => {
