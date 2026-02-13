@@ -1,21 +1,14 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowUp, MessageCircle, ExternalLink } from "lucide-react";
-import Swal from "sweetalert2";
+import { ExternalLink } from "lucide-react";
 
-interface RedditPreviewData {
+interface RedditOEmbedData {
   title: string;
-  subreddit: string;
   author: string | null;
-  score: number;
-  num_comments: number;
-  selftext: string | null;
+  subreddit: string;
+  html: string | null;
+  thumbnail_url: string | null;
   permalink: string;
-  media_type: "image" | "video" | "text";
-  media_url: string | null;
-  video_url: string | null;
-  thumbnail: string | null;
-  over_18: boolean;
 }
 
 interface RedditPreviewCardProps {
@@ -23,7 +16,7 @@ interface RedditPreviewCardProps {
 }
 
 export const RedditPreviewCard = ({ url }: RedditPreviewCardProps) => {
-  const [preview, setPreview] = useState<RedditPreviewData | null>(null);
+  const [preview, setPreview] = useState<RedditOEmbedData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -55,7 +48,7 @@ export const RedditPreviewCard = ({ url }: RedditPreviewCardProps) => {
           <div className="h-3 w-16 bg-muted rounded" />
         </div>
         <div className="h-5 w-3/4 bg-muted rounded mb-2" />
-        <div className="h-40 bg-muted rounded" />
+        <div className="h-32 bg-muted rounded" />
       </div>
     );
   }
@@ -79,18 +72,6 @@ export const RedditPreviewCard = ({ url }: RedditPreviewCardProps) => {
     );
   }
 
-  const handleImageClick = (imageUrl: string) => {
-    Swal.fire({
-      imageUrl,
-      imageAlt: preview.title,
-      showConfirmButton: false,
-      showCloseButton: true,
-      width: "auto",
-      padding: "0.5rem",
-      background: "rgba(0, 0, 0, 0.9)",
-    });
-  };
-
   return (
     <div className="rounded-lg border border-border overflow-hidden bg-card">
       {/* Header */}
@@ -107,61 +88,47 @@ export const RedditPreviewCard = ({ url }: RedditPreviewCardProps) => {
       {/* Title */}
       <div className="px-3 pb-2">
         <h4 className="text-sm font-medium text-foreground leading-snug">{preview.title}</h4>
-        {preview.selftext && (
-          <p className="text-xs text-muted-foreground mt-1 line-clamp-3">{preview.selftext}</p>
-        )}
       </div>
 
-      {/* Media */}
-      {preview.media_type === "image" && preview.media_url && (
-        <div
-          className="cursor-pointer"
-          onClick={() => handleImageClick(preview.media_url!)}
-        >
-          <img
-            src={preview.media_url}
-            alt={preview.title}
-            className="w-full max-h-[500px] object-contain bg-secondary"
-            loading="lazy"
-          />
-        </div>
-      )}
-
-      {preview.media_type === "video" && preview.video_url && (
-        <div className="aspect-video bg-secondary">
-          <video
-            src={preview.video_url}
-            controls
-            className="w-full h-full object-contain"
-            preload="metadata"
-            poster={preview.thumbnail || undefined}
-          />
-        </div>
-      )}
-
-      {preview.media_type === "text" && preview.thumbnail && (
+      {/* Thumbnail if available */}
+      {preview.thumbnail_url && (
         <div className="px-3 pb-2">
           <img
-            src={preview.thumbnail}
+            src={preview.thumbnail_url}
             alt={preview.title}
-            className="w-full max-h-[300px] object-contain bg-secondary rounded"
+            className="w-full max-h-[400px] object-contain bg-secondary rounded"
             loading="lazy"
+          />
+        </div>
+      )}
+
+      {/* Reddit embed via iframe using srcdoc */}
+      {preview.html && (
+        <div className="px-3 pb-2">
+          <iframe
+            srcDoc={`
+              <!DOCTYPE html>
+              <html>
+              <head>
+                <style>
+                  body { margin: 0; padding: 0; font-family: -apple-system, sans-serif; background: transparent; overflow: hidden; }
+                  .reddit-embed-bq { margin: 0 !important; border: none !important; border-radius: 8px !important; }
+                </style>
+              </head>
+              <body>${preview.html}</body>
+              </html>
+            `}
+            sandbox="allow-scripts allow-same-origin allow-popups"
+            className="w-full border-0 rounded"
+            style={{ minHeight: "200px", maxHeight: "400px" }}
+            loading="lazy"
+            title={preview.title}
           />
         </div>
       )}
 
       {/* Footer */}
-      <div className="flex items-center justify-between px-3 py-2 border-t border-border">
-        <div className="flex items-center gap-4 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1">
-            <ArrowUp className="h-3.5 w-3.5" />
-            {preview.score.toLocaleString()}
-          </span>
-          <span className="flex items-center gap-1">
-            <MessageCircle className="h-3.5 w-3.5" />
-            {preview.num_comments.toLocaleString()}
-          </span>
-        </div>
+      <div className="flex items-center justify-end px-3 py-2 border-t border-border">
         <a
           href={preview.permalink}
           target="_blank"
