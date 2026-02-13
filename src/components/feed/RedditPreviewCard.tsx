@@ -8,7 +8,10 @@ interface RedditOEmbedData {
   subreddit: string;
   html: string | null;
   thumbnail_url: string | null;
+  media_url?: string | null;
+  media_type?: string | null;
   permalink: string;
+  is_direct_media?: boolean;
 }
 
 interface RedditPreviewCardProps {
@@ -72,52 +75,66 @@ export const RedditPreviewCard = ({ url }: RedditPreviewCardProps) => {
     );
   }
 
+  // Direct media - render video or image directly
+  if (preview.is_direct_media) {
+    if (preview.media_type === "video" && preview.media_url) {
+      return (
+        <div className="rounded-lg border border-border overflow-hidden bg-card">
+          <video
+            src={preview.media_url}
+            controls
+            className="w-full max-h-[500px] bg-black"
+            preload="metadata"
+          />
+          <div className="flex items-center justify-between px-3 py-2 border-t border-border">
+            <span className="text-xs text-muted-foreground">Reddit Video</span>
+            <a href={preview.permalink} target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors font-medium">
+              <ExternalLink className="h-3.5 w-3.5" /> Open
+            </a>
+          </div>
+        </div>
+      );
+    }
+    if (preview.media_type === "image" && preview.media_url) {
+      return (
+        <div className="rounded-lg border border-border overflow-hidden bg-card">
+          <img src={preview.media_url} alt="Reddit" className="w-full max-h-[500px] object-contain bg-secondary" loading="lazy" />
+          <div className="flex items-center justify-end px-3 py-2 border-t border-border">
+            <a href={preview.permalink} target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors font-medium">
+              <ExternalLink className="h-3.5 w-3.5" /> Open
+            </a>
+          </div>
+        </div>
+      );
+    }
+  }
+
   return (
     <div className="rounded-lg border border-border overflow-hidden bg-card">
-      {/* Header */}
       <div className="flex items-center gap-2 px-3 pt-3 pb-1">
-        <div className="h-6 w-6 rounded-full bg-orange-500 flex items-center justify-center flex-shrink-0">
-          <span className="text-white font-bold text-[10px]">r/</span>
+        <div className="h-6 w-6 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+          <span className="text-primary-foreground font-bold text-[10px]">r/</span>
         </div>
         <span className="text-xs font-semibold text-foreground">{preview.subreddit}</span>
         {preview.author && (
           <span className="text-xs text-muted-foreground">• {preview.author}</span>
         )}
       </div>
-
-      {/* Title */}
       <div className="px-3 pb-2">
         <h4 className="text-sm font-medium text-foreground leading-snug">{preview.title}</h4>
       </div>
-
-      {/* Thumbnail if available */}
       {preview.thumbnail_url && (
         <div className="px-3 pb-2">
-          <img
-            src={preview.thumbnail_url}
-            alt={preview.title}
-            className="w-full max-h-[400px] object-contain bg-secondary rounded"
-            loading="lazy"
-          />
+          <img src={preview.thumbnail_url} alt={preview.title}
+            className="w-full max-h-[400px] object-contain bg-secondary rounded" loading="lazy" />
         </div>
       )}
-
-      {/* Reddit embed via iframe using srcdoc */}
       {preview.html && (
         <div className="px-3 pb-2">
           <iframe
-            srcDoc={`
-              <!DOCTYPE html>
-              <html>
-              <head>
-                <style>
-                  body { margin: 0; padding: 0; font-family: -apple-system, sans-serif; background: transparent; overflow: hidden; }
-                  .reddit-embed-bq { margin: 0 !important; border: none !important; border-radius: 8px !important; }
-                </style>
-              </head>
-              <body>${preview.html}</body>
-              </html>
-            `}
+            srcDoc={`<!DOCTYPE html><html><head><style>body{margin:0;padding:0;font-family:-apple-system,sans-serif;background:transparent;overflow:hidden;}</style></head><body>${preview.html}</body></html>`}
             sandbox="allow-scripts allow-same-origin allow-popups"
             className="w-full border-0 rounded"
             style={{ minHeight: "200px", maxHeight: "400px" }}
@@ -126,17 +143,10 @@ export const RedditPreviewCard = ({ url }: RedditPreviewCardProps) => {
           />
         </div>
       )}
-
-      {/* Footer */}
       <div className="flex items-center justify-end px-3 py-2 border-t border-border">
-        <a
-          href={preview.permalink}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-1 text-xs text-orange-500 hover:text-orange-400 transition-colors font-medium"
-        >
-          <ExternalLink className="h-3.5 w-3.5" />
-          View on Reddit
+        <a href={preview.permalink} target="_blank" rel="noopener noreferrer"
+          className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors font-medium">
+          <ExternalLink className="h-3.5 w-3.5" /> View on Reddit
         </a>
       </div>
     </div>
