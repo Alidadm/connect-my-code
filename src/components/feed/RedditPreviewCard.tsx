@@ -106,12 +106,12 @@ export const RedditPreviewCard = ({ url }: RedditPreviewCardProps) => {
       )}
       {preview.html && (
         <iframe
-          srcDoc={`<!DOCTYPE html><html><head><style>body{margin:0;padding:0;font-family:-apple-system,sans-serif;background:transparent;overflow:hidden;}</style></head><body>${preview.html}</body></html>`}
+          srcDoc={`<!DOCTYPE html><html><head><style>body{margin:0;padding:0;background:transparent;overflow:hidden;} blockquote.reddit-embed-bq{border:none!important;padding:0!important;margin:0!important;} blockquote.reddit-embed-bq>a,blockquote.reddit-embed-bq cite,blockquote.reddit-embed-bq footer,blockquote.reddit-embed-bq>div:first-child{display:none!important;} a[href*="reddit.com/join"]{display:none!important;} *{max-width:100%!important;}</style></head><body>${preview.html}</body></html>`}
           sandbox="allow-scripts allow-same-origin allow-popups"
           className="w-full border-0"
-          style={{ minHeight: "300px", maxHeight: "500px" }}
+          style={{ minHeight: "400px", maxHeight: "600px" }}
           loading="lazy"
-          title={preview.title}
+          title="Reddit content"
         />
       )}
     </div>
