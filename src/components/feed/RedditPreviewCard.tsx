@@ -98,22 +98,32 @@ export const RedditPreviewCard = ({ url }: RedditPreviewCardProps) => {
     }
   }
 
-  return (
-    <div className="rounded-lg border border-border overflow-hidden bg-card">
-      {preview.thumbnail_url && (
-        <img src={preview.thumbnail_url} alt={preview.title}
-          className="w-full object-contain bg-secondary" loading="lazy" />
-      )}
-      {preview.html && (
+  // For oEmbed results, render the embed in an iframe but strip metadata
+  // The oEmbed script creates its own UI, so we render it as-is
+  if (preview.html) {
+    return (
+      <div className="rounded-lg overflow-hidden bg-black">
         <iframe
-          srcDoc={`<!DOCTYPE html><html><head><style>body{margin:0;padding:0;background:transparent;overflow:hidden;} blockquote.reddit-embed-bq{border:none!important;padding:0!important;margin:0!important;} blockquote.reddit-embed-bq>a,blockquote.reddit-embed-bq cite,blockquote.reddit-embed-bq footer,blockquote.reddit-embed-bq>div:first-child{display:none!important;} a[href*="reddit.com/join"]{display:none!important;} *{max-width:100%!important;}</style></head><body>${preview.html}</body></html>`}
+          srcDoc={`<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0;padding:0;background:#000;overflow:hidden;display:flex;align-items:center;justify-content:center;min-height:100vh;}</style></head><body>${preview.html}</body></html>`}
           sandbox="allow-scripts allow-same-origin allow-popups"
           className="w-full border-0"
-          style={{ minHeight: "400px", maxHeight: "600px" }}
+          style={{ minHeight: "450px", maxHeight: "600px" }}
           loading="lazy"
           title="Reddit content"
         />
-      )}
-    </div>
-  );
+      </div>
+    );
+  }
+
+  // Fallback: just show thumbnail if available
+  if (preview.thumbnail_url) {
+    return (
+      <div className="rounded-lg overflow-hidden bg-black">
+        <img src={preview.thumbnail_url} alt=""
+          className="w-full object-contain" loading="lazy" />
+      </div>
+    );
+  }
+
+  return null;
 };
