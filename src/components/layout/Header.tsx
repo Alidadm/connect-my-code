@@ -1,4 +1,4 @@
-import { Bell, Bookmark, ChevronDown, LogOut, Settings, User, ExternalLink, Shield, LayoutDashboard, UserPlus, Check, Lock, HelpCircle, MessageSquarePlus, Search, Newspaper, Info, Menu, MessageCircle, QrCode, CreditCard, Home } from "lucide-react";
+import { Bookmark, ChevronDown, LogOut, Settings, User, ExternalLink, Shield, LayoutDashboard, UserPlus, Check, Lock, HelpCircle, MessageSquarePlus, Search, Newspaper, Info, Menu, MessageCircle, QrCode, CreditCard, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -21,6 +21,7 @@ import { MobileSearchDropdown } from "./MobileSearchDropdown";
 import { MobileDrawer } from "./MobileDrawer";
 import { MessagesSheet } from "@/components/messages/MessagesSheet";
 import { ReferralQRCodeDialog } from "@/components/referral/ReferralQRCodeDialog";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { useDirectMessages } from "@/hooks/useDirectMessages";
 import { useMarketplaceMessages } from "@/hooks/useMarketplaceMessages";
 import { usePayoutStatus } from "@/hooks/usePayoutStatus";
@@ -31,16 +32,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-interface FriendRequest {
-  id: string;
-  requester_id: string;
-  created_at: string;
-  profile?: {
-    display_name: string | null;
-    avatar_url: string | null;
-    username: string | null;
-  };
-}
 
 // Demo profile for non-logged in users
 const demoProfile = {
@@ -55,7 +46,6 @@ export const Header = () => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [friendRequests, setFriendRequests] = useState<FriendRequest[]>([]);
   const { t } = useTranslation();
   const { totalUnreadCount: dmUnreadCount } = useDirectMessages();
   const { unreadCount: marketplaceUnreadCount } = useMarketplaceMessages();
@@ -63,86 +53,6 @@ export const Header = () => {
   
   // Combined unread count for messages badge
   const totalUnreadCount = dmUnreadCount + marketplaceUnreadCount;
-
-  // Fetch pending friend requests
-  useEffect(() => {
-    const fetchFriendRequests = async () => {
-      if (!user) {
-        setFriendRequests([]);
-        return;
-      }
-
-      const { data: requests, error } = await supabase
-        .from("friendships")
-        .select("id, requester_id, created_at")
-        .eq("addressee_id", user.id)
-        .eq("status", "pending");
-
-      if (error || !requests) {
-        setFriendRequests([]);
-        return;
-      }
-
-      // Fetch profiles for requesters
-      const requesterIds = requests.map(r => r.requester_id);
-      if (requesterIds.length === 0) {
-        setFriendRequests([]);
-        return;
-      }
-
-      const { data: profiles } = await supabase
-        .from("safe_profiles")
-        .select("user_id, display_name, avatar_url, username")
-        .in("user_id", requesterIds);
-
-      const requestsWithProfiles = requests.map(request => ({
-        ...request,
-        profile: profiles?.find(p => p.user_id === request.requester_id) || undefined,
-      }));
-
-      setFriendRequests(requestsWithProfiles);
-    };
-
-    fetchFriendRequests();
-
-    // Subscribe to real-time changes
-    if (user) {
-      const channel = supabase
-        .channel('friend-requests-header')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'friendships',
-            filter: `addressee_id=eq.${user.id}`,
-          },
-          () => {
-            fetchFriendRequests();
-          }
-        )
-        .subscribe();
-
-      return () => {
-        supabase.removeChannel(channel);
-      };
-    }
-  }, [user]);
-
-  const handleAcceptRequest = async (requestId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    const { error } = await supabase
-      .from("friendships")
-      .update({ status: "accepted", updated_at: new Date().toISOString() })
-      .eq("id", requestId);
-
-    if (error) {
-      toast.error(t("friends.errorAccepting", { defaultValue: "Failed to accept request" }));
-    } else {
-      toast.success(t("friends.requestAccepted", { defaultValue: "Friend request accepted!" }));
-      setFriendRequests(prev => prev.filter(r => r.id !== requestId));
-    }
-  };
 
   // Check if user is admin
   useEffect(() => {
@@ -318,82 +228,8 @@ export const Header = () => {
             </MessagesSheet>
           )}
 
-          {/* Friend Request Notifications */}
-          {user && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="text-muted-foreground hover:text-foreground hover:bg-secondary h-9 w-9 sm:h-10 sm:w-10 relative"
-                  title={t("header.friendRequests", { defaultValue: "Friend Requests" })}
-                >
-                  <Bell className="h-5 w-5" />
-                  {friendRequests.length > 0 && (
-                    <Badge 
-                      variant="destructive" 
-                      className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs"
-                    >
-                      {friendRequests.length > 9 ? "9+" : friendRequests.length}
-                    </Badge>
-                  )}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-80">
-                <div className="px-3 py-2 border-b border-border">
-                  <h4 className="font-semibold text-sm flex items-center gap-2">
-                    <UserPlus className="h-4 w-4" />
-                    {t("friends.friendRequests", { defaultValue: "Friend Requests" })}
-                  </h4>
-                </div>
-                {friendRequests.length === 0 ? (
-                  <div className="px-3 py-6 text-center text-muted-foreground text-sm">
-                    {t("friends.noRequests", { defaultValue: "No pending friend requests" })}
-                  </div>
-                ) : (
-                  <div className="max-h-80 overflow-y-auto">
-                    {friendRequests.map((request) => (
-                      <div 
-                        key={request.id} 
-                        className="flex items-center gap-3 px-3 py-2 hover:bg-secondary/50 cursor-pointer"
-                        onClick={() => navigate("/friends")}
-                      >
-                        <Avatar className="h-10 w-10">
-                          <AvatarImage src={request.profile?.avatar_url || ""} />
-                          <AvatarFallback className="bg-gradient-to-br from-primary to-dolphy-purple text-primary-foreground text-sm">
-                            {request.profile?.display_name?.[0]?.toUpperCase() || "U"}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">
-                            {request.profile?.display_name || t("common.unknownUser", { defaultValue: "Unknown User" })}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {t("friends.wantsToBeYourFriend", { defaultValue: "Wants to be your friend" })}
-                          </p>
-                        </div>
-                        <Button
-                          size="sm"
-                          variant="default"
-                          className="h-8 px-3"
-                          onClick={(e) => handleAcceptRequest(request.id, e)}
-                        >
-                          <Check className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem 
-                  onClick={() => navigate("/friends")}
-                  className="justify-center text-primary"
-                >
-                  {t("friends.viewAll", { defaultValue: "View All Requests" })}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+          {/* Notifications Center */}
+          {user && <NotificationBell />}
           
           <Button 
             variant="ghost" 
