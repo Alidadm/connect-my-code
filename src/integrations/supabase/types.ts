@@ -3371,6 +3371,35 @@ export type Database = {
           },
         ]
       }
+      saved_reddit_items: {
+        Row: {
+          created_at: string
+          id: string
+          reddit_video_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          reddit_video_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          reddit_video_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_reddit_items_reddit_video_id_fkey"
+            columns: ["reddit_video_id"]
+            isOneToOne: false
+            referencedRelation: "reddit_videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       saved_sidebar_galleries: {
         Row: {
           author_avatar_url: string | null
