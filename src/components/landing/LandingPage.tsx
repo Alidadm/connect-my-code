@@ -1,13 +1,22 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "react-router-dom";
-import { Users, MessageCircle, Share2, Heart, Sparkles, TrendingUp, Shield, Zap, AlertTriangle, Newspaper, UserPlus, Mail, CalendarDays, BookOpen, Gamepad2, UsersRound, Image, Video, MoreHorizontal } from "lucide-react";
+import { Users, MessageCircle, Share2, Heart, Sparkles, TrendingUp, Shield, Zap, AlertTriangle, Newspaper, UserPlus, Mail, CalendarDays, BookOpen, Gamepad2, UsersRound, Image, Video, MoreHorizontal, Info, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { ReferralDownlineDiagram } from "@/components/signup/ReferralDownlineDiagram";
 import dolphysnLogo from "@/assets/dolphysn-white-logo.jpg";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 export const LandingPage = () => {
   const { t } = useTranslation();
+  const [termsOpen, setTermsOpen] = useState(false);
 
   const features = [
     {
@@ -193,15 +202,15 @@ export const LandingPage = () => {
         </div>
       </section>
 
-      {/* Cancellation Policy Notice */}
-      <section className="py-12 sm:py-16">
+      {/* Cancel Anytime Banner */}
+      <section className="py-10 sm:py-14">
         <div className="max-w-4xl mx-auto px-4">
           <div className="rounded-2xl border border-destructive/20 bg-destructive/5 p-6 sm:p-8">
             <div className="flex items-start gap-4">
               <div className="w-10 h-10 rounded-full bg-destructive/10 flex items-center justify-center flex-shrink-0 mt-0.5">
                 <AlertTriangle className="h-5 w-5 text-destructive" />
               </div>
-              <div>
+              <div className="flex-1">
                 <h3 className="text-lg font-bold text-foreground mb-2">
                   Cancel Anytime — But Here's What You Should Know
                 </h3>
@@ -209,10 +218,74 @@ export const LandingPage = () => {
                   You're free to cancel your membership at any time — no lock-ins, no hidden fees. However, 
                   once you cancel, <strong className="text-foreground">all your recurring monthly referral commissions will stop immediately</strong>.
                 </p>
-                <p className="text-muted-foreground text-sm">
+                <p className="text-muted-foreground text-sm mb-4">
                   That means if you've built a network earning you $50, $250, or even $500+ per month, 
                   all of that goes away the moment you cancel. Stay active, keep earning — it's that simple.
                 </p>
+
+                <Dialog open={termsOpen} onOpenChange={setTermsOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="gap-2">
+                      <Info className="h-4 w-4" />
+                      See Full Terms
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2 text-lg">
+                        <AlertTriangle className="h-5 w-5 text-destructive" />
+                        Referral Commission Terms
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 text-sm text-muted-foreground mt-2">
+                      <div>
+                        <h4 className="font-semibold text-foreground mb-1">1. Earning Commissions</h4>
+                        <p>
+                          As an active subscriber ($10.99/month), you earn <strong className="text-foreground">$5.00 per month</strong> for 
+                          each person who signs up using your referral link and maintains an active subscription.
+                        </p>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-foreground mb-1">2. Cancellation Policy</h4>
+                        <p>
+                          You may cancel your subscription at any time. There are no cancellation fees, 
+                          penalties, or lock-in periods. Cancellation takes effect at the end of your current billing cycle.
+                        </p>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-foreground mb-1">3. Impact on Referral Earnings</h4>
+                        <p>
+                          Upon cancellation, <strong className="text-foreground">all recurring referral commissions will cease immediately</strong>. 
+                          This includes commissions from all referrals in your network, regardless of how many active subscribers you've referred.
+                        </p>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-foreground mb-1">4. Reactivation</h4>
+                        <p>
+                          If you resubscribe after cancelling, your referral network and commission earnings 
+                          will resume from the date of reactivation. Previously earned but unpaid commissions 
+                          during the inactive period are forfeited.
+                        </p>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-foreground mb-1">5. Payout Requirements</h4>
+                        <p>
+                          Commissions are paid monthly via your chosen payout method (Stripe, PayPal, Wise, or Payoneer). 
+                          You must have an active subscription and a configured payout method to receive payments.
+                        </p>
+                      </div>
+                      <div className="rounded-lg bg-muted/50 p-4 border border-border">
+                        <p className="text-xs text-muted-foreground">
+                          By using DolphySN's referral program, you agree to these terms. For complete details, 
+                          please review our{" "}
+                          <Link to="/terms" className="text-primary underline hover:text-primary/80" onClick={() => setTermsOpen(false)}>
+                            Terms of Service
+                          </Link>.
+                        </p>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
             </div>
           </div>
