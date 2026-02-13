@@ -73,7 +73,7 @@ const RedditCardActions = ({ videoId, url }: { videoId: string; url: string }) =
         <Button
           variant="ghost"
           size="sm"
-          className="gap-1 sm:gap-2 text-muted-foreground hover:text-foreground"
+          className="gap-1 sm:gap-2 text-muted-foreground hover:text-white"
           onClick={() => window.open(url, "_blank")}
         >
           <ExternalLink className="h-5 w-5" />
@@ -83,7 +83,7 @@ const RedditCardActions = ({ videoId, url }: { videoId: string; url: string }) =
         <Button
           variant="ghost"
           size="sm"
-          className="gap-1 sm:gap-2 text-muted-foreground hover:text-foreground"
+          className="gap-1 sm:gap-2 text-muted-foreground hover:text-white"
           onClick={handleCopy}
         >
           <Copy className="h-5 w-5" />
@@ -93,7 +93,7 @@ const RedditCardActions = ({ videoId, url }: { videoId: string; url: string }) =
         <Button
           variant="ghost"
           size="sm"
-          className="gap-1 sm:gap-2 text-muted-foreground hover:text-foreground"
+          className="gap-1 sm:gap-2 text-muted-foreground hover:text-white"
           onClick={handleShare}
         >
           <Share2 className="h-5 w-5" />
