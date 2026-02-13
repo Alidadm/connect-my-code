@@ -194,6 +194,7 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
     let selectedTopics: SelectedTopic[] = [];
     let selectedCustomLists: CustomList[] = [];
     let youtubeUrls: string[] = [];
+    let redditUrls: string[] = [];
 
     // Fetch topics and custom lists for display
     const [topics, customLists] = await Promise.all([fetchTopics(), fetchCustomLists()]);
@@ -531,6 +532,27 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
               <div id="youtube-videos-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; margin-top: 8px;"></div>
             </div>
           </div>
+
+          <!-- Reddit Panel -->
+          <div id="reddit-panel" style="display: none; padding: 16px; background: #fff7ed; border-radius: 12px; margin-bottom: 12px; border: 1px solid #fed7aa;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <span style="font-weight: 600; font-size: 14px; color: #ea580c;">🔗 ${t('feed.addRedditContent', 'Add Reddit Content')}</span>
+              <button type="button" id="close-reddit" style="background: none; border: none; cursor: pointer; padding: 4px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </button>
+            </div>
+            <p style="font-size: 12px; color: #9a3412; margin-bottom: 8px;">${t('feed.redditUrlHelp', 'Paste Reddit post, image (i.redd.it), or video (v.redd.it) URLs')}</p>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="reddit-url-input" placeholder="${t('feed.pasteRedditUrl', 'Paste Reddit URL...')}" style="flex: 1; padding: 10px 14px; border: 1px solid #fed7aa; border-radius: 8px; font-size: 14px; outline: none;" />
+              <button type="button" id="add-reddit-btn" style="padding: 10px 16px; background: #ea580c; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 500; white-space: nowrap;">
+                ${t('common.add', 'Add')}
+              </button>
+            </div>
+            <div id="reddit-preview-list" style="margin-top: 12px; display: none;">
+              <span style="font-size: 12px; color: #ea580c; font-weight: 600;">${t('feed.addedRedditContent', 'Added Reddit Content')}:</span>
+              <div id="reddit-items-grid" style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;"></div>
+            </div>
+          </div>
           
           <!-- Action buttons -->
           <div style="display: flex; align-items: center; gap: 4px; padding-top: 16px; border-top: 1px solid #e5e7eb; margin-top: 16px; flex-wrap: wrap;">
@@ -542,6 +564,9 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17"/><path d="m10 15 5-3-5-3z"/></svg>
               <span style="color: #dc2626;">YouTube</span>
             </button>
+            <button type="button" id="btn-reddit" class="swal-action-btn" style="display: flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 8px; border: none; background: transparent; cursor: pointer; color: #666; font-size: 13px; transition: background 0.2s;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16.5 10.5c.828 0 1.5-.672 1.5-1.5s-.672-1.5-1.5-1.5S15 8.172 15 9s.672 1.5 1.5 1.5z"/><path d="M7.5 10.5C8.328 10.5 9 9.828 9 9s-.672-1.5-1.5-1.5S6 8.172 6 9s.672 1.5 1.5 1.5z"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/></svg>
+              <span style="color: #ea580c;">Reddit</span>
             <button type="button" id="btn-emoji" class="swal-action-btn" style="display: flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 8px; border: none; background: transparent; cursor: pointer; color: #666; font-size: 13px; transition: background 0.2s;">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/></svg>
               <span style="color: #f59e0b;">${t('feed.emoji', 'Emoji')}</span>
@@ -760,6 +785,8 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
           customListsPanel.style.display = 'none';
           const youtubePanel = document.getElementById('youtube-panel') as HTMLDivElement;
           if (youtubePanel) youtubePanel.style.display = 'none';
+          const redditPanelEl = document.getElementById('reddit-panel') as HTMLDivElement;
+          if (redditPanelEl) redditPanelEl.style.display = 'none';
         };
 
         // Update tagged items preview
@@ -925,6 +952,87 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
           if (e.key === 'Enter') {
             e.preventDefault();
             document.getElementById('add-youtube-btn')?.click();
+          }
+        });
+
+        // Reddit panel functionality
+        const redditPanel = document.getElementById('reddit-panel') as HTMLDivElement;
+        const redditUrlInput = document.getElementById('reddit-url-input') as HTMLInputElement;
+        const redditPreviewList = document.getElementById('reddit-preview-list') as HTMLDivElement;
+        const redditItemsGrid = document.getElementById('reddit-items-grid') as HTMLDivElement;
+
+        const isValidRedditUrl = (url: string): boolean => {
+          return /(?:reddit\.com|redd\.it|i\.redd\.it|v\.redd\.it|preview\.redd\.it)/.test(url);
+        };
+
+        const getRedditMediaType = (url: string): string => {
+          if (/i\.redd\.it|preview\.redd\.it/.test(url)) return 'image';
+          if (/v\.redd\.it/.test(url)) return 'video';
+          return 'post';
+        };
+
+        const updateRedditPreview = () => {
+          if (redditUrls.length === 0) {
+            redditPreviewList.style.display = 'none';
+            return;
+          }
+          
+          redditPreviewList.style.display = 'block';
+          redditItemsGrid.innerHTML = redditUrls.map((url, index) => {
+            const mediaType = getRedditMediaType(url);
+            const typeLabel = mediaType === 'image' ? '🖼️ Image' : mediaType === 'video' ? '🎬 Video' : '📝 Post';
+            return `
+              <div style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: white; border: 1px solid #fed7aa; border-radius: 8px;">
+                <span style="font-size: 12px; color: #ea580c; font-weight: 500;">${typeLabel}</span>
+                <span style="flex: 1; font-size: 12px; color: #666; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${url}</span>
+                <button type="button" class="remove-reddit-btn" data-index="${index}" style="background: #ea580c; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </button>
+              </div>
+            `;
+          }).join('');
+          
+          document.querySelectorAll('.remove-reddit-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+              const index = parseInt((e.currentTarget as HTMLButtonElement).dataset.index || '0');
+              redditUrls.splice(index, 1);
+              updateRedditPreview();
+            });
+          });
+        };
+
+        document.getElementById('btn-reddit')?.addEventListener('click', () => {
+          const isVisible = redditPanel.style.display === 'block';
+          closeAllPanels();
+          redditPanel.style.display = isVisible ? 'none' : 'block';
+          if (!isVisible) redditUrlInput?.focus();
+        });
+
+        document.getElementById('close-reddit')?.addEventListener('click', () => {
+          redditPanel.style.display = 'none';
+        });
+
+        document.getElementById('add-reddit-btn')?.addEventListener('click', () => {
+          const url = redditUrlInput.value.trim();
+          if (!isValidRedditUrl(url)) {
+            Swal.showValidationMessage('Invalid Reddit URL. Use reddit.com, i.redd.it, or v.redd.it URLs');
+            setTimeout(() => Swal.resetValidationMessage(), 3000);
+            return;
+          }
+          if (redditUrls.includes(url)) {
+            Swal.showValidationMessage('This URL is already added');
+            setTimeout(() => Swal.resetValidationMessage(), 2000);
+            return;
+          }
+          redditUrls.push(url);
+          redditUrlInput.value = '';
+          updateRedditPreview();
+        });
+
+        redditUrlInput?.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            document.getElementById('add-reddit-btn')?.click();
           }
         });
 
@@ -1581,7 +1689,7 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
         const content = (document.getElementById('swal-post-content') as HTMLTextAreaElement).value;
         const visibility = (document.getElementById('swal-visibility') as HTMLInputElement).value;
         
-        if (!content.trim() && mediaFiles.length === 0 && youtubeUrls.length === 0) {
+        if (!content.trim() && mediaFiles.length === 0 && youtubeUrls.length === 0 && redditUrls.length === 0) {
           Swal.showValidationMessage(t('feed.postCannotBeEmpty', 'Post cannot be empty'));
           return false;
         }
@@ -1615,7 +1723,8 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
           visibility, 
           mediaUrls: uploadedUrls,
           customListIds: selectedCustomLists.map(l => l.id),
-          youtubeUrls: youtubeUrls
+          youtubeUrls: youtubeUrls,
+          redditUrls: redditUrls
         };
       }
     });
@@ -1629,6 +1738,7 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
           visibility: formValues.visibility,
           media_urls: formValues.mediaUrls.length > 0 ? formValues.mediaUrls : null,
           youtube_urls: formValues.youtubeUrls.length > 0 ? formValues.youtubeUrls : null,
+          reddit_urls: formValues.redditUrls.length > 0 ? formValues.redditUrls : null,
         }).select('id').single();
 
         if (postError) throw postError;

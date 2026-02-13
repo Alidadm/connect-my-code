@@ -40,6 +40,7 @@ interface Post {
   content: string | null;
   media_urls: string[] | null;
   youtube_urls?: string[] | null;
+  reddit_urls?: string[] | null;
   likes_count: number;
   comments_count: number;
   shares_count: number;
