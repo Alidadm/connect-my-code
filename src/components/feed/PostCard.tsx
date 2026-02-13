@@ -32,6 +32,7 @@ interface PostCardProps {
     content: string | null;
     media_urls: string[] | null;
     youtube_urls?: string[] | null;
+    reddit_urls?: string[] | null;
     likes_count: number;
     comments_count: number;
     shares_count: number;
@@ -995,6 +996,72 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
         </div>
       )}
 
+      {/* Reddit Content */}
+      {post.reddit_urls && post.reddit_urls.length > 0 && (
+        <div className="space-y-2 px-4 pb-3">
+          {post.reddit_urls.map((url, index) => {
+            const isImage = /i\.redd\.it|preview\.redd\.it/.test(url);
+            const isVideo = /v\.redd\.it/.test(url);
+            
+            if (isImage) {
+              return (
+                <div 
+                  key={index}
+                  className="relative rounded-lg overflow-hidden cursor-pointer"
+                  onClick={() => {
+                    Swal.fire({
+                      imageUrl: url,
+                      imageAlt: 'Reddit image',
+                      showConfirmButton: false,
+                      showCloseButton: true,
+                      width: 'auto',
+                      padding: '0.5rem',
+                      background: 'rgba(0, 0, 0, 0.9)',
+                    });
+                  }}
+                >
+                  <img src={url} alt="Reddit image" className="w-full max-h-[500px] object-contain bg-secondary" loading="lazy" />
+                  <div className="absolute bottom-2 left-2 flex items-center gap-1 px-2 py-1 rounded bg-black/60">
+                    <span className="text-orange-500 text-xs font-bold">r/</span>
+                    <span className="text-white text-xs">Reddit</span>
+                  </div>
+                </div>
+              );
+            }
+            
+            if (isVideo) {
+              return (
+                <div key={index} className="relative aspect-video bg-secondary rounded-lg overflow-hidden">
+                  <video src={url} controls className="w-full h-full object-cover" preload="metadata" />
+                  <div className="absolute bottom-2 left-2 flex items-center gap-1 px-2 py-1 rounded bg-black/60 pointer-events-none">
+                    <span className="text-orange-500 text-xs font-bold">r/</span>
+                    <span className="text-white text-xs">Reddit</span>
+                  </div>
+                </div>
+              );
+            }
+            
+            // Regular Reddit post link
+            return (
+              <a
+                key={index}
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 p-3 bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-950/30 transition-colors"
+              >
+                <div className="h-10 w-10 rounded-full bg-orange-500 flex items-center justify-center flex-shrink-0">
+                  <span className="text-white font-bold text-sm">r/</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="text-sm font-medium text-foreground block truncate">{url}</span>
+                  <span className="text-xs text-muted-foreground">Open on Reddit →</span>
+                </div>
+              </a>
+            );
+          })}
+        </div>
+      )}
 
       {/* Actions */}
       <div className="flex items-center justify-between p-4 border-t border-border">

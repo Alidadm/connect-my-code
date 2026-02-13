@@ -1,0 +1,1 @@
+ALTER TABLE public.posts ADD COLUMN reddit_urls text[] DEFAULT NULL;
