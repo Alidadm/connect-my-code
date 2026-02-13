@@ -3,7 +3,7 @@ import { useRedditFeedVideos } from "@/hooks/useRedditVideos";
 import { RedditPreviewCard } from "@/components/feed/RedditPreviewCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Bookmark, BookmarkCheck, Copy, Share2, MessageCircle } from "lucide-react";
+import { ExternalLink, Bookmark, Share2, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -68,46 +68,47 @@ const RedditCardActions = ({ videoId, url }: { videoId: string; url: string }) =
   };
 
   return (
-    <div className="flex items-center gap-1 pt-2 border-t border-border">
-      <Button
-        variant="ghost"
-        size="sm"
-        className="flex-1 text-muted-foreground hover:text-foreground gap-1.5 h-9"
-        onClick={() => window.open(url, "_blank")}
-      >
-        <ExternalLink className="h-4 w-4" />
-        <span className="text-xs">Open</span>
-      </Button>
+    <div className="flex items-center justify-between p-4 border-t border-border">
+      <div className="flex items-center gap-2 sm:gap-4">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="gap-1 sm:gap-2 text-muted-foreground hover:text-primary"
+          onClick={() => window.open(url, "_blank")}
+        >
+          <ExternalLink className="h-5 w-5" />
+          <span className="hidden sm:inline">Open</span>
+        </Button>
+
+        <Button
+          variant="ghost"
+          size="sm"
+          className="gap-1 sm:gap-2 text-muted-foreground hover:text-primary"
+          onClick={handleCopy}
+        >
+          <Copy className="h-5 w-5" />
+          <span className="hidden sm:inline">Copy</span>
+        </Button>
+
+        <Button
+          variant="ghost"
+          size="sm"
+          className="gap-1 sm:gap-2 text-muted-foreground hover:text-primary"
+          onClick={handleShare}
+        >
+          <Share2 className="h-5 w-5" />
+          <span className="hidden sm:inline">Share</span>
+        </Button>
+      </div>
 
       <Button
         variant="ghost"
-        size="sm"
-        className={`flex-1 gap-1.5 h-9 ${isSaved ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+        size="icon"
+        className={isSaved ? "text-primary" : "text-muted-foreground"}
         onClick={() => toggle.mutate(videoId)}
         disabled={toggle.isPending}
       >
-        {isSaved ? <BookmarkCheck className="h-4 w-4" /> : <Bookmark className="h-4 w-4" />}
-        <span className="text-xs">{isSaved ? "Saved" : "Save"}</span>
-      </Button>
-
-      <Button
-        variant="ghost"
-        size="sm"
-        className="flex-1 text-muted-foreground hover:text-foreground gap-1.5 h-9"
-        onClick={handleCopy}
-      >
-        <Copy className="h-4 w-4" />
-        <span className="text-xs">Copy</span>
-      </Button>
-
-      <Button
-        variant="ghost"
-        size="sm"
-        className="flex-1 text-muted-foreground hover:text-foreground gap-1.5 h-9"
-        onClick={handleShare}
-      >
-        <Share2 className="h-4 w-4" />
-        <span className="text-xs">Share</span>
+        <Bookmark className={`h-5 w-5 ${isSaved ? "fill-current" : ""}`} />
       </Button>
     </div>
   );
@@ -131,23 +132,28 @@ export const RedditFeedRow = () => {
   if (videos.length === 0) return null;
 
   return (
-    <div className="bg-card rounded-xl shadow-sm p-4 mb-4 space-y-4">
-      <div className="flex items-center gap-2">
-        <div className="h-5 w-5 rounded-full bg-orange-500 flex items-center justify-center">
-          <span className="text-white font-bold text-[10px]">r/</span>
-        </div>
-        <h3 className="font-semibold text-foreground">Reddit</h3>
-        <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-          {videos.length} {videos.length === 1 ? "link" : "links"}
-        </span>
-      </div>
-
+    <div className="space-y-4 mb-4">
       {videos.map((video) => (
-        <div key={video.id} className="space-y-0">
-          {video.title && (
-            <p className="text-sm font-medium text-foreground mb-1.5">{video.title}</p>
-          )}
-          <RedditPreviewCard url={video.reddit_url} />
+        <div key={video.id} className="bg-card rounded-xl shadow-sm overflow-hidden">
+          {/* Header */}
+          <div className="flex items-center gap-2 p-4 pb-2">
+            <div className="h-8 w-8 rounded-full bg-orange-500 flex items-center justify-center flex-shrink-0">
+              <span className="text-white font-bold text-xs">r/</span>
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-foreground">Reddit</p>
+              {video.title && (
+                <p className="text-xs text-muted-foreground truncate">{video.title}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="px-4 pb-2">
+            <RedditPreviewCard url={video.reddit_url} />
+          </div>
+
+          {/* Actions - matching PostCard style */}
           <RedditCardActions videoId={video.id} url={video.reddit_url} />
         </div>
       ))}
