@@ -188,13 +188,14 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
     ).join('');
 
 
-    // Track uploaded files, tags, custom lists, and YouTube URLs
+    // Track uploaded files, tags, custom lists, YouTube URLs, and schedule
     let mediaFiles: MediaFile[] = [];
     let taggedItems: TaggedItem[] = [];
     let selectedTopics: SelectedTopic[] = [];
     let selectedCustomLists: CustomList[] = [];
     let youtubeUrls: string[] = [];
     let redditUrls: string[] = [];
+    let scheduledAt: string | null = null;
 
     // Fetch topics and custom lists for display
     const [topics, customLists] = await Promise.all([fetchTopics(), fetchCustomLists()]);
@@ -553,6 +554,42 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
               <div id="reddit-items-grid" style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;"></div>
             </div>
           </div>
+
+          <!-- Schedule Panel -->
+          <div id="schedule-panel" style="display: none; padding: 16px; background: #f0fdf4; border-radius: 12px; margin-bottom: 12px; border: 1px solid #86efac;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <span style="font-weight: 600; font-size: 14px; color: #16a34a;">🕐 ${t('feed.schedulePost', 'Schedule Post')}</span>
+              <button type="button" id="close-schedule" style="background: none; border: none; cursor: pointer; padding: 4px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </button>
+            </div>
+            <p style="font-size: 12px; color: #15803d; margin-bottom: 12px;">${t('feed.scheduleHelp', 'Choose a date and time to publish this post automatically')}</p>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <input type="date" id="schedule-date" style="flex: 1; min-width: 140px; padding: 10px 14px; border: 1px solid #86efac; border-radius: 8px; font-size: 14px; outline: none; background: white;" />
+              <input type="time" id="schedule-time" style="flex: 1; min-width: 120px; padding: 10px 14px; border: 1px solid #86efac; border-radius: 8px; font-size: 14px; outline: none; background: white;" />
+            </div>
+            <div id="schedule-preview" style="display: none; margin-top: 12px; padding: 8px 12px; background: #dcfce7; border-radius: 8px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 14px;">📅</span>
+                <span id="schedule-preview-text" style="font-size: 13px; color: #15803d; font-weight: 500; flex: 1;"></span>
+                <button type="button" id="clear-schedule" style="background: none; border: none; cursor: pointer; color: #dc2626; font-size: 12px; font-weight: 500;">${t('common.clear', 'Clear')}</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Schedule Badge (shown when scheduled) -->
+          <div id="schedule-badge" style="display: none; margin: 8px 0; padding: 8px 12px; background: #dcfce7; border-radius: 8px; border: 1px solid #86efac;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 16px;">🕐</span>
+              <div style="flex: 1;">
+                <span style="font-size: 13px; color: #15803d; font-weight: 600;">${t('feed.scheduledFor', 'Scheduled for')}:</span>
+                <span id="schedule-badge-text" style="font-size: 13px; color: #15803d; margin-left: 4px;"></span>
+              </div>
+              <button type="button" id="remove-schedule" style="background: none; border: none; cursor: pointer; padding: 4px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </button>
+            </div>
+          </div>
           
           <!-- Action buttons -->
           <div style="display: flex; align-items: center; gap: 4px; padding-top: 16px; border-top: 1px solid #e5e7eb; margin-top: 16px; flex-wrap: wrap;">
@@ -582,6 +619,10 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
             <button type="button" id="btn-mention" class="swal-action-btn" style="display: flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 8px; border: none; background: transparent; cursor: pointer; color: #666; font-size: 13px; transition: background 0.2s;">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"/></svg>
               <span style="color: #8b5cf6;">${t('feed.mention', 'Mention')}</span>
+            </button>
+            <button type="button" id="btn-schedule" class="swal-action-btn" style="display: flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 8px; border: none; background: transparent; cursor: pointer; color: #666; font-size: 13px; transition: background 0.2s;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+              <span style="color: #16a34a;">${t('feed.schedule', 'Schedule')}</span>
             </button>
           </div>
         </div>
@@ -787,6 +828,8 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
           if (youtubePanel) youtubePanel.style.display = 'none';
           const redditPanelEl = document.getElementById('reddit-panel') as HTMLDivElement;
           if (redditPanelEl) redditPanelEl.style.display = 'none';
+          const schedulePanelEl = document.getElementById('schedule-panel') as HTMLDivElement;
+          if (schedulePanelEl) schedulePanelEl.style.display = 'none';
         };
 
         // Update tagged items preview
@@ -1682,6 +1725,82 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
           });
         });
 
+        // Schedule panel functionality
+        const schedulePanel = document.getElementById('schedule-panel') as HTMLDivElement;
+        const scheduleDateInput = document.getElementById('schedule-date') as HTMLInputElement;
+        const scheduleTimeInput = document.getElementById('schedule-time') as HTMLInputElement;
+        const schedulePreview = document.getElementById('schedule-preview') as HTMLDivElement;
+        const schedulePreviewText = document.getElementById('schedule-preview-text') as HTMLSpanElement;
+        const scheduleBadge = document.getElementById('schedule-badge') as HTMLDivElement;
+        const scheduleBadgeText = document.getElementById('schedule-badge-text') as HTMLSpanElement;
+
+        // Set minimum date to today
+        const today = new Date();
+        scheduleDateInput.min = today.toISOString().split('T')[0];
+
+        const updateSchedulePreview = () => {
+          const date = scheduleDateInput.value;
+          const time = scheduleTimeInput.value;
+          if (date && time) {
+            const dt = new Date(date + 'T' + time);
+            if (dt <= new Date()) {
+              schedulePreview.style.display = 'none';
+              return;
+            }
+            const formatted = dt.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+            schedulePreviewText.textContent = formatted;
+            schedulePreview.style.display = 'block';
+            scheduledAt = dt.toISOString();
+            // Show badge
+            scheduleBadge.style.display = 'block';
+            scheduleBadgeText.textContent = formatted;
+            // Update confirm button text
+            const confirmBtn = Swal.getConfirmButton();
+            if (confirmBtn) {
+              confirmBtn.innerHTML = '<span style="display: flex; align-items: center; gap: 8px;">🕐 ' + t('feed.schedulePost', 'Schedule Post') + '</span>';
+            }
+          } else {
+            schedulePreview.style.display = 'none';
+          }
+        };
+
+        scheduleDateInput?.addEventListener('change', updateSchedulePreview);
+        scheduleTimeInput?.addEventListener('change', updateSchedulePreview);
+
+        document.getElementById('btn-schedule')?.addEventListener('click', () => {
+          const isVisible = schedulePanel.style.display === 'block';
+          closeAllPanels();
+          schedulePanel.style.display = isVisible ? 'none' : 'block';
+        });
+
+        document.getElementById('close-schedule')?.addEventListener('click', () => {
+          schedulePanel.style.display = 'none';
+        });
+
+        document.getElementById('clear-schedule')?.addEventListener('click', () => {
+          scheduledAt = null;
+          scheduleDateInput.value = '';
+          scheduleTimeInput.value = '';
+          schedulePreview.style.display = 'none';
+          scheduleBadge.style.display = 'none';
+          const confirmBtn = Swal.getConfirmButton();
+          if (confirmBtn) {
+            confirmBtn.innerHTML = '<span style="display: flex; align-items: center; gap: 8px;">📤 ' + t('feed.sharePost', 'Share Post') + '</span>';
+          }
+        });
+
+        document.getElementById('remove-schedule')?.addEventListener('click', () => {
+          scheduledAt = null;
+          scheduleDateInput.value = '';
+          scheduleTimeInput.value = '';
+          schedulePreview.style.display = 'none';
+          scheduleBadge.style.display = 'none';
+          const confirmBtn = Swal.getConfirmButton();
+          if (confirmBtn) {
+            confirmBtn.innerHTML = '<span style="display: flex; align-items: center; gap: 8px;">📤 ' + t('feed.sharePost', 'Share Post') + '</span>';
+          }
+        });
+
         // Focus textarea
         textarea?.focus();
       },
@@ -1718,13 +1837,23 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
           ? trimmedContent.charAt(0).toUpperCase() + trimmedContent.slice(1)
           : trimmedContent;
         
+        // Validate schedule date is in the future
+        if (scheduledAt) {
+          const schedDate = new Date(scheduledAt);
+          if (schedDate <= new Date()) {
+            Swal.showValidationMessage(t('feed.scheduleMustBeFuture', 'Schedule time must be in the future'));
+            return false;
+          }
+        }
+
         return { 
           content: capitalizedContent, 
           visibility, 
           mediaUrls: uploadedUrls,
           customListIds: selectedCustomLists.map(l => l.id),
           youtubeUrls: youtubeUrls,
-          redditUrls: redditUrls
+          redditUrls: redditUrls,
+          scheduledAt: scheduledAt
         };
       }
     });
@@ -1739,6 +1868,7 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
           media_urls: formValues.mediaUrls.length > 0 ? formValues.mediaUrls : null,
           youtube_urls: formValues.youtubeUrls.length > 0 ? formValues.youtubeUrls : null,
           reddit_urls: formValues.redditUrls.length > 0 ? formValues.redditUrls : null,
+          scheduled_at: formValues.scheduledAt || null,
         }).select('id').single();
 
         if (postError) throw postError;
@@ -1760,8 +1890,12 @@ export const PostCreator = ({ onPostCreated }: { onPostCreated?: () => void }) =
         }
 
         toast({
-          title: t('feed.postShared', 'Post shared!'),
-          description: t('feed.postPublished', 'Your post has been published successfully.'),
+          title: formValues.scheduledAt 
+            ? t('feed.postScheduled', 'Post scheduled!') 
+            : t('feed.postShared', 'Post shared!'),
+          description: formValues.scheduledAt 
+            ? t('feed.postScheduledDesc', 'Your post will be published at the scheduled time.')
+            : t('feed.postPublished', 'Your post has been published successfully.'),
         });
         onPostCreated?.();
       } catch (error) {

@@ -320,9 +320,11 @@ export const Feed = () => {
       // Check if we have more posts to load
       setHasMore(postsData.length === POSTS_PER_PAGE);
 
-      // Filter out blocked/muted users
+      // Filter out blocked/muted users and future-scheduled posts
+      const now = new Date().toISOString();
       const filteredPosts = postsData.filter(
-        (post) => !blockedUserIds.has(post.user_id)
+        (post) => !blockedUserIds.has(post.user_id) && 
+          (!post.scheduled_at || post.scheduled_at <= now)
       );
 
       // Fetch profiles and update state
