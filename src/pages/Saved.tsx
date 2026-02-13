@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { SavedItemCard } from "@/components/saved/SavedItemCard";
-import { SavedRedditSection } from "@/components/saved/SavedRedditSection";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -500,8 +500,8 @@ const Saved = () => {
           </div>
         )}
 
-        {/* Saved Reddit Items */}
-        {!selectedCollection && <SavedRedditSection />}
+
+
 
         {/* Create/Edit Collection Dialog */}
         <Dialog 
