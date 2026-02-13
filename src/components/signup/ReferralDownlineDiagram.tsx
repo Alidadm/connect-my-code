@@ -75,6 +75,10 @@ export const ReferralDownlineDiagram = () => {
         <p className="text-lg font-semibold opacity-90 italic">
           And the downline continues to grow and continue to expand it.
         </p>
+
+        <p className="leading-relaxed bg-destructive/20 backdrop-blur-sm rounded-lg p-4 text-primary-foreground border border-primary-foreground/20">
+          ⚠️ You can <strong>cancel anytime</strong>, but once you do, you will <strong>lose all automatic monthly referral commissions</strong> permanently. Stay active to keep earning!
+        </p>
       </div>
     </div>
   );
