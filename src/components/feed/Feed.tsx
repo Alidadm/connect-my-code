@@ -10,6 +10,7 @@ import { ProfileTabContent } from "./ProfileTabContent";
 import { TodaysBirthdays } from "./TodaysBirthdays";
 import { PlatformGalleryCard } from "./PlatformGalleryCard";
 import { TikTokFeedRow } from "@/components/tiktok/TikTokFeedRow";
+import { RedditFeedRow } from "@/components/reddit/RedditFeedRow";
 import { FeedPolls } from "./FeedPolls";
 import { ScrollProgressIndicator } from "./ScrollProgressIndicator";
 import { Button } from "@/components/ui/button";
@@ -493,6 +494,9 @@ export const Feed = () => {
 
           {/* TikTok Short Videos - Admin managed */}
           {user && <TikTokFeedRow />}
+
+          {/* Reddit Links - Admin managed */}
+          {user && <RedditFeedRow />}
 
           {/* Polls Section */}
           {user && <FeedPolls />}
