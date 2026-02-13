@@ -3274,6 +3274,74 @@ export type Database = {
         }
         Relationships: []
       }
+      reddit_video_groups: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          is_active: boolean
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      reddit_videos: {
+        Row: {
+          created_at: string
+          display_order: number
+          group_id: string
+          id: string
+          media_type: string | null
+          reddit_url: string
+          thumbnail_url: string | null
+          title: string | null
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          group_id: string
+          id?: string
+          media_type?: string | null
+          reddit_url: string
+          thumbnail_url?: string | null
+          title?: string | null
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          group_id?: string
+          id?: string
+          media_type?: string | null
+          reddit_url?: string
+          thumbnail_url?: string | null
+          title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reddit_videos_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "reddit_video_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       saved_platform_photos: {
         Row: {
           created_at: string
