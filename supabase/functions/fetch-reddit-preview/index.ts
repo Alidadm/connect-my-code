@@ -49,6 +49,27 @@ serve(async (req) => {
       });
     }
 
+    // Validate that this looks like an actual Reddit post/comment URL
+    // oEmbed only works with paths like /r/subreddit/comments/...
+    const isValidRedditPostUrl = /^https?:\/\/(www\.)?reddit\.com\/r\/[^/]+\/comments\//.test(cleanUrl);
+
+    if (!isValidRedditPostUrl) {
+      // Return a fallback preview for non-post Reddit URLs (tracking links, homepages, etc.)
+      const result = {
+        title: "Reddit Link",
+        author: null,
+        subreddit: "Reddit",
+        html: null,
+        thumbnail_url: null,
+        permalink: cleanUrl,
+        is_direct_media: false,
+        is_fallback: true,
+      };
+      return new Response(JSON.stringify(result), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Use Reddit's official oEmbed endpoint for post URLs
     const oembedUrl = `https://www.reddit.com/oembed?url=${encodeURIComponent(cleanUrl)}&format=json`;
     console.log("Fetching Reddit oEmbed:", oembedUrl);
@@ -62,10 +83,20 @@ serve(async (req) => {
     if (!response.ok) {
       const body = await response.text();
       console.error("oEmbed error body:", body);
-      return new Response(
-        JSON.stringify({ error: "Failed to fetch Reddit data", status: response.status }),
-        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      // Return fallback instead of error
+      const result = {
+        title: "Reddit Post",
+        author: null,
+        subreddit: "Reddit",
+        html: null,
+        thumbnail_url: null,
+        permalink: cleanUrl,
+        is_direct_media: false,
+        is_fallback: true,
+      };
+      return new Response(JSON.stringify(result), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const oembed = await response.json();
