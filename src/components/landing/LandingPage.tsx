@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "react-router-dom";
-import { Users, MessageCircle, Share2, Heart, Sparkles, TrendingUp, Shield, Zap } from "lucide-react";
+import { Users, MessageCircle, Share2, Heart, Sparkles, TrendingUp, Shield, Zap, AlertTriangle, Newspaper, UserPlus, Mail, CalendarDays, BookOpen, Gamepad2, UsersRound, Image, Video, MoreHorizontal } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { ReferralDownlineDiagram } from "@/components/signup/ReferralDownlineDiagram";
 import dolphysnLogo from "@/assets/dolphysn-white-logo.jpg";
@@ -189,6 +189,75 @@ export const LandingPage = () => {
               <div className="absolute -top-4 -right-4 w-24 h-24 bg-primary/20 rounded-full blur-2xl" />
               <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-accent/20 rounded-full blur-2xl" />
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Cancellation Policy Notice */}
+      <section className="py-12 sm:py-16">
+        <div className="max-w-4xl mx-auto px-4">
+          <div className="rounded-2xl border border-destructive/20 bg-destructive/5 p-6 sm:p-8">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-full bg-destructive/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <AlertTriangle className="h-5 w-5 text-destructive" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-foreground mb-2">
+                  Cancel Anytime — But Here's What You Should Know
+                </h3>
+                <p className="text-muted-foreground mb-3">
+                  You're free to cancel your membership at any time — no lock-ins, no hidden fees. However, 
+                  once you cancel, <strong className="text-foreground">all your recurring monthly referral commissions will stop immediately</strong>.
+                </p>
+                <p className="text-muted-foreground text-sm">
+                  That means if you've built a network earning you $50, $250, or even $500+ per month, 
+                  all of that goes away the moment you cancel. Stay active, keep earning — it's that simple.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Platform Features Showcase */}
+      <section className="py-16 sm:py-24 bg-gradient-to-b from-background to-muted/30">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/20 text-accent-foreground text-sm font-medium mb-4">
+              <Sparkles className="h-4 w-4" />
+              Everything You Need
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
+              A Complete Social Experience
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              DolphySN isn't just another social network — it's packed with features to keep you connected, entertained, and engaged.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+            {[
+              { icon: Newspaper, label: "Feed" },
+              { icon: UserPlus, label: "Friends" },
+              { icon: Mail, label: "Pen Pals" },
+              { icon: CalendarDays, label: "Events" },
+              { icon: BookOpen, label: "Blogs" },
+              { icon: Gamepad2, label: "Games" },
+              { icon: UsersRound, label: "Groups" },
+              { icon: Image, label: "Photos" },
+              { icon: Video, label: "Videos" },
+              { icon: MoreHorizontal, label: "And Many More" },
+            ].map((item, index) => (
+              <div
+                key={index}
+                className="flex flex-col items-center gap-3 p-5 rounded-xl bg-card border border-border hover:border-primary/40 hover:shadow-md transition-all group"
+              >
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                  <item.icon className="h-6 w-6 text-primary" />
+                </div>
+                <span className="text-sm font-semibold text-foreground">{item.label}</span>
+              </div>
+            ))}
           </div>
         </div>
       </section>
