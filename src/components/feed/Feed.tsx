@@ -384,7 +384,7 @@ export const Feed = () => {
     setHasMore(true);
     fetchPosts(0, false);
 
-    // Subscribe to realtime updates (only for new posts)
+    // Subscribe to realtime updates for posts and reactions
     const channel = supabase
       .channel("posts-channel")
       .on(
@@ -392,7 +392,6 @@ export const Feed = () => {
         { event: "INSERT", schema: "public", table: "posts" },
         async (payload) => {
           const newPost = payload.new as any;
-          // Skip posts from blocked/muted users
           if (blockedUserIds.has(newPost.user_id)) return;
           
           if (newPost.visibility === "public" || newPost.user_id === user?.id) {
@@ -401,10 +400,52 @@ export const Feed = () => {
           }
         }
       )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "posts" },
+        (payload) => {
+          const updated = payload.new as any;
+          setPosts(prev => prev.map(p => 
+            p.id === updated.id ? { ...p, ...updated, profiles: p.profiles } : p
+          ));
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "posts" },
+        (payload) => {
+          const deleted = payload.old as any;
+          setPosts(prev => prev.filter(p => p.id !== deleted.id));
+        }
+      )
+      .subscribe();
+
+    // Subscribe to real-time like count changes
+    const likesChannel = supabase
+      .channel("post-likes-channel")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "post_likes" },
+        async (payload) => {
+          const postId = (payload.new as any)?.post_id || (payload.old as any)?.post_id;
+          if (!postId) return;
+          const { data } = await supabase
+            .from("posts")
+            .select("likes_count")
+            .eq("id", postId)
+            .single();
+          if (data) {
+            setPosts(prev => prev.map(p => 
+              p.id === postId ? { ...p, likes_count: data.likes_count } : p
+            ));
+          }
+        }
+      )
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
+      supabase.removeChannel(likesChannel);
     };
   }, [filter, user?.id, blockedUserIds]);
 
