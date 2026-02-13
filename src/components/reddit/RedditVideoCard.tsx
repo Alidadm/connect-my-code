@@ -106,12 +106,12 @@ export const RedditVideoCard = ({ group }: RedditVideoCardProps) => {
       </button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="max-w-lg max-h-[85vh] p-0 pt-8">
+        <DialogContent className="max-w-lg max-h-[90vh] p-0 gap-0 [&>button]:z-20 [&>button]:bg-background/80 [&>button]:backdrop-blur-sm">
           <DialogHeader className="sr-only">
             <DialogTitle>{group.title || "Reddit Links"}</DialogTitle>
           </DialogHeader>
-          <ScrollArea className="max-h-[65vh] pr-2">
-            <div className="space-y-4">
+          <ScrollArea className="max-h-[85vh]">
+            <div className="space-y-2">
               {videos.map((video) => (
                 <div key={video.id} className="relative">
                   <RedditPreviewCard url={video.reddit_url} />
