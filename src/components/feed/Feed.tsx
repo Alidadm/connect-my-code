@@ -12,6 +12,7 @@ import { PlatformGalleryCard } from "./PlatformGalleryCard";
 import { TikTokFeedRow } from "@/components/tiktok/TikTokFeedRow";
 import { RedditFeedRow } from "@/components/reddit/RedditFeedRow";
 import { FeedPolls } from "./FeedPolls";
+import { ScheduledPostsTimeline } from "./ScheduledPostsTimeline";
 import { ScrollProgressIndicator } from "./ScrollProgressIndicator";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -546,6 +547,9 @@ export const Feed = () => {
           {user && <FeedPolls />}
 
           {user ? <PostCreator onPostCreated={() => fetchPosts(0, false)} /> : <DemoPostCreator />}
+
+          {/* Scheduled Posts Timeline - calendar view */}
+          {user && <ScheduledPostsTimeline />}
 
           {/* Filter tabs - hidden for now */}
           {/* <div className="flex items-center justify-end mb-4 gap-2">
