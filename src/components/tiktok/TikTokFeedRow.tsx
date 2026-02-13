@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useMemo } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTikTokVideos } from "@/hooks/useTikTokVideos";
@@ -9,6 +9,14 @@ import { cn } from "@/lib/utils";
 export const TikTokFeedRow = () => {
   const { videoGroups, isLoading } = useTikTokVideos();
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Randomly pick 2-3 groups per mount
+  const randomGroups = useMemo(() => {
+    if (videoGroups.length <= 3) return videoGroups;
+    const count = Math.min(videoGroups.length, Math.random() < 0.5 ? 2 : 3);
+    const shuffled = [...videoGroups].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, count);
+  }, [videoGroups]);
 
   const scroll = (direction: "left" | "right") => {
     if (!scrollRef.current) return;
@@ -35,7 +43,7 @@ export const TikTokFeedRow = () => {
     );
   }
 
-  if (videoGroups.length === 0) {
+  if (randomGroups.length === 0) {
     return null;
   }
 
@@ -49,12 +57,12 @@ export const TikTokFeedRow = () => {
           </svg>
           <h3 className="font-semibold text-foreground">Short Videos</h3>
           <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-            {videoGroups.length} {videoGroups.length === 1 ? "group" : "groups"}
+            {randomGroups.length} {randomGroups.length === 1 ? "group" : "groups"}
           </span>
         </div>
 
         {/* Navigation arrows */}
-        {videoGroups.length > 3 && (
+        {randomGroups.length > 3 && (
           <div className="flex gap-1">
             <Button
               variant="ghost"
@@ -85,7 +93,7 @@ export const TikTokFeedRow = () => {
         )}
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
-        {videoGroups.map((group) => (
+        {randomGroups.map((group) => (
           <div key={group.id} className="snap-start">
             <TikTokVideoCard group={group} />
           </div>

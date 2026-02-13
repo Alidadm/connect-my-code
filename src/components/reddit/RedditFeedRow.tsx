@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRedditFeedVideos } from "@/hooks/useRedditVideos";
 import { RedditPreviewCard } from "@/components/feed/RedditPreviewCard";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -127,6 +127,14 @@ const RedditCardActions = ({ videoId, url }: { videoId: string; url: string }) =
 export const RedditFeedRow = () => {
   const { videos, isLoading } = useRedditFeedVideos();
 
+  // Randomly pick 2-3 items per mount
+  const randomVideos = useMemo(() => {
+    if (videos.length <= 3) return videos;
+    const count = Math.min(videos.length, Math.random() < 0.5 ? 2 : 3);
+    const shuffled = [...videos].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, count);
+  }, [videos]);
+
   if (isLoading) {
     return (
       <div className="bg-card rounded-xl shadow-sm p-4 mb-4">
@@ -139,11 +147,11 @@ export const RedditFeedRow = () => {
     );
   }
 
-  if (videos.length === 0) return null;
+  if (randomVideos.length === 0) return null;
 
   return (
     <div className="space-y-4 mb-4">
-      {videos.map((video) => (
+      {randomVideos.map((video) => (
         <div key={video.id} className="bg-card rounded-xl shadow-sm overflow-hidden">
           {/* Header */}
           <div className="flex items-center gap-2 p-4 pb-2">
