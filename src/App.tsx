@@ -36,7 +36,7 @@ import ReportedPosts from "./pages/admin/ReportedPosts";
 import Messages from "./pages/admin/Messages";
 import PlatformGallery from "./pages/admin/PlatformGallery";
 import TikTokVideos from "./pages/admin/TikTokVideos";
-import RedditVideos from "./pages/admin/RedditVideos";
+
 import SiteSettings from "./pages/admin/SiteSettings";
 import PenPalsManagement from "./pages/admin/PenPalsManagement";
 import DatabaseBackups from "./pages/admin/DatabaseBackups";
@@ -142,7 +142,7 @@ const router = createBrowserRouter([
       { path: "/admin/messages", element: <AdminLayout><Messages /></AdminLayout> },
       { path: "/admin/gallery", element: <AdminLayout><PlatformGallery /></AdminLayout> },
       { path: "/admin/tiktok-videos", element: <AdminLayout><TikTokVideos /></AdminLayout> },
-      { path: "/admin/reddit-videos", element: <AdminLayout><RedditVideos /></AdminLayout> },
+      
       { path: "/admin/site-settings", element: <AdminLayout><SiteSettings /></AdminLayout> },
       { path: "/admin/penpals", element: <AdminLayout><PenPalsManagement /></AdminLayout> },
       { path: "/admin/database-backups", element: <I18nextProvider i18n={adminI18n}><DatabaseBackups /></I18nextProvider> },
