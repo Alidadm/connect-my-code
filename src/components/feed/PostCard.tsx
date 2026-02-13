@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { MessageCircle, Share2, MoreVertical, Bookmark, FileText, Music, Pencil, Trash2, Copy, Facebook, Twitter, Link2, Check, Ban, VolumeX, Volume2, UserX, Megaphone, Play, ThumbsUp, ThumbsDown, EyeOff, BookmarkPlus, Flag, Youtube, Eye, Images } from "lucide-react";
 import { extractYoutubeVideoId, getYoutubeThumbnailUrl, getYoutubeEmbedUrl } from "@/lib/youtube";
+import { RedditPreviewCard } from "@/components/feed/RedditPreviewCard";
 import { useViewedVideos } from "@/hooks/useViewedVideos";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -1041,34 +1042,8 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
               );
             }
             
-            // Regular Reddit post - embed via iframe
-            const embedUrl = url.replace(/\?.*$/, '').replace(/\/$/, '') + '/?ref_source=embed&ref=share&embed=true&theme=dark';
-            return (
-              <div key={index} className="rounded-lg overflow-hidden border border-border">
-                <iframe
-                  src={embedUrl.replace('www.reddit.com', 'www.redditmedia.com')}
-                  sandbox="allow-scripts allow-same-origin allow-popups"
-                  className="w-full border-0"
-                  style={{ minHeight: '320px', maxHeight: '520px' }}
-                  loading="lazy"
-                  title={`Reddit post ${index + 1}`}
-                  onLoad={(e) => {
-                    // Try to auto-resize based on content
-                    const iframe = e.target as HTMLIFrameElement;
-                    iframe.style.height = '420px';
-                  }}
-                />
-                <a
-                  href={url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-3 py-2 bg-secondary/50 hover:bg-secondary transition-colors text-xs text-muted-foreground"
-                >
-                  <span className="text-orange-500 font-bold">r/</span>
-                  <span>View on Reddit →</span>
-                </a>
-              </div>
-            );
+            // Regular Reddit post URL - fetch and render rich preview
+            return <RedditPreviewCard key={index} url={url} />;
           })}
         </div>
       )}
