@@ -8,6 +8,7 @@ export interface Message {
   sender_id: string;
   receiver_id: string;
   content: string;
+  image_url: string | null;
   read_at: string | null;
   created_at: string;
   sender?: {
@@ -32,13 +33,11 @@ export const useDirectMessages = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  // Fetch all conversations
   const { data: conversations = [], isLoading: loadingConversations, refetch: refetchConversations } = useQuery({
     queryKey: ["conversations", user?.id],
     queryFn: async () => {
       if (!user) return [];
 
-      // Get all messages involving the user
       const { data: messages, error } = await supabase
         .from("messages")
         .select("*")
@@ -47,7 +46,6 @@ export const useDirectMessages = () => {
 
       if (error) throw error;
 
-      // Group by conversation partner
       const conversationMap = new Map<string, { messages: Message[]; unreadCount: number }>();
       
       messages?.forEach((msg) => {
@@ -56,13 +54,12 @@ export const useDirectMessages = () => {
           conversationMap.set(otherId, { messages: [], unreadCount: 0 });
         }
         const conv = conversationMap.get(otherId)!;
-        conv.messages.push(msg);
+        conv.messages.push(msg as Message);
         if (!msg.read_at && msg.receiver_id === user.id) {
           conv.unreadCount++;
         }
       });
 
-      // Get profiles for all conversation partners
       const otherUserIds = Array.from(conversationMap.keys());
       if (otherUserIds.length === 0) return [];
 
@@ -73,7 +70,6 @@ export const useDirectMessages = () => {
 
       const profileMap = new Map(profiles?.map((p) => [p.user_id, p]) || []);
 
-      // Build conversation list
       const convList: Conversation[] = [];
       conversationMap.forEach((data, oderId) => {
         const profile = profileMap.get(oderId);
@@ -91,7 +87,6 @@ export const useDirectMessages = () => {
         }
       });
 
-      // Sort by last message time
       convList.sort((a, b) => {
         const timeA = a.last_message?.created_at || "";
         const timeB = b.last_message?.created_at || "";
@@ -103,12 +98,10 @@ export const useDirectMessages = () => {
     enabled: !!user,
   });
 
-  // Get total unread count
   const totalUnreadCount = conversations.reduce((sum, c) => sum + c.unread_count, 0);
 
-  // Send message mutation
   const sendMessage = useMutation({
-    mutationFn: async ({ receiverId, content }: { receiverId: string; content: string }) => {
+    mutationFn: async ({ receiverId, content, imageUrl }: { receiverId: string; content: string; imageUrl?: string }) => {
       if (!user) throw new Error("Not authenticated");
 
       const { data, error } = await supabase
@@ -117,6 +110,7 @@ export const useDirectMessages = () => {
           sender_id: user.id,
           receiver_id: receiverId,
           content,
+          image_url: imageUrl || null,
         })
         .select()
         .single();
@@ -130,7 +124,6 @@ export const useDirectMessages = () => {
     },
   });
 
-  // Mark messages as read
   const markAsRead = useCallback(async (otherUserId: string) => {
     if (!user) return;
 
@@ -142,6 +135,7 @@ export const useDirectMessages = () => {
       .is("read_at", null);
 
     queryClient.invalidateQueries({ queryKey: ["conversations"] });
+    queryClient.invalidateQueries({ queryKey: ["messages"] });
   }, [user, queryClient]);
 
   // Subscribe to new messages
@@ -153,13 +147,26 @@ export const useDirectMessages = () => {
       .on(
         "postgres_changes",
         {
-          event: "INSERT",
+          event: "*",
           schema: "public",
           table: "messages",
           filter: `receiver_id=eq.${user.id}`,
         },
         () => {
           queryClient.invalidateQueries({ queryKey: ["conversations"] });
+          queryClient.invalidateQueries({ queryKey: ["messages"] });
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "messages",
+          filter: `sender_id=eq.${user.id}`,
+        },
+        () => {
+          // Read receipt update for messages we sent
           queryClient.invalidateQueries({ queryKey: ["messages"] });
         }
       )
@@ -201,7 +208,7 @@ export const useConversationMessages = (otherUserId: string | null) => {
       return data as Message[];
     },
     enabled: !!user && !!otherUserId,
-    refetchInterval: 5000, // Poll every 5 seconds as backup
+    refetchInterval: 5000,
   });
 
   // Subscribe to new messages in this conversation
@@ -213,7 +220,7 @@ export const useConversationMessages = (otherUserId: string | null) => {
       .on(
         "postgres_changes",
         {
-          event: "INSERT",
+          event: "*",
           schema: "public",
           table: "messages",
         },
@@ -235,4 +242,46 @@ export const useConversationMessages = (otherUserId: string | null) => {
   }, [user, otherUserId, queryClient]);
 
   return { messages, isLoading };
+};
+
+// Typing indicator hook using Supabase Presence
+export const useTypingIndicator = (otherUserId: string | null) => {
+  const { user } = useAuth();
+  const [isOtherTyping, setIsOtherTyping] = useState(false);
+  const [channel, setChannel] = useState<ReturnType<typeof supabase.channel> | null>(null);
+
+  useEffect(() => {
+    if (!user || !otherUserId) return;
+
+    const channelName = [user.id, otherUserId].sort().join("-");
+    const ch = supabase.channel(`typing-${channelName}`, {
+      config: { presence: { key: user.id } },
+    });
+
+    ch.on("presence", { event: "sync" }, () => {
+      const state = ch.presenceState();
+      const otherState = state[otherUserId];
+      setIsOtherTyping(
+        Array.isArray(otherState) && otherState.some((s: any) => s.typing === true)
+      );
+    });
+
+    ch.subscribe();
+    setChannel(ch);
+
+    return () => {
+      supabase.removeChannel(ch);
+    };
+  }, [user, otherUserId]);
+
+  const setTyping = useCallback(
+    (typing: boolean) => {
+      if (channel) {
+        channel.track({ typing });
+      }
+    },
+    [channel]
+  );
+
+  return { isOtherTyping, setTyping };
 };

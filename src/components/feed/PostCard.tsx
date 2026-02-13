@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { MessageCircle, Share2, MoreVertical, Bookmark, FileText, Music, Pencil, Trash2, Copy, Facebook, Twitter, Link2, Check, Ban, VolumeX, Volume2, UserX, Megaphone, Play, ThumbsUp, ThumbsDown, EyeOff, BookmarkPlus, Flag, Youtube, Eye, Images } from "lucide-react";
 import { extractYoutubeVideoId, getYoutubeThumbnailUrl, getYoutubeEmbedUrl } from "@/lib/youtube";
 import { RedditPreviewCard } from "@/components/feed/RedditPreviewCard";
+import { MentionText } from "@/components/mentions/MentionText";
 import { useViewedVideos } from "@/hooks/useViewedVideos";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -899,7 +900,7 @@ export const PostCard = ({ post, onLikeChange }: PostCardProps) => {
       {/* Content */}
       {postContent && (
         <div className="px-4 pb-3">
-          <p className="text-base text-foreground whitespace-pre-wrap">{postContent}</p>
+          <MentionText text={postContent} className="text-base text-foreground whitespace-pre-wrap" />
         </div>
       )}
 
