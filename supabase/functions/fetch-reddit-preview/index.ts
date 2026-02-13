@@ -25,14 +25,36 @@ serve(async (req) => {
       cleanUrl = `https://${cleanUrl}`;
     }
 
-    // Use Reddit's official oEmbed endpoint (publicly available, no auth needed)
+    // Check if this is a direct media URL (not a Reddit post URL)
+    const directMediaHosts = ["i.redd.it", "v.redd.it", "packaged-media.redd.it", "preview.redd.it"];
+    const parsedUrl = new URL(cleanUrl);
+    const isDirectMedia = directMediaHosts.some(h => parsedUrl.hostname === h || parsedUrl.hostname.endsWith(`.${h}`));
+
+    if (isDirectMedia) {
+      // For direct media URLs, return minimal metadata without calling oEmbed
+      const isVideo = cleanUrl.includes(".mp4") || cleanUrl.includes("v.redd.it") || cleanUrl.includes("packaged-media.redd.it");
+      const result = {
+        title: "Reddit Media",
+        author: null,
+        subreddit: "Reddit",
+        html: null,
+        thumbnail_url: isVideo ? null : cleanUrl,
+        media_url: cleanUrl,
+        media_type: isVideo ? "video" : "image",
+        permalink: cleanUrl,
+        is_direct_media: true,
+      };
+      return new Response(JSON.stringify(result), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Use Reddit's official oEmbed endpoint for post URLs
     const oembedUrl = `https://www.reddit.com/oembed?url=${encodeURIComponent(cleanUrl)}&format=json`;
     console.log("Fetching Reddit oEmbed:", oembedUrl);
 
     const response = await fetch(oembedUrl, {
-      headers: {
-        "Accept": "application/json",
-      },
+      headers: { "Accept": "application/json" },
     });
 
     console.log("Reddit oEmbed response status:", response.status);
@@ -47,18 +69,15 @@ serve(async (req) => {
     }
 
     const oembed = await response.json();
-    console.log("oEmbed data:", JSON.stringify(oembed));
 
-    // oEmbed returns HTML embed code, title, author, etc.
     const result = {
       title: oembed.title || "Reddit Post",
       author: oembed.author_name || null,
       subreddit: oembed.provider_name || "Reddit",
       html: oembed.html || null,
       thumbnail_url: oembed.thumbnail_url || null,
-      thumbnail_width: oembed.thumbnail_width || null,
-      thumbnail_height: oembed.thumbnail_height || null,
       permalink: cleanUrl,
+      is_direct_media: false,
     };
 
     return new Response(JSON.stringify(result), {
