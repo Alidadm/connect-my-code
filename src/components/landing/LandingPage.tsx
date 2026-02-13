@@ -224,7 +224,7 @@ export const LandingPage = () => {
                 </p>
 
                 <Dialog open={termsOpen} onOpenChange={setTermsOpen}>
-                  <DialogTrigger asChild>
+                  <DialogTrigger asChild className="hidden">
                     <Button variant="outline" size="sm" className="gap-2">
                       <Info className="h-4 w-4" />
                       See Full Terms
