@@ -64,8 +64,7 @@ export const ScheduledPostsTimeline = () => {
     fetchScheduled();
   }, [user]);
 
-  if (!user || loading) return null;
-  if (posts.length === 0) return null;
+  if (!user) return null;
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
@@ -101,169 +100,193 @@ export const ScheduledPostsTimeline = () => {
           <h3 className="font-semibold text-foreground text-sm">
             {t("feed.scheduledTimeline", "Scheduled Posts Timeline")}
           </h3>
-          <Badge variant="secondary" className="text-xs">
-            {posts.length}
-          </Badge>
+          {posts.length > 0 && (
+            <Badge variant="secondary" className="text-xs">
+              {posts.length}
+            </Badge>
+          )}
         </div>
       </div>
 
-      {/* Calendar Navigation */}
-      <div className="flex items-center justify-between mb-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-7 w-7"
-          onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
-        <span className="text-sm font-medium text-foreground">
-          {format(currentMonth, "MMMM yyyy")}
-        </span>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-7 w-7"
-          onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-        >
-          <ChevronRight className="h-4 w-4" />
-        </Button>
-      </div>
-
-      {/* Day headers */}
-      <div className="grid grid-cols-7 gap-0.5 mb-1">
-        {dayNames.map((d) => (
-          <div
-            key={d}
-            className="text-center text-[10px] font-medium text-muted-foreground py-1"
-          >
-            {d}
+      {loading ? (
+        <div className="flex items-center justify-center py-8">
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+        </div>
+      ) : (
+        <>
+          {/* Calendar Navigation */}
+          <div className="flex items-center justify-between mb-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <span className="text-sm font-medium text-foreground">
+              {format(currentMonth, "MMMM yyyy")}
+            </span>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
           </div>
-        ))}
-      </div>
 
-      {/* Calendar grid */}
-      <div className="grid grid-cols-7 gap-0.5">
-        {calendarDays.map((day) => {
-          const dayPosts = getPostsForDay(day);
-          const inMonth = isSameMonth(day, currentMonth);
-          const today = isToday(day);
-          const isSelected = selectedDay && isSameDay(day, selectedDay);
-          const hasScheduled = dayPosts.length > 0;
+          {/* Day headers */}
+          <div className="grid grid-cols-7 gap-0.5 mb-1">
+            {dayNames.map((d) => (
+              <div
+                key={d}
+                className="text-center text-[10px] font-medium text-muted-foreground py-1"
+              >
+                {d}
+              </div>
+            ))}
+          </div>
 
-          return (
-            <Popover key={day.toISOString()}>
-              <PopoverTrigger asChild>
-                <button
-                  className={cn(
-                    "relative flex flex-col items-center justify-center h-9 rounded-md text-xs transition-colors",
-                    !inMonth && "text-muted-foreground/40",
-                    inMonth && "text-foreground",
-                    today && "font-bold ring-1 ring-primary/40",
-                    isSelected && "bg-primary/15",
-                    hasScheduled && "cursor-pointer hover:bg-secondary",
-                    !hasScheduled && "cursor-default"
-                  )}
-                  onClick={() => hasScheduled && setSelectedDay(day)}
-                  disabled={!hasScheduled}
-                >
-                  <span>{format(day, "d")}</span>
-                  {hasScheduled && (
-                    <div className="flex gap-0.5 mt-0.5">
-                      {dayPosts.slice(0, 3).map((_, i) => (
-                        <span
-                          key={i}
-                          className="h-1 w-1 rounded-full bg-primary"
-                        />
-                      ))}
-                    </div>
-                  )}
-                </button>
-              </PopoverTrigger>
-              {hasScheduled && (
-                <PopoverContent
-                  className="w-64 p-3 pointer-events-auto"
-                  align="center"
-                  side="bottom"
-                >
-                  <div className="text-xs font-semibold text-foreground mb-2">
-                    {format(day, "EEEE, MMM d")}
-                  </div>
-                  <div className="space-y-2">
-                    {dayPosts.map((post) => (
-                      <div
-                        key={post.id}
-                        className="flex items-start gap-2 p-2 rounded-md bg-secondary/50"
-                      >
-                        <div className="h-6 w-6 rounded bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5 text-primary">
-                          {getPostIcon(post)}
+          {/* Calendar grid */}
+          <div className="grid grid-cols-7 gap-0.5">
+            {calendarDays.map((day) => {
+              const dayPosts = getPostsForDay(day);
+              const inMonth = isSameMonth(day, currentMonth);
+              const today = isToday(day);
+              const isSelected = selectedDay && isSameDay(day, selectedDay);
+              const hasScheduled = dayPosts.length > 0;
+
+              return (
+                <Popover key={day.toISOString()}>
+                  <PopoverTrigger asChild>
+                    <button
+                      className={cn(
+                        "relative flex flex-col items-center justify-center h-9 rounded-md text-xs transition-colors",
+                        !inMonth && "text-muted-foreground/40",
+                        inMonth && "text-foreground",
+                        today && "font-bold ring-1 ring-primary/40",
+                        isSelected && "bg-primary/15",
+                        hasScheduled && "cursor-pointer hover:bg-secondary",
+                        !hasScheduled && "cursor-default"
+                      )}
+                      onClick={() => hasScheduled && setSelectedDay(day)}
+                      disabled={!hasScheduled}
+                    >
+                      <span>{format(day, "d")}</span>
+                      {hasScheduled && (
+                        <div className="flex gap-0.5 mt-0.5">
+                          {dayPosts.slice(0, 3).map((_, i) => (
+                            <span
+                              key={i}
+                              className="h-1 w-1 rounded-full bg-primary"
+                            />
+                          ))}
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs text-foreground truncate">
-                            {post.content
-                              ? post.content.slice(0, 80) +
-                                (post.content.length > 80 ? "…" : "")
-                              : post.media_urls?.length
-                                ? t("sidebar.mediaPost", "📷 Media post")
-                                : t("sidebar.emptyPost", "Post")}
-                          </p>
-                          <div className="flex items-center gap-1 text-[10px] text-muted-foreground mt-0.5">
-                            <Clock className="h-2.5 w-2.5" />
-                            <span>
-                              {format(new Date(post.scheduled_at), "h:mm a")}
-                            </span>
-                            <span className="text-muted-foreground/60">
-                              ·{" "}
-                              {formatDistanceToNow(new Date(post.scheduled_at), {
-                                addSuffix: true,
-                              })}
-                            </span>
+                      )}
+                    </button>
+                  </PopoverTrigger>
+                  {hasScheduled && (
+                    <PopoverContent
+                      className="w-64 p-3 pointer-events-auto"
+                      align="center"
+                      side="bottom"
+                    >
+                      <div className="text-xs font-semibold text-foreground mb-2">
+                        {format(day, "EEEE, MMM d")}
+                      </div>
+                      <div className="space-y-2">
+                        {dayPosts.map((post) => (
+                          <div
+                            key={post.id}
+                            className="flex items-start gap-2 p-2 rounded-md bg-secondary/50"
+                          >
+                            <div className="h-6 w-6 rounded bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5 text-primary">
+                              {getPostIcon(post)}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs text-foreground truncate">
+                                {post.content
+                                  ? post.content.slice(0, 80) +
+                                    (post.content.length > 80 ? "…" : "")
+                                  : post.media_urls?.length
+                                    ? t("sidebar.mediaPost", "📷 Media post")
+                                    : t("sidebar.emptyPost", "Post")}
+                              </p>
+                              <div className="flex items-center gap-1 text-[10px] text-muted-foreground mt-0.5">
+                                <Clock className="h-2.5 w-2.5" />
+                                <span>
+                                  {format(new Date(post.scheduled_at), "h:mm a")}
+                                </span>
+                                <span className="text-muted-foreground/60">
+                                  ·{" "}
+                                  {formatDistanceToNow(new Date(post.scheduled_at), {
+                                    addSuffix: true,
+                                  })}
+                                </span>
+                              </div>
+                            </div>
                           </div>
+                        ))}
+                      </div>
+                    </PopoverContent>
+                  )}
+                </Popover>
+              );
+            })}
+          </div>
+
+          {/* Upcoming list or empty state */}
+          <div className="mt-4 border-t border-border pt-3">
+            {posts.length > 0 ? (
+              <>
+                <h4 className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">
+                  {t("feed.upNext", "Up Next")}
+                </h4>
+                <div className="space-y-2">
+                  {posts.slice(0, 3).map((post) => (
+                    <div
+                      key={post.id}
+                      className="flex items-center gap-3 p-2 rounded-lg hover:bg-secondary/50 transition-colors"
+                    >
+                      <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary">
+                        {getPostIcon(post)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-foreground truncate">
+                          {post.content
+                            ? post.content.slice(0, 50) +
+                              (post.content.length > 50 ? "…" : "")
+                            : post.media_urls?.length
+                              ? t("sidebar.mediaPost", "📷 Media post")
+                              : t("sidebar.emptyPost", "Post")}
+                        </p>
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <CalendarClock className="h-3 w-3" />
+                          <span>
+                            {format(new Date(post.scheduled_at), "MMM d, h:mm a")}
+                          </span>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                </PopoverContent>
-              )}
-            </Popover>
-          );
-        })}
-      </div>
-
-      {/* Upcoming list below calendar */}
-      <div className="mt-4 border-t border-border pt-3">
-        <h4 className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">
-          {t("feed.upNext", "Up Next")}
-        </h4>
-        <div className="space-y-2">
-          {posts.slice(0, 3).map((post) => (
-            <div
-              key={post.id}
-              className="flex items-center gap-3 p-2 rounded-lg hover:bg-secondary/50 transition-colors"
-            >
-              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary">
-                {getPostIcon(post)}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm text-foreground truncate">
-                  {post.content
-                    ? post.content.slice(0, 50) +
-                      (post.content.length > 50 ? "…" : "")
-                    : post.media_urls?.length
-                      ? t("sidebar.mediaPost", "📷 Media post")
-                      : t("sidebar.emptyPost", "Post")}
-                </p>
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <CalendarClock className="h-3 w-3" />
-                  <span>
-                    {format(new Date(post.scheduled_at), "MMM d, h:mm a")}
-                  </span>
+                    </div>
+                  ))}
                 </div>
+              </>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-4 text-center">
+                <CalendarClock className="h-8 w-8 text-muted-foreground/40 mb-2" />
+                <p className="text-sm text-muted-foreground">
+                  {t("feed.noScheduledPosts", "No upcoming scheduled posts")}
+                </p>
+                <p className="text-xs text-muted-foreground/60 mt-1">
+                  {t("feed.scheduleHint", "Use the clock icon in the post composer to schedule posts")}
+                </p>
               </div>
-            </div>
-          ))}
-        </div>
-      </div>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 };
