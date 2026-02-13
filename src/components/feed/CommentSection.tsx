@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,6 +9,9 @@ import { formatDistanceToNow } from "date-fns";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { MentionText } from "@/components/mentions/MentionText";
+import { MentionSuggestions, useMentionDetection, insertMention } from "@/components/mentions/MentionSuggestions";
+import type { MentionUser } from "@/components/mentions/MentionSuggestions";
 
 interface Comment {
   id: string;
@@ -116,9 +119,10 @@ const CommentItem = ({ comment, onReply, onDelete, onLike, onEdit, isReply = fal
               </div>
             </div>
           ) : (
-            <p className={`text-foreground whitespace-pre-wrap break-words ${isReply ? "text-xs" : "text-sm"}`}>
-              {comment.content}
-            </p>
+            <MentionText 
+              text={comment.content} 
+              className={`text-foreground whitespace-pre-wrap break-words ${isReply ? "text-xs" : "text-sm"}`} 
+            />
           )}
           {!isEditing && isOwner && (
             <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
@@ -218,7 +222,24 @@ export const CommentSection = ({ postId, onCommentCountChange }: CommentSectionP
   const { user, profile } = useAuth();
   const queryClient = useQueryClient();
   const [newComment, setNewComment] = useState("");
+  const [cursorPos, setCursorPos] = useState(0);
+  const commentInputRef = useRef<HTMLTextAreaElement>(null);
   const [replyingTo, setReplyingTo] = useState<{ id: string; displayName: string } | null>(null);
+  const { mentionQuery, mentionStart, showSuggestions, setShowSuggestions } = useMentionDetection(newComment, cursorPos);
+
+  const handleMentionSelect = (mentionUser: MentionUser) => {
+    const { newText, newCursorPosition } = insertMention(newComment, mentionStart, cursorPos, mentionUser.username);
+    setNewComment(newText);
+    setCursorPos(newCursorPosition);
+    setShowSuggestions(false);
+    // Focus back on textarea
+    setTimeout(() => {
+      if (commentInputRef.current) {
+        commentInputRef.current.focus();
+        commentInputRef.current.setSelectionRange(newCursorPosition, newCursorPosition);
+      }
+    }, 0);
+  };
 
   const { data: comments = [], isLoading } = useQuery({
     queryKey: ["comments", postId],
@@ -543,11 +564,26 @@ export const CommentSection = ({ postId, onCommentCountChange }: CommentSectionP
               {profile?.display_name?.[0]?.toUpperCase() || "U"}
             </AvatarFallback>
           </Avatar>
-          <div className="flex-1 flex gap-2">
+          <div className="flex-1 flex gap-2 relative">
+            {/* Mention suggestions */}
+            {showSuggestions && (
+              <MentionSuggestions
+                query={mentionQuery}
+                onSelect={handleMentionSelect}
+                position={null}
+                visible={showSuggestions}
+              />
+            )}
             <Textarea
+              ref={commentInputRef}
               value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              placeholder={replyingTo ? `Reply to ${replyingTo.displayName}...` : t("feed.writeComment", "Write a comment...")}
+              onChange={(e) => {
+                setNewComment(e.target.value);
+                setCursorPos(e.target.selectionStart || 0);
+              }}
+              onSelect={(e) => setCursorPos((e.target as HTMLTextAreaElement).selectionStart || 0)}
+              onKeyUp={(e) => setCursorPos((e.target as HTMLTextAreaElement).selectionStart || 0)}
+              placeholder={replyingTo ? `Reply to ${replyingTo.displayName}...` : t("feed.writeComment", "Write a comment... (use @username to mention)")}
               className="min-h-[36px] max-h-20 resize-none text-sm"
               rows={1}
             />
