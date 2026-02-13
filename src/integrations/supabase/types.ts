@@ -3274,39 +3274,13 @@ export type Database = {
         }
         Relationships: []
       }
-      reddit_video_groups: {
-        Row: {
-          created_at: string
-          display_order: number
-          id: string
-          is_active: boolean
-          title: string | null
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          display_order?: number
-          id?: string
-          is_active?: boolean
-          title?: string | null
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          display_order?: number
-          id?: string
-          is_active?: boolean
-          title?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
       reddit_videos: {
         Row: {
           created_at: string
           display_order: number
-          group_id: string
+          group_id: string | null
           id: string
+          is_active: boolean
           media_type: string | null
           reddit_url: string
           thumbnail_url: string | null
@@ -3315,8 +3289,9 @@ export type Database = {
         Insert: {
           created_at?: string
           display_order?: number
-          group_id: string
+          group_id?: string | null
           id?: string
+          is_active?: boolean
           media_type?: string | null
           reddit_url: string
           thumbnail_url?: string | null
@@ -3325,22 +3300,15 @@ export type Database = {
         Update: {
           created_at?: string
           display_order?: number
-          group_id?: string
+          group_id?: string | null
           id?: string
+          is_active?: boolean
           media_type?: string | null
           reddit_url?: string
           thumbnail_url?: string | null
           title?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "reddit_videos_group_id_fkey"
-            columns: ["group_id"]
-            isOneToOne: false
-            referencedRelation: "reddit_video_groups"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       saved_platform_photos: {
         Row: {
