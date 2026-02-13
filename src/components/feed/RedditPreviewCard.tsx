@@ -86,13 +86,6 @@ export const RedditPreviewCard = ({ url }: RedditPreviewCardProps) => {
             className="w-full max-h-[500px] bg-black"
             preload="metadata"
           />
-          <div className="flex items-center justify-between px-3 py-2 border-t border-border">
-            <span className="text-xs text-muted-foreground">Reddit Video</span>
-            <a href={preview.permalink} target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors font-medium">
-              <ExternalLink className="h-3.5 w-3.5" /> Open
-            </a>
-          </div>
         </div>
       );
     }
@@ -100,12 +93,6 @@ export const RedditPreviewCard = ({ url }: RedditPreviewCardProps) => {
       return (
         <div className="rounded-lg border border-border overflow-hidden bg-card">
           <img src={preview.media_url} alt="Reddit" className="w-full max-h-[500px] object-contain bg-secondary" loading="lazy" />
-          <div className="flex items-center justify-end px-3 py-2 border-t border-border">
-            <a href={preview.permalink} target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors font-medium">
-              <ExternalLink className="h-3.5 w-3.5" /> Open
-            </a>
-          </div>
         </div>
       );
     }
@@ -113,42 +100,20 @@ export const RedditPreviewCard = ({ url }: RedditPreviewCardProps) => {
 
   return (
     <div className="rounded-lg border border-border overflow-hidden bg-card">
-      <div className="flex items-center gap-2 px-3 pt-3 pb-1">
-        <div className="h-6 w-6 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-          <span className="text-primary-foreground font-bold text-[10px]">r/</span>
-        </div>
-        <span className="text-xs font-semibold text-foreground">{preview.subreddit}</span>
-        {preview.author && (
-          <span className="text-xs text-muted-foreground">• {preview.author}</span>
-        )}
-      </div>
-      <div className="px-3 pb-2">
-        <h4 className="text-sm font-medium text-foreground leading-snug">{preview.title}</h4>
-      </div>
       {preview.thumbnail_url && (
-        <div className="px-3 pb-2">
-          <img src={preview.thumbnail_url} alt={preview.title}
-            className="w-full max-h-[400px] object-contain bg-secondary rounded" loading="lazy" />
-        </div>
+        <img src={preview.thumbnail_url} alt={preview.title}
+          className="w-full object-contain bg-secondary" loading="lazy" />
       )}
       {preview.html && (
-        <div className="px-3 pb-2">
-          <iframe
-            srcDoc={`<!DOCTYPE html><html><head><style>body{margin:0;padding:0;font-family:-apple-system,sans-serif;background:transparent;overflow:hidden;}</style></head><body>${preview.html}</body></html>`}
-            sandbox="allow-scripts allow-same-origin allow-popups"
-            className="w-full border-0 rounded"
-            style={{ minHeight: "200px", maxHeight: "400px" }}
-            loading="lazy"
-            title={preview.title}
-          />
-        </div>
+        <iframe
+          srcDoc={`<!DOCTYPE html><html><head><style>body{margin:0;padding:0;font-family:-apple-system,sans-serif;background:transparent;overflow:hidden;}</style></head><body>${preview.html}</body></html>`}
+          sandbox="allow-scripts allow-same-origin allow-popups"
+          className="w-full border-0"
+          style={{ minHeight: "300px", maxHeight: "500px" }}
+          loading="lazy"
+          title={preview.title}
+        />
       )}
-      <div className="flex items-center justify-end px-3 py-2 border-t border-border">
-        <a href={preview.permalink} target="_blank" rel="noopener noreferrer"
-          className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors font-medium">
-          <ExternalLink className="h-3.5 w-3.5" /> View on Reddit
-        </a>
-      </div>
     </div>
   );
 };
